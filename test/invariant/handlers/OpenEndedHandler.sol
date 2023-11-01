@@ -127,7 +127,7 @@ contract OpenEndedHandler is BaseHandler {
         deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + depositAmount });
 
         // Approve {SablierV2OpenEnded} to spend the assets.
-        asset.approve({ spender: address(openEnded), value: depositAmount });
+        asset.approve({ spender: address(openEnded), amount: depositAmount });
 
         // Deposit into the stream.
         openEnded.deposit({ streamId: currentStreamId, amount: depositAmount });
@@ -136,13 +136,13 @@ contract OpenEndedHandler is BaseHandler {
         openEndedStore.updateStreamDepositedAmountsSum(depositAmount);
     }
 
-    function refundFromStream(
+    function receiveRefundFromStream(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
         uint128 refundAmount
     )
         external
-        instrument("refundFromStream")
+        instrument("receiveRefundFromStream")
         adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
@@ -162,7 +162,7 @@ contract OpenEndedHandler is BaseHandler {
         refundAmount = uint128(_bound(refundAmount, 1, refundableAmount));
 
         // Refund from stream.
-        openEnded.refundFromStream(currentStreamId, refundableAmount);
+        openEnded.receiveRefundFromStream(currentStreamId, refundableAmount);
 
         // Store the deposited amount.
         openEndedStore.updateStreamExtractedAmountsSum(refundAmount);
@@ -217,7 +217,7 @@ contract OpenEndedHandler is BaseHandler {
         deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + depositAmount });
 
         // Approve {SablierV2OpenEnded} to spend the assets.
-        asset.approve({ spender: address(openEnded), value: depositAmount });
+        asset.approve({ spender: address(openEnded), amount: depositAmount });
 
         // Restart the stream.
         openEnded.restartStreamAndDeposit(currentStreamId, ratePerSecond, depositAmount);

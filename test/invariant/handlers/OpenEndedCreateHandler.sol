@@ -95,7 +95,7 @@ contract OpenEndedCreateHandler is BaseHandler {
         deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + depositAmount });
 
         // Approve {SablierV2OpenEnded} to spend the assets.
-        asset.approve({ spender: address(openEnded), value: depositAmount });
+        asset.approve({ spender: address(openEnded), amount: depositAmount });
 
         // Create the stream.
         asset = asset;

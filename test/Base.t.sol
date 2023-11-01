@@ -67,7 +67,7 @@ abstract contract Base_Test is Assertions, Events, Modifiers {
         vm.label(address(usdt), "USDT");
 
         vm.startPrank({ msgSender: users.sender });
-        dai.approve({ spender: address(openEnded), value: UINT256_MAX });
+        dai.approve({ spender: address(openEnded), amount: UINT256_MAX });
         usdt.approve({ spender: address(openEnded), value: UINT256_MAX });
     }
 
