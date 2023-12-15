@@ -42,6 +42,9 @@ library Errors {
     /// @notice Thrown when trying to refund an amount greater than the refundable amount.
     error SablierV2OpenEnded_Overrefund(uint256 streamId, uint128 amount, uint128 refundableAmount);
 
+    /// @notice Thrown when trying to withdraw an amount greater than the withdrawable amount.
+    error SablierV2OpenEnded_Overdraw(uint256 streamId, uint128 amount, uint128 withdrawableAmount);
+
     /// @notice Thrown when trying to create a OpenEnded stream with the recipient as the zero address.
     error SablierV2OpenEnded_RecipientZeroAddress();
 
@@ -56,13 +59,6 @@ library Errors {
 
     /// @notice Thrown when trying to restart a stream that is not canceled.
     error SablierV2OpenEnded_StreamNotCanceled(uint256 streamId);
-
-    /// @notice Thrown when trying to withdraw assets with a time reference less than or equal to stream's
-    /// `lastTimeUpdate`.
-    error SablierV2OpenEnded_TimeNotGreaterThanLastUpdate(uint40 time, uint40 lastUpdate);
-
-    /// @notice Thrown when trying to withdraw assets with a time reference greater than the current time.
-    error SablierV2OpenEnded_TimeNotLessOrEqualToCurrentTime(uint40 time, uint40 currentTime);
 
     /// @notice Thrown when `msg.sender` lacks authorization to perform an action.
     error SablierV2OpenEnded_Unauthorized(uint256 streamId, address caller);

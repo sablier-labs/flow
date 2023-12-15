@@ -103,12 +103,6 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedStorage {
     /// @param streamId The stream id for the query.
     function refundableAmountOf(uint256 streamId) external view returns (uint128 refundableAmount);
 
-    /// @notice Calculates the amount that the sender can refund from stream at `time`, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a canceled stream.
-    /// @param streamId The stream id for the query.
-    /// @param time The Unix timestamp for the streamed amount calculation.
-    function refundableAmountOf(uint256 streamId, uint40 time) external view returns (uint128 refundableAmount);
-
     /// @notice Calculates the amount that the sender owes on the stream, i.e. if more assets have been streamed than
     /// its balance, denoted in 18 decimals. If there is no debt, it will return zero.
     /// @dev Reverts if `streamId` references a canceled stream.
@@ -121,23 +115,10 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedStorage {
     /// @param streamId The stream id for the query.
     function streamedAmountOf(uint256 streamId) external view returns (uint128 streamedAmount);
 
-    /// @notice Calculates the amount streamed to the recipient from the last time update to `time` passed as parameter,
-    /// denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a canceled stream.
-    /// @param streamId The stream id for the query.
-    /// @param time The Unix timestamp for the streamed amount calculation.
-    function streamedAmountOf(uint256 streamId, uint40 time) external view returns (uint128 streamedAmount);
-
     /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a canceled stream.
     /// @param streamId The stream id for the query.
     function withdrawableAmountOf(uint256 streamId) external view returns (uint128 withdrawableAmount);
-
-    /// @notice Calculates the amount that the recipient can withdraw from the stream at `time`, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a canceled stream.
-    /// @param streamId The stream id for the query.
-    /// @param time The Unix timestamp for the streamed amount calculation.
-    function withdrawableAmountOf(uint256 streamId, uint40 time) external view returns (uint128 withdrawableAmount);
 
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
@@ -315,8 +296,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedStorage {
     ///
     /// @param streamId The id of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
-    /// @param time The Unix timestamp for the streamed amount calculation.
-    function withdraw(uint256 streamId, address to, uint40 time) external;
+    function withdraw(uint256 streamId, address to, uint128 amount) external;
 
     /// @notice Withdraws the maximum withdrawable amount from the stream to the provided address `to`.
     ///
