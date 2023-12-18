@@ -65,4 +65,7 @@ library Errors {
 
     /// @notice Thrown when trying to withdraw to the zero address.
     error SablierV2OpenEnded_WithdrawToZeroAddress();
+
+    /// @notice Thrown when trying to withdraw an amount that is smaller than the Stream's rate per second.
+    error SablierV2OpenEnded_SubparWithdrawal(uint128 ratePerSecond, uint128 withdrawnAmount);
 }

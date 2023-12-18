@@ -285,11 +285,8 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
             // Calculate how much time has passed since the last update.
             uint128 elapsedTime = uint128 (block.timestamp) - lastTimeUpdate;
 
-            // Calculate the streamed amount by multiplying the elapsed time by the rate per second.
-            uint128 ratePerSecond = _streams[streamId].ratePerSecond;
-            uint128 streamedAmount = elapsedTime * ratePerSecond;
-
-            return streamedAmount;
+            // Calculate and return the streamed amount by multiplying the elapsed time by the rate per second.
+            return elapsedTime * _streams[streamId].ratePerSecond;
         }
     }
 
@@ -567,17 +564,32 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
             revert Errors.SablierV2OpenEnded_WithdrawToZeroAddress();
         }
 
+        // Checks: the withdrawn amount isn't too big.
         uint128 withdrawableAmount = _withdrawableAmountOf(streamId);
         if (amount > withdrawableAmount) {
             revert Errors.SablierV2OpenEnded_Overdraw(streamId, amount, withdrawableAmount);
         }
 
+        uint128 ratePerSecond = _streams[streamId].ratePerSecond;
+
+        // Checks: the withdrawn amount is not smaller than the Stream's rate per second.
+        if (amount < ratePerSecond){
+            revert Errors.SablierV2OpenEnded_SubparWithdrawal(ratePerSecond, amount);
+        }
+
+        // Calculate the time delta corresponding to the withdrawn amount.
+        uint40 timeDelta = uint40(amount / ratePerSecond);
+
+        // If the amount is not a multiple of the rate per second, round it down.
+        if (amount % ratePerSecond != 0)
+            amount = ratePerSecond * timeDelta;
+
+        // Calculate the withdrawal time.
+        uint40 withdrawalTime = _streams[streamId].lastTimeUpdate + timeDelta;
+
         // Although the withdraw amount should never exceed the balance, this condition is checked to avoid exploits
         // in case of a bug.
         _checkCalculatedAmount(streamId, amount);
-
-        uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
-        uint40 withdrawalTime = lastTimeUpdate + uint40 (amount / _streams[streamId].ratePerSecond);
 
         // Effects: update the stream time.
         _updateTime(streamId, withdrawalTime);
