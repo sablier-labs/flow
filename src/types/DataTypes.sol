@@ -13,8 +13,6 @@ library OpenEnded {
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param recipient The address receiving the assets.
     /// @param lastTimeUpdate The Unix timestamp for the streamed amount calculation.
-    /// @param isStream Boolean indicating if the struct entity exists.
-    /// @param isCanceled Boolean indicating if the stream is canceled.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param assetDecimals The decimals of the ERC-20 asset used for streaming.
     /// @param sender The address streaming the assets, with the ability to cancel the stream.
@@ -25,8 +23,6 @@ library OpenEnded {
         // slot 1
         address recipient;
         uint40 lastTimeUpdate;
-        bool isStream;
-        bool isCanceled;
         // slot 2
         IERC20 asset;
         uint8 assetDecimals;

@@ -28,8 +28,6 @@ abstract contract Assertions is PRBTest {
         assertEq(a.assetDecimals, b.assetDecimals, "assetDecimals");
         assertEq(a.balance, b.balance, "balance");
         assertEq(a.lastTimeUpdate, b.lastTimeUpdate, "lastTimeUpdate");
-        assertEq(a.isCanceled, b.isCanceled, "isCanceled");
-        assertEq(a.isStream, b.isStream, "isStream");
         assertEq(a.recipient, b.recipient, "recipient");
         assertEq(a.sender, b.sender, "sender");
     }

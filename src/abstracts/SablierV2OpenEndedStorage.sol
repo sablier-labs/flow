@@ -108,12 +108,12 @@ abstract contract SablierV2OpenEndedStorage is ISablierV2OpenEndedStorage {
 
     /// @inheritdoc ISablierV2OpenEndedStorage
     function isCanceled(uint256 streamId) public view override notNull(streamId) returns (bool result) {
-        result = _streams[streamId].isCanceled;
+        result = _streams[streamId].ratePerSecond == 0 && _streams[streamId].sender != address(0);
     }
 
     /// @inheritdoc ISablierV2OpenEndedStorage
     function isStream(uint256 streamId) public view returns (bool result) {
-        result = _streams[streamId].isStream;
+        result = _streams[streamId].sender != address(0);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

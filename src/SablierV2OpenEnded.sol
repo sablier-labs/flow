@@ -408,9 +408,6 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         // condition is checked to avoid exploits in case of a bug.
         _checkCalculatedAmount(streamId, sum);
 
-        // Effects: set the stream as canceled.
-        _streams[streamId].isCanceled = true;
-
         // Effects: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
 
@@ -471,8 +468,6 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
             asset: asset,
             assetDecimals: assetDecimals,
             balance: 0,
-            isCanceled: false,
-            isStream: true,
             lastTimeUpdate: uint40(block.timestamp),
             ratePerSecond: ratePerSecond,
             recipient: recipient,
@@ -559,7 +554,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         onlySender(streamId)
     {
         // Checks: the stream is canceled.
-        if (!_streams[streamId].isCanceled) {
+        if (!isCanceled(streamId)) {
             revert Errors.SablierV2OpenEnded_StreamNotCanceled(streamId);
         }
 
@@ -570,9 +565,6 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
 
         // Effects: set the rate per second.
         _streams[streamId].ratePerSecond = ratePerSecond;
-
-        // Effects: set the stream as not canceled.
-        _streams[streamId].isCanceled = false;
 
         // Effects: update the stream time.
         _updateTime(streamId, uint40(block.timestamp));

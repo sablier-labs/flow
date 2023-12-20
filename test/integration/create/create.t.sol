@@ -93,8 +93,6 @@ contract Create_Integration_Test is Integration_Test {
             assetDecimals: 18,
             balance: 0,
             lastTimeUpdate: uint40(block.timestamp),
-            isCanceled: false,
-            isStream: true,
             recipient: users.recipient,
             sender: users.sender
         });
