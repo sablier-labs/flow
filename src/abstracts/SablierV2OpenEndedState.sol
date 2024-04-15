@@ -133,7 +133,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Checks whether `msg.sender` is the stream's sender.
-    /// @param streamId The stream id for the query.
+    /// @param streamId The stream ID for the query.
     function _isCallerStreamSender(uint256 streamId) internal view returns (bool) {
         return msg.sender == _streams[streamId].sender;
     }

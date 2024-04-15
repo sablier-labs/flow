@@ -36,7 +36,7 @@ library Errors {
     /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
     error SablierV2OpenEnded_InvalidCalculation(uint256 streamId, uint128 balance, uint128 amount);
 
-    /// @notice Thrown when the id references a null stream.
+    /// @notice Thrown when the ID references a null stream.
     error SablierV2OpenEnded_Null(uint256 streamId);
 
     /// @notice Thrown when trying to refund an amount greater than the refundable amount.
