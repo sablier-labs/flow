@@ -162,7 +162,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param newRatePerSecond The new rate per second of the open-ended stream, denoted in 18 decimals.
     function adjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) external;
 
-    /// @notice Cancels the stream and refunds any remaining assets to the sender.
+    /// @notice Cancels the stream and refunds available assets to the sender and recipient.
     ///
     /// @dev Emits a {Transfer} and {CancelOpenEndedStream} event.
     ///
@@ -174,6 +174,16 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// @param streamId The id of the stream to cancel.
     function cancel(uint256 streamId) external;
+
+    /// @notice Cancels multiple streams and refunds available assets to the sender and to the recipient of each stream.
+    ///
+    /// @dev Emits multiple {Transfer} and {CancelOpenEndedStream} events.
+    ///
+    /// Requirements:
+    /// - All requirements from {cancel} must be met for each stream.
+    ///
+    /// @param streamIds The IDs of the streams to cancel.
+    function cancelMultiple(uint256[] calldata streamIds) external;
 
     /// @notice Creates a new open-ended stream with the `block.timestamp` as the time reference and with zero balance.
     ///
@@ -326,4 +336,18 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param streamId The id of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
     function withdrawMax(uint256 streamId, address to) external;
+
+    /// @notice Withdraws assets from streams to the recipient of each stream.
+    ///
+    /// @dev Emits multiple {Transfer} and {WithdrawFromOpenEndedStream} events.
+    ///
+    /// Requirements:
+    /// - Must not be delegate called.
+    /// - There must be an equal number of `streamIds` and `times`.
+    /// - Each stream ID in the array must not reference a null stream.
+    /// - Each time in the array must be greater than the last time update and must not exceed `block.timestamp`.
+    ///
+    /// @param streamIds The IDs of the streams to withdraw from.
+    /// @param times The time references to calculate the streamed amount for each stream.
+    function withdrawMultiple(uint256[] calldata streamIds, uint40[] calldata times) external;
 }

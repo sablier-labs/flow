@@ -63,6 +63,10 @@ library Errors {
     /// @notice Thrown when trying to withdraw to an address other than the recipient's.
     error SablierV2OpenEnded_WithdrawalAddressNotRecipient(uint256 streamId, address caller, address to);
 
+    /// @notice Thrown when trying to withdraw from multiple streams and the number of stream IDs does
+    /// not match the number of withdraw times.
+    error SablierV2OpenEnded_WithdrawMultipleArrayCountsNotEqual(uint256 streamIdCount, uint256 timesCount);
+
     /// @notice Thrown when trying to withdraw assets with a withdrawal time in the future.
     error SablierV2OpenEnded_WithdrawalTimeInTheFuture(uint40 time, uint256 currentTime);
 

@@ -119,8 +119,18 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function cancel(uint256 streamId) external noDelegateCall notCanceled(streamId) onlySender(streamId) {
+    function cancel(uint256 streamId) public noDelegateCall notCanceled(streamId) onlySender(streamId) {
         _cancel(streamId);
+    }
+
+    /// @inheritdoc ISablierV2OpenEnded
+    function cancelMultiple(uint256[] calldata streamIds) external override {
+        // Iterate over the provided array of stream IDs and cancel each stream.
+        uint256 count = streamIds.length;
+        for (uint256 i = 0; i < count; ++i) {
+            // Effects and Interactions: cancel the stream.
+            cancel(streamIds[i]);
+        }
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -221,6 +231,22 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     function withdraw(uint256 streamId, address to, uint40 time) external {
         // Checks, Effects and Interactions: make the withdrawal.
         _withdraw(streamId, to, time);
+    }
+
+    /// @inheritdoc ISablierV2OpenEnded
+    function withdrawMultiple(uint256[] calldata streamIds, uint40[] calldata times) external override noDelegateCall {
+        // Check: there is an equal number of `streamIds` and `amounts`.
+        uint256 streamIdsCount = streamIds.length;
+        uint256 timesCount = times.length;
+        if (streamIdsCount != timesCount) {
+            revert Errors.SablierV2OpenEnded_WithdrawMultipleArrayCountsNotEqual(streamIdsCount, timesCount);
+        }
+
+        // Iterate over the provided array of stream IDs, and withdraw from each stream to the recipient.
+        for (uint256 i = 0; i < streamIdsCount; ++i) {
+            // Checks, Effects and Interactions: check the parameters and make the withdrawal.
+            _withdraw({ streamId: streamIds[i], to: _streams[streamIds[i]].recipient, time: times[i] });
+        }
     }
 
     /// @inheritdoc ISablierV2OpenEnded
