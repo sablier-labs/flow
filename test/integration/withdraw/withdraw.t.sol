@@ -24,12 +24,12 @@ contract Withdraw_Integration_Test is Integration_Test {
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
-        _test_RevertGiven_Null();
+        expectRevertNull();
         openEnded.withdraw({ streamId: nullStreamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
-        _test_RevertGiven_Canceled();
+        expectRevertCanceled();
         openEnded.withdraw({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 

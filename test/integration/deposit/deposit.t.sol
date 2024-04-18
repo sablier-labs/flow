@@ -19,12 +19,12 @@ contract Deposit_Integration_Test is Integration_Test {
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
-        _test_RevertGiven_Null();
+        expectRevertNull();
         openEnded.deposit(nullStreamId, DEPOSIT_AMOUNT);
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
-        _test_RevertGiven_Canceled();
+        expectRevertCanceled();
         openEnded.deposit(defaultStreamId, DEPOSIT_AMOUNT);
     }
 

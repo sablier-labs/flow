@@ -19,7 +19,7 @@ contract RestartStream_Integration_Test is Integration_Test {
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
-        _test_RevertGiven_Null();
+        expectRevertNull();
         openEnded.restartStream({ streamId: nullStreamId, ratePerSecond: RATE_PER_SECOND });
     }
 

@@ -38,7 +38,7 @@ abstract contract Integration_Test is Base_Test {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    COMMON-TESTS
+                                       COMMON
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_RevertWhen_DelegateCall(bytes memory callData) internal {
@@ -49,11 +49,11 @@ abstract contract Integration_Test is Base_Test {
 
     uint256 internal nullStreamId = 420;
 
-    function _test_RevertGiven_Null() internal {
+    function expectRevertNull() internal {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
     }
 
-    function _test_RevertGiven_Canceled() internal whenNotDelegateCalled givenNotNull {
+    function expectRevertCanceled() internal {
         openEnded.cancel(defaultStreamId);
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_StreamCanceled.selector, defaultStreamId));
     }
