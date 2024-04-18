@@ -17,23 +17,24 @@
 
 [profile.default.invariant]
   call_override = false # Override unsafe external calls to perform reentrancy checks
-  depth = 20            # Number of calls executed in one run
+  depth = 50            # Number of calls executed in one run
   fail_on_revert = true
-  runs = 20
+  runs = 50
 
 # Speed up compilation and tests during development
 [profile.lite]
   optimizer = false
 
-# Compile only the production code and the test mocks with via IR
+# Compile only the production code and the test mocks with via IR and 10,000 optimizer runs
 [profile.optimized]
+  optimizer = true
+  optimizer_runs = 10_000
   out = "out-optimized"
   test = "test/mocks"
   via_ir = true
 
 # Test the optimized contracts without re-compiling them
 [profile.test-optimized]
-  ffi = true
   src = "test"
 
 [doc]
