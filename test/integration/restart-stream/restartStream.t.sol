@@ -43,19 +43,16 @@ contract RestartStream_Integration_Test is Integration_Test {
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
     }
 
-    function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty(address maliciousThirdParty)
+    function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty()
         external
         whenNotDelegateCalled
         givenNotNull
         givenCanceled
         whenCallerUnauthorized
     {
-        vm.assume(maliciousThirdParty != users.sender && maliciousThirdParty != users.recipient);
-        resetPrank({ msgSender: maliciousThirdParty });
+        resetPrank({ msgSender: users.eve });
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, maliciousThirdParty
-            )
+            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
     }

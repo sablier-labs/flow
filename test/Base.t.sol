@@ -17,6 +17,7 @@ import { Utils } from "./utils/Utils.sol";
 struct Users {
     address sender;
     address recipient;
+    address eve;
 }
 
 abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
@@ -64,6 +65,7 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
 
         users.sender = createUser("sender");
         users.recipient = createUser("recipient");
+        users.eve = createUser("eve");
 
         labelConctracts();
 
