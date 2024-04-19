@@ -37,7 +37,11 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function defaultDeposit() internal {
-        openEnded.deposit(defaultStreamId, DEPOSIT_AMOUNT);
+        defaultDeposit(defaultStreamId);
+    }
+
+    function defaultDeposit(uint256 streamId) internal {
+        openEnded.deposit(streamId, DEPOSIT_AMOUNT);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
