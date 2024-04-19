@@ -9,11 +9,14 @@ import { Base_Test } from "../Base.t.sol";
 
 abstract contract Integration_Test is Base_Test {
     uint256 internal defaultStreamId;
+    uint256[] internal defaultStreamIds;
 
     function setUp() public virtual override {
         Base_Test.setUp();
 
         defaultStreamId = createDefaultStream();
+        defaultStreamIds.push(defaultStreamId);
+        defaultStreamIds.push(createDefaultStream());
     }
 
     /*//////////////////////////////////////////////////////////////////////////

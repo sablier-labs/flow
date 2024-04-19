@@ -1,28 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
 
 contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
-    uint256[] internal testStreamIds;
-
     function setUp() public override {
         Integration_Test.setUp();
 
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
-
-        testStreamIds = new uint256[](2);
-        testStreamIds[0] = defaultStreamId;
-        testStreamIds[1] = createDefaultStream();
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.cancelMultiple, (testStreamIds));
+        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.cancelMultiple, (defaultStreamIds));
         _test_RevertWhen_DelegateCall(callData);
     }
 
@@ -32,16 +24,16 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertGiven_OnlyNull() external whenNotDelegateCalled whenArrayCountNotZero {
-        testStreamIds[0] = nullStreamId;
-        testStreamIds[1] = nullStreamId;
+        defaultStreamIds[0] = nullStreamId;
+        defaultStreamIds[1] = nullStreamId;
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
-        openEnded.cancelMultiple({ streamIds: testStreamIds });
+        openEnded.cancelMultiple({ streamIds: defaultStreamIds });
     }
 
     function test_RevertGiven_SomeNull() external whenNotDelegateCalled whenArrayCountNotZero {
-        testStreamIds[0] = nullStreamId;
+        defaultStreamIds[0] = nullStreamId;
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
-        openEnded.cancelMultiple({ streamIds: testStreamIds });
+        openEnded.cancelMultiple({ streamIds: defaultStreamIds });
     }
 
     function test_RevertWhen_CallerUnauthorizedAllStreams_MaliciousThirdParty()
@@ -54,9 +46,9 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.eve });
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, testStreamIds[0], users.eve)
+            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[0], users.eve)
         );
-        openEnded.cancelMultiple(testStreamIds);
+        openEnded.cancelMultiple(defaultStreamIds);
     }
 
     function test_RevertWhen_CallerUnauthorizedAllStreams_Recipient()
@@ -69,9 +61,11 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, testStreamIds[0], users.recipient)
+            abi.encodeWithSelector(
+                Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[0], users.recipient
+            )
         );
-        openEnded.cancelMultiple(testStreamIds);
+        openEnded.cancelMultiple(defaultStreamIds);
     }
 
     function test_RevertWhen_CallerUnauthorizedSomeStreams_MaliciousThirdParty()
@@ -89,11 +83,11 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         });
 
         resetPrank({ msgSender: users.eve });
-        testStreamIds[0] = eveStreamId;
+        defaultStreamIds[0] = eveStreamId;
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, testStreamIds[1], users.eve)
+            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[1], users.eve)
         );
-        openEnded.cancelMultiple(testStreamIds);
+        openEnded.cancelMultiple(defaultStreamIds);
     }
 
     function test_RevertWhen_CallerUnauthorizedSomeStreams_Recipient()
@@ -103,7 +97,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         givenNotNull
         whenCallerUnauthorized
     {
-        testStreamIds[0] = openEnded.create({
+        defaultStreamIds[0] = openEnded.create({
             sender: users.recipient,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
@@ -113,18 +107,20 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, testStreamIds[1], users.recipient)
+            abi.encodeWithSelector(
+                Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[1], users.recipient
+            )
         );
-        openEnded.cancelMultiple(testStreamIds);
+        openEnded.cancelMultiple(defaultStreamIds);
     }
 
     function test_CancelMultiple() external {
-        openEnded.cancelMultiple(testStreamIds);
+        openEnded.cancelMultiple(defaultStreamIds);
 
-        assertTrue(openEnded.isCanceled(testStreamIds[0]));
-        assertTrue(openEnded.isCanceled(testStreamIds[1]));
+        assertTrue(openEnded.isCanceled(defaultStreamIds[0]));
+        assertTrue(openEnded.isCanceled(defaultStreamIds[1]));
 
-        assertEq(openEnded.getRatePerSecond(testStreamIds[0]), 0);
-        assertEq(openEnded.getRatePerSecond(testStreamIds[1]), 0);
+        assertEq(openEnded.getRatePerSecond(defaultStreamIds[0]), 0);
+        assertEq(openEnded.getRatePerSecond(defaultStreamIds[1]), 0);
     }
 }
