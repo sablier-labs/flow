@@ -198,8 +198,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// @param recipient The address receiving the assets.
     /// @param sender The address streaming the assets, with the ability to adjust and cancel the stream. It doesn't
-    /// have
-    /// to be the same as `msg.sender`.
+    /// have to be the same as `msg.sender`.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @return streamId The ID of the newly created stream.
@@ -237,6 +236,28 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     )
         external
         returns (uint256 streamId);
+
+    /// @notice Creates multiple open-ended streams with the `block.timestamp` as the time reference and with zero
+    /// balance.
+    ///
+    /// @dev Emits multiple {CreateOpenEndedStream} events.
+    ///
+    /// Requirements:
+    /// - There must be an equal number of `recipients`, `senders` and `ratesPerSecond`.
+    /// - All requirements from {create} must be met for each stream.
+    ///
+    /// @param recipients The addresses receiving the assets.
+    /// @param senders The addresses streaming the assets, with the ability to adjust and cancel the stream.
+    /// @param ratesPerSecond The amounts of assets that are increasing by every second, denoted in 18 decimals.
+    /// @param asset The contract address of the ERC-20 asset used for streaming.
+    function createMultiple(
+        address[] calldata recipients,
+        address[] calldata senders,
+        uint128[] calldata ratesPerSecond,
+        IERC20 asset
+    )
+        external
+        returns (uint256[] memory streamIds);
 
     /// @notice Deposits assets in a stream.
     ///

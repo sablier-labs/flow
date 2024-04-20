@@ -166,6 +166,34 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
+    function createMultiple(
+        address[] calldata senders,
+        address[] calldata recipients,
+        uint128[] calldata ratesPerSecond,
+        IERC20 asset
+    )
+        external
+        returns (uint256[] memory streamIds)
+    {
+        uint256 sendersCount = senders.length;
+        uint256 recipientsCount = recipients.length;
+        uint256 ratesPerSecondCount = ratesPerSecond.length;
+
+        // Check: count of `senders`, `recipients`, `ratesPerSecond` matches.
+        if (sendersCount != recipientsCount || sendersCount != ratesPerSecondCount) {
+            revert Errors.SablierV2OpenEnded_CreateArrayCountsNotEqual(
+                sendersCount, recipientsCount, ratesPerSecondCount
+            );
+        }
+
+        streamIds = new uint256[](sendersCount);
+        for (uint256 i = 0; i < sendersCount; ++i) {
+            // Checks, Effects and Interactions: create the stream.
+            streamIds[i] = _create(senders[i], recipients[i], ratesPerSecond[i], asset);
+        }
+    }
+
+    /// @inheritdoc ISablierV2OpenEnded
     function deposit(uint256 streamId, uint128 amount) external noDelegateCall notCanceled(streamId) {
         // Checks, Effects and Interactions: deposit on stream.
         _deposit(streamId, amount);

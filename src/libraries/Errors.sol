@@ -17,6 +17,12 @@ library Errors {
                                  SABLIER-V2-OpenEnded
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Thrown when trying to create multiple streams and the number of senders, recipients and rates per second
+    /// does not match.
+    error SablierV2OpenEnded_CreateArrayCountsNotEqual(
+        uint256 sendersCount, uint256 recipientsCount, uint256 ratesPerSecondCount
+    );
+
     /// @notice Thrown when trying to set the rate per second of a stream to zero.
     error SablierV2OpenEnded_RatePerSecondZero();
 
