@@ -2,7 +2,7 @@
   auto_detect_solc = false
   bytecode_hash = "none"
   evm_version = "paris"
-  ffi = true
+  fs_permissions = [{access = "read", path = "package.json"}]
   gas_reports = ["*"]
   optimizer = true
   optimizer_runs = 1000
