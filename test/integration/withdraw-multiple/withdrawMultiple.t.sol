@@ -236,14 +236,14 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamIds[0],
             to: users.recipient,
             asset: dai,
-            amount: WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT
         });
         vm.expectEmit({ emitter: address(openEnded) });
         emit WithdrawFromOpenEndedStream({
             streamId: defaultStreamIds[1],
             to: users.recipient,
             asset: dai,
-            amount: WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT
         });
 
         openEnded.withdrawMultiple({ streamIds: defaultStreamIds, times: times });

@@ -236,7 +236,7 @@ contract Withdraw_Integration_Test is Integration_Test {
             streamId: streamId,
             to: users.recipient,
             asset: asset,
-            amount: WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT
         });
 
         expectCallToTransfer({

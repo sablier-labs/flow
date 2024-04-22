@@ -57,7 +57,12 @@ contract Deposit_Integration_Test is Integration_Test {
         });
 
         vm.expectEmit({ emitter: address(openEnded) });
-        emit DepositOpenEndedStream({ streamId: streamId, funder: users.sender, asset: asset, amount: DEPOSIT_AMOUNT });
+        emit DepositOpenEndedStream({
+            streamId: streamId,
+            funder: users.sender,
+            asset: asset,
+            depositAmount: DEPOSIT_AMOUNT
+        });
 
         expectCallToTransferFrom({
             asset: asset,
