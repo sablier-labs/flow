@@ -5,7 +5,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { console2 } from "forge-std/src/console2.sol";
 import { Script } from "forge-std/src/Script.sol";
-import { stdJson } from "forge-std/src/stdJson.sol";
+import { stdJson } from "forge-std/src/StdJson.sol";
 
 abstract contract BaseScript is Script {
     using Strings for uint256;
