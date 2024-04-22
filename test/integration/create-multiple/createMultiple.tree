@@ -1,0 +1,15 @@
+createMultiple.t.sol
+├── when delegate called
+│  └── it should revert
+└── when not delegate called
+   ├── when arrays counts are not equal
+   │  ├── when the recipients array is not equal
+   │  │  └── it should revert
+   │  ├── when the senders array is not equal
+   │  │  └── it should revert
+   │  └── when the rates per second array is not equal
+   │     └── it should revert
+   └── when arrays counts are equal
+      ├── it should create multiple streams
+      ├── it should bump the next stream id multiple times
+      └── it should emit multiple {CreateOpenEndedStream} events

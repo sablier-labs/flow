@@ -19,7 +19,7 @@ library Errors {
 
     /// @notice Thrown when trying to create multiple streams and the number of senders, recipients and rates per second
     /// does not match.
-    error SablierV2OpenEnded_CreateArrayCountsNotEqual(
+    error SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual(
         uint256 recipientsCount, uint256 sendersCount, uint256 ratesPerSecondCount
     );
 
