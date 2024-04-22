@@ -28,11 +28,11 @@ withdrawMultiple.t.sol
                   ├── when some withdrawal times are in the future
                   │  └── it should revert
                   └── when none withdrawal times are in the future
-                     ├── when all balances are zero
+                     ├── given all balances are zero
                      │  └── it should revert
-                     ├── when some balances are zero
+                     ├── given some balances are zero
                      │  └── it should revert
-                     └── when all balances are greater than zero
+                     └── given all balances are greater than zero
                         ├── it should make the withdrawals
                         ├── it should update the times
                         └── it should emit multiple {WithdrawFromOpenEndedStream} events

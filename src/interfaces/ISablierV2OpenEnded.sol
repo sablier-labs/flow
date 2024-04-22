@@ -152,8 +152,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requiremenets:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null stream.
-    /// - `streamId` must not reference a canceled stream.
+    /// - `streamId` must not reference a null stream or a canceled stream.
     /// - `msg.sender` must be the stream's sender.
     /// - `newRatePerSecond` must be greater than zero and not equal to the current rate per second.
     ///
@@ -167,8 +166,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null stream.
-    /// - `streamId` must not reference a canceled stream.
+    /// - `streamId` must not reference a null stream or a canceled stream.
     /// - `msg.sender` must be the stream's sender.
     ///
     /// @param streamId The ID of the stream to cancel.
@@ -289,8 +287,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null stream.
-    /// - `streamId` must not reference a canceled stream.
+    /// - `streamId` must not reference a null stream or a canceled stream.
     /// - `depositAmount` must be greater than zero.
     ///
     /// @param streamId The ID of the stream to deposit on.
@@ -315,8 +312,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null stream.
-    /// - `streamId` must not reference a canceled stream.
+    /// - `streamId` must not reference a null stream or a canceled stream.
     /// - `msg.sender` must be the sender.
     /// - `refundAmount` must be greater than zero and must not exceed the refundable amount.
     ///
@@ -330,8 +326,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    // - `streamId` must not reference a null stream.
-    /// - `streamId` must reference a canceled stream.
+    // - `streamId` must not reference a null stream or a canceled stream.
     /// - `msg.sender` must be the stream's sender.
     /// - `ratePerSecond` must be greater than zero.
     ///

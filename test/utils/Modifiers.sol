@@ -94,11 +94,15 @@ abstract contract Modifiers {
                                       WITHDRAW
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenToNonZeroAddress() {
+    modifier givenBalanceNotZero() {
         _;
     }
 
     modifier whenCallerRecipient() {
+        _;
+    }
+
+    modifier whenToNonZeroAddress() {
         _;
     }
 

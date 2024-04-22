@@ -220,6 +220,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         givenNotCanceled
         whenWithdrawalTimeGreaterThanLastUpdate
         whenWithdrawalTimeNotInTheFuture
+        givenBalanceNotZero
     {
         defaultDeposit();
         defaultDeposit(defaultStreamIds[1]);

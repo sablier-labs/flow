@@ -120,7 +120,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         openEnded.withdraw({ streamId: defaultStreamId, to: users.recipient, time: futureTime });
     }
 
-    function test_RevertWhen_BalanceZero()
+    function test_RevertGiven_BalanceZero()
         external
         whenNotDelegateCalled
         givenNotNull
@@ -147,6 +147,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalAddressIsRecipient
         whenWithdrawalTimeGreaterThanLastUpdate
         whenWithdrawalTimeNotInTheFuture
+        givenBalanceNotZero
     {
         openEnded.withdraw({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
 
@@ -168,6 +169,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalAddressIsRecipient
         whenWithdrawalTimeGreaterThanLastUpdate
         whenWithdrawalTimeNotInTheFuture
+        givenBalanceNotZero
     {
         address unknownCaller = address(0xCAFE);
         resetPrank({ msgSender: unknownCaller });
@@ -192,6 +194,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalAddressIsRecipient
         whenWithdrawalTimeGreaterThanLastUpdate
         whenWithdrawalTimeNotInTheFuture
+        givenBalanceNotZero
         whenCallerRecipient
     {
         // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
@@ -212,6 +215,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalAddressIsRecipient
         whenWithdrawalTimeGreaterThanLastUpdate
         whenWithdrawalTimeNotInTheFuture
+        givenBalanceNotZero
         whenCallerRecipient
     {
         _test_Withdraw(defaultStreamId, dai);
