@@ -11,6 +11,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
     address[] internal defaultRecipients;
     address[] internal defaultSenders;
     uint128[] internal defaultRatesPerSecond;
+    uint128[] internal defaultDepositAmounts;
 
     function setUp() public override {
         Integration_Test.setUp();
@@ -21,58 +22,34 @@ contract CreateMultiple_Integration_Test is Integration_Test {
         defaultSenders.push(users.sender);
         defaultRatesPerSecond.push(RATE_PER_SECOND);
         defaultRatesPerSecond.push(RATE_PER_SECOND);
+        defaultDepositAmounts.push(DEPOSIT_AMOUNT);
+        defaultDepositAmounts.push(DEPOSIT_AMOUNT);
     }
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(
-            ISablierV2OpenEnded.createMultiple, (defaultRecipients, defaultSenders, defaultRatesPerSecond, dai)
+            ISablierV2OpenEnded.createAndDepositMultiple,
+            (defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, defaultDepositAmounts)
         );
         _test_RevertWhen_DelegateCall(callData);
     }
 
-    function test_RevertWhen_RecipientsCountNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
-        address[] memory recipients = new address[](1);
+    function test_RevertWhen_DepositAmountsArrayIsNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
+        uint128[] memory depositAmounts = new uint128[](0);
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual.selector,
-                recipients.length,
-                defaultSenders.length,
-                defaultRatesPerSecond.length
-            )
-        );
-        openEnded.createMultiple(recipients, defaultSenders, defaultRatesPerSecond, dai);
-    }
-
-    function test_RevertWhen_SendersCountNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
-        address[] memory senders = new address[](1);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual.selector,
+                Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual.selector,
                 defaultRecipients.length,
-                senders.length,
-                defaultRatesPerSecond.length
+                depositAmounts.length
             )
         );
-        openEnded.createMultiple(defaultRecipients, senders, defaultRatesPerSecond, dai);
-    }
-
-    function test_RevertWhen_RatesPerSecondCountNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
-        uint128[] memory ratesPerSecond = new uint128[](1);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual.selector,
-                defaultRecipients.length,
-                defaultSenders.length,
-                ratesPerSecond.length
-            )
+        openEnded.createAndDepositMultiple(
+            defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, depositAmounts
         );
-        openEnded.createMultiple(defaultRecipients, defaultSenders, ratesPerSecond, dai);
     }
 
-    function test_CreateMultiple() external whenNotDelegateCalled whenArrayCountsEqual {
+    function test_CreateAndDepositMultiple() external whenNotDelegateCalled whenArrayCountsEqual {
         uint256 beforeNextStreamId = openEnded.nextStreamId();
 
         vm.expectEmit({ emitter: address(openEnded) });
@@ -94,8 +71,28 @@ contract CreateMultiple_Integration_Test is Integration_Test {
             lastTimeUpdate: uint40(block.timestamp)
         });
 
-        uint256[] memory streamIds =
-            openEnded.createMultiple(defaultRecipients, defaultSenders, defaultRatesPerSecond, dai);
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit DepositOpenEndedStream({
+            streamId: beforeNextStreamId,
+            funder: users.sender,
+            asset: dai,
+            depositAmount: DEPOSIT_AMOUNT
+        });
+
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit DepositOpenEndedStream({
+            streamId: beforeNextStreamId + 1,
+            funder: users.sender,
+            asset: dai,
+            depositAmount: DEPOSIT_AMOUNT
+        });
+
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(openEnded), amount: DEPOSIT_AMOUNT });
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(openEnded), amount: DEPOSIT_AMOUNT });
+
+        uint256[] memory streamIds = openEnded.createAndDepositMultiple(
+            defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, defaultDepositAmounts
+        );
 
         uint256 afterNextStreamId = openEnded.nextStreamId();
 
@@ -113,7 +110,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
             assetDecimals: 18,
-            balance: 0,
+            balance: DEPOSIT_AMOUNT,
             lastTimeUpdate: uint40(block.timestamp),
             isCanceled: false,
             isStream: true,

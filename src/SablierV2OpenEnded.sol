@@ -179,7 +179,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint256 sendersCount = senders.length;
         uint256 ratesPerSecondCount = ratesPerSecond.length;
 
-        // Check: count of `senders`, `recipients`, `ratesPerSecond` matches.
+        // Check: count of `senders`, `recipients` and `ratesPerSecond` matches.
         if (recipientsCount != sendersCount || recipientsCount != ratesPerSecondCount) {
             revert Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual(
                 recipientsCount, sendersCount, ratesPerSecondCount
