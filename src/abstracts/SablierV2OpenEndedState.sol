@@ -109,12 +109,18 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     }
 
     /// @inheritdoc ISablierV2OpenEndedState
-    function getSender(uint256 streamId) external view notNull(streamId) returns (address sender) {
+    function getSender(uint256 streamId) external view override notNull(streamId) returns (address sender) {
         sender = _streams[streamId].sender;
     }
 
     /// @inheritdoc ISablierV2OpenEndedState
-    function getStream(uint256 streamId) external view notNull(streamId) returns (OpenEnded.Stream memory stream) {
+    function getStream(uint256 streamId)
+        external
+        view
+        override
+        notNull(streamId)
+        returns (OpenEnded.Stream memory stream)
+    {
         stream = _streams[streamId];
     }
 
@@ -124,7 +130,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     }
 
     /// @inheritdoc ISablierV2OpenEndedState
-    function isStream(uint256 streamId) public view returns (bool result) {
+    function isStream(uint256 streamId) public view override returns (bool result) {
         result = _streams[streamId].isStream;
     }
 }
