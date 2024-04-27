@@ -50,7 +50,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function streamDebt(uint256 streamId)
+    function streamDebtOf(uint256 streamId)
         external
         view
         notCanceled(streamId)
@@ -60,11 +60,11 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint128 balance = _streams[streamId].balance;
         uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
-        if (balance >= streamedAmount) {
-            return 0;
+        if (balance < streamedAmount) {
+            return streamedAmount - balance;
         }
 
-        debt = streamedAmount - balance;
+        return 0;
     }
 
     /// @inheritdoc ISablierV2OpenEnded

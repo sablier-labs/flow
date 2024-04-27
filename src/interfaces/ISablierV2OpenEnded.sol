@@ -115,7 +115,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// its balance, denoted in 18 decimals. If there is no debt, it will return zero.
     /// @dev Reverts if `streamId` references a canceled or a null stream.
     /// @param streamId The stream ID for the query.
-    function streamDebt(uint256 streamId) external view returns (uint128 debt);
+    function streamDebtOf(uint256 streamId) external view returns (uint128 debt);
 
     /// @notice Calculates the amount streamed to the recipient from the last time update to the current time,
     /// denoted in 18 decimals.
