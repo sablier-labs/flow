@@ -34,7 +34,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
 
     /// @dev Checks that `streamId` does not reference a canceled stream.
     modifier notCanceled(uint256 streamId) {
-        if (isCanceled(streamId)) {
+        if (_streams[streamId].isCanceled) {
             revert Errors.SablierV2OpenEnded_StreamCanceled(streamId);
         }
         _;
@@ -50,7 +50,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
 
     /// @dev Checks the `msg.sender` is the stream's sender.
     modifier onlySender(uint256 streamId) {
-        if (!_isCallerStreamSender(streamId)) {
+        if (msg.sender != _streams[streamId].sender) {
             revert Errors.SablierV2OpenEnded_Unauthorized(streamId, msg.sender);
         }
         _;
@@ -126,15 +126,5 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     /// @inheritdoc ISablierV2OpenEndedState
     function isStream(uint256 streamId) public view returns (bool result) {
         result = _streams[streamId].isStream;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                            INTERNAL CONSTANT FUNCTIONS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Checks whether `msg.sender` is the stream's sender.
-    /// @param streamId The stream ID for the query.
-    function _isCallerStreamSender(uint256 streamId) internal view returns (bool) {
-        return msg.sender == _streams[streamId].sender;
     }
 }
