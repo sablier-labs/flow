@@ -28,6 +28,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         view
         override
         notCanceled(streamId)
+        notNull(streamId)
         returns (uint128 refundableAmount)
     {
         refundableAmount = _refundableAmountOf(streamId, uint40(block.timestamp));
@@ -42,25 +43,40 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         view
         override
         notCanceled(streamId)
+        notNull(streamId)
         returns (uint128 refundableAmount)
     {
         refundableAmount = _refundableAmountOf(streamId, time);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function streamDebt(uint256 streamId) external view notCanceled(streamId) returns (uint128 debt) {
+    function streamDebtOf(uint256 streamId)
+        external
+        view
+        override
+        notCanceled(streamId)
+        notNull(streamId)
+        returns (uint128 debt)
+    {
         uint128 balance = _streams[streamId].balance;
         uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
-        if (balance >= streamedAmount) {
+        if (balance < streamedAmount) {
+            debt = streamedAmount - balance;
+        } else {
             return 0;
         }
-
-        debt = streamedAmount - balance;
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function streamedAmountOf(uint256 streamId) external view notCanceled(streamId) returns (uint128 streamedAmount) {
+    function streamedAmountOf(uint256 streamId)
+        external
+        view
+        override
+        notCanceled(streamId)
+        notNull(streamId)
+        returns (uint128 streamedAmount)
+    {
         streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
     }
 
@@ -71,7 +87,9 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     )
         external
         view
+        override
         notCanceled(streamId)
+        notNull(streamId)
         returns (uint128 streamedAmount)
     {
         streamedAmount = _streamedAmountOf(streamId, time);
@@ -81,7 +99,9 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     function withdrawableAmountOf(uint256 streamId)
         external
         view
+        override
         notCanceled(streamId)
+        notNull(streamId)
         returns (uint128 withdrawableAmount)
     {
         withdrawableAmount = _withdrawableAmountOf(streamId, uint40(block.timestamp));
@@ -94,7 +114,9 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     )
         external
         view
+        override
         notCanceled(streamId)
+        notNull(streamId)
         returns (uint128 withdrawableAmount)
     {
         withdrawableAmount = _withdrawableAmountOf(streamId, time);
@@ -110,8 +132,10 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint128 newRatePerSecond
     )
         external
+        override
         noDelegateCall
         notCanceled(streamId)
+        notNull(streamId)
         onlySender(streamId)
     {
         // Effects and Interactions: adjust the stream.
@@ -119,7 +143,14 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function cancel(uint256 streamId) public noDelegateCall notCanceled(streamId) onlySender(streamId) {
+    function cancel(uint256 streamId)
+        public
+        override
+        noDelegateCall
+        notCanceled(streamId)
+        notNull(streamId)
+        onlySender(streamId)
+    {
         _cancel(streamId);
     }
 
@@ -141,6 +172,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         IERC20 asset
     )
         external
+        override
         returns (uint256 streamId)
     {
         // Checks, Effects and Interactions: create the stream.
@@ -156,6 +188,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint128 depositAmount
     )
         external
+        override
         returns (uint256 streamId)
     {
         // Checks, Effects and Interactions: create the stream.
@@ -173,6 +206,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         IERC20 asset
     )
         public
+        override
         returns (uint256[] memory streamIds)
     {
         uint256 recipientsCount = recipients.length;
@@ -202,6 +236,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint128[] calldata depositAmounts
     )
         external
+        override
         returns (uint256[] memory streamIds)
     {
         streamIds = new uint256[](recipients.length);
@@ -211,13 +246,22 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function deposit(uint256 streamId, uint128 depositAmount) external noDelegateCall notCanceled(streamId) {
+    function deposit(
+        uint256 streamId,
+        uint128 depositAmount
+    )
+        external
+        override
+        noDelegateCall
+        notCanceled(streamId)
+        notNull(streamId)
+    {
         // Checks, Effects and Interactions: deposit on stream.
         _deposit(streamId, depositAmount);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function depositMultiple(uint256[] memory streamIds, uint128[] calldata amounts) public noDelegateCall {
+    function depositMultiple(uint256[] memory streamIds, uint128[] calldata amounts) public override noDelegateCall {
         uint256 streamIdsCount = streamIds.length;
         uint256 depositAmountsCount = amounts.length;
 
@@ -238,13 +282,20 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function restartStream(uint256 streamId, uint128 ratePerSecond) external {
+    function restartStream(uint256 streamId, uint128 ratePerSecond) external override {
         // Checks, Effects and Interactions: restart the stream.
         _restartStream(streamId, ratePerSecond);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 depositAmount) external {
+    function restartStreamAndDeposit(
+        uint256 streamId,
+        uint128 ratePerSecond,
+        uint128 depositAmount
+    )
+        external
+        override
+    {
         // Checks, Effects and Interactions: restart the stream.
         _restartStream(streamId, ratePerSecond);
 
@@ -258,8 +309,10 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint128 refundAmount
     )
         external
+        override
         noDelegateCall
         notCanceled(streamId)
+        notNull(streamId)
         onlySender(streamId)
     {
         // Checks, Effects and Interactions: make the refund.
@@ -267,7 +320,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function withdraw(uint256 streamId, address to, uint40 time) external {
+    function withdraw(uint256 streamId, address to, uint40 time) external override {
         // Checks, Effects and Interactions: make the withdrawal.
         _withdraw(streamId, to, time);
     }
@@ -289,7 +342,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function withdrawMax(uint256 streamId, address to) external {
+    function withdrawMax(uint256 streamId, address to) external override {
         // Checks, Effects and Interactions: make the withdrawal.
         _withdraw(streamId, to, uint40(block.timestamp));
     }
@@ -632,7 +685,16 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _withdraw(uint256 streamId, address to, uint40 time) internal noDelegateCall notCanceled(streamId) {
+    function _withdraw(
+        uint256 streamId,
+        address to,
+        uint40 time
+    )
+        internal
+        noDelegateCall
+        notCanceled(streamId)
+        notNull(streamId)
+    {
         // Check: the withdrawal address is not zero.
         if (to == address(0)) {
             revert Errors.SablierV2OpenEnded_WithdrawToZeroAddress();
