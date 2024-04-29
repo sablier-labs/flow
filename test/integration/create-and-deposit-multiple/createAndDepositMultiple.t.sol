@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 import { OpenEnded } from "src/types/DataTypes.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
 
-contract CreateMultiple_Integration_Test is Integration_Test {
+contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
     address[] internal defaultRecipients;
     address[] internal defaultSenders;
     uint128[] internal defaultRatesPerSecond;
@@ -24,14 +23,6 @@ contract CreateMultiple_Integration_Test is Integration_Test {
         defaultRatesPerSecond.push(RATE_PER_SECOND);
         defaultDepositAmounts.push(DEPOSIT_AMOUNT);
         defaultDepositAmounts.push(DEPOSIT_AMOUNT);
-    }
-
-    function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(
-            ISablierV2OpenEnded.createAndDepositMultiple,
-            (defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, defaultDepositAmounts)
-        );
-        _test_RevertWhen_DelegateCall(callData);
     }
 
     function test_RevertWhen_DepositAmountsArrayIsNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
