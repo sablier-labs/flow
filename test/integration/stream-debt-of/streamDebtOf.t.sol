@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { console2 } from "forge-std/src/console2.sol";
 import { Integration_Test } from "../Integration.t.sol";
 
 contract StreamDebtOf_Integration_Test is Integration_Test {
@@ -29,9 +28,6 @@ contract StreamDebtOf_Integration_Test is Integration_Test {
     function test_streamDebtOf() external givenNotNull givenNotCanceled {
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
         uint128 streamDebt = openEnded.streamDebtOf(defaultStreamId);
-
-        console2.log("streamedAmountOf %s", openEnded.streamedAmountOf(defaultStreamId));
-        console2.log("balance %s", openEnded.getBalance(defaultStreamId));
 
         assertEq(streamDebt, ONE_MONTH_STREAMED_AMOUNT, "stream debt");
     }
