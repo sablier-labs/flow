@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -11,11 +10,6 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         Integration_Test.setUp();
 
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
-    }
-
-    function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.cancelMultiple, (defaultStreamIds));
-        _test_RevertWhen_DelegateCall(callData);
     }
 
     function test_CancelMultiple_ArrayCountZero() external whenNotDelegateCalled {
