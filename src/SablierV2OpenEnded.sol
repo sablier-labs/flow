@@ -62,10 +62,10 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
         if (balance < streamedAmount) {
-            return streamedAmount - balance;
+            debt = streamedAmount - balance;
+        } else {
+            return 0;
         }
-
-        return 0;
     }
 
     /// @inheritdoc ISablierV2OpenEnded
