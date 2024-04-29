@@ -125,7 +125,7 @@ contract OpenEndedHandler is BaseHandler {
         asset.approve({ spender: address(openEnded), value: depositAmount });
 
         // Deposit into the stream.
-        openEnded.deposit({ streamId: currentStreamId, depositAmount: depositAmount });
+        openEnded.deposit({ streamId: currentStreamId, amount: depositAmount });
 
         // Store the deposited amount.
         openEndedStore.updateStreamDepositedAmountsSum(depositAmount);

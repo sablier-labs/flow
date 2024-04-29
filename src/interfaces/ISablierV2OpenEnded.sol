@@ -224,39 +224,39 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// have to be the same as `msg.sender`.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
-    /// @param depositAmount The amount deposited in the stream.
+    /// @param amount The amount deposited in the stream.
     /// @return streamId The ID of the newly created stream.
     function createAndDeposit(
         address recipient,
         address sender,
         uint128 ratePerSecond,
         IERC20 asset,
-        uint128 depositAmount
+        uint128 amount
     )
         external
         returns (uint256 streamId);
 
     /// @notice Creates multiple open-ended streams with the `block.timestamp` as the time reference and with
-    /// `depositAmounts` balances.
+    /// `amounts` balances.
     ///
     /// @dev Emits multiple {CreateOpenEndedStream}, {Transfer} and {DepositOpenEndedStream} events.
     ///
     /// Requirements:
     /// - All requirements from {create} must be met for each stream.
-    /// - There must be an equal number of `recipients`, `senders`, `ratesPerSecond` and `depositAmounts`.
+    /// - There must be an equal number of `recipients`, `senders`, `ratesPerSecond` and `amounts`.
     ///
     /// @param recipients The addresses receiving the assets.
     /// @param senders The addresses streaming the assets, with the ability to adjust and cancel the stream.
     /// @param ratesPerSecond The amounts of assets that are increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
-    /// @param depositAmounts The amounts deposited in the streams.
+    /// @param amounts The amounts deposited in the streams.
     /// @return streamIds The IDs of the newly created streams.
     function createAndDepositMultiple(
         address[] calldata recipients,
         address[] calldata senders,
         uint128[] calldata ratesPerSecond,
         IERC20 asset,
-        uint128[] calldata depositAmounts
+        uint128[] calldata amounts
     )
         external
         returns (uint256[] memory streamIds);
@@ -293,8 +293,8 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// - `depositAmount` must be greater than zero.
     ///
     /// @param streamId The ID of the stream to deposit on.
-    /// @param depositAmount The amount deposited in the stream, denoted in 18 decimals.
-    function deposit(uint256 streamId, uint128 depositAmount) external;
+    /// @param amount The amount deposited in the stream, denoted in 18 decimals.
+    function deposit(uint256 streamId, uint128 amount) external;
 
     /// @notice Deposits assets in multiple streams.
     ///
@@ -305,8 +305,8 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// - There must be an equal number of `streamIds` and `depositAmount`.
     ///
     /// @param streamIds The ids of the streams to deposit on.
-    /// @param depositAmounts The amount of assets to be deposited, denoted in 18 decimals.
-    function depositMultiple(uint256[] calldata streamIds, uint128[] calldata depositAmounts) external;
+    /// @param amounts The amount of assets to be deposited, denoted in 18 decimals.
+    function depositMultiple(uint256[] calldata streamIds, uint128[] calldata amounts) external;
 
     /// @notice Refunds the provided amount of assets from the stream to the sender's address.
     ///
@@ -316,11 +316,11 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream or a canceled stream.
     /// - `msg.sender` must be the sender.
-    /// - `refundAmount` must be greater than zero and must not exceed the refundable amount.
+    /// - `amount` must be greater than zero and must not exceed the refundable amount.
     ///
     /// @param streamId The ID of the stream to refund from.
-    /// @param refundAmount The amount to refund, denoted in 18 decimals.
-    function refundFromStream(uint256 streamId, uint128 refundAmount) external;
+    /// @param amount The amount to refund, denoted in 18 decimals.
+    function refundFromStream(uint256 streamId, uint128 amount) external;
 
     /// @notice Restarts the stream with the provided rate per second.
     ///
@@ -347,8 +347,8 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// @param streamId The ID of the stream to restart.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
-    /// @param depositAmount The amount deposited in the stream.
-    function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 depositAmount) external;
+    /// @param amount The amount deposited in the stream.
+    function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 amount) external;
 
     /// @notice Withdraws the amount of assets calculated based on time reference, from the stream
     /// to the provided `to` address.

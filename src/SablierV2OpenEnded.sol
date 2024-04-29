@@ -185,7 +185,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         address recipient,
         uint128 ratePerSecond,
         IERC20 asset,
-        uint128 depositAmount
+        uint128 amount
     )
         external
         override
@@ -195,7 +195,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamId = _create(sender, recipient, ratePerSecond, asset);
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, depositAmount);
+        _deposit(streamId, amount);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -233,7 +233,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         address[] calldata senders,
         uint128[] calldata ratesPerSecond,
         IERC20 asset,
-        uint128[] calldata depositAmounts
+        uint128[] calldata amounts
     )
         external
         override
@@ -242,7 +242,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamIds = new uint256[](recipients.length);
         streamIds = createMultiple(recipients, senders, ratesPerSecond, asset);
 
-        depositMultiple(streamIds, depositAmounts);
+        depositMultiple(streamIds, amounts);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -263,11 +263,11 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     /// @inheritdoc ISablierV2OpenEnded
     function depositMultiple(uint256[] memory streamIds, uint128[] calldata amounts) public override noDelegateCall {
         uint256 streamIdsCount = streamIds.length;
-        uint256 depositAmountsCount = amounts.length;
+        uint256 amountsCount = amounts.length;
 
         // Check: count of `streamIds` matches count of `amounts`.
-        if (streamIdsCount != depositAmountsCount) {
-            revert Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual(streamIdsCount, depositAmountsCount);
+        if (streamIdsCount != amountsCount) {
+            revert Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual(streamIdsCount, amountsCount);
         }
 
         for (uint256 i = 0; i < streamIdsCount; ++i) {
@@ -288,25 +288,18 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function restartStreamAndDeposit(
-        uint256 streamId,
-        uint128 ratePerSecond,
-        uint128 depositAmount
-    )
-        external
-        override
-    {
+    function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 amount) external override {
         // Checks, Effects and Interactions: restart the stream.
         _restartStream(streamId, ratePerSecond);
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, depositAmount);
+        _deposit(streamId, amount);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
     function refundFromStream(
         uint256 streamId,
-        uint128 refundAmount
+        uint128 amount
     )
         external
         override
@@ -316,7 +309,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         onlySender(streamId)
     {
         // Checks, Effects and Interactions: make the refund.
-        _refundFromStream(streamId, refundAmount);
+        _refundFromStream(streamId, amount);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -590,26 +583,26 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _deposit(uint256 streamId, uint128 depositAmount) internal {
+    function _deposit(uint256 streamId, uint128 amount) internal {
         // Check: the deposit amount is not zero.
-        if (depositAmount == 0) {
+        if (amount == 0) {
             revert Errors.SablierV2OpenEnded_DepositAmountZero();
         }
 
         // Effect: update the stream balance.
-        _streams[streamId].balance += depositAmount;
+        _streams[streamId].balance += amount;
 
         // Retrieve the ERC-20 asset from storage.
         IERC20 asset = _streams[streamId].asset;
 
         // Calculate the transfer amount.
-        uint128 transferAmount = _calculateTransferAmount(streamId, depositAmount);
+        uint128 transferAmount = _calculateTransferAmount(streamId, amount);
 
         // Interaction: transfer the deposit amount.
         asset.safeTransferFrom(msg.sender, address(this), transferAmount);
 
         // Log the deposit.
-        emit ISablierV2OpenEnded.DepositOpenEndedStream(streamId, msg.sender, asset, depositAmount);
+        emit ISablierV2OpenEnded.DepositOpenEndedStream(streamId, msg.sender, asset, amount);
     }
 
     /// @dev Helper function to update the `balance` and to perform the ERC-20 transfer.
@@ -625,25 +618,25 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _refundFromStream(uint256 streamId, uint128 refundAmount) internal {
+    function _refundFromStream(uint256 streamId, uint128 amount) internal {
         address sender = _streams[streamId].sender;
         uint128 refundableAmount = _refundableAmountOf(streamId, uint40(block.timestamp));
 
         // Check: the amount is not zero.
-        if (refundAmount == 0) {
+        if (amount == 0) {
             revert Errors.SablierV2OpenEnded_RefundAmountZero();
         }
 
         // Check: the withdraw amount is not greater than the refundable amount.
-        if (refundAmount > refundableAmount) {
-            revert Errors.SablierV2OpenEnded_Overrefund(streamId, refundAmount, refundableAmount);
+        if (amount > refundableAmount) {
+            revert Errors.SablierV2OpenEnded_Overrefund(streamId, amount, refundableAmount);
         }
 
         // Effects and interactions: update the `balance` and perform the ERC-20 transfer.
-        _extractFromStream(streamId, sender, refundAmount);
+        _extractFromStream(streamId, sender, amount);
 
         // Log the refund.
-        emit ISablierV2OpenEnded.RefundFromOpenEndedStream(streamId, sender, _streams[streamId].asset, refundAmount);
+        emit ISablierV2OpenEnded.RefundFromOpenEndedStream(streamId, sender, _streams[streamId].asset, amount);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.

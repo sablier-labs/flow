@@ -24,12 +24,12 @@ contract RefundFromStream_Integration_Test is Integration_Test {
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
         expectRevertNull();
-        openEnded.refundFromStream({ streamId: nullStreamId, refundAmount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: nullStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
         expectRevertCanceled();
-        openEnded.refundFromStream({ streamId: defaultStreamId, refundAmount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertWhen_CallerUnauthorized_Recipient()
@@ -43,7 +43,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
-        openEnded.refundFromStream({ streamId: defaultStreamId, refundAmount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty()
@@ -57,7 +57,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
-        openEnded.refundFromStream({ streamId: defaultStreamId, refundAmount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertWhen_RefundAmountZero()
@@ -68,7 +68,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         whenCallerAuthorized
     {
         vm.expectRevert(Errors.SablierV2OpenEnded_RefundAmountZero.selector);
-        openEnded.refundFromStream({ streamId: defaultStreamId, refundAmount: 0 });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: 0 });
     }
 
     function test_RevertWhen_Overrefund()
@@ -87,7 +87,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
                 DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
             )
         );
-        openEnded.refundFromStream({ streamId: defaultStreamId, refundAmount: DEPOSIT_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
     }
 
     function test_RefundFromStream_AssetNot18Decimals()
@@ -137,7 +137,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         });
 
         expectCallToTransfer({ asset: asset, to: users.sender, amount: normalizeTransferAmount(streamId, REFUND_AMOUNT) });
-        openEnded.refundFromStream({ streamId: streamId, refundAmount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: streamId, amount: REFUND_AMOUNT });
 
         uint128 actualStreamBalance = openEnded.getBalance(streamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
