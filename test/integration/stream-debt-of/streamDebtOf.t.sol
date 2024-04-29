@@ -4,7 +4,7 @@ pragma solidity >=0.8.22;
 import { console2 } from "forge-std/src/console2.sol";
 import { Integration_Test } from "../Integration.t.sol";
 
-contract StreamDebt_Integration_Test is Integration_Test {
+contract StreamDebtOf_Integration_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
     }
