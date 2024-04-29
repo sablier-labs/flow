@@ -242,7 +242,16 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamIds = new uint256[](recipients.length);
         streamIds = createMultiple(recipients, senders, ratesPerSecond, asset);
 
-        depositMultiple(streamIds, amounts);
+        uint256 streamIdsCount = streamIds.length;
+        if (streamIdsCount != amounts.length) {
+            revert Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual(streamIdsCount, amounts.length);
+        }
+
+        // Deposit on each stream.
+        for (uint256 i = 0; i < streamIdsCount; ++i) {
+            // Checks, Effects and Interactions: deposit on stream.
+            _deposit(streamIds[i], amounts[i]);
+        }
     }
 
     /// @inheritdoc ISablierV2OpenEnded
