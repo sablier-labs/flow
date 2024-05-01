@@ -7,22 +7,8 @@ import { OpenEnded } from "src/types/DataTypes.sol";
 import { Integration_Test } from "../Integration.t.sol";
 
 contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
-    address[] internal defaultRecipients;
-    address[] internal defaultSenders;
-    uint128[] internal defaultRatesPerSecond;
-    uint128[] internal defaultDepositAmounts;
-
     function setUp() public override {
         Integration_Test.setUp();
-
-        defaultRecipients.push(users.recipient);
-        defaultRecipients.push(users.recipient);
-        defaultSenders.push(users.sender);
-        defaultSenders.push(users.sender);
-        defaultRatesPerSecond.push(RATE_PER_SECOND);
-        defaultRatesPerSecond.push(RATE_PER_SECOND);
-        defaultDepositAmounts.push(DEPOSIT_AMOUNT);
-        defaultDepositAmounts.push(DEPOSIT_AMOUNT);
     }
 
     function test_RevertWhen_DepositAmountsArrayIsNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {

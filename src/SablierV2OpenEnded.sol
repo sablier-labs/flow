@@ -257,7 +257,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     /// @inheritdoc ISablierV2OpenEnded
     function deposit(
         uint256 streamId,
-        uint128 depositAmount
+        uint128 amount
     )
         external
         override
@@ -266,7 +266,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         notNull(streamId)
     {
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, depositAmount);
+        _deposit(streamId, amount);
     }
 
     /// @inheritdoc ISablierV2OpenEnded

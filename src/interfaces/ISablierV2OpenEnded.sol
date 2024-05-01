@@ -151,6 +151,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Notes:
     /// - The streamed assets, until the adjustment moment, must be transferred to the recipient.
+    /// - This function updates stream's `lastTimeUpdate` to the current block timestamp.
     ///
     /// Requiremenets:
     /// - Must not be delegate called.
@@ -211,12 +212,12 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
         returns (uint256 streamId);
 
     /// @notice Creates a new open-ended stream with the `block.timestamp` as the time reference
-    /// and with `depositAmount` balance.
+    /// and with `amount` balance.
     ///
     /// @dev Emits a {CreateOpenEndedStream}, {Transfer} and {DepositOpenEndedStream} events.
     ///
     /// Requirements:
-    /// - `depositAmount` must be greater than zero.
+    /// - `amount` must be greater than zero.
     /// - Refer to the requirements in {create}.
     ///
     /// @param recipient The address receiving the assets.
@@ -243,7 +244,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - All requirements from {create} must be met for each stream.
-    /// - There must be an equal number of `recipients`, `senders`, `ratesPerSecond` and `amounts`.
+    /// - `recipients`, `senders`, `ratesPerSecond` and `amounts` arrays must be of equal length.
     ///
     /// @param recipients The addresses receiving the assets.
     /// @param senders The addresses streaming the assets, with the ability to adjust and cancel the stream.
@@ -267,7 +268,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @dev Emits multiple {CreateOpenEndedStream} events.
     ///
     /// Requirements:
-    /// - There must be an equal number of `recipients`, `senders` and `ratesPerSecond`.
+    /// - `recipients`, `senders` and `ratesPerSecond` arrays must be of equal length.
     /// - All requirements from {create} must be met for each stream.
     ///
     /// @param recipients The addresses receiving the assets.
@@ -290,7 +291,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// Requirements:
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream or a canceled stream.
-    /// - `depositAmount` must be greater than zero.
+    /// - `amount` must be greater than zero.
     ///
     /// @param streamId The ID of the stream to deposit on.
     /// @param amount The amount deposited in the stream, denoted in 18 decimals.
@@ -302,7 +303,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - All requirements from {deposit} must be met for each stream.
-    /// - There must be an equal number of `streamIds` and `depositAmount`.
+    /// - `streamIds` and `amounts` arrays must be of equal length.
     ///
     /// @param streamIds The ids of the streams to deposit on.
     /// @param amounts The amount of assets to be deposited, denoted in 18 decimals.
@@ -325,6 +326,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @notice Restarts the stream with the provided rate per second.
     ///
     /// @dev Emits a {RestartOpenEndedStream} event.
+    ///   - This function updates stream's `lastTimeUpdate` to the current block timestamp.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -336,13 +338,13 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     function restartStream(uint256 streamId, uint128 ratePerSecond) external;
 
-    /// @notice Restarts the stream with the provided rate per second, and deposits `depositAmount` in the stream
+    /// @notice Restarts the stream with the provided rate per second, and deposits `amount` in the stream
     /// balance.
     ///
     /// @dev Emits a {RestartOpenEndedStream}, {Transfer} and {DepositOpenEndedStream} event.
     ///
     /// Requirements:
-    /// - `depositAmount` must be greater than zero.
+    /// - `amount` must be greater than zero.
     /// - Refer to the requirements in {restartStream}.
     ///
     /// @param streamId The ID of the stream to restart.
@@ -385,7 +387,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - There must be an equal number of `streamIds` and `times`.
+    /// - `streamIds` and `times` arrays must be of equal length.
     /// - Each stream ID in the array must not reference a null stream.
     /// - Each time in the array must be greater than the last time update and must not exceed `block.timestamp`.
     ///

@@ -8,26 +8,15 @@ import { OpenEnded } from "src/types/DataTypes.sol";
 import { Integration_Test } from "../Integration.t.sol";
 
 contract CreateMultiple_Integration_Test is Integration_Test {
-    address[] internal defaultRecipients;
-    address[] internal defaultSenders;
-    uint128[] internal defaultRatesPerSecond;
-
     function setUp() public override {
         Integration_Test.setUp();
-
-        defaultRecipients.push(users.recipient);
-        defaultRecipients.push(users.recipient);
-        defaultSenders.push(users.sender);
-        defaultSenders.push(users.sender);
-        defaultRatesPerSecond.push(RATE_PER_SECOND);
-        defaultRatesPerSecond.push(RATE_PER_SECOND);
     }
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(
             ISablierV2OpenEnded.createMultiple, (defaultRecipients, defaultSenders, defaultRatesPerSecond, dai)
         );
-        _test_RevertWhen_DelegateCall(callData);
+        expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertWhen_RecipientsCountNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
@@ -58,7 +47,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
         openEnded.createMultiple(defaultRecipients, senders, defaultRatesPerSecond, dai);
     }
 
-    function test_RevertWhen_RatesPerSecondCountNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
+    function test_RevertWhen_RatePerSecondCountNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
         uint128[] memory ratesPerSecond = new uint128[](1);
 
         vm.expectRevert(

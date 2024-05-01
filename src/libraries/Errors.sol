@@ -23,12 +23,6 @@ library Errors {
         uint256 recipientsCount, uint256 sendersCount, uint256 ratesPerSecondCount
     );
 
-    /// @notice Thrown when trying to set the rate per second of a stream to zero.
-    error SablierV2OpenEnded_RatePerSecondZero();
-
-    /// @notice Thrown when trying to change the rate per second with the same rate per second.
-    error SablierV2OpenEnded_RatePerSecondNotDifferent(uint128 ratePerSecond);
-
     /// @notice Thrown when trying to create a OpenEnded stream with a zero deposit amount.
     error SablierV2OpenEnded_DepositAmountZero();
 
@@ -47,6 +41,12 @@ library Errors {
 
     /// @notice Thrown when trying to refund an amount greater than the refundable amount.
     error SablierV2OpenEnded_Overrefund(uint256 streamId, uint128 refundAmount, uint128 refundableAmount);
+
+    /// @notice Thrown when trying to change the rate per second with the same rate per second.
+    error SablierV2OpenEnded_RatePerSecondNotDifferent(uint128 ratePerSecond);
+
+    /// @notice Thrown when trying to set the rate per second of a stream to zero.
+    error SablierV2OpenEnded_RatePerSecondZero();
 
     /// @notice Thrown when trying to create a OpenEnded stream with the recipient as the zero address.
     error SablierV2OpenEnded_RecipientZeroAddress();
@@ -69,19 +69,19 @@ library Errors {
     /// @notice Thrown when trying to withdraw to an address other than the recipient's.
     error SablierV2OpenEnded_WithdrawalAddressNotRecipient(uint256 streamId, address caller, address to);
 
-    /// @notice Thrown when trying to withdraw from multiple streams and the number of stream IDs does
-    /// not match the number of withdraw times.
-    error SablierV2OpenEnded_WithdrawMultipleArrayCountsNotEqual(uint256 streamIdCount, uint256 timesCount);
-
     /// @notice Thrown when trying to withdraw assets with a withdrawal time in the future.
     error SablierV2OpenEnded_WithdrawalTimeInTheFuture(uint40 time, uint256 currentTime);
 
     /// @notice Thrown when trying to withdraw assets with a withdrawal time not greater than `lastTimeUpdate`.
     error SablierV2OpenEnded_WithdrawalTimeNotGreaterThanLastUpdate(uint40 time, uint40 lastUpdate);
 
-    /// @notice Thrown when trying to withdraw to the zero address.
-    error SablierV2OpenEnded_WithdrawToZeroAddress();
-
     /// @notice Thrown when trying to withdraw but the stream balance is zero.
     error SablierV2OpenEnded_WithdrawBalanceZero(uint256 streamId);
+
+    /// @notice Thrown when trying to withdraw from multiple streams and the number of stream IDs does
+    /// not match the number of withdraw times.
+    error SablierV2OpenEnded_WithdrawMultipleArrayCountsNotEqual(uint256 streamIdCount, uint256 timesCount);
+
+    /// @notice Thrown when trying to withdraw to the zero address.
+    error SablierV2OpenEnded_WithdrawToZeroAddress();
 }

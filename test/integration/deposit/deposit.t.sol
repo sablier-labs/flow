@@ -15,7 +15,7 @@ contract Deposit_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.deposit, (defaultStreamId, DEPOSIT_AMOUNT));
-        _test_RevertWhen_DelegateCall(callData);
+        expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
