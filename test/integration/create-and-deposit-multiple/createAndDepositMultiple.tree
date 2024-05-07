@@ -1,7 +1,6 @@
 createAndDepositMultiple.t.sol
 ├── when array counts are not equal
-│  └── when the deposit amounts array is not equal
-│     └── it should revert
+│  └── it should revert
 └── when array counts are equal
    ├── it should create multiple streams
    ├── it should update the stream balance
