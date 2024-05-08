@@ -108,7 +108,13 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         openEnded.cancelMultiple(defaultStreamIds);
     }
 
-    function test_CancelMultiple() external {
+    function test_CancelMultiple()
+        external
+        whenNotDelegateCalled
+        whenArrayCountNotZero
+        givenNotNull
+        whenCallerUnauthorized
+    {
         openEnded.cancelMultiple(defaultStreamIds);
 
         assertTrue(openEnded.isCanceled(defaultStreamIds[0]));
