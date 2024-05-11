@@ -129,9 +129,6 @@ Recipient address **must** be checked because there is no NFT minted in `_create
 
 Sender address **must** be checked because there is no `ERC20` transfer in `_create` function.
 
-In `_cancel` function we can perform both sender and recipient `ERC20` transfers because there is no NFT so we don’t
-have to worry about [this issue](https://github.com/cantinasec/review-sablier/issues/11).
-
 ### Invariants:
 
 _balance = withdrawable amount + refundable amount_

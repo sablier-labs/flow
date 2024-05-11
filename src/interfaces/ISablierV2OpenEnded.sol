@@ -14,15 +14,11 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
 
     /// @notice Emitted when the sender changes the rate per second.
     /// @param streamId The ID of the stream.
-    /// @param recipientAmount The amount of assets withdrawn to the recipient, denoted in 18 decimals.
+    /// @param recipientAmount The amount of assets that the recipient is able to withdraw, denoted in 18 decimals.
     /// @param oldRatePerSecond The rate per second to change.
     /// @param newRatePerSecond The newly changed rate per second.
     event AdjustOpenEndedStream(
-        uint256 indexed streamId,
-        IERC20 indexed asset,
-        uint128 recipientAmount,
-        uint128 oldRatePerSecond,
-        uint128 newRatePerSecond
+        uint256 indexed streamId, uint128 recipientAmount, uint128 oldRatePerSecond, uint128 newRatePerSecond
     );
 
     /// @notice Emitted when a open-ended stream is canceled.
@@ -89,9 +85,9 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param streamId The ID of the stream.
     /// @param to The address that has received the withdrawn assets.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
-    /// @param withdrawAmount The amount of assets withdrawn, denoted in 18 decimals.
+    /// @param withdrawnAmount The amount of assets withdrawn, denoted in 18 decimals.
     event WithdrawFromOpenEndedStream(
-        uint256 indexed streamId, address indexed to, IERC20 indexed asset, uint128 withdrawAmount
+        uint256 indexed streamId, address indexed to, IERC20 indexed asset, uint128 withdrawnAmount
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -186,6 +182,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     function cancelMultiple(uint256[] calldata streamIds) external;
 
     /// @notice Creates a new open-ended stream with the `block.timestamp` as the time reference and with zero balance.
+    /// The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits a {CreateOpenEndedStream} event.
     ///
@@ -201,18 +198,20 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// have to be the same as `msg.sender`.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
+    /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @return streamId The ID of the newly created stream.
     function create(
         address recipient,
         address sender,
         uint128 ratePerSecond,
-        IERC20 asset
+        IERC20 asset,
+        bool isTransferable
     )
         external
         returns (uint256 streamId);
 
     /// @notice Creates a new open-ended stream with the `block.timestamp` as the time reference
-    /// and with `amount` balance.
+    /// and with `amount` balance. The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits a {CreateOpenEndedStream}, {Transfer} and {DepositOpenEndedStream} events.
     ///
@@ -225,6 +224,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// have to be the same as `msg.sender`.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
+    /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @param amount The amount deposited in the stream.
     /// @return streamId The ID of the newly created stream.
     function createAndDeposit(
@@ -232,13 +232,14 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
         address sender,
         uint128 ratePerSecond,
         IERC20 asset,
+        bool isTransferable,
         uint128 amount
     )
         external
         returns (uint256 streamId);
 
     /// @notice Creates multiple open-ended streams with the `block.timestamp` as the time reference and with
-    /// `amounts` balances.
+    /// `amounts` balances. The streams are wrapped in ERC-721 NFTs.
     ///
     /// @dev Emits multiple {CreateOpenEndedStream}, {Transfer} and {DepositOpenEndedStream} events.
     ///
@@ -250,6 +251,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param senders The addresses streaming the assets, with the ability to adjust and cancel the stream.
     /// @param ratesPerSecond The amounts of assets that are increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
+    /// @param isTransferable An array of booleans indicating if the stream NFT is transferable.
     /// @param amounts The amounts deposited in the streams.
     /// @return streamIds The IDs of the newly created streams.
     function createAndDepositMultiple(
@@ -257,13 +259,14 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
         address[] calldata senders,
         uint128[] calldata ratesPerSecond,
         IERC20 asset,
+        bool[] calldata isTransferable,
         uint128[] calldata amounts
     )
         external
         returns (uint256[] memory streamIds);
 
     /// @notice Creates multiple open-ended streams with the `block.timestamp` as the time reference and with zero
-    /// balance.
+    /// balance. The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits multiple {CreateOpenEndedStream} events.
     ///
@@ -275,11 +278,13 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param senders The addresses streaming the assets, with the ability to adjust and cancel the stream.
     /// @param ratesPerSecond The amounts of assets that are increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
+    /// @param isTransferable An array of booleans indicating if the stream NFTs are transferable.
     function createMultiple(
         address[] calldata recipients,
         address[] calldata senders,
         uint128[] calldata ratesPerSecond,
-        IERC20 asset
+        IERC20 asset,
+        bool[] calldata isTransferable
     )
         external
         returns (uint256[] memory streamIds);
@@ -352,14 +357,14 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param amount The amount deposited in the stream.
     function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 amount) external;
 
-    /// @notice Withdraws the amount of assets calculated based on time reference, from the stream
-    /// to the provided `to` address.
+    /// @notice Withdraws the amount of assets calculated based on time reference and the remaining amount, from the
+    /// stream to the provided `to` address.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromOpenEndedStream} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null or canceled stream.
+    /// - `streamId` must not reference a null stream.
     /// - `to` must not be the zero address.
     /// - `to` must be the recipient if `msg.sender` is not the stream's recipient.
     /// - `time` must be greater than the stream's `lastTimeUpdate` and must not be in the future.
@@ -369,17 +374,6 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param to The address receiving the withdrawn assets.
     /// @param time The Unix timestamp for the streamed amount calculation.
     function withdrawAt(uint256 streamId, address to, uint40 time) external;
-
-    /// @notice Withdraws the maximum withdrawable amount from the stream to the provided address `to`.
-    ///
-    /// @dev Emits a {Transfer}, {WithdrawFromOpenEndedStream} event.
-    ///
-    /// Requirements:
-    /// - Refer to the requirements in {withdraw}.
-    ///
-    /// @param streamId The ID of the stream to withdraw from.
-    /// @param to The address receiving the withdrawn assets.
-    function withdrawMax(uint256 streamId, address to) external;
 
     /// @notice Withdraws assets from streams to the recipient of each stream.
     ///
@@ -394,4 +388,25 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param streamIds The IDs of the streams to withdraw from.
     /// @param times The time references to calculate the streamed amount for each stream.
     function withdrawAtMultiple(uint256[] calldata streamIds, uint40[] calldata times) external;
+
+    /// @notice Withdraws the maximum withdrawable amount from the stream to the provided address `to`.
+    ///
+    /// @dev Emits a {Transfer}, {WithdrawFromOpenEndedStream} event.
+    ///
+    /// Requirements:
+    /// - Refer to the requirements in {withdrawAt}.
+    ///
+    /// @param streamId The ID of the stream to withdraw from.
+    /// @param to The address receiving the withdrawn assets.
+    function withdrawMax(uint256 streamId, address to) external;
+
+    /// @notice Withdraws the maximum withdrawable amount from each stream to the recipient of each stream.
+    ///
+    /// @dev Emits multiple {Transfer} and {WithdrawFromOpenEndedStream} events.
+    ///
+    /// Requirements:
+    /// - All requirements from {withdrawAt} must be met for each stream.
+    ///
+    /// @param streamIds The IDs of the streams to withdraw from.
+    function withdrawMaxMultiple(uint256[] calldata streamIds) external;
 }

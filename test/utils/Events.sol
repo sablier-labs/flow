@@ -7,11 +7,7 @@ abstract contract Events {
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     event AdjustOpenEndedStream(
-        uint256 indexed streamId,
-        IERC20 indexed asset,
-        uint128 recipientAmount,
-        uint128 oldRatePerSecond,
-        uint128 newRatePerSecond
+        uint256 indexed streamId, uint128 recipientAmount, uint128 oldRatePerSecond, uint128 newRatePerSecond
     );
 
     event CancelOpenEndedStream(
@@ -45,6 +41,6 @@ abstract contract Events {
     );
 
     event WithdrawFromOpenEndedStream(
-        uint256 indexed streamId, address indexed to, IERC20 indexed asset, uint128 withdrawAmount
+        uint256 indexed streamId, address indexed to, IERC20 indexed asset, uint128 withdrawnAmount
     );
 }

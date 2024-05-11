@@ -93,9 +93,9 @@ contract Withdraw_Integration_Test is Integration_Test {
     {
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector,
-                0,
-                openEnded.getLastTimeUpdate(defaultStreamId)
+                Errors.SablierV2OpenEnded_LastUpdateNotLessThanWithdrawalTime.selector,
+                openEnded.getLastTimeUpdate(defaultStreamId),
+                0
             )
         );
         openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: 0 });
@@ -134,7 +134,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         uint256 streamId = createDefaultStream();
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawBalanceZero.selector, streamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawNoFundsAvailable.selector, streamId));
         openEnded.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
@@ -240,7 +240,7 @@ contract Withdraw_Integration_Test is Integration_Test {
             streamId: streamId,
             to: users.recipient,
             asset: asset,
-            withdrawAmount: WITHDRAW_AMOUNT
+            withdrawnAmount: WITHDRAW_AMOUNT
         });
 
         expectCallToTransfer({

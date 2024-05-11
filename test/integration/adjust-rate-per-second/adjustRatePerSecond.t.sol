@@ -106,7 +106,6 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         vm.expectEmit({ emitter: address(openEnded) });
         emit AdjustOpenEndedStream({
             streamId: defaultStreamId,
-            asset: dai,
             recipientAmount: 0,
             oldRatePerSecond: RATE_PER_SECOND,
             newRatePerSecond: newRatePerSecond
@@ -168,7 +167,6 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         vm.expectEmit({ emitter: address(openEnded) });
         emit AdjustOpenEndedStream({
             streamId: streamId,
-            asset: asset,
             recipientAmount: ONE_MONTH_STREAMED_AMOUNT,
             oldRatePerSecond: RATE_PER_SECOND,
             newRatePerSecond: newRatePerSecond
