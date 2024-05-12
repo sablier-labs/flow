@@ -61,7 +61,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
             streamId: beforeNextStreamId,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai,
             lastTimeUpdate: uint40(block.timestamp)
         });
@@ -70,7 +70,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
             streamId: beforeNextStreamId + 1,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai,
             lastTimeUpdate: uint40(block.timestamp)
         });
@@ -91,7 +91,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
         );
 
         OpenEnded.Stream memory expectedStream = OpenEnded.Stream({
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai,
             assetDecimals: 18,
             balance: 0,

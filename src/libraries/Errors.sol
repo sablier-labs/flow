@@ -2,6 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 /// @title Errors
 /// @notice Library with custom erros used across the OpenEnded contract.
@@ -16,6 +17,9 @@ library Errors {
     /*//////////////////////////////////////////////////////////////////////////
                                  SABLIER-V2-OpenEnded
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Thrown when the broker fee exceeds the maximum allowed fee.
+    error SablierV2OpenEnded_BrokerFeeTooHigh(UD60x18 brokerFee, UD60x18 maxBrokerFee);
 
     /// @notice Thrown when trying to create multiple streams and the number of senders, recipients and rates per second
     /// does not match.

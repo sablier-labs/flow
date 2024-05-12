@@ -2,6 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierV2OpenEndedState } from "../interfaces/ISablierV2OpenEndedState.sol";
 import { OpenEnded } from "../types/DataTypes.sol";
@@ -13,6 +14,9 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     /*//////////////////////////////////////////////////////////////////////////
                                   STATE VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc ISablierV2OpenEndedState
+    UD60x18 public constant override MAX_BROKER_FEE = UD60x18.wrap(0.1e18);
 
     /// @inheritdoc ISablierV2OpenEndedState
     uint256 public override nextStreamId;

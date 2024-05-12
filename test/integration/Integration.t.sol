@@ -27,8 +27,8 @@ abstract contract Integration_Test is Base_Test {
         for (uint256 i; i < 2; ++i) {
             defaultRecipients.push(users.recipient);
             defaultSenders.push(users.sender);
-            defaultRatesPerSecond.push(RATE_PER_SECOND);
-            defaultDepositAmounts.push(DEPOSIT_AMOUNT);
+            defaultRatesPerSecond.push(defaults.RATE_PER_SECOND());
+            defaultDepositAmounts.push(defaults.DEPOSIT_AMOUNT());
         }
     }
 
@@ -44,7 +44,7 @@ abstract contract Integration_Test is Base_Test {
         return openEnded.create({
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: asset_
         });
     }
@@ -54,7 +54,7 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function defaultDeposit(uint256 streamId) internal {
-        openEnded.deposit(streamId, DEPOSIT_AMOUNT);
+        openEnded.deposit(streamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee());
     }
 
     /*//////////////////////////////////////////////////////////////////////////

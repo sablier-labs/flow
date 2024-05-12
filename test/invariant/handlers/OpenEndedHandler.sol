@@ -2,8 +2,10 @@
 pragma solidity >=0.8.22 <0.9.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { Broker } from "src/types/DataTypes.sol";
 
 import { OpenEndedStore } from "../stores/OpenEndedStore.sol";
 import { TimestampStore } from "../stores/TimestampStore.sol";
@@ -102,7 +104,8 @@ contract OpenEndedHandler is BaseHandler {
 
     function deposit(
         uint256 streamIndexSeed,
-        uint128 depositAmount
+        uint128 amount,
+        Broker memory broker
     )
         external
         instrument("deposit")
@@ -114,21 +117,28 @@ contract OpenEndedHandler is BaseHandler {
             return;
         }
 
-        // Bound the deposit amount.
-        depositAmount = uint128(_bound(depositAmount, 100e18, 1_000_000_000e18));
+        // Broker address must be valid.
+        if (broker.account == address(0) || broker.account == address(this)) {
+            return;
+        }
+
+        // Bound the stream parameters.
+        broker.fee = _bound(broker.fee, 0, MAX_BROKER_FEE);
+        amount = uint128(_bound(amount, 100e18, 1_000_000_000e18));
 
         // Mint enough assets to the Sender.
         address sender = openEndedStore.senders(currentStreamId);
-        deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + depositAmount });
+        deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + amount });
 
         // Approve {SablierV2OpenEnded} to spend the assets.
-        asset.approve({ spender: address(openEnded), value: depositAmount });
+        asset.approve({ spender: address(openEnded), value: amount });
 
         // Deposit into the stream.
-        openEnded.deposit({ streamId: currentStreamId, amount: depositAmount });
+        openEnded.deposit({ streamId: currentStreamId, amount: amount, broker: broker });
 
         // Store the deposited amount.
-        openEndedStore.updateStreamDepositedAmountsSum(depositAmount);
+        uint128 depositedAmount = amount - ud(amount).mul(broker.fee).intoUint128();
+        openEndedStore.updateStreamDepositedAmountsSum(depositedAmount);
     }
 
     function refundFromStream(
@@ -179,7 +189,7 @@ contract OpenEndedHandler is BaseHandler {
             return;
         }
 
-        // Bound the stream parameter.
+        // Bound the stream parameters.
         ratePerSecond = uint128(_bound(ratePerSecond, 0.0001e18, 1e18));
 
         // Restart the stream.
@@ -190,7 +200,8 @@ contract OpenEndedHandler is BaseHandler {
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
         uint128 ratePerSecond,
-        uint128 depositAmount
+        uint128 amount,
+        Broker memory broker
     )
         external
         instrument("restartStream")
@@ -203,22 +214,29 @@ contract OpenEndedHandler is BaseHandler {
             return;
         }
 
-        // Bound the stream parameter.
+        // Broker address must be valid.
+        if (broker.account == address(0) || broker.account == address(this)) {
+            return;
+        }
+
+        // Bound the stream parameters.
+        broker.fee = _bound(broker.fee, 0, MAX_BROKER_FEE);
+        amount = uint128(_bound(amount, 100e18, 1_000_000_000e18));
         ratePerSecond = uint128(_bound(ratePerSecond, 0.0001e18, 1e18));
-        depositAmount = uint128(_bound(depositAmount, 100e18, 1_000_000_000e18));
 
         // Mint enough assets to the Sender.
         address sender = openEndedStore.senders(currentStreamId);
-        deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + depositAmount });
+        deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + amount });
 
         // Approve {SablierV2OpenEnded} to spend the assets.
-        asset.approve({ spender: address(openEnded), value: depositAmount });
+        asset.approve({ spender: address(openEnded), value: amount });
 
         // Restart the stream.
-        openEnded.restartStreamAndDeposit(currentStreamId, ratePerSecond, depositAmount);
+        openEnded.restartStreamAndDeposit(currentStreamId, ratePerSecond, amount, broker);
 
         // Store the deposited amount.
-        openEndedStore.updateStreamDepositedAmountsSum(depositAmount);
+        uint128 depositedAmount = amount - ud(amount).mul(broker.fee).intoUint128();
+        openEndedStore.updateStreamDepositedAmountsSum(depositedAmount);
     }
 
     function withdrawAt(

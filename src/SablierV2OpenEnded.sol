@@ -5,12 +5,13 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
 import { SablierV2OpenEndedState } from "./abstracts/SablierV2OpenEndedState.sol";
 import { ISablierV2OpenEnded } from "./interfaces/ISablierV2OpenEnded.sol";
 import { Errors } from "./libraries/Errors.sol";
-import { OpenEnded } from "./types/DataTypes.sol";
+import { Broker, OpenEnded } from "./types/DataTypes.sol";
 
 /// @title SablierV2OpenEnded
 /// @notice See the documentation in {ISablierV2OpenEnded}.
@@ -185,7 +186,8 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         address recipient,
         uint128 ratePerSecond,
         IERC20 asset,
-        uint128 amount
+        uint128 amount,
+        Broker calldata broker
     )
         external
         override
@@ -195,7 +197,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamId = _create(sender, recipient, ratePerSecond, asset);
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, amount);
+        _deposit(streamId, amount, broker);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -233,7 +235,8 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         address[] calldata senders,
         uint128[] calldata ratesPerSecond,
         IERC20 asset,
-        uint128[] calldata amounts
+        uint128[] calldata amounts,
+        Broker calldata broker
     )
         external
         override
@@ -250,14 +253,15 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         // Deposit on each stream.
         for (uint256 i = 0; i < streamIdsCount; ++i) {
             // Checks, Effects and Interactions: deposit on stream.
-            _deposit(streamIds[i], amounts[i]);
+            _deposit(streamIds[i], amounts[i], broker);
         }
     }
 
     /// @inheritdoc ISablierV2OpenEnded
     function deposit(
         uint256 streamId,
-        uint128 amount
+        uint128 amount,
+        Broker calldata broker
     )
         external
         override
@@ -266,11 +270,19 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         notNull(streamId)
     {
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, amount);
+        _deposit(streamId, amount, broker);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function depositMultiple(uint256[] memory streamIds, uint128[] calldata amounts) public override noDelegateCall {
+    function depositMultiple(
+        uint256[] memory streamIds,
+        uint128[] calldata amounts,
+        Broker calldata broker
+    )
+        public
+        override
+        noDelegateCall
+    {
         uint256 streamIdsCount = streamIds.length;
         uint256 amountsCount = amounts.length;
 
@@ -286,7 +298,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
             }
 
             // Checks, Effects and Interactions: deposit on stream.
-            _deposit(streamIds[i], amounts[i]);
+            _deposit(streamIds[i], amounts[i], broker);
         }
     }
 
@@ -297,12 +309,20 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 amount) external override {
+    function restartStreamAndDeposit(
+        uint256 streamId,
+        uint128 ratePerSecond,
+        uint128 amount,
+        Broker calldata broker
+    )
+        external
+        override
+    {
         // Checks, Effects and Interactions: restart the stream.
         _restartStream(streamId, ratePerSecond);
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, amount);
+        _deposit(streamId, amount, broker);
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -599,26 +619,54 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _deposit(uint256 streamId, uint128 amount) internal {
+    function _deposit(uint256 streamId, uint128 amount, Broker calldata broker) internal {
         // Check: the deposit amount is not zero.
         if (amount == 0) {
             revert Errors.SablierV2OpenEnded_DepositAmountZero();
         }
 
-        // Effect: update the stream balance.
-        _streams[streamId].balance += amount;
+        // Check: broker fee is not greather than `MAX_BROKER_FEE`.
+        if (broker.fee.gt(MAX_BROKER_FEE)) {
+            revert Errors.SablierV2OpenEnded_BrokerFeeTooHigh(broker.fee, MAX_BROKER_FEE);
+        }
 
         // Retrieve the ERC-20 asset from storage.
         IERC20 asset = _streams[streamId].asset;
 
+        // Calculate the broker fee amount.
+        uint128 brokerFeeAmount;
+        uint128 brokerTransferAmount;
+        if (broker.fee.gt(ud(0))) {
+            unchecked {
+                brokerFeeAmount = ud(amount).mul(broker.fee).intoUint128();
+                amount -= brokerFeeAmount;
+            }
+            brokerTransferAmount = _calculateTransferAmount(streamId, brokerFeeAmount);
+        }
+
         // Calculate the transfer amount.
         uint128 transferAmount = _calculateTransferAmount(streamId, amount);
+
+        // Effect: update the stream balance.
+        _streams[streamId].balance += amount;
+
+        // Interaction: pay the broker fee, if not zero.
+        if (brokerTransferAmount > 0) {
+            asset.safeTransferFrom({ from: msg.sender, to: broker.account, value: brokerTransferAmount });
+        }
 
         // Interaction: transfer the deposit amount.
         asset.safeTransferFrom(msg.sender, address(this), transferAmount);
 
         // Log the deposit.
-        emit ISablierV2OpenEnded.DepositOpenEndedStream(streamId, msg.sender, asset, amount);
+        emit ISablierV2OpenEnded.DepositOpenEndedStream({
+            streamId: streamId,
+            funder: msg.sender,
+            asset: asset,
+            depositAmount: amount,
+            broker: broker.account,
+            brokerFeeAmount: brokerFeeAmount
+        });
     }
 
     /// @dev Helper function to update the `balance` and to perform the ERC-20 transfer.

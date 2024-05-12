@@ -12,9 +12,9 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
-        times.push(WITHDRAW_TIME);
-        times.push(WITHDRAW_TIME);
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        times.push(defaults.WITHDRAW_TIME());
+        times.push(defaults.WITHDRAW_TIME());
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
     }
 
     function test_RevertWhen_DelegateCall() external {
@@ -149,7 +149,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, WARP_ONE_MONTH
+                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, defaults.WARP_ONE_MONTH()
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -171,7 +171,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, WARP_ONE_MONTH
+                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, defaults.WARP_ONE_MONTH()
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -237,27 +237,27 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamIds[0],
             to: users.recipient,
             asset: dai,
-            withdrawAmount: WITHDRAW_AMOUNT
+            withdrawAmount: defaults.WITHDRAW_AMOUNT()
         });
         vm.expectEmit({ emitter: address(openEnded) });
         emit WithdrawFromOpenEndedStream({
             streamId: defaultStreamIds[1],
             to: users.recipient,
             asset: dai,
-            withdrawAmount: WITHDRAW_AMOUNT
+            withdrawAmount: defaults.WITHDRAW_AMOUNT()
         });
 
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
 
         actualLastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamIds[0]);
-        expectedLastTimeUpdate = WITHDRAW_TIME;
+        expectedLastTimeUpdate = defaults.WITHDRAW_TIME();
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         actualLastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamIds[1]);
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = openEnded.getBalance(defaultStreamIds[0]);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = defaults.DEPOSIT_AMOUNT() - defaults.WITHDRAW_AMOUNT();
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         actualStreamBalance = openEnded.getBalance(defaultStreamIds[1]);

@@ -2,7 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { Errors } from "src/libraries/Errors.sol";
-import { OpenEnded } from "src/types/DataTypes.sol";
+import { Broker, OpenEnded } from "src/types/DataTypes.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
 
@@ -13,6 +13,7 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DepositAmountsArrayIsNotEqual() external whenNotDelegateCalled whenArrayCountsNotEqual {
         uint128[] memory depositAmounts = new uint128[](0);
+        Broker memory defaultBroker = defaults.brokerWithoutFee();
 
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -22,7 +23,7 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
             )
         );
         openEnded.createAndDepositMultiple(
-            defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, depositAmounts
+            defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, depositAmounts, defaultBroker
         );
     }
 
@@ -34,7 +35,7 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
             streamId: beforeNextStreamId,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai,
             lastTimeUpdate: uint40(block.timestamp)
         });
@@ -43,7 +44,7 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
             streamId: beforeNextStreamId + 1,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai,
             lastTimeUpdate: uint40(block.timestamp)
         });
@@ -53,7 +54,9 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
             streamId: beforeNextStreamId,
             funder: users.sender,
             asset: dai,
-            depositAmount: DEPOSIT_AMOUNT
+            depositAmount: defaults.DEPOSIT_AMOUNT(),
+            broker: defaults.brokerWithoutFee().account,
+            brokerFeeAmount: 0
         });
 
         vm.expectEmit({ emitter: address(openEnded) });
@@ -61,14 +64,31 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
             streamId: beforeNextStreamId + 1,
             funder: users.sender,
             asset: dai,
-            depositAmount: DEPOSIT_AMOUNT
+            depositAmount: defaults.DEPOSIT_AMOUNT(),
+            broker: defaults.brokerWithoutFee().account,
+            brokerFeeAmount: 0
         });
 
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(openEnded), amount: DEPOSIT_AMOUNT });
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(openEnded), amount: DEPOSIT_AMOUNT });
+        expectCallToTransferFrom({
+            asset: dai,
+            from: users.sender,
+            to: address(openEnded),
+            amount: defaults.DEPOSIT_AMOUNT()
+        });
+        expectCallToTransferFrom({
+            asset: dai,
+            from: users.sender,
+            to: address(openEnded),
+            amount: defaults.DEPOSIT_AMOUNT()
+        });
 
         uint256[] memory streamIds = openEnded.createAndDepositMultiple(
-            defaultRecipients, defaultSenders, defaultRatesPerSecond, dai, defaultDepositAmounts
+            defaultRecipients,
+            defaultSenders,
+            defaultRatesPerSecond,
+            dai,
+            defaultDepositAmounts,
+            defaults.brokerWithoutFee()
         );
 
         uint256 afterNextStreamId = openEnded.nextStreamId();
@@ -84,10 +104,10 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
         );
 
         OpenEnded.Stream memory expectedStream = OpenEnded.Stream({
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai,
             assetDecimals: 18,
-            balance: DEPOSIT_AMOUNT,
+            balance: defaults.DEPOSIT_AMOUNT(),
             lastTimeUpdate: uint40(block.timestamp),
             isCanceled: false,
             isStream: true,

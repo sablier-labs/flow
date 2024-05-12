@@ -4,11 +4,12 @@ pragma solidity >=0.8.22 <0.9.0;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { StdCheats } from "forge-std/src/StdCheats.sol";
 
+import { Constants } from "../../utils/Constants.sol";
 import { Utils } from "../../utils/Utils.sol";
 import { TimestampStore } from "../stores/TimestampStore.sol";
 
 /// @notice Base contract with common logic needed by all handler contracts.
-abstract contract BaseHandler is StdCheats, Utils {
+abstract contract BaseHandler is Constants, StdCheats, Utils {
     /*//////////////////////////////////////////////////////////////////////////
                                      CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -60,14 +61,14 @@ abstract contract BaseHandler is StdCheats, Utils {
     }
 
     /// @dev Checks user assumptions.
-    modifier checkUsers(address sender, address recipient) {
-        // The protocol doesn't allow the sender or recipient to be the zero address.
-        if (sender == address(0) || recipient == address(0)) {
+    modifier checkUsers(address sender, address recipient, address broker) {
+        // The protocol doesn't allow the sender, recipient or broker to be the zero address.
+        if (sender == address(0) || recipient == address(0) || broker == address(0)) {
             return;
         }
 
         // Prevent the contract itself from playing the role of any user.
-        if (sender == address(this) || recipient == address(this)) {
+        if (sender == address(this) || recipient == address(this) || broker == address(this)) {
             return;
         }
 

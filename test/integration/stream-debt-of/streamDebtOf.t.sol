@@ -26,9 +26,9 @@ contract StreamDebtOf_Integration_Test is Integration_Test {
     }
 
     function test_streamDebtOf() external givenNotNull givenNotCanceled {
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
         uint128 streamDebt = openEnded.streamDebtOf(defaultStreamId);
 
-        assertEq(streamDebt, ONE_MONTH_STREAMED_AMOUNT, "stream debt");
+        assertEq(streamDebt, defaults.ONE_MONTH_STREAMED_AMOUNT(), "stream debt");
     }
 }

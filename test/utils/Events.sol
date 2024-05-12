@@ -33,7 +33,12 @@ abstract contract Events {
     );
 
     event DepositOpenEndedStream(
-        uint256 indexed streamId, address indexed funder, IERC20 indexed asset, uint128 depositAmount
+        uint256 indexed streamId,
+        address indexed funder,
+        IERC20 indexed asset,
+        uint128 depositAmount,
+        address broker,
+        uint128 brokerFeeAmount
     );
 
     event RefundFromOpenEndedStream(

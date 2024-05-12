@@ -14,28 +14,34 @@ contract Withdraw_Integration_Test is Integration_Test {
 
         defaultDeposit();
 
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
     }
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.withdrawAt, (defaultStreamId, users.recipient, WITHDRAW_TIME));
+            abi.encodeCall(ISablierV2OpenEnded.withdrawAt, (defaultStreamId, users.recipient, defaults.WITHDRAW_TIME()));
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
+        uint40 withdrawTime = defaults.WITHDRAW_TIME();
+
         expectRevertNull();
-        openEnded.withdrawAt({ streamId: nullStreamId, to: users.recipient, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: nullStreamId, to: users.recipient, time: withdrawTime });
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
+        uint40 withdrawTime = defaults.WITHDRAW_TIME();
+
         expectRevertCanceled();
-        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: withdrawTime });
     }
 
     function test_RevertWhen_ToZeroAddress() external whenNotDelegateCalled givenNotNull givenNotCanceled {
+        uint40 withdrawTime = defaults.WITHDRAW_TIME();
+
         vm.expectRevert(Errors.SablierV2OpenEnded_WithdrawToZeroAddress.selector);
-        openEnded.withdrawAt({ streamId: defaultStreamId, to: address(0), time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: defaultStreamId, to: address(0), time: withdrawTime });
     }
 
     function test_RevertWhen_CallerUnknown()
@@ -47,6 +53,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalAddressNotRecipient
     {
         address unknownCaller = address(0xCAFE);
+        uint40 withdrawTime = defaults.WITHDRAW_TIME();
         resetPrank({ msgSender: unknownCaller });
 
         vm.expectRevert(
@@ -58,7 +65,7 @@ contract Withdraw_Integration_Test is Integration_Test {
             )
         );
 
-        openEnded.withdrawAt({ streamId: defaultStreamId, to: unknownCaller, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: defaultStreamId, to: unknownCaller, time: withdrawTime });
     }
 
     function test_RevertWhen_CallerSender()
@@ -69,6 +76,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenToNonZeroAddress
         whenWithdrawalAddressNotRecipient
     {
+        uint40 withdrawTime = defaults.WITHDRAW_TIME();
         resetPrank({ msgSender: users.sender });
 
         vm.expectRevert(
@@ -80,7 +88,7 @@ contract Withdraw_Integration_Test is Integration_Test {
             )
         );
 
-        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.sender, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.sender, time: withdrawTime });
     }
 
     function test_RevertWhen_WithdrawalTimeNotGreaterThanLastUpdate()
@@ -130,12 +138,14 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalTimeGreaterThanLastUpdate
         whenWithdrawalTimeNotInTheFuture
     {
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() - ONE_MONTH });
         uint256 streamId = createDefaultStream();
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
+
+        uint40 withdrawTime = defaults.WITHDRAW_TIME();
 
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawBalanceZero.selector, streamId));
-        openEnded.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: streamId, to: users.recipient, time: withdrawTime });
     }
 
     function test_Withdraw_CallerSender()
@@ -149,14 +159,14 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
     {
-        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: defaults.WITHDRAW_TIME() });
 
         uint40 actualLastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = WITHDRAW_TIME;
+        uint40 expectedLastTimeUpdate = defaults.WITHDRAW_TIME();
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = defaults.DEPOSIT_AMOUNT() - defaults.WITHDRAW_AMOUNT();
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -174,14 +184,14 @@ contract Withdraw_Integration_Test is Integration_Test {
         address unknownCaller = address(0xCAFE);
         resetPrank({ msgSender: unknownCaller });
 
-        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: defaults.WITHDRAW_TIME() });
 
         uint40 actualLastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = WITHDRAW_TIME;
+        uint40 expectedLastTimeUpdate = defaults.WITHDRAW_TIME();
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = defaults.DEPOSIT_AMOUNT() - defaults.WITHDRAW_AMOUNT();
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -198,10 +208,10 @@ contract Withdraw_Integration_Test is Integration_Test {
         whenCallerRecipient
     {
         // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() - ONE_MONTH });
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        openEnded.deposit(streamId, DEPOSIT_AMOUNT);
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        openEnded.deposit(streamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee());
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
 
         _test_Withdraw(streamId, IERC20(address(usdt)));
     }
@@ -232,7 +242,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         emit Transfer({
             from: address(openEnded),
             to: users.recipient,
-            value: normalizeTransferAmount(streamId, WITHDRAW_AMOUNT)
+            value: normalizeTransferAmount(streamId, defaults.WITHDRAW_AMOUNT())
         });
 
         vm.expectEmit({ emitter: address(openEnded) });
@@ -240,22 +250,22 @@ contract Withdraw_Integration_Test is Integration_Test {
             streamId: streamId,
             to: users.recipient,
             asset: asset,
-            withdrawAmount: WITHDRAW_AMOUNT
+            withdrawAmount: defaults.WITHDRAW_AMOUNT()
         });
 
         expectCallToTransfer({
             asset: asset,
             to: users.recipient,
-            amount: normalizeTransferAmount(streamId, WITHDRAW_AMOUNT)
+            amount: normalizeTransferAmount(streamId, defaults.WITHDRAW_AMOUNT())
         });
-        openEnded.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
+        openEnded.withdrawAt({ streamId: streamId, to: users.recipient, time: defaults.WITHDRAW_TIME() });
 
         actualLastTimeUpdate = openEnded.getLastTimeUpdate(streamId);
-        expectedLastTimeUpdate = WITHDRAW_TIME;
+        expectedLastTimeUpdate = defaults.WITHDRAW_TIME();
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = openEnded.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = defaults.DEPOSIT_AMOUNT() - defaults.WITHDRAW_AMOUNT();
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

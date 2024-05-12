@@ -3,6 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import { Broker } from "../types/DataTypes.sol";
 import { ISablierV2OpenEndedState } from "./ISablierV2OpenEndedState.sol";
 
 /// @title ISablierV2OpenEnded
@@ -63,8 +64,15 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param funder The address which funded the stream.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param depositAmount The amount of assets deposited, denoted in 18 decimals.
+    /// @param broker The address of the broker who has helped deposit into the stream, e.g. a front-end website.
+    /// @param brokerFeeAmount The amount of assets paid to the broker as a fee, denoted in 18 decimals.
     event DepositOpenEndedStream(
-        uint256 indexed streamId, address indexed funder, IERC20 indexed asset, uint128 depositAmount
+        uint256 indexed streamId,
+        address indexed funder,
+        IERC20 indexed asset,
+        uint128 depositAmount,
+        address broker,
+        uint128 brokerFeeAmount
     );
 
     /// @notice Emitted when assets are refunded from a open-ended stream.
@@ -227,12 +235,15 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param amount The amount deposited in the stream.
     /// @return streamId The ID of the newly created stream.
+    /// @param broker Struct containing (i) the address of the broker assisting in depositing into the stream, and (ii)
+    /// the percentage fee paid to the broker from `amount`, denoted as a fixed-point number. Both can be set to zero.
     function createAndDeposit(
         address recipient,
         address sender,
         uint128 ratePerSecond,
         IERC20 asset,
-        uint128 amount
+        uint128 amount,
+        Broker calldata broker
     )
         external
         returns (uint256 streamId);
@@ -252,12 +263,15 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param amounts The amounts deposited in the streams.
     /// @return streamIds The IDs of the newly created streams.
+    /// @param broker Struct containing (i) the address of the broker assisting in depositing into the stream, and (ii)
+    /// the percentage fee paid to the broker from `amounts`, denoted as a fixed-point number. Both can be set to zero.
     function createAndDepositMultiple(
         address[] calldata recipients,
         address[] calldata senders,
         uint128[] calldata ratesPerSecond,
         IERC20 asset,
-        uint128[] calldata amounts
+        uint128[] calldata amounts,
+        Broker calldata broker
     )
         external
         returns (uint256[] memory streamIds);
@@ -295,7 +309,9 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// @param streamId The ID of the stream to deposit on.
     /// @param amount The amount deposited in the stream, denoted in 18 decimals.
-    function deposit(uint256 streamId, uint128 amount) external;
+    /// @param broker Struct containing (i) the address of the broker assisting in depositing into the stream, and (ii)
+    /// the percentage fee paid to the broker from `amount`, denoted as a fixed-point number. Both can be set to zero.
+    function deposit(uint256 streamId, uint128 amount, Broker calldata broker) external;
 
     /// @notice Deposits assets in multiple streams.
     ///
@@ -307,7 +323,14 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     ///
     /// @param streamIds The ids of the streams to deposit on.
     /// @param amounts The amount of assets to be deposited, denoted in 18 decimals.
-    function depositMultiple(uint256[] calldata streamIds, uint128[] calldata amounts) external;
+    /// @param broker Struct containing (i) the address of the broker assisting in depositing into the stream, and (ii)
+    /// the percentage fee paid to the broker from `amounts`, denoted as a fixed-point number. Both can be set to zero.
+    function depositMultiple(
+        uint256[] calldata streamIds,
+        uint128[] calldata amounts,
+        Broker calldata broker
+    )
+        external;
 
     /// @notice Refunds the provided amount of assets from the stream to the sender's address.
     ///
@@ -350,7 +373,15 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param streamId The ID of the stream to restart.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param amount The amount deposited in the stream.
-    function restartStreamAndDeposit(uint256 streamId, uint128 ratePerSecond, uint128 amount) external;
+    /// @param broker Struct containing (i) the address of the broker assisting in depositing into the stream, and (ii)
+    /// the percentage fee paid to the broker from `amount`, denoted as a fixed-point number. Both can be set to zero.
+    function restartStreamAndDeposit(
+        uint256 streamId,
+        uint128 ratePerSecond,
+        uint128 amount,
+        Broker calldata broker
+    )
+        external;
 
     /// @notice Withdraws the amount of assets calculated based on time reference, from the stream
     /// to the provided `to` address.

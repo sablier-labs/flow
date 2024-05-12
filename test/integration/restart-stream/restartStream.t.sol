@@ -14,19 +14,24 @@ contract RestartStream_Integration_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.restartStream, (defaultStreamId, RATE_PER_SECOND));
+        bytes memory callData =
+            abi.encodeCall(ISablierV2OpenEnded.restartStream, (defaultStreamId, defaults.RATE_PER_SECOND()));
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
+
         expectRevertNull();
-        openEnded.restartStream({ streamId: nullStreamId, ratePerSecond: RATE_PER_SECOND });
+        openEnded.restartStream({ streamId: nullStreamId, ratePerSecond: ratePerSecond });
     }
 
     function test_RevertGiven_NotCanceled() external whenNotDelegateCalled givenNotNull {
         uint256 streamId = createDefaultStream();
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
+
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_StreamNotCanceled.selector, streamId));
-        openEnded.restartStream({ streamId: streamId, ratePerSecond: RATE_PER_SECOND });
+        openEnded.restartStream({ streamId: streamId, ratePerSecond: ratePerSecond });
     }
 
     function test_RevertWhen_CallerUnauthorized_Recipient()
@@ -37,10 +42,12 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.recipient });
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
+
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
-        openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
+        openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: ratePerSecond });
     }
 
     function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty()
@@ -51,10 +58,12 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.eve });
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
+
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
-        openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
+        openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: ratePerSecond });
     }
 
     function test_RevertWhen_ratePerSecondZero()
@@ -74,15 +83,15 @@ contract RestartStream_Integration_Test is Integration_Test {
         givenNotNull
         givenCanceled
         whenCallerAuthorized
-        whenratePerSecondNonZero
+        whenRatePerSecondNonZero
     {
-        openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
+        openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: defaults.RATE_PER_SECOND() });
 
         bool isCanceled = openEnded.isCanceled(defaultStreamId);
         assertFalse(isCanceled);
 
         uint128 actualratePerSecond = openEnded.getRatePerSecond(defaultStreamId);
-        assertEq(actualratePerSecond, RATE_PER_SECOND, "ratePerSecond");
+        assertEq(actualratePerSecond, defaults.RATE_PER_SECOND(), "ratePerSecond");
 
         uint40 actualLastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamId);
         assertEq(actualLastTimeUpdate, block.timestamp, "lastTimeUpdate");

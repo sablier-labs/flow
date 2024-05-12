@@ -2,8 +2,10 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { Broker } from "src/types/DataTypes.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -14,23 +16,50 @@ contract Deposit_Integration_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.deposit, (defaultStreamId, DEPOSIT_AMOUNT));
+        bytes memory callData = abi.encodeCall(
+            ISablierV2OpenEnded.deposit, (defaultStreamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee())
+        );
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
+        Broker memory broker = defaults.brokerWithoutFee();
+        uint128 depositAmount = defaults.DEPOSIT_AMOUNT();
+
         expectRevertNull();
-        openEnded.deposit(nullStreamId, DEPOSIT_AMOUNT);
+        openEnded.deposit(nullStreamId, depositAmount, broker);
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
+        Broker memory broker = defaults.brokerWithoutFee();
+        uint128 depositAmount = defaults.DEPOSIT_AMOUNT();
+
         expectRevertCanceled();
-        openEnded.deposit(defaultStreamId, DEPOSIT_AMOUNT);
+        openEnded.deposit(defaultStreamId, depositAmount, broker);
     }
 
     function test_RevertWhen_DepositAmountZero() external whenNotDelegateCalled givenNotNull givenNotCanceled {
+        Broker memory broker = defaults.brokerWithoutFee();
+
         vm.expectRevert(Errors.SablierV2OpenEnded_DepositAmountZero.selector);
-        openEnded.deposit(defaultStreamId, 0);
+        openEnded.deposit(defaultStreamId, 0, broker);
+    }
+
+    function test_RevertWhen_BrokerFeeTooHigh()
+        external
+        whenNotDelegateCalled
+        givenNotNull
+        givenNotCanceled
+        whenDepositAmountNonZero
+    {
+        uint128 depositAmount = defaults.DEPOSIT_AMOUNT();
+        Broker memory broker = defaults.brokerWithFee();
+        broker.fee = MAX_BROKER_FEE + ud(1);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.SablierV2OpenEnded_BrokerFeeTooHigh.selector, broker.fee, MAX_BROKER_FEE)
+        );
+        openEnded.deposit(defaultStreamId, depositAmount, broker);
     }
 
     function test_Deposit_AssetMissingReturnValue_AssetNot18Decimals()
@@ -39,21 +68,38 @@ contract Deposit_Integration_Test is Integration_Test {
         givenNotNull
         givenNotCanceled
         whenDepositAmountNonZero
+        whenBrokerFeeNotTooHigh
     {
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        test_Deposit(streamId, IERC20(address(usdt)));
+        test_Deposit(streamId, IERC20(address(usdt)), defaults.brokerWithFee());
     }
 
-    function test_Deposit() external whenNotDelegateCalled givenNotNull givenNotCanceled whenDepositAmountNonZero {
-        test_Deposit(defaultStreamId, dai);
+    function test_Deposit()
+        external
+        whenNotDelegateCalled
+        givenNotNull
+        givenNotCanceled
+        whenDepositAmountNonZero
+        whenBrokerFeeNotTooHigh
+    {
+        test_Deposit(defaultStreamId, dai, defaults.brokerWithFee());
     }
 
-    function test_Deposit(uint256 streamId, IERC20 asset) internal {
+    function test_Deposit(uint256 streamId, IERC20 asset, Broker memory broker) internal {
+        if (broker.fee.gt(ud(0))) {
+            vm.expectEmit({ emitter: address(asset) });
+            emit Transfer({
+                from: users.sender,
+                to: users.broker,
+                value: normalizeTransferAmount(streamId, defaults.BROKER_FEE_AMOUNT())
+            });
+        }
+
         vm.expectEmit({ emitter: address(asset) });
         emit Transfer({
             from: users.sender,
             to: address(openEnded),
-            value: normalizeTransferAmount(streamId, DEPOSIT_AMOUNT)
+            value: normalizeTransferAmount(streamId, defaults.DEPOSIT_AMOUNT())
         });
 
         vm.expectEmit({ emitter: address(openEnded) });
@@ -61,19 +107,21 @@ contract Deposit_Integration_Test is Integration_Test {
             streamId: streamId,
             funder: users.sender,
             asset: asset,
-            depositAmount: DEPOSIT_AMOUNT
+            depositAmount: defaults.DEPOSIT_AMOUNT(),
+            broker: defaults.brokerWithFee().account,
+            brokerFeeAmount: defaults.BROKER_FEE_AMOUNT()
         });
 
         expectCallToTransferFrom({
             asset: asset,
             from: users.sender,
             to: address(openEnded),
-            amount: normalizeTransferAmount(streamId, DEPOSIT_AMOUNT)
+            amount: normalizeTransferAmount(streamId, defaults.DEPOSIT_AMOUNT())
         });
-        openEnded.deposit(streamId, DEPOSIT_AMOUNT);
+        openEnded.deposit(streamId, defaults.DEPOSIT_AMOUNT_WITH_FEE(), defaults.brokerWithFee());
 
         uint128 actualStreamBalance = openEnded.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
+        uint128 expectedStreamBalance = defaults.DEPOSIT_AMOUNT();
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

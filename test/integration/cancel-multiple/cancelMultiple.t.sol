@@ -9,7 +9,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
     }
 
     function test_CancelMultiple_ArrayCountZero() external whenNotDelegateCalled {
@@ -72,7 +72,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         uint256 eveStreamId = openEnded.create({
             sender: users.eve,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai
         });
 
@@ -94,7 +94,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         defaultStreamIds[0] = openEnded.create({
             sender: users.recipient,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: defaults.RATE_PER_SECOND(),
             asset: dai
         });
 

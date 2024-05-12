@@ -24,8 +24,8 @@ contract StreamedAmountOf_Integration_Test is Integration_Test {
     }
 
     function test_StreamedAmountOf() external givenNotNull givenNotCanceled {
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
         uint128 streamedAmount = openEnded.streamedAmountOf(defaultStreamId);
-        assertEq(streamedAmount, ONE_MONTH_STREAMED_AMOUNT, "streamed amount");
+        assertEq(streamedAmount, defaults.ONE_MONTH_STREAMED_AMOUNT(), "streamed amount");
     }
 }

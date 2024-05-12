@@ -14,22 +14,27 @@ contract RefundFromStream_Integration_Test is Integration_Test {
 
         defaultDeposit();
 
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.refundFromStream, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData =
+            abi.encodeCall(ISablierV2OpenEnded.refundFromStream, (defaultStreamId, defaults.REFUND_AMOUNT()));
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
+        uint128 refundAmount = defaults.REFUND_AMOUNT();
+
         expectRevertNull();
-        openEnded.refundFromStream({ streamId: nullStreamId, amount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: nullStreamId, amount: refundAmount });
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
+        uint128 refundAmount = defaults.REFUND_AMOUNT();
+
         expectRevertCanceled();
-        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: refundAmount });
     }
 
     function test_RevertWhen_CallerUnauthorized_Recipient()
@@ -40,10 +45,12 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.recipient });
+        uint128 refundAmount = defaults.REFUND_AMOUNT();
+
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
-        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: refundAmount });
     }
 
     function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty()
@@ -54,10 +61,12 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.eve });
+        uint128 refundAmount = defaults.REFUND_AMOUNT();
+
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
-        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: refundAmount });
     }
 
     function test_RevertWhen_RefundAmountZero()
@@ -79,15 +88,16 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         whenCallerAuthorized
         whenRefundAmountNotZero
     {
+        uint128 depositAmount = defaults.DEPOSIT_AMOUNT();
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierV2OpenEnded_Overrefund.selector,
                 defaultStreamId,
-                DEPOSIT_AMOUNT,
-                DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
+                depositAmount,
+                depositAmount - defaults.ONE_MONTH_STREAMED_AMOUNT()
             )
         );
-        openEnded.refundFromStream({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: depositAmount });
     }
 
     function test_RefundFromStream_AssetNot18Decimals()
@@ -100,10 +110,10 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         whenNoOverrefund
     {
         // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() - defaults.ONE_MONTH() });
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        openEnded.deposit(streamId, DEPOSIT_AMOUNT);
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        openEnded.deposit(streamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee());
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
 
         test_RefundFromStream(streamId, IERC20(address(usdt)));
     }
@@ -125,7 +135,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         emit Transfer({
             from: address(openEnded),
             to: users.sender,
-            value: normalizeTransferAmount(streamId, REFUND_AMOUNT)
+            value: normalizeTransferAmount(streamId, defaults.REFUND_AMOUNT())
         });
 
         vm.expectEmit({ emitter: address(openEnded) });
@@ -133,14 +143,18 @@ contract RefundFromStream_Integration_Test is Integration_Test {
             streamId: streamId,
             sender: users.sender,
             asset: asset,
-            refundAmount: REFUND_AMOUNT
+            refundAmount: defaults.REFUND_AMOUNT()
         });
 
-        expectCallToTransfer({ asset: asset, to: users.sender, amount: normalizeTransferAmount(streamId, REFUND_AMOUNT) });
-        openEnded.refundFromStream({ streamId: streamId, amount: REFUND_AMOUNT });
+        expectCallToTransfer({
+            asset: asset,
+            to: users.sender,
+            amount: normalizeTransferAmount(streamId, defaults.REFUND_AMOUNT())
+        });
+        openEnded.refundFromStream({ streamId: streamId, amount: defaults.REFUND_AMOUNT() });
 
         uint128 actualStreamBalance = openEnded.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
+        uint128 expectedStreamBalance = defaults.DEPOSIT_AMOUNT() - defaults.REFUND_AMOUNT();
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

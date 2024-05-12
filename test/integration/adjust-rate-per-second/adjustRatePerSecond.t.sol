@@ -15,18 +15,20 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
+            abi.encodeCall(ISablierV2OpenEnded.adjustRatePerSecond, (defaultStreamId, defaults.RATE_PER_SECOND()));
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         expectRevertNull();
-        openEnded.adjustRatePerSecond({ streamId: nullStreamId, newRatePerSecond: RATE_PER_SECOND });
+        openEnded.adjustRatePerSecond({ streamId: nullStreamId, newRatePerSecond: ratePerSecond });
     }
 
     function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         expectRevertCanceled();
-        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: RATE_PER_SECOND });
+        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }
 
     function test_RevertWhen_CallerUnauthorized_Recipient()
@@ -37,10 +39,11 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.recipient });
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
-        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: RATE_PER_SECOND });
+        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }
 
     function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty()
@@ -51,10 +54,11 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.eve });
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
-        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: RATE_PER_SECOND });
+        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }
 
     function test_RevertWhen_ratePerSecondZero()
@@ -74,12 +78,13 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         givenNotNull
         givenNotCanceled
         whenCallerAuthorized
-        whenratePerSecondNonZero
+        whenRatePerSecondNonZero
     {
+        uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_RatePerSecondNotDifferent.selector, RATE_PER_SECOND)
+            abi.encodeWithSelector(Errors.SablierV2OpenEnded_RatePerSecondNotDifferent.selector, ratePerSecond)
         );
-        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: RATE_PER_SECOND });
+        openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }
 
     function test_adjustRatePerSecond_WithdrawableAmountZero()
@@ -88,27 +93,27 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         givenNotNull
         givenNotCanceled
         whenCallerAuthorized
-        whenratePerSecondNonZero
-        whenratePerSecondNotDifferent
+        whenRatePerSecondNonZero
+        whenRatePerSecondNotDifferent
     {
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
 
         uint128 actualratePerSecond = openEnded.getRatePerSecond(defaultStreamId);
-        uint128 expectedratePerSecond = RATE_PER_SECOND;
+        uint128 expectedratePerSecond = defaults.RATE_PER_SECOND();
         assertEq(actualratePerSecond, expectedratePerSecond, "rate per second");
 
         uint40 actualLastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = uint40(block.timestamp - ONE_MONTH);
+        uint40 expectedLastTimeUpdate = uint40(block.timestamp - defaults.ONE_MONTH());
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
-        uint128 newRatePerSecond = RATE_PER_SECOND / 2;
+        uint128 newRatePerSecond = defaults.RATE_PER_SECOND() / 2;
 
         vm.expectEmit({ emitter: address(openEnded) });
         emit AdjustOpenEndedStream({
             streamId: defaultStreamId,
             asset: dai,
             recipientAmount: 0,
-            oldRatePerSecond: RATE_PER_SECOND,
+            oldRatePerSecond: defaults.RATE_PER_SECOND(),
             newRatePerSecond: newRatePerSecond
         });
 
@@ -145,39 +150,39 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
     }
 
     function test_adjustRatePerSecond(uint256 streamId, IERC20 asset) internal {
-        openEnded.deposit(streamId, DEPOSIT_AMOUNT);
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        openEnded.deposit(streamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee());
+        vm.warp({ newTimestamp: defaults.WARP_ONE_MONTH() });
 
         uint128 actualratePerSecond = openEnded.getRatePerSecond(streamId);
-        uint128 expectedratePerSecond = RATE_PER_SECOND;
+        uint128 expectedratePerSecond = defaults.RATE_PER_SECOND();
         assertEq(actualratePerSecond, expectedratePerSecond, "rate per second");
 
         uint40 actualLastTimeUpdate = openEnded.getLastTimeUpdate(streamId);
-        uint40 expectedLastTimeUpdate = uint40(block.timestamp - ONE_MONTH);
+        uint40 expectedLastTimeUpdate = uint40(block.timestamp - defaults.ONE_MONTH());
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         vm.expectEmit({ emitter: address(asset) });
         emit Transfer({
             from: address(openEnded),
             to: users.recipient,
-            value: normalizeTransferAmount(streamId, ONE_MONTH_STREAMED_AMOUNT)
+            value: normalizeTransferAmount(streamId, defaults.ONE_MONTH_STREAMED_AMOUNT())
         });
 
-        uint128 newRatePerSecond = RATE_PER_SECOND / 2;
+        uint128 newRatePerSecond = defaults.RATE_PER_SECOND() / 2;
 
         vm.expectEmit({ emitter: address(openEnded) });
         emit AdjustOpenEndedStream({
             streamId: streamId,
             asset: asset,
-            recipientAmount: ONE_MONTH_STREAMED_AMOUNT,
-            oldRatePerSecond: RATE_PER_SECOND,
+            recipientAmount: defaults.ONE_MONTH_STREAMED_AMOUNT(),
+            oldRatePerSecond: defaults.RATE_PER_SECOND(),
             newRatePerSecond: newRatePerSecond
         });
 
         expectCallToTransfer({
             asset: asset,
             to: users.recipient,
-            amount: normalizeTransferAmount(streamId, ONE_MONTH_STREAMED_AMOUNT)
+            amount: normalizeTransferAmount(streamId, defaults.ONE_MONTH_STREAMED_AMOUNT())
         });
 
         openEnded.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });

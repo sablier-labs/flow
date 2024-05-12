@@ -6,7 +6,15 @@ abstract contract Modifiers {
                                        COMMON
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenratePerSecondNonZero() {
+    modifier givenNotCanceled() {
+        _;
+    }
+
+    modifier givenNotNull() {
+        _;
+    }
+
+    modifier whenBrokerFeeNotTooHigh() {
         _;
     }
 
@@ -22,11 +30,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier givenNotCanceled() {
-        _;
-    }
-
-    modifier givenNotNull() {
+    modifier whenRatePerSecondNonZero() {
         _;
     }
 
@@ -34,7 +38,7 @@ abstract contract Modifiers {
                               ADJUST-AMOUNT-PER-SECOND
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenratePerSecondNotDifferent() {
+    modifier whenRatePerSecondNotDifferent() {
         _;
     }
 
@@ -50,7 +54,7 @@ abstract contract Modifiers {
                                        CREATE
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenSenderNonZeroAddress() {
+    modifier whenAssetContract() {
         _;
     }
 
@@ -58,7 +62,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenAssetContract() {
+    modifier whenSenderNonZeroAddress() {
         _;
     }
 
@@ -66,11 +70,11 @@ abstract contract Modifiers {
                                   CREATE-MULTIPLE
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenArrayCountsNotEqual() {
+    modifier whenArrayCountsEqual() {
         _;
     }
 
-    modifier whenArrayCountsEqual() {
+    modifier whenArrayCountsNotEqual() {
         _;
     }
 

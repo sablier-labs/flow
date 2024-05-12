@@ -2,8 +2,10 @@
 pragma solidity >=0.8.22 <0.9.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { Broker } from "src/types/DataTypes.sol";
 
 import { OpenEndedStore } from "../stores/OpenEndedStore.sol";
 import { TimestampStore } from "../stores/TimestampStore.sol";
@@ -49,7 +51,7 @@ contract OpenEndedCreateHandler is BaseHandler {
         public
         instrument("createAndDeposit")
         adjustTimestamp(timeJumpSeed)
-        checkUsers(sender, recipient)
+        checkUsers(sender, recipient, address(1))
         useNewSender(sender)
     {
         // We don't want to create more than a certain number of streams.
@@ -73,12 +75,13 @@ contract OpenEndedCreateHandler is BaseHandler {
         address sender,
         address recipient,
         uint128 ratePerSecond,
-        uint128 depositAmount
+        uint128 amount,
+        Broker memory broker
     )
         public
         instrument("createAndDeposit")
         adjustTimestamp(timeJumpSeed)
-        checkUsers(sender, recipient)
+        checkUsers(sender, recipient, broker.account)
         useNewSender(sender)
     {
         // We don't want to create more than a certain number of streams.
@@ -88,22 +91,26 @@ contract OpenEndedCreateHandler is BaseHandler {
 
         // Bound the stream parameters.
         ratePerSecond = uint128(_bound(ratePerSecond, 0.0001e18, 1e18));
-        depositAmount = uint128(_bound(depositAmount, 100e18, 1_000_000_000e18));
+        amount = uint128(_bound(amount, 100e18, 1_000_000_000e18));
+
+        // Bound the broker fee.
+        broker.fee = _bound(broker.fee, 0, MAX_BROKER_FEE);
 
         // Mint enough assets to the Sender.
-        deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + depositAmount });
+        deal({ token: address(asset), to: sender, give: amount });
 
         // Approve {SablierV2OpenEnded} to spend the assets.
-        asset.approve({ spender: address(openEnded), value: depositAmount });
+        asset.approve({ spender: address(openEnded), value: amount });
 
         // Create the stream.
         asset = asset;
-        uint256 streamId = openEnded.createAndDeposit(sender, recipient, ratePerSecond, asset, depositAmount);
+        uint256 streamId = openEnded.createAndDeposit(sender, recipient, ratePerSecond, asset, amount, broker);
 
         // Store the stream id.
         openEndedStore.pushStreamId(streamId, sender, recipient);
 
         // Store the deposited amount.
-        openEndedStore.updateStreamDepositedAmountsSum(depositAmount);
+        uint128 depositedAmount = amount - ud(amount).mul(broker.fee).intoUint128();
+        openEndedStore.updateStreamDepositedAmountsSum(depositedAmount);
     }
 }
