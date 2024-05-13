@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -15,7 +15,7 @@ contract RestartStream_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.restartStream, (defaultStreamId, defaults.RATE_PER_SECOND()));
+            abi.encodeCall(ISablierOpenEnded.restartStream, (defaultStreamId, defaults.RATE_PER_SECOND()));
         expectRevertDueToDelegateCall(callData);
     }
 
@@ -30,7 +30,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         uint256 streamId = createDefaultStream();
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_StreamNotCanceled.selector, streamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierOpenEnded_StreamNotCanceled.selector, streamId));
         openEnded.restartStream({ streamId: streamId, ratePerSecond: ratePerSecond });
     }
 
@@ -45,7 +45,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: ratePerSecond });
     }
@@ -61,7 +61,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: ratePerSecond });
     }
@@ -73,7 +73,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         givenCanceled
         whenCallerAuthorized
     {
-        vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_RatePerSecondZero.selector);
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: 0 });
     }
 

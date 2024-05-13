@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -15,7 +15,7 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.adjustRatePerSecond, (defaultStreamId, defaults.RATE_PER_SECOND()));
+            abi.encodeCall(ISablierOpenEnded.adjustRatePerSecond, (defaultStreamId, defaults.RATE_PER_SECOND()));
         expectRevertDueToDelegateCall(callData);
     }
 
@@ -41,7 +41,7 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
         openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }
@@ -56,7 +56,7 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         resetPrank({ msgSender: users.eve });
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
         openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }
@@ -68,7 +68,7 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
         givenNotCanceled
         whenCallerAuthorized
     {
-        vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_RatePerSecondZero.selector);
         openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: 0 });
     }
 
@@ -82,7 +82,7 @@ contract adjustRatePerSecond_Integration_Test is Integration_Test {
     {
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_RatePerSecondNotDifferent.selector, ratePerSecond)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_RatePerSecondNotDifferent.selector, ratePerSecond)
         );
         openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ratePerSecond });
     }

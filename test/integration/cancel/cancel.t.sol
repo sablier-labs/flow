@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -16,7 +16,7 @@ contract Cancel_Integration_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.cancel, (defaultStreamId));
+        bytes memory callData = abi.encodeCall(ISablierOpenEnded.cancel, (defaultStreamId));
         expectRevertDueToDelegateCall(callData);
     }
 
@@ -39,7 +39,7 @@ contract Cancel_Integration_Test is Integration_Test {
     {
         resetPrank({ msgSender: users.recipient });
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
         openEnded.cancel(defaultStreamId);
     }
@@ -53,7 +53,7 @@ contract Cancel_Integration_Test is Integration_Test {
     {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
         openEnded.cancel(defaultStreamId);
     }

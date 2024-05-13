@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 import { OpenEnded } from "src/types/DataTypes.sol";
 
@@ -16,19 +16,19 @@ contract Create_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.create, (users.sender, users.recipient, defaults.RATE_PER_SECOND(), dai));
+            abi.encodeCall(ISablierOpenEnded.create, (users.sender, users.recipient, defaults.RATE_PER_SECOND(), dai));
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertWhen_SenderZeroAddress() external whenNotDelegateCalled {
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
-        vm.expectRevert(Errors.SablierV2OpenEnded_SenderZeroAddress.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_SenderZeroAddress.selector);
         openEnded.create({ sender: address(0), recipient: users.recipient, ratePerSecond: ratePerSecond, asset: dai });
     }
 
     function test_RevertWhen_RecipientZeroAddress() external whenNotDelegateCalled whenSenderNonZeroAddress {
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
-        vm.expectRevert(Errors.SablierV2OpenEnded_RecipientZeroAddress.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_RecipientZeroAddress.selector);
         openEnded.create({ sender: users.sender, recipient: address(0), ratePerSecond: ratePerSecond, asset: dai });
     }
 
@@ -38,7 +38,7 @@ contract Create_Integration_Test is Integration_Test {
         whenSenderNonZeroAddress
         whenRecipientNonZeroAddress
     {
-        vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_RatePerSecondZero.selector);
         openEnded.create({ sender: users.sender, recipient: users.recipient, ratePerSecond: 0, asset: dai });
     }
 
@@ -52,7 +52,7 @@ contract Create_Integration_Test is Integration_Test {
         address nonContract = address(8128);
         uint128 ratePerSecond = defaults.RATE_PER_SECOND();
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_InvalidAssetDecimals.selector, IERC20(nonContract))
+            abi.encodeWithSelector(Errors.SablierOpenEnded_InvalidAssetDecimals.selector, IERC20(nonContract))
         );
         openEnded.create({
             sender: users.sender,

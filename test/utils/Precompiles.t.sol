@@ -25,7 +25,7 @@ contract Precompiles_Test is Base_Test {
         assertEq(actualOpenEnded.code, expectedOpenEndedCode, "bytecodes mismatch");
     }
 
-    /// @dev The expected bytecode has to be adjusted because {SablierV2OpenEnded} inherits from {NoDelegateCall}, which
+    /// @dev The expected bytecode has to be adjusted because {SablierOpenEnded} inherits from {NoDelegateCall}, which
     /// saves the contract's own address in storage.
     function adjustBytecode(
         bytes memory bytecode,

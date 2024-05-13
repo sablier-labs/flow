@@ -12,7 +12,7 @@ set -euo pipefail
 FOUNDRY_PROFILE=optimized forge build
 
 # Retrieve the raw bytecodes, removing the "0x" prefix
-open_ended=$(cat out-optimized/SablierV2OpenEnded.sol/SablierV2OpenEnded.json | jq -r '.bytecode.object' | cut -c 3-)
+open_ended=$(cat out-optimized/SablierOpenEnded.sol/SablierOpenEnded.json | jq -r '.bytecode.object' | cut -c 3-)
 
 precompiles_path="precompiles/Precompiles.sol"
 if [ ! -f $precompiles_path ]; then

@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -19,7 +19,7 @@ contract Withdraw_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.withdrawAt, (defaultStreamId, users.recipient, defaults.WITHDRAW_TIME()));
+            abi.encodeCall(ISablierOpenEnded.withdrawAt, (defaultStreamId, users.recipient, defaults.WITHDRAW_TIME()));
         expectRevertDueToDelegateCall(callData);
     }
 
@@ -40,7 +40,7 @@ contract Withdraw_Integration_Test is Integration_Test {
     function test_RevertWhen_ToZeroAddress() external whenNotDelegateCalled givenNotNull givenNotCanceled {
         uint40 withdrawTime = defaults.WITHDRAW_TIME();
 
-        vm.expectRevert(Errors.SablierV2OpenEnded_WithdrawToZeroAddress.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_WithdrawToZeroAddress.selector);
         openEnded.withdrawAt({ streamId: defaultStreamId, to: address(0), time: withdrawTime });
     }
 
@@ -58,7 +58,7 @@ contract Withdraw_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalAddressNotRecipient.selector,
+                Errors.SablierOpenEnded_WithdrawalAddressNotRecipient.selector,
                 defaultStreamId,
                 unknownCaller,
                 unknownCaller
@@ -81,7 +81,7 @@ contract Withdraw_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalAddressNotRecipient.selector,
+                Errors.SablierOpenEnded_WithdrawalAddressNotRecipient.selector,
                 defaultStreamId,
                 users.sender,
                 users.sender
@@ -101,7 +101,7 @@ contract Withdraw_Integration_Test is Integration_Test {
     {
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector,
+                Errors.SablierOpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector,
                 0,
                 openEnded.getLastTimeUpdate(defaultStreamId)
             )
@@ -122,7 +122,7 @@ contract Withdraw_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, uint40(block.timestamp)
+                Errors.SablierOpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, uint40(block.timestamp)
             )
         );
         openEnded.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: futureTime });
@@ -144,7 +144,7 @@ contract Withdraw_Integration_Test is Integration_Test {
 
         uint40 withdrawTime = defaults.WITHDRAW_TIME();
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawBalanceZero.selector, streamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierOpenEnded_WithdrawBalanceZero.selector, streamId));
         openEnded.withdrawAt({ streamId: streamId, to: users.recipient, time: withdrawTime });
     }
 

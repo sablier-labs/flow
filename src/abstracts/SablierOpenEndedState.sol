@@ -4,24 +4,24 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
-import { ISablierV2OpenEndedState } from "../interfaces/ISablierV2OpenEndedState.sol";
+import { ISablierOpenEndedState } from "../interfaces/ISablierOpenEndedState.sol";
 import { OpenEnded } from "../types/DataTypes.sol";
 import { Errors } from "../libraries/Errors.sol";
 
-/// @title SablierV2OpenEndedState
-/// @notice See the documentation in {ISablierV2OpenEndedState}.
-abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
+/// @title SablierOpenEndedState
+/// @notice See the documentation in {ISablierOpenEndedState}.
+abstract contract SablierOpenEndedState is ISablierOpenEndedState {
     /*//////////////////////////////////////////////////////////////////////////
                                   STATE VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     UD60x18 public constant override MAX_BROKER_FEE = UD60x18.wrap(0.1e18);
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     uint256 public override nextStreamId;
 
-    /// @dev Sablier V2 OpenEnded streams mapped by unsigned integers.
+    /// @dev Sablier OpenEnded streams mapped by unsigned integers.
     mapping(uint256 id => OpenEnded.Stream stream) internal _streams;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     /// @dev Checks that `streamId` does not reference a canceled stream.
     modifier notCanceled(uint256 streamId) {
         if (_streams[streamId].isCanceled) {
-            revert Errors.SablierV2OpenEnded_StreamCanceled(streamId);
+            revert Errors.SablierOpenEnded_StreamCanceled(streamId);
         }
         _;
     }
@@ -47,7 +47,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     /// @dev Checks that `streamId` does not reference a null stream.
     modifier notNull(uint256 streamId) {
         if (!_streams[streamId].isStream) {
-            revert Errors.SablierV2OpenEnded_Null(streamId);
+            revert Errors.SablierOpenEnded_Null(streamId);
         }
         _;
     }
@@ -55,7 +55,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
     /// @dev Checks the `msg.sender` is the stream's sender.
     modifier onlySender(uint256 streamId) {
         if (msg.sender != _streams[streamId].sender) {
-            revert Errors.SablierV2OpenEnded_Unauthorized(streamId, msg.sender);
+            revert Errors.SablierOpenEnded_Unauthorized(streamId, msg.sender);
         }
         _;
     }
@@ -64,7 +64,7 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getRatePerSecond(uint256 streamId)
         external
         view
@@ -75,12 +75,12 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
         ratePerSecond = _streams[streamId].ratePerSecond;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getAsset(uint256 streamId) external view override notNull(streamId) returns (IERC20 asset) {
         asset = _streams[streamId].asset;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getAssetDecimals(uint256 streamId)
         external
         view
@@ -91,12 +91,12 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
         assetDecimals = _streams[streamId].assetDecimals;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getBalance(uint256 streamId) external view override notNull(streamId) returns (uint128 balance) {
         balance = _streams[streamId].balance;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getLastTimeUpdate(uint256 streamId)
         external
         view
@@ -107,17 +107,17 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
         lastTimeUpdate = _streams[streamId].lastTimeUpdate;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getRecipient(uint256 streamId) external view override notNull(streamId) returns (address recipient) {
         recipient = _streams[streamId].recipient;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getSender(uint256 streamId) external view override notNull(streamId) returns (address sender) {
         sender = _streams[streamId].sender;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function getStream(uint256 streamId)
         external
         view
@@ -128,12 +128,12 @@ abstract contract SablierV2OpenEndedState is ISablierV2OpenEndedState {
         stream = _streams[streamId];
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function isCanceled(uint256 streamId) public view override notNull(streamId) returns (bool result) {
         result = _streams[streamId].isCanceled;
     }
 
-    /// @inheritdoc ISablierV2OpenEndedState
+    /// @inheritdoc ISablierOpenEndedState
     function isStream(uint256 streamId) public view override returns (bool result) {
         result = _streams[streamId].isStream;
     }

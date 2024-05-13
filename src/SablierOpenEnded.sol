@@ -8,14 +8,14 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
-import { SablierV2OpenEndedState } from "./abstracts/SablierV2OpenEndedState.sol";
-import { ISablierV2OpenEnded } from "./interfaces/ISablierV2OpenEnded.sol";
+import { SablierOpenEndedState } from "./abstracts/SablierOpenEndedState.sol";
+import { ISablierOpenEnded } from "./interfaces/ISablierOpenEnded.sol";
 import { Errors } from "./libraries/Errors.sol";
 import { Broker, OpenEnded } from "./types/DataTypes.sol";
 
-/// @title SablierV2OpenEnded
-/// @notice See the documentation in {ISablierV2OpenEnded}.
-contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2OpenEndedState {
+/// @title SablierOpenEnded
+/// @notice See the documentation in {ISablierOpenEnded}.
+contract SablierOpenEnded is ISablierOpenEnded, NoDelegateCall, SablierOpenEndedState {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
@@ -23,7 +23,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function refundableAmountOf(uint256 streamId)
         external
         view
@@ -35,7 +35,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         refundableAmount = _refundableAmountOf(streamId, uint40(block.timestamp));
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function refundableAmountOf(
         uint256 streamId,
         uint40 time
@@ -50,7 +50,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         refundableAmount = _refundableAmountOf(streamId, time);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function streamDebtOf(uint256 streamId)
         external
         view
@@ -69,7 +69,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function streamedAmountOf(uint256 streamId)
         external
         view
@@ -81,7 +81,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function streamedAmountOf(
         uint256 streamId,
         uint40 time
@@ -96,7 +96,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamedAmount = _streamedAmountOf(streamId, time);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function withdrawableAmountOf(uint256 streamId)
         external
         view
@@ -108,7 +108,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         withdrawableAmount = _withdrawableAmountOf(streamId, uint40(block.timestamp));
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function withdrawableAmountOf(
         uint256 streamId,
         uint40 time
@@ -127,7 +127,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
                          USER-FACING NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function adjustRatePerSecond(
         uint256 streamId,
         uint128 newRatePerSecond
@@ -143,7 +143,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _adjustRatePerSecond(streamId, newRatePerSecond);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function cancel(uint256 streamId)
         public
         override
@@ -155,7 +155,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _cancel(streamId);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function cancelMultiple(uint256[] calldata streamIds) external override {
         // Iterate over the provided array of stream IDs and cancel each stream.
         uint256 count = streamIds.length;
@@ -165,7 +165,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function create(
         address sender,
         address recipient,
@@ -180,7 +180,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         streamId = _create(sender, recipient, ratePerSecond, asset);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function createAndDeposit(
         address sender,
         address recipient,
@@ -200,7 +200,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _deposit(streamId, amount, broker);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function createMultiple(
         address[] calldata recipients,
         address[] calldata senders,
@@ -217,7 +217,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
 
         // Check: count of `senders`, `recipients` and `ratesPerSecond` matches.
         if (recipientsCount != sendersCount || recipientsCount != ratesPerSecondCount) {
-            revert Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual(
+            revert Errors.SablierOpenEnded_CreateMultipleArrayCountsNotEqual(
                 recipientsCount, sendersCount, ratesPerSecondCount
             );
         }
@@ -229,7 +229,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function createAndDepositMultiple(
         address[] calldata recipients,
         address[] calldata senders,
@@ -247,7 +247,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
 
         uint256 streamIdsCount = streamIds.length;
         if (streamIdsCount != amounts.length) {
-            revert Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual(streamIdsCount, amounts.length);
+            revert Errors.SablierOpenEnded_DepositArrayCountsNotEqual(streamIdsCount, amounts.length);
         }
 
         // Deposit on each stream.
@@ -257,7 +257,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function deposit(
         uint256 streamId,
         uint128 amount,
@@ -273,7 +273,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _deposit(streamId, amount, broker);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function depositMultiple(
         uint256[] memory streamIds,
         uint128[] calldata amounts,
@@ -288,13 +288,13 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
 
         // Check: count of `streamIds` matches count of `amounts`.
         if (streamIdsCount != amountsCount) {
-            revert Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual(streamIdsCount, amountsCount);
+            revert Errors.SablierOpenEnded_DepositArrayCountsNotEqual(streamIdsCount, amountsCount);
         }
 
         for (uint256 i = 0; i < streamIdsCount; ++i) {
             // Check: the stream is not canceled.
             if (isCanceled(streamIds[i])) {
-                revert Errors.SablierV2OpenEnded_StreamCanceled(streamIds[i]);
+                revert Errors.SablierOpenEnded_StreamCanceled(streamIds[i]);
             }
 
             // Checks, Effects and Interactions: deposit on stream.
@@ -302,13 +302,13 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function restartStream(uint256 streamId, uint128 ratePerSecond) external override {
         // Checks, Effects and Interactions: restart the stream.
         _restartStream(streamId, ratePerSecond);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function restartStreamAndDeposit(
         uint256 streamId,
         uint128 ratePerSecond,
@@ -325,7 +325,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _deposit(streamId, amount, broker);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function refundFromStream(
         uint256 streamId,
         uint128 amount
@@ -341,13 +341,13 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _refundFromStream(streamId, amount);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function withdrawAt(uint256 streamId, address to, uint40 time) external override {
         // Checks, Effects and Interactions: make the withdrawal.
         _withdrawAt(streamId, to, time);
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function withdrawAtMultiple(
         uint256[] calldata streamIds,
         uint40[] calldata times
@@ -360,7 +360,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         uint256 streamIdsCount = streamIds.length;
         uint256 timesCount = times.length;
         if (streamIdsCount != timesCount) {
-            revert Errors.SablierV2OpenEnded_WithdrawMultipleArrayCountsNotEqual(streamIdsCount, timesCount);
+            revert Errors.SablierOpenEnded_WithdrawMultipleArrayCountsNotEqual(streamIdsCount, timesCount);
         }
 
         // Iterate over the provided array of stream IDs, and withdraw from each stream to the recipient.
@@ -370,7 +370,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
     }
 
-    /// @inheritdoc ISablierV2OpenEnded
+    /// @inheritdoc ISablierOpenEnded
     function withdrawMax(uint256 streamId, address to) external override {
         // Checks, Effects and Interactions: make the withdrawal.
         _withdrawAt(streamId, to, uint40(block.timestamp));
@@ -417,7 +417,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     function _checkCalculatedAmount(uint256 streamId, uint128 amount) internal view {
         uint128 balance = _streams[streamId].balance;
         if (amount > balance) {
-            revert Errors.SablierV2OpenEnded_InvalidCalculation(streamId, balance, amount);
+            revert Errors.SablierOpenEnded_InvalidCalculation(streamId, balance, amount);
         }
     }
 
@@ -485,14 +485,14 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     function _adjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) internal {
         // Check: the new rate per second is not zero.
         if (newRatePerSecond == 0) {
-            revert Errors.SablierV2OpenEnded_RatePerSecondZero();
+            revert Errors.SablierOpenEnded_RatePerSecondZero();
         }
 
         uint128 oldRatePerSecond = _streams[streamId].ratePerSecond;
 
         // Check: the new rate per second is not equal to the actual rate per second.
         if (newRatePerSecond == oldRatePerSecond) {
-            revert Errors.SablierV2OpenEnded_RatePerSecondNotDifferent(newRatePerSecond);
+            revert Errors.SablierOpenEnded_RatePerSecondNotDifferent(newRatePerSecond);
         }
 
         uint128 recipientAmount = _withdrawableAmountOf(streamId, uint40(block.timestamp));
@@ -513,7 +513,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
 
         // Log the adjustment.
-        emit ISablierV2OpenEnded.AdjustOpenEndedStream(
+        emit ISablierOpenEnded.AdjustOpenEndedStream(
             streamId, _streams[streamId].asset, recipientAmount, oldRatePerSecond, newRatePerSecond
         );
     }
@@ -552,7 +552,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
 
         // Log the cancellation.
-        emit ISablierV2OpenEnded.CancelOpenEndedStream(
+        emit ISablierOpenEnded.CancelOpenEndedStream(
             streamId, sender, recipient, _streams[streamId].asset, senderAmount, recipientAmount
         );
     }
@@ -570,24 +570,24 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     {
         // Check: the sender is not the zero address.
         if (sender == address(0)) {
-            revert Errors.SablierV2OpenEnded_SenderZeroAddress();
+            revert Errors.SablierOpenEnded_SenderZeroAddress();
         }
 
         // Check: the recipient is not the zero address.
         if (recipient == address(0)) {
-            revert Errors.SablierV2OpenEnded_RecipientZeroAddress();
+            revert Errors.SablierOpenEnded_RecipientZeroAddress();
         }
 
         // Check: the rate per second is not zero.
         if (ratePerSecond == 0) {
-            revert Errors.SablierV2OpenEnded_RatePerSecondZero();
+            revert Errors.SablierOpenEnded_RatePerSecondZero();
         }
 
         uint8 assetDecimals = _safeAssetDecimals(address(asset));
 
         // Check: the asset does not have decimals.
         if (assetDecimals == 0) {
-            revert Errors.SablierV2OpenEnded_InvalidAssetDecimals(asset);
+            revert Errors.SablierOpenEnded_InvalidAssetDecimals(asset);
         }
 
         // Load the stream id.
@@ -613,7 +613,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         }
 
         // Log the newly created stream.
-        emit ISablierV2OpenEnded.CreateOpenEndedStream(
+        emit ISablierOpenEnded.CreateOpenEndedStream(
             streamId, sender, recipient, ratePerSecond, asset, uint40(block.timestamp)
         );
     }
@@ -622,12 +622,12 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     function _deposit(uint256 streamId, uint128 amount, Broker calldata broker) internal {
         // Check: the deposit amount is not zero.
         if (amount == 0) {
-            revert Errors.SablierV2OpenEnded_DepositAmountZero();
+            revert Errors.SablierOpenEnded_DepositAmountZero();
         }
 
         // Check: broker fee is not greather than `MAX_BROKER_FEE`.
         if (broker.fee.gt(MAX_BROKER_FEE)) {
-            revert Errors.SablierV2OpenEnded_BrokerFeeTooHigh(broker.fee, MAX_BROKER_FEE);
+            revert Errors.SablierOpenEnded_BrokerFeeTooHigh(broker.fee, MAX_BROKER_FEE);
         }
 
         // Retrieve the ERC-20 asset from storage.
@@ -659,7 +659,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         asset.safeTransferFrom(msg.sender, address(this), transferAmount);
 
         // Log the deposit.
-        emit ISablierV2OpenEnded.DepositOpenEndedStream({
+        emit ISablierOpenEnded.DepositOpenEndedStream({
             streamId: streamId,
             funder: msg.sender,
             asset: asset,
@@ -688,19 +688,19 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
 
         // Check: the amount is not zero.
         if (amount == 0) {
-            revert Errors.SablierV2OpenEnded_RefundAmountZero();
+            revert Errors.SablierOpenEnded_RefundAmountZero();
         }
 
         // Check: the withdraw amount is not greater than the refundable amount.
         if (amount > refundableAmount) {
-            revert Errors.SablierV2OpenEnded_Overrefund(streamId, amount, refundableAmount);
+            revert Errors.SablierOpenEnded_Overrefund(streamId, amount, refundableAmount);
         }
 
         // Effects and interactions: update the `balance` and perform the ERC-20 transfer.
         _extractFromStream(streamId, sender, amount);
 
         // Log the refund.
-        emit ISablierV2OpenEnded.RefundFromOpenEndedStream(streamId, sender, _streams[streamId].asset, amount);
+        emit ISablierOpenEnded.RefundFromOpenEndedStream(streamId, sender, _streams[streamId].asset, amount);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -715,12 +715,12 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     {
         // Check: the stream is canceled.
         if (!_streams[streamId].isCanceled) {
-            revert Errors.SablierV2OpenEnded_StreamNotCanceled(streamId);
+            revert Errors.SablierOpenEnded_StreamNotCanceled(streamId);
         }
 
         // Check: the rate per second is not zero.
         if (ratePerSecond == 0) {
-            revert Errors.SablierV2OpenEnded_RatePerSecondZero();
+            revert Errors.SablierOpenEnded_RatePerSecondZero();
         }
 
         // Effect: set the rate per second.
@@ -733,7 +733,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _updateTime(streamId, uint40(block.timestamp));
 
         // Log the restart.
-        emit ISablierV2OpenEnded.RestartOpenEndedStream(streamId, msg.sender, _streams[streamId].asset, ratePerSecond);
+        emit ISablierOpenEnded.RestartOpenEndedStream(streamId, msg.sender, _streams[streamId].asset, ratePerSecond);
     }
 
     /// @dev Sets the stream time to the current block timestamp.
@@ -754,7 +754,7 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
     {
         // Check: the withdrawal address is not zero.
         if (to == address(0)) {
-            revert Errors.SablierV2OpenEnded_WithdrawToZeroAddress();
+            revert Errors.SablierOpenEnded_WithdrawToZeroAddress();
         }
 
         // Retrieve the recipient from storage.
@@ -762,24 +762,24 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
 
         // Check: if `msg.sender` is not the stream's recipient, the withdrawal address must be the recipient.
         if (to != recipient && msg.sender != recipient) {
-            revert Errors.SablierV2OpenEnded_WithdrawalAddressNotRecipient(streamId, msg.sender, to);
+            revert Errors.SablierOpenEnded_WithdrawalAddressNotRecipient(streamId, msg.sender, to);
         }
 
         uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
 
         // Check: the withdrawal time is greater than the `lastTimeUpdate`.
         if (time <= lastTimeUpdate) {
-            revert Errors.SablierV2OpenEnded_WithdrawalTimeNotGreaterThanLastUpdate(time, lastTimeUpdate);
+            revert Errors.SablierOpenEnded_WithdrawalTimeNotGreaterThanLastUpdate(time, lastTimeUpdate);
         }
 
         // Check: the time reference is not in the future.
         if (time > uint40(block.timestamp)) {
-            revert Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture(time, block.timestamp);
+            revert Errors.SablierOpenEnded_WithdrawalTimeInTheFuture(time, block.timestamp);
         }
 
         // Check: the stream balance is not zero.
         if (_streams[streamId].balance == 0) {
-            revert Errors.SablierV2OpenEnded_WithdrawBalanceZero(streamId);
+            revert Errors.SablierOpenEnded_WithdrawBalanceZero(streamId);
         }
 
         // Calculate how much to withdraw based on the time reference.
@@ -796,6 +796,6 @@ contract SablierV2OpenEnded is ISablierV2OpenEnded, NoDelegateCall, SablierV2Ope
         _extractFromStream(streamId, to, withdrawAmount);
 
         // Log the withdrawal.
-        emit ISablierV2OpenEnded.WithdrawFromOpenEndedStream(streamId, to, _streams[streamId].asset, withdrawAmount);
+        emit ISablierOpenEnded.WithdrawFromOpenEndedStream(streamId, to, _streams[streamId].asset, withdrawAmount);
     }
 }

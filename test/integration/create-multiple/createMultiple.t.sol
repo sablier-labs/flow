@@ -16,7 +16,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual.selector,
+                Errors.SablierOpenEnded_CreateMultipleArrayCountsNotEqual.selector,
                 recipients.length,
                 defaultSenders.length,
                 defaultRatesPerSecond.length
@@ -30,7 +30,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual.selector,
+                Errors.SablierOpenEnded_CreateMultipleArrayCountsNotEqual.selector,
                 defaultRecipients.length,
                 senders.length,
                 defaultRatesPerSecond.length
@@ -44,7 +44,7 @@ contract CreateMultiple_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_CreateMultipleArrayCountsNotEqual.selector,
+                Errors.SablierOpenEnded_CreateMultipleArrayCountsNotEqual.selector,
                 defaultRecipients.length,
                 defaultSenders.length,
                 ratesPerSecond.length

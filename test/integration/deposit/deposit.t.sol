@@ -4,7 +4,7 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ud } from "@prb/math/src/UD60x18.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Broker } from "src/types/DataTypes.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
@@ -17,7 +17,7 @@ contract Deposit_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(
-            ISablierV2OpenEnded.deposit, (defaultStreamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee())
+            ISablierOpenEnded.deposit, (defaultStreamId, defaults.DEPOSIT_AMOUNT(), defaults.brokerWithoutFee())
         );
         expectRevertDueToDelegateCall(callData);
     }
@@ -41,7 +41,7 @@ contract Deposit_Integration_Test is Integration_Test {
     function test_RevertWhen_DepositAmountZero() external whenNotDelegateCalled givenNotNull givenNotCanceled {
         Broker memory broker = defaults.brokerWithoutFee();
 
-        vm.expectRevert(Errors.SablierV2OpenEnded_DepositAmountZero.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_DepositAmountZero.selector);
         openEnded.deposit(defaultStreamId, 0, broker);
     }
 
@@ -57,7 +57,7 @@ contract Deposit_Integration_Test is Integration_Test {
         broker.fee = MAX_BROKER_FEE + ud(1);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_BrokerFeeTooHigh.selector, broker.fee, MAX_BROKER_FEE)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_BrokerFeeTooHigh.selector, broker.fee, MAX_BROKER_FEE)
         );
         openEnded.deposit(defaultStreamId, depositAmount, broker);
     }

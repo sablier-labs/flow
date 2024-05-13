@@ -1,4 +1,4 @@
-## Sablier V2 Open-Ended
+## Sablier Open-Ended
 
 This repository contains the smart contracts for the EOES (EVM open-ended streams) concept. By open-ended, we mean that
 the streams have no fixed duration and no deposit amount at stream creation. This concept is primarily beneficial for
@@ -142,7 +142,7 @@ _withdrawable amount ≤ streamed amount_
 
 _sum of withdrawn amounts ≤ sum of deposits_
 
-_sum of stream balances normilized to asset decimals ≤ asset.balanceOf(SablierV2OpenEnded)_
+_sum of stream balances normilized to asset decimals ≤ asset.balanceOf(SablierOpenEnded)_
 
 _lastTimeUpdate ≤ block.timestamp;_
 

@@ -4,7 +4,7 @@ pragma solidity >=0.8.22 <0.9.0;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ud } from "@prb/math/src/UD60x18.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Broker } from "src/types/DataTypes.sol";
 
 import { OpenEndedStore } from "../stores/OpenEndedStore.sol";
@@ -16,7 +16,7 @@ contract OpenEndedHandler is BaseHandler {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    ISablierV2OpenEnded public openEnded;
+    ISablierOpenEnded public openEnded;
     OpenEndedStore public openEndedStore;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ contract OpenEndedHandler is BaseHandler {
         IERC20 asset_,
         TimestampStore timestampStore_,
         OpenEndedStore openEndedStore_,
-        ISablierV2OpenEnded openEnded_
+        ISablierOpenEnded openEnded_
     )
         BaseHandler(asset_, timestampStore_)
     {
@@ -74,7 +74,7 @@ contract OpenEndedHandler is BaseHandler {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                 SABLIER-V2-OPENENDED
+                                 SABLIER-OPENENDED
     //////////////////////////////////////////////////////////////////////////*/
 
     function cancel(
@@ -130,7 +130,7 @@ contract OpenEndedHandler is BaseHandler {
         address sender = openEndedStore.senders(currentStreamId);
         deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + amount });
 
-        // Approve {SablierV2OpenEnded} to spend the assets.
+        // Approve {SablierOpenEnded} to spend the assets.
         asset.approve({ spender: address(openEnded), value: amount });
 
         // Deposit into the stream.
@@ -228,7 +228,7 @@ contract OpenEndedHandler is BaseHandler {
         address sender = openEndedStore.senders(currentStreamId);
         deal({ token: address(asset), to: sender, give: asset.balanceOf(sender) + amount });
 
-        // Approve {SablierV2OpenEnded} to spend the assets.
+        // Approve {SablierOpenEnded} to spend the assets.
         asset.approve({ spender: address(openEnded), value: amount });
 
         // Restart the stream.

@@ -20,13 +20,13 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
     function test_RevertGiven_OnlyNull() external whenNotDelegateCalled whenArrayCountNotZero {
         defaultStreamIds[0] = nullStreamId;
         defaultStreamIds[1] = nullStreamId;
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierOpenEnded_Null.selector, nullStreamId));
         openEnded.cancelMultiple({ streamIds: defaultStreamIds });
     }
 
     function test_RevertGiven_SomeNull() external whenNotDelegateCalled whenArrayCountNotZero {
         defaultStreamIds[0] = nullStreamId;
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierOpenEnded_Null.selector, nullStreamId));
         openEnded.cancelMultiple({ streamIds: defaultStreamIds });
     }
 
@@ -40,7 +40,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.eve });
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[0], users.eve)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamIds[0], users.eve)
         );
         openEnded.cancelMultiple(defaultStreamIds);
     }
@@ -55,9 +55,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[0], users.recipient
-            )
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamIds[0], users.recipient)
         );
         openEnded.cancelMultiple(defaultStreamIds);
     }
@@ -79,7 +77,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.eve });
         defaultStreamIds[0] = eveStreamId;
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[1], users.eve)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamIds[1], users.eve)
         );
         openEnded.cancelMultiple(defaultStreamIds);
     }
@@ -101,9 +99,7 @@ contract CancelMultiple_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamIds[1], users.recipient
-            )
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamIds[1], users.recipient)
         );
         openEnded.cancelMultiple(defaultStreamIds);
     }

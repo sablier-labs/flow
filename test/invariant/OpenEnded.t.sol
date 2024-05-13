@@ -6,7 +6,7 @@ import { OpenEndedHandler } from "./handlers/OpenEndedHandler.sol";
 import { OpenEndedCreateHandler } from "./handlers/OpenEndedCreateHandler.sol";
 import { OpenEndedStore } from "./stores/OpenEndedStore.sol";
 
-/// @notice Common invariant test logic needed across contracts that inherit from {SablierV2openEnded}.
+/// @notice Common invariant test logic needed across contracts that inherit from {SablierOpenEnded}.
 contract OpenEnded_Invariant_Test is Invariant_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS

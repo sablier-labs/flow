@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -19,7 +19,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(ISablierV2OpenEnded.refundFromStream, (defaultStreamId, defaults.REFUND_AMOUNT()));
+            abi.encodeCall(ISablierOpenEnded.refundFromStream, (defaultStreamId, defaults.REFUND_AMOUNT()));
         expectRevertDueToDelegateCall(callData);
     }
 
@@ -48,7 +48,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         uint128 refundAmount = defaults.REFUND_AMOUNT();
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.recipient)
         );
         openEnded.refundFromStream({ streamId: defaultStreamId, amount: refundAmount });
     }
@@ -64,7 +64,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         uint128 refundAmount = defaults.REFUND_AMOUNT();
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_Unauthorized.selector, defaultStreamId, users.eve)
         );
         openEnded.refundFromStream({ streamId: defaultStreamId, amount: refundAmount });
     }
@@ -76,7 +76,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         givenNotCanceled
         whenCallerAuthorized
     {
-        vm.expectRevert(Errors.SablierV2OpenEnded_RefundAmountZero.selector);
+        vm.expectRevert(Errors.SablierOpenEnded_RefundAmountZero.selector);
         openEnded.refundFromStream({ streamId: defaultStreamId, amount: 0 });
     }
 
@@ -91,7 +91,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         uint128 depositAmount = defaults.DEPOSIT_AMOUNT();
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_Overrefund.selector,
+                Errors.SablierOpenEnded_Overrefund.selector,
                 defaultStreamId,
                 depositAmount,
                 depositAmount - defaults.ONE_MONTH_STREAMED_AMOUNT()

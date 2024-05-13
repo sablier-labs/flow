@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { ISablierV2OpenEnded } from "src/interfaces/ISablierV2OpenEnded.sol";
+import { ISablierOpenEnded } from "src/interfaces/ISablierOpenEnded.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
@@ -18,7 +18,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierV2OpenEnded.withdrawAtMultiple, (defaultStreamIds, times));
+        bytes memory callData = abi.encodeCall(ISablierOpenEnded.withdrawAtMultiple, (defaultStreamIds, times));
         expectRevertDueToDelegateCall(callData);
     }
 
@@ -26,7 +26,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         uint256[] memory streamIds = new uint256[](0);
         uint40[] memory _times = new uint40[](1);
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawMultipleArrayCountsNotEqual.selector, 0, 1)
+            abi.encodeWithSelector(Errors.SablierOpenEnded_WithdrawMultipleArrayCountsNotEqual.selector, 0, 1)
         );
         openEnded.withdrawAtMultiple(streamIds, _times);
     }
@@ -53,7 +53,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
     {
         defaultStreamIds[0] = nullStreamId;
         defaultStreamIds[1] = nullStreamId;
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierOpenEnded_Null.selector, nullStreamId));
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }
 
@@ -64,7 +64,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         whenArrayCountsNotZero
     {
         defaultStreamIds[0] = nullStreamId;
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_Null.selector, nullStreamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierOpenEnded_Null.selector, nullStreamId));
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }
 
@@ -104,9 +104,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector,
-                lastTimeUpdate,
-                lastTimeUpdate
+                Errors.SablierOpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector, lastTimeUpdate, lastTimeUpdate
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -126,9 +124,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector,
-                lastTimeUpdate,
-                lastTimeUpdate
+                Errors.SablierOpenEnded_WithdrawalTimeNotGreaterThanLastUpdate.selector, lastTimeUpdate, lastTimeUpdate
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -149,7 +145,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, defaults.WARP_ONE_MONTH()
+                Errors.SablierOpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, defaults.WARP_ONE_MONTH()
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -171,7 +167,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, defaults.WARP_ONE_MONTH()
+                Errors.SablierOpenEnded_WithdrawalTimeInTheFuture.selector, futureTime, defaults.WARP_ONE_MONTH()
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -188,7 +184,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalTimeNotInTheFuture
     {
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawBalanceZero.selector, defaultStreamIds[0])
+            abi.encodeWithSelector(Errors.SablierOpenEnded_WithdrawBalanceZero.selector, defaultStreamIds[0])
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }
@@ -206,7 +202,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         defaultDeposit();
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawBalanceZero.selector, defaultStreamIds[1])
+            abi.encodeWithSelector(Errors.SablierOpenEnded_WithdrawBalanceZero.selector, defaultStreamIds[1])
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }

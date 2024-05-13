@@ -4,11 +4,11 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Broker } from "../types/DataTypes.sol";
-import { ISablierV2OpenEndedState } from "./ISablierV2OpenEndedState.sol";
+import { ISablierOpenEndedState } from "./ISablierOpenEndedState.sol";
 
-/// @title ISablierV2OpenEnded
+/// @title ISablierOpenEnded
 /// @notice Creates and manages Open Ended streams with linear streaming functions.
-interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
+interface ISablierOpenEnded is ISablierOpenEndedState {
     /*//////////////////////////////////////////////////////////////////////////
                                        EVENTS
     //////////////////////////////////////////////////////////////////////////*/

@@ -6,10 +6,10 @@ import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 import { OpenEnded } from "../types/DataTypes.sol";
 
-/// @title ISablierV2OpenEndedState
-/// @notice State variables, storage and constants, for the {SablierV2OpenEnded} contract, and their respective getters.
+/// @title ISablierOpenEndedState
+/// @notice State variables, storage and constants, for the {SablierOpenEnded} contract, and their respective getters.
 /// @dev This contract includes helpful modifiers and helper functions.
-interface ISablierV2OpenEndedState {
+interface ISablierOpenEndedState {
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/

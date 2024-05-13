@@ -17,7 +17,7 @@ contract CreateAndDepositMultiple_Integration_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_DepositArrayCountsNotEqual.selector,
+                Errors.SablierOpenEnded_DepositArrayCountsNotEqual.selector,
                 defaultRecipients.length,
                 depositAmounts.length
             )
