@@ -68,63 +68,38 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }
 
-    function test_RevertGiven_OnlyCanceled()
+    function test_RevertWhen_OnlyLastTimeLessThanWithdrawalTimes()
         external
         whenNotDelegateCalled
         whenArrayCountsAreEqual
         whenArrayCountsNotZero
         givenNotNull
-    {
-        openEnded.cancel(defaultStreamIds[1]);
-        expectRevertCanceled();
-        openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
-    }
-
-    function test_RevertGiven_SomeCanceled()
-        external
-        whenNotDelegateCalled
-        whenArrayCountsAreEqual
-        whenArrayCountsNotZero
-        givenNotNull
-    {
-        expectRevertCanceled();
-        openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
-    }
-
-    function test_RevertWhen_OnlyWithdrawalTimesNotGreaterThanLastTimeUpdate()
-        external
-        whenNotDelegateCalled
-        whenArrayCountsAreEqual
-        whenArrayCountsNotZero
-        givenNotNull
-        givenNotCanceled
     {
         uint40 lastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamIds[0]);
-        times[0] = lastTimeUpdate;
+        times[0] = lastTimeUpdate - 1;
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, lastTimeUpdate
+                Errors.SablierV2OpenEnded_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, times[0]
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }
 
-    function test_RevertWhen_SomeWithdrawalTimesNotGreaterThanLastTimeUpdate()
+    function test_RevertWhen_SomeLastTimeLessThanWithdrawalTimes()
         external
         whenNotDelegateCalled
         whenArrayCountsAreEqual
         whenArrayCountsNotZero
         givenNotNull
-        givenNotCanceled
     {
         uint40 lastTimeUpdate = openEnded.getLastTimeUpdate(defaultStreamIds[0]);
-        times[0] = lastTimeUpdate;
-        times[1] = lastTimeUpdate;
+        times[0] = lastTimeUpdate - 1;
+        times[1] = lastTimeUpdate - 1;
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierV2OpenEnded_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, lastTimeUpdate
+                Errors.SablierV2OpenEnded_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, times[0]
             )
         );
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
@@ -136,8 +111,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         whenArrayCountsAreEqual
         whenArrayCountsNotZero
         givenNotNull
-        givenNotCanceled
-        whenWithdrawalTimeGreaterThanLastUpdate
+        whenLastTimeNotLessThanWithdrawalTime
     {
         uint40 futureTime = uint40(block.timestamp + 1);
         times[0] = futureTime;
@@ -157,8 +131,7 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         whenArrayCountsAreEqual
         whenArrayCountsNotZero
         givenNotNull
-        givenNotCanceled
-        whenWithdrawalTimeGreaterThanLastUpdate
+        whenLastTimeNotLessThanWithdrawalTime
     {
         defaultDeposit();
 
@@ -173,48 +146,13 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
     }
 
-    function test_RevertGiven_OnlyZeroBalances()
+    function test_WithdrawAtMultiple()
         external
         whenNotDelegateCalled
         whenArrayCountsAreEqual
         whenArrayCountsNotZero
         givenNotNull
-        givenNotCanceled
-        whenWithdrawalTimeGreaterThanLastUpdate
-        whenWithdrawalTimeNotInTheFuture
-    {
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawNoFundsAvailable.selector, defaultStreamIds[0])
-        );
-        openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
-    }
-
-    function test_RevertGiven_SomeZeroBalances()
-        external
-        whenNotDelegateCalled
-        whenArrayCountsAreEqual
-        whenArrayCountsNotZero
-        givenNotNull
-        givenNotCanceled
-        whenWithdrawalTimeGreaterThanLastUpdate
-        whenWithdrawalTimeNotInTheFuture
-    {
-        defaultDeposit();
-
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierV2OpenEnded_WithdrawNoFundsAvailable.selector, defaultStreamIds[1])
-        );
-        openEnded.withdrawAtMultiple({ streamIds: defaultStreamIds, times: times });
-    }
-
-    function test_withdrawAtMultiple()
-        external
-        whenNotDelegateCalled
-        whenArrayCountsAreEqual
-        whenArrayCountsNotZero
-        givenNotNull
-        givenNotCanceled
-        whenWithdrawalTimeGreaterThanLastUpdate
+        whenLastTimeNotLessThanWithdrawalTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
     {

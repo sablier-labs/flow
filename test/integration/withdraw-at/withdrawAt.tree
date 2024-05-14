@@ -14,9 +14,9 @@ withdrawAt.t.sol
          │  └── when the caller is unknown
          │     └── it should revert
          └── when the withdrawal address is the stream recipient
-            ├── when the last time update is less than the withdrawal time
+            ├── when the last time update is not less than withdrawal time
             │  └── it should revert
-            └── when the last time update is not less than the withdrawal time
+            └── when the last time update is less than the withdrawal time
                ├── when the withdrawal time is in the future
                │  └── it should revert
                └── when the withdrawal time is not in the future
@@ -25,7 +25,7 @@ withdrawAt.t.sol
                   │  │  └── it should revert
                   │  └── given the remaining amount is not zero
                   │     └── it make the withdrawal
-                  └── given the balance is not zero
+                  └──  given the balance is not zero
                      ├── when the caller is not the recipient
                      │  ├── when the caller is the sender
                      │  │  └── it should make the withdrawal
@@ -38,12 +38,14 @@ withdrawAt.t.sol
                            ├── given the asset does not have 18 decimals
                            │  ├── it should make the withdrawal
                            │  ├── it should update the time
+                           │  ├── it should set the remaining amount to zero
                            │  ├── it should update the stream balance
                            │  ├── it should perform the ERC-20 transfer
                            │  └── it should emit a {Transfer} and {WithdrawFromOpenEndedStream} event
                            └── given the asset has 18 decimals
                               ├── it should make the withdrawal   
                               ├── it should update the time
+                              ├── it should set the remaining amount to zero
                               ├── it should update the stream balance
                               ├── it should perform the ERC-20 transfer
                               └── it should emit a {Transfer} and {WithdrawFromOpenEndedStream} event

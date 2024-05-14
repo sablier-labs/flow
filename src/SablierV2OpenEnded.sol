@@ -100,23 +100,8 @@ contract SablierV2OpenEnded is
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function withdrawableAmountOf(uint256 streamId)
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 withdrawableAmount)
-    {
-        uint128 remainingAmount = _streams[streamId].remainingAmount;
-
-        // If the stream is canceled, return the remaining amount.
-        if (_streams[streamId].isCanceled) {
-            return remainingAmount;
-        }
-        // Otherwise, calculate the withdrawable amount and sum it with the remaining amount.
-        else {
-            withdrawableAmount = _withdrawableAmountOf(streamId, uint40(block.timestamp)) + remainingAmount;
-        }
+    function withdrawableAmountOf(uint256 streamId) external view override returns (uint128 withdrawableAmount) {
+        withdrawableAmount = withdrawableAmountOf(streamId, uint40(block.timestamp));
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -124,7 +109,7 @@ contract SablierV2OpenEnded is
         uint256 streamId,
         uint40 time
     )
-        external
+        public
         view
         override
         notNull(streamId)

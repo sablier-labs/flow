@@ -65,7 +65,7 @@ contract Create_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         whenSenderNonZeroAddress
         whenRecipientNonZeroAddress
-        whenratePerSecondNonZero
+        whenRatePerSecondNonZero
     {
         address nonContract = address(8128);
         vm.expectRevert(
@@ -85,7 +85,7 @@ contract Create_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         whenSenderNonZeroAddress
         whenRecipientNonZeroAddress
-        whenratePerSecondNonZero
+        whenRatePerSecondNonZero
         whenAssetContract
     {
         uint256 expectedStreamId = openEnded.nextStreamId();

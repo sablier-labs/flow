@@ -74,7 +74,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         givenNotNull
         givenCanceled
         whenCallerAuthorized
-        whenratePerSecondNonZero
+        whenRatePerSecondNonZero
     {
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
 

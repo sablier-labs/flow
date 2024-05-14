@@ -131,11 +131,15 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 ### Invariants:
 
-_balance = withdrawable amount + refundable amount_
+_withdrawable amount = min(balance, streamed amount) + remaining amount_
+
+_balance = withdrawable amount + refundable amount - remaining amount_
 
 _balance = sum of deposits - sum of withdrawals_
 
-_withdrawable amount ≤ streamed amount_
+_withdrawable amount - remaining amount ≤ streamed amount_
+
+_sum of withdrawn amounts ≤ sum of deposits_
 
 _sum of withdrawn amounts ≤ sum of deposits_
 
@@ -143,19 +147,4 @@ _sum of stream balances normilized to asset decimals ≤ asset.balanceOf(Sablier
 
 _lastTimeUpdate ≤ block.timestamp;_
 
-_if(isCanceled = true) then balance = 0 && ratePerSecond = 0_
-
-### Questions:
-
-Should we update the time in `_cancel`?
-
-Should we add `TimeUpdated` event?
-
-Should we add `pause` function? Basically it would be a duplication of `cancel` function.
-
-### TODOs:
-
-- createMultiple
-- withdrawMultiple
-- add broker fees
-  - The fee should be on `create` or on `deposit` ? both?
+_if(isCanceled = true) then balance = 0 && ratePerSecond = 0 && withdrawable amount = remaining amount_
