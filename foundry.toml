@@ -46,7 +46,7 @@
 [doc]
   ignore = ["**/*.t.sol"]
   out = "docs"
-  repository = "https://github.com/sablier-labs/v2-open-ended"
+  repository = "https://github.com/sablier-labs/open-ended"
 
 [fmt]
   bracket_spacing = true

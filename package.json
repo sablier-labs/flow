@@ -8,7 +8,7 @@
     "url": "https://sablier.com"
   },
   "bugs": {
-    "url": "https://github.com/sablier-labs/v2-open-ended/issues"
+    "url": "https://github.com/sablier-labs/open-ended/issues"
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.0.2",

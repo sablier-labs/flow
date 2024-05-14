@@ -43,7 +43,7 @@ will update this time reference:
 - when a withdrawal is made
 
   - `lastTimeUpdate` will be set to the given `time` parameter passed in the function, you can see why this parameter is
-    needed in the explantion from [this PR](https://github.com/sablier-labs/v2-open-ended/pull/4)
+    needed in the explantion from [this PR](https://github.com/sablier-labs/open-ended/pull/4)
 
 - when the rate per second is changed
   - `lastTimeUpdate` will be set to `block.timestamp`, this time update is required in the `_adjustRatePerSecond`
