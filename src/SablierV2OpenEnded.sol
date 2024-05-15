@@ -751,7 +751,7 @@ contract SablierV2OpenEnded is
         // Calculate the withdrawable amount.
         uint128 withdrawableAmount = _withdrawableAmountOf(streamId, time);
 
-        // Calculate the sum of the withdraw amount and the remaining amount.
+        // Calculate the sum of the withdrawable amount and the remaining amount.
         uint128 sum = withdrawableAmount + remainingAmount;
 
         // Although the withdraw amount should never exceed the available amount in stream, this condition is checked to
