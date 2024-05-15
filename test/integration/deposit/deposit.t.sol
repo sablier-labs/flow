@@ -64,6 +64,9 @@ contract Deposit_Integration_Test is Integration_Test {
             depositAmount: DEPOSIT_AMOUNT
         });
 
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
         expectCallToTransferFrom({
             asset: asset,
             from: users.sender,

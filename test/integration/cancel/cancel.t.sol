@@ -163,11 +163,15 @@ contract Cancel_Integration_Test is Integration_Test {
             asset: asset
         });
 
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
         expectCallToTransfer({
             asset: asset,
             to: users.sender,
             amount: normalizeTransferAmount(streamId, refundableAmount)
         });
+
         openEnded.cancel(streamId);
 
         assertTrue(openEnded.isCanceled(streamId), "is canceled");

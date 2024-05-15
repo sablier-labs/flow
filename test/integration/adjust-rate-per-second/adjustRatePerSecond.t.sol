@@ -105,6 +105,9 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
             newRatePerSecond: newRatePerSecond
         });
 
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: defaultStreamId });
+
         uint128 actualRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
         uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
 
@@ -155,6 +158,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         assertEq(actualStreamBalance, DEPOSIT_AMOUNT, "stream balance");
 
         uint128 newRatePerSecond = RATE_PER_SECOND / 2;
+
         vm.expectEmit({ emitter: address(openEnded) });
         emit AdjustOpenEndedStream({
             streamId: defaultStreamId,
@@ -162,6 +166,9 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
             oldRatePerSecond: RATE_PER_SECOND,
             newRatePerSecond: newRatePerSecond
         });
+
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: newRatePerSecond });
 

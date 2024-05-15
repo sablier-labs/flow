@@ -76,6 +76,16 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenCallerAuthorized
         whenRatePerSecondNonZero
     {
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit RestartOpenEndedStream({
+            streamId: defaultStreamId,
+            sender: users.sender,
+            asset: dai,
+            ratePerSecond: RATE_PER_SECOND
+        });
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: defaultStreamId });
+
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
 
         bool isCanceled = openEnded.isCanceled(defaultStreamId);

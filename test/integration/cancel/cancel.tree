@@ -30,11 +30,13 @@ cancel.t.sol
                    │  ├── it should update the remaining amount
                    │  ├── it should update the stream balance
                    │  ├── it should perform the ERC-20 transfers
-                   │  └── it should emit two {Transfer} events and a {CancelOpenEndedStream} event
+                   │  ├── it should emit a {Transfer} event and a {CancelOpenEndedStream} event
+                   │  └── it should emit a {MetadataUpdate} event
                    └── given the asset has 18 decimals
                       ├── it should cancel the stream
                       ├── it should set the rate per second to zero
                       ├── it should update the remaining amount
                       ├── it should update the stream balance
                       ├── it should perform the ERC-20 transfers
-                      └── it should emit two {Transfer} events and a {CancelOpenEndedStream} event
+                      ├── it should emit a {Transfer} event and a {CancelOpenEndedStream} event
+                      └── it should emit a {MetadataUpdate} event

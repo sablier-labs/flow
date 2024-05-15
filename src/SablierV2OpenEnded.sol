@@ -142,6 +142,7 @@ contract SablierV2OpenEnded is
         notNull(streamId)
         notCanceled(streamId)
         onlySender(streamId)
+        updateMetadata(streamId)
     {
         // Effects and Interactions: adjust the stream.
         _adjustRatePerSecond(streamId, newRatePerSecond);
@@ -155,6 +156,7 @@ contract SablierV2OpenEnded is
         notNull(streamId)
         notCanceled(streamId)
         onlySender(streamId)
+        updateMetadata(streamId)
     {
         // Checks, Effects and Interactions: cancel the stream.
         _cancel(streamId);
@@ -276,6 +278,7 @@ contract SablierV2OpenEnded is
         noDelegateCall
         notNull(streamId)
         notCanceled(streamId)
+        updateMetadata(streamId)
     {
         // Checks, Effects and Interactions: deposit on stream.
         _deposit(streamId, amount);
@@ -307,6 +310,7 @@ contract SablierV2OpenEnded is
         noDelegateCall
         notNull(streamId)
         onlySender(streamId)
+        updateMetadata(streamId)
     {
         // Checks, Effects and Interactions: restart the stream.
         _restartStream(streamId, ratePerSecond);
@@ -338,7 +342,17 @@ contract SablierV2OpenEnded is
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function withdrawAt(uint256 streamId, address to, uint40 time) public override noDelegateCall notNull(streamId) {
+    function withdrawAt(
+        uint256 streamId,
+        address to,
+        uint40 time
+    )
+        public
+        override
+        noDelegateCall
+        notNull(streamId)
+        updateMetadata(streamId)
+    {
         // Checks, Effects and Interactions: make the withdrawal.
         _withdrawAt(streamId, to, time);
     }
