@@ -42,6 +42,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
 
         assertEq(beforeStreamBalance, afterStreamBalance, "stream balance should not change");
         assertEq(afterRemainingAmount, 0, "remaining amount should be 0");
+        assertEq(openEnded.getLastTimeUpdate(defaultStreamId), WARP_ONE_MONTH, "last time update not updated");
     }
 
     function test_WithdrawMax() external givenNotCanceled {
@@ -72,5 +73,6 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
             beforeStreamBalance - ONE_MONTH_STREAMED_AMOUNT, afterStreamBalance, "stream balance not updated correctly"
         );
         assertEq(afterRemainingAmount, 0, "remaining amount should be 0");
+        assertEq(openEnded.getLastTimeUpdate(defaultStreamId), WARP_ONE_MONTH, "last time update not updated");
     }
 }

@@ -131,7 +131,7 @@ abstract contract Modifiers {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                      WITHDRAW
+                                    WITHDRAW-AT
     //////////////////////////////////////////////////////////////////////////*/
 
     modifier whenCallerRecipient() {
@@ -155,6 +155,18 @@ abstract contract Modifiers {
     }
 
     modifier whenWithdrawalTimeNotInTheFuture() {
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                 WITHDRAW-AT-MULTIPLE   
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier whenArrayCountsAreEqual() {
+        _;
+    }
+
+    modifier whenArrayCountsNotZero() {
         _;
     }
 }

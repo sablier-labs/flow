@@ -25,18 +25,10 @@ contract WithdrawMultiple_Integration_Concrete_Test is Integration_Test {
         openEnded.withdrawAtMultiple(streamIds, _times);
     }
 
-    modifier whenArrayCountsAreEqual() {
-        _;
-    }
-
     function test_WithdrawMultiple_ArrayCountsZero() external whenNotDelegateCalled whenArrayCountsAreEqual {
         uint256[] memory streamIds = new uint256[](0);
         uint40[] memory _times = new uint40[](0);
         openEnded.withdrawAtMultiple(streamIds, _times);
-    }
-
-    modifier whenArrayCountsNotZero() {
-        _;
     }
 
     function test_RevertGiven_OnlyNull()

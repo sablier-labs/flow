@@ -5,5 +5,6 @@ withdrawMax.t.sol
    ├── it should make the max withdrawal
    ├── it should set the remaining amount to zero
    ├── it should update the stream balance
+   ├── it should update the time
    ├── it should perform the ERC-20 transfer
    └── it should emit a {Transfer} and {WithdrawFromOpenEndedStream} event
