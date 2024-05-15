@@ -4,7 +4,21 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract Events {
-    event Transfer(address indexed from, address indexed to, uint256 value);
+    /*//////////////////////////////////////////////////////////////////////////
+                                      ERC-721
+    //////////////////////////////////////////////////////////////////////////*/
+
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                      ERC-4906
+    //////////////////////////////////////////////////////////////////////////*/
+
+    event MetadataUpdate(uint256 _tokenId);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                     OPEN-ENDED
+    //////////////////////////////////////////////////////////////////////////*/
 
     event AdjustOpenEndedStream(
         uint256 indexed streamId, uint128 recipientAmount, uint128 oldRatePerSecond, uint128 newRatePerSecond

@@ -227,7 +227,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
 
         vm.expectEmit({ emitter: address(dai) });
-        emit Transfer({ from: address(openEnded), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
+        emit IERC20.Transfer({ from: address(openEnded), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
 
         vm.expectEmit({ emitter: address(openEnded) });
         emit WithdrawFromOpenEndedStream({
@@ -288,7 +288,7 @@ contract Withdraw_Integration_Test is Integration_Test {
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         vm.expectEmit({ emitter: address(asset) });
-        emit Transfer({
+        emit IERC20.Transfer({
             from: address(openEnded),
             to: users.recipient,
             value: normalizeTransferAmount(streamId, WITHDRAW_AMOUNT)

@@ -57,6 +57,8 @@ contract CreateMultiple_Integration_Test is Integration_Test {
         uint256 beforeNextStreamId = openEnded.nextStreamId();
 
         vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: beforeNextStreamId });
+        vm.expectEmit({ emitter: address(openEnded) });
         emit CreateOpenEndedStream({
             streamId: beforeNextStreamId,
             sender: users.sender,
@@ -65,6 +67,9 @@ contract CreateMultiple_Integration_Test is Integration_Test {
             asset: dai,
             lastTimeUpdate: uint40(block.timestamp)
         });
+
+        vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: beforeNextStreamId + 1 });
         vm.expectEmit({ emitter: address(openEnded) });
         emit CreateOpenEndedStream({
             streamId: beforeNextStreamId + 1,
@@ -109,5 +114,12 @@ contract CreateMultiple_Integration_Test is Integration_Test {
 
         actualStream = openEnded.getStream(streamIds[1]);
         assertEq(actualStream, expectedStream);
+
+        address actualNFTOwner = openEnded.ownerOf({ tokenId: streamIds[0] });
+        address expectedNFTOwner = users.recipient;
+        assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
+
+        actualNFTOwner = openEnded.ownerOf({ tokenId: streamIds[1] });
+        assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
     }
 }

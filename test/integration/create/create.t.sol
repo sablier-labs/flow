@@ -91,6 +91,8 @@ contract Create_Integration_Test is Integration_Test {
         uint256 expectedStreamId = openEnded.nextStreamId();
 
         vm.expectEmit({ emitter: address(openEnded) });
+        emit MetadataUpdate({ _tokenId: expectedStreamId });
+        vm.expectEmit({ emitter: address(openEnded) });
         emit CreateOpenEndedStream({
             streamId: expectedStreamId,
             sender: users.sender,
@@ -122,7 +124,11 @@ contract Create_Integration_Test is Integration_Test {
             sender: users.sender
         });
 
-        assertEq(actualStreamId, expectedStreamId);
+        assertEq(actualStreamId, expectedStreamId, "stream id");
         assertEq(actualStream, expectedStream);
+
+        address actualNFTOwner = openEnded.ownerOf({ tokenId: actualStreamId });
+        address expectedNFTOwner = users.recipient;
+        assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
     }
 }

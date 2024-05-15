@@ -147,7 +147,7 @@ contract Cancel_Integration_Test is Integration_Test {
         uint128 withdrawableAmount = openEnded.withdrawableAmountOf(streamId);
 
         vm.expectEmit({ emitter: address(asset) });
-        emit Transfer({
+        emit IERC20.Transfer({
             from: address(openEnded),
             to: users.sender,
             value: normalizeTransferAmount(streamId, refundableAmount)
