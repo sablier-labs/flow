@@ -125,8 +125,6 @@ way he may extract more assets from stream.
 We store the asset decimals, so that we don't have to make an external call to get the decimals of the asset each time a
 deposit or an extraction is made. Decimals are `uint8`, meaning it is not an expensive to store them.
 
-Recipient address **must** be checked because there is no NFT minted in `_create` function.
-
 Sender address **must** be checked because there is no `ERC20` transfer in `_create` function.
 
 ### Invariants:
@@ -148,3 +146,15 @@ _sum of stream balances normilized to asset decimals ≤ asset.balanceOf(Sablier
 _lastTimeUpdate ≤ block.timestamp;_
 
 _if(isCanceled = true) then balance = 0 && ratePerSecond = 0 && withdrawable amount = remaining amount_
+
+### Actions Access Control:
+
+| Action              | Sender | Recipient | Operator(s) |      Unkown User       |
+| ------------------- | :----: | :-------: | :---------: | :--------------------: |
+| AdjustRatePerSecond |   ✅   |    ❌     |     ❌      |           ❌           |
+| Cancel              |   ✅   |    ❌     |     ❌      |           ❌           |
+| Deposit             |   ✅   |    ✅     |     ✅      |           ✅           |
+| RefundFromStream    |   ✅   |    ❌     |     ❌      |           ❌           |
+| RestartStream       |   ✅   |    ❌     |     ❌      |           ❌           |
+| Transfer NFT        |   ❌   |    ✅     |     ✅      |           ❌           |
+| Withdraw            |   ✅   |    ✅     |     ✅      | ✅ (only to Recipient) |
