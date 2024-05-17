@@ -127,12 +127,12 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     function streamedAmountOf(uint256 streamId, uint40 time) external view returns (uint128 streamedAmount);
 
     /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a canceled or a null stream.
+    /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function withdrawableAmountOf(uint256 streamId) external view returns (uint128 withdrawableAmount);
 
     /// @notice Calculates the amount that the recipient can withdraw from the stream at `time`, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a canceled or a null stream.
+    /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     /// @param time The Unix timestamp for the streamed amount calculation.
     function withdrawableAmountOf(uint256 streamId, uint40 time) external view returns (uint128 withdrawableAmount);
@@ -146,7 +146,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @dev Emits a {Transfer} and {AdjustOpenEndedStream} event.
     ///
     /// Notes:
-    /// - The streamed assets, until the adjustment moment, must be transferred to the recipient.
+    /// - The streamed assets, until the adjustment moment, will be summed up to the remaining amount.
     /// - This function updates stream's `lastTimeUpdate` to the current block timestamp.
     ///
     /// Requiremenets:
@@ -159,7 +159,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param newRatePerSecond The new rate per second of the open-ended stream, denoted in 18 decimals.
     function adjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) external;
 
-    /// @notice Cancels the stream and refunds available assets to the sender and recipient.
+    /// @notice Cancels the stream and refunds available assets to the sender.
     ///
     /// @dev Emits a {Transfer} and {CancelOpenEndedStream} event.
     ///
@@ -171,7 +171,7 @@ interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
     /// @param streamId The ID of the stream to cancel.
     function cancel(uint256 streamId) external;
 
-    /// @notice Cancels multiple streams and refunds available assets to the sender and to the recipient of each stream.
+    /// @notice Cancels multiple streams and refunds available assets to the sender.
     ///
     /// @dev Emits multiple {Transfer} and {CancelOpenEndedStream} events.
     ///
