@@ -88,8 +88,8 @@ contract RestartStream_Integration_Test is Integration_Test {
 
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
 
-        bool isCanceled = openEnded.isCanceled(defaultStreamId);
-        assertFalse(isCanceled);
+        bool isPaused = openEnded.isPaused(defaultStreamId);
+        assertFalse(isPaused);
 
         uint128 actualratePerSecond = openEnded.getRatePerSecond(defaultStreamId);
         assertEq(actualratePerSecond, RATE_PER_SECOND, "ratePerSecond");

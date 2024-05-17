@@ -145,7 +145,7 @@ _sum of stream balances normilized to asset decimals ≤ asset.balanceOf(Sablier
 
 _lastTimeUpdate ≤ block.timestamp;_
 
-_if(isCanceled = true) then balance = 0 && ratePerSecond = 0 && withdrawable amount = remaining amount_
+_if(isPaused = true) then balance = 0 && ratePerSecond = 0 && withdrawable amount = remaining amount_
 
 ### Actions Access Control:
 

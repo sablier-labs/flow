@@ -70,7 +70,7 @@ contract Cancel_Integration_Test is Integration_Test {
 
         openEnded.cancel(defaultStreamId);
 
-        assertTrue(openEnded.isCanceled(defaultStreamId), "is canceled");
+        assertTrue(openEnded.isPaused(defaultStreamId), "is canceled");
 
         uint128 actualRatePerSecond = openEnded.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, 0, "rate per second");
@@ -97,7 +97,7 @@ contract Cancel_Integration_Test is Integration_Test {
 
         openEnded.cancel(defaultStreamId);
 
-        assertTrue(openEnded.isCanceled(defaultStreamId), "is canceled");
+        assertTrue(openEnded.isPaused(defaultStreamId), "is canceled");
 
         uint128 actualRatePerSecond = openEnded.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, 0, "rate per second");
@@ -174,7 +174,7 @@ contract Cancel_Integration_Test is Integration_Test {
 
         openEnded.cancel(streamId);
 
-        assertTrue(openEnded.isCanceled(streamId), "is canceled");
+        assertTrue(openEnded.isPaused(streamId), "is canceled");
 
         uint256 actualRatePerSecond = openEnded.getRatePerSecond(streamId);
         assertEq(actualRatePerSecond, 0, "rate per second");

@@ -87,7 +87,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStreamSender
     {
         // Only non canceled streams can have their rate per second adjusted.
-        if (openEnded.isCanceled(currentStreamId)) {
+        if (openEnded.isPaused(currentStreamId)) {
             return;
         }
 
@@ -122,7 +122,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStreamSender
     {
         // Canceled streams cannot be canceled again.
-        if (openEnded.isCanceled(currentStreamId)) {
+        if (openEnded.isPaused(currentStreamId)) {
             return;
         }
 
@@ -152,7 +152,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStreamSender
     {
         // Only non canceled streams can be deposited.
-        if (openEnded.isCanceled(currentStreamId)) {
+        if (openEnded.isPaused(currentStreamId)) {
             return;
         }
 
@@ -185,7 +185,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStreamSender
     {
         // Only non canceled streams can be refunded.
-        if (openEnded.isCanceled(currentStreamId)) {
+        if (openEnded.isPaused(currentStreamId)) {
             return;
         }
 
@@ -217,7 +217,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStreamSender
     {
         // Only canceled streams can be restarted.
-        if (!openEnded.isCanceled(currentStreamId)) {
+        if (!openEnded.isPaused(currentStreamId)) {
             return;
         }
 
@@ -241,7 +241,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStreamSender
     {
         // Only canceled streams can be restarted.
-        if (!openEnded.isCanceled(currentStreamId)) {
+        if (!openEnded.isPaused(currentStreamId)) {
             return;
         }
 

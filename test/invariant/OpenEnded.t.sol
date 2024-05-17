@@ -117,7 +117,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
-            if (!openEnded.isCanceled(streamId)) {
+            if (!openEnded.isPaused(streamId)) {
                 assertEq(
                     openEnded.getBalance(streamId),
                     openEnded.withdrawableAmountOf(streamId) + openEnded.refundableAmountOf(streamId)
@@ -132,7 +132,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
-            if (!openEnded.isCanceled(streamId)) {
+            if (!openEnded.isPaused(streamId)) {
                 assertGe(
                     openEnded.getBalance(streamId),
                     openEnded.refundableAmountOf(streamId),
@@ -146,7 +146,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
-            if (openEnded.isCanceled(streamId)) {
+            if (openEnded.isPaused(streamId)) {
                 assertEq(
                     openEnded.getBalance(streamId), 0, "Invariant violation: canceled stream with a non-zero balance"
                 );
@@ -158,7 +158,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
-            if (openEnded.isCanceled(streamId)) {
+            if (openEnded.isPaused(streamId)) {
                 assertEq(
                     openEnded.getRatePerSecond(streamId),
                     0,
@@ -172,7 +172,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
-            if (openEnded.isCanceled(streamId)) {
+            if (openEnded.isPaused(streamId)) {
                 assertEq(
                     openEnded.withdrawableAmountOf(streamId),
                     openEnded.getRemainingAmount(streamId),
@@ -191,7 +191,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
             uint128 balance = openEnded.getBalance(streamId);
             uint128 streamedAmount = 0;
 
-            if (!openEnded.isCanceled(streamId)) {
+            if (!openEnded.isPaused(streamId)) {
                 streamedAmount = openEnded.streamedAmountOf(streamId);
             }
 
