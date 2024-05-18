@@ -1,0 +1,30 @@
+pause.t.sol
+├── when delegate called
+│  └── it should revert
+└── when not delegate called
+   ├── given the id references a null stream
+   │  └── it should revert
+   └── given the id does not reference a null stream
+      ├── given the id references a paused stream
+      │  └── it should revert
+      └── given the id does not reference a paused stream
+          ├── when the caller is unauthorized
+          │  ├── when the caller is the recipient
+          │  │  └── it should revert
+          │  └── when the caller is a malicious third party
+          │     └── it should revert
+          └── when the caller is authorized
+             ├── given the withdrawable amount is zero
+             │  ├── it should pause the stream
+             │  └── it should set the rate per second to zero
+             └── given the withdrawable amount is not zero
+                ├── given the refundable amount is zero
+                │  ├── it should pause the stream
+                │  ├── it should set the rate per second to zero
+                │  └── it should update the remaining amount
+                └── given thet refundable amount is not zero
+                   ├── it should pause the stream
+                   ├── it should set the rate per second to zero
+                   ├── it should update the remaining amount
+                   ├── it should emit a {PauseOpenEndedStream} event
+                   └── it should emit a {MetadataUpdate} event

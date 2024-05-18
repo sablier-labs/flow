@@ -86,7 +86,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
     {
-        // Only non canceled streams can have their rate per second adjusted.
+        // Only non paused streams can have their rate per second adjusted.
         if (openEnded.isPaused(currentStreamId)) {
             return;
         }
@@ -111,17 +111,17 @@ contract OpenEndedHandler is BaseHandler {
         openEndedStore.sumRemainingAmount(currentStreamId, remainingAmount);
     }
 
-    function cancel(
+    function pause(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed
     )
         external
-        instrument("cancel")
+        instrument("pause")
         adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
     {
-        // Canceled streams cannot be canceled again.
+        // Paused streams cannot be paused again.
         if (openEnded.isPaused(currentStreamId)) {
             return;
         }
@@ -132,8 +132,8 @@ contract OpenEndedHandler is BaseHandler {
 
         uint128 remainingAmount = balance > streamedAmount ? streamedAmount : balance;
 
-        // Cancel the stream.
-        openEnded.cancel(currentStreamId);
+        // Pause the stream.
+        openEnded.pause(currentStreamId);
 
         // Store the extracted amount.
         openEndedStore.updateStreamExtractedAmountsSum(senderAmount);
@@ -151,7 +151,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
     {
-        // Only non canceled streams can be deposited.
+        // Only non paused streams can be deposited.
         if (openEnded.isPaused(currentStreamId)) {
             return;
         }
@@ -184,7 +184,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
     {
-        // Only non canceled streams can be refunded.
+        // Only non paused streams can be refunded.
         if (openEnded.isPaused(currentStreamId)) {
             return;
         }
@@ -216,7 +216,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
     {
-        // Only canceled streams can be restarted.
+        // Only paused streams can be restarted.
         if (!openEnded.isPaused(currentStreamId)) {
             return;
         }
@@ -240,7 +240,7 @@ contract OpenEndedHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
     {
-        // Only canceled streams can be restarted.
+        // Only paused streams can be restarted.
         if (!openEnded.isPaused(currentStreamId)) {
             return;
         }

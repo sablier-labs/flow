@@ -27,16 +27,10 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         openEnded.refundFromStream({ streamId: nullStreamId, amount: REFUND_AMOUNT });
     }
 
-    function test_RevertGiven_Canceled() external whenNotDelegateCalled givenNotNull {
-        expectRevertCanceled();
-        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
-    }
-
     function test_RevertWhen_CallerUnauthorized_Recipient()
         external
         whenNotDelegateCalled
         givenNotNull
-        givenNotCanceled
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.recipient });
@@ -50,7 +44,6 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
-        givenNotCanceled
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.eve });
@@ -60,13 +53,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
     }
 
-    function test_RevertWhen_RefundAmountZero()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        givenNotCanceled
-        whenCallerAuthorized
-    {
+    function test_RevertWhen_RefundAmountZero() external whenNotDelegateCalled givenNotNull whenCallerAuthorized {
         vm.expectRevert(Errors.SablierV2OpenEnded_RefundAmountZero.selector);
         openEnded.refundFromStream({ streamId: defaultStreamId, amount: 0 });
     }
@@ -75,7 +62,6 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
-        givenNotCanceled
         whenCallerAuthorized
         whenRefundAmountNotZero
     {
@@ -90,11 +76,21 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         openEnded.refundFromStream({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
     }
 
+    function test_RefundFromStream_PausedStream() external whenNotDelegateCalled givenNotNull whenCallerAuthorized {
+        openEnded.pause(defaultStreamId);
+
+        expectCallToTransfer({ asset: dai, to: users.sender, amount: REFUND_AMOUNT });
+        openEnded.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+
+        uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+    }
+
     function test_RefundFromStream_AssetNot18Decimals()
         external
         whenNotDelegateCalled
         givenNotNull
-        givenNotCanceled
         whenCallerAuthorized
         whenRefundAmountNotZero
         whenNoOverrefund
@@ -112,7 +108,6 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
-        givenNotCanceled
         whenCallerAuthorized
         whenRefundAmountNotZero
         whenNoOverrefund

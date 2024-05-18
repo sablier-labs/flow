@@ -142,19 +142,19 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         }
     }
 
-    function invariatn_StreamCanceled_BalanceZero() external useCurrentTimestamp {
+    function invariatn_StreamPaused_BalanceZero() external useCurrentTimestamp {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
             if (openEnded.isPaused(streamId)) {
                 assertEq(
-                    openEnded.getBalance(streamId), 0, "Invariant violation: canceled stream with a non-zero balance"
+                    openEnded.getBalance(streamId), 0, "Invariant violation: paused stream with a non-zero balance"
                 );
             }
         }
     }
 
-    function invariant_StreamCanceled_RatePerSecondZero() external useCurrentTimestamp {
+    function invariant_StreamPaused_RatePerSecondZero() external useCurrentTimestamp {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
@@ -162,13 +162,13 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
                 assertEq(
                     openEnded.getRatePerSecond(streamId),
                     0,
-                    "Invariant violation: canceled stream with a non-zero rate per second"
+                    "Invariant violation: paused stream with a non-zero rate per second"
                 );
             }
         }
     }
 
-    function invariant_StreamedCanceled_WithdrawableAmountEqRemainingAmount() external useCurrentTimestamp {
+    function invariant_StreamedPaused_WithdrawableAmountEqRemainingAmount() external useCurrentTimestamp {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = openEndedStore.streamIds(i);
@@ -176,14 +176,14 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
                 assertEq(
                     openEnded.withdrawableAmountOf(streamId),
                     openEnded.getRemainingAmount(streamId),
-                    "Invariant violation: canceled stream withdrawable amount != remaining amount"
+                    "Invariant violation: paused stream withdrawable amount != remaining amount"
                 );
             }
         }
     }
 
     /// @dev The invariant is: withdrawable amount = min(balance, streamed amount) + remaining amount
-    /// This includes both canceled and non-canceled streams.
+    /// This includes both paused and non-paused streams.
     function invariant_WithdrawableAmount() external useCurrentTimestamp {
         uint256 lastStreamId = openEndedStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {

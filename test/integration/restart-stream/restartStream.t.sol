@@ -10,7 +10,7 @@ contract RestartStream_Integration_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
-        openEnded.cancel({ streamId: defaultStreamId });
+        openEnded.pause({ streamId: defaultStreamId });
     }
 
     function test_RevertWhen_DelegateCall() external {
@@ -23,9 +23,9 @@ contract RestartStream_Integration_Test is Integration_Test {
         openEnded.restartStream({ streamId: nullStreamId, ratePerSecond: RATE_PER_SECOND });
     }
 
-    function test_RevertGiven_NotCanceled() external whenNotDelegateCalled givenNotNull {
+    function test_RevertGiven_NotPaused() external whenNotDelegateCalled givenNotNull {
         uint256 streamId = createDefaultStream();
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_StreamNotCanceled.selector, streamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierV2OpenEnded_StreamNotPaused.selector, streamId));
         openEnded.restartStream({ streamId: streamId, ratePerSecond: RATE_PER_SECOND });
     }
 
@@ -33,7 +33,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
-        givenCanceled
+        givenPaused
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.recipient });
@@ -47,7 +47,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
-        givenCanceled
+        givenPaused
         whenCallerUnauthorized
     {
         resetPrank({ msgSender: users.eve });
@@ -57,11 +57,11 @@ contract RestartStream_Integration_Test is Integration_Test {
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
     }
 
-    function test_RevertWhen_ratePerSecondZero()
+    function test_RevertWhen_RatePerSecondZero()
         external
         whenNotDelegateCalled
         givenNotNull
-        givenCanceled
+        givenPaused
         whenCallerAuthorized
     {
         vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
@@ -72,7 +72,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
-        givenCanceled
+        givenPaused
         whenCallerAuthorized
         whenRatePerSecondNonZero
     {

@@ -5,9 +5,9 @@ restartStream.t.sol
    ├── given the id references a null stream
    │  └── it should revert
    └── given the id does not reference a null stream
-      ├── given the id does not references a canceled stream
+      ├── given the id does not references a paused stream
       │  └── it should revert
-      └── given the id reference a canceled stream
+      └── given the id reference a paused stream
          ├── when the caller is unauthorized
          │  ├── when the caller is the sender
          │  │  └── it should revert

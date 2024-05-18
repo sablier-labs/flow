@@ -5,9 +5,9 @@ deposit.t.sol
    ├── given the id references a null stream
    │  └── it should revert
    └── given the id does not reference a null stream
-      ├── given the id references a canceled stream
+      ├── given the id references a paused stream
       │  └── it should revert
-      └── given the id does not reference a canceled stream
+      └── given the id does not reference a paused stream
          ├── when the deposit amount is zero
          │  └── it should revert
          └── when the deposit amount is not zero

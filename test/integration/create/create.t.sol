@@ -44,7 +44,7 @@ contract Create_Integration_Test is Integration_Test {
         });
     }
 
-    function test_RevertWhen_ratePerSecondZero()
+    function test_RevertWhen_RatePerSecondZero()
         external
         whenNotDelegateCalled
         whenSenderNonZeroAddress

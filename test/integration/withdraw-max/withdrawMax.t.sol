@@ -14,8 +14,8 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
     }
 
-    function test_WithdrawMax_Canceled() external {
-        openEnded.cancel(defaultStreamId);
+    function test_WithdrawMax_Paused() external {
+        openEnded.pause(defaultStreamId);
 
         uint128 beforeStreamBalance = openEnded.getBalance(defaultStreamId);
         uint128 beforeRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
@@ -45,7 +45,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         assertEq(openEnded.getLastTimeUpdate(defaultStreamId), WARP_ONE_MONTH, "last time update not updated");
     }
 
-    function test_WithdrawMax() external givenNotCanceled {
+    function test_WithdrawMax() external givenNotPaused {
         uint128 beforeStreamBalance = openEnded.getBalance(defaultStreamId);
         uint128 beforeRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
 

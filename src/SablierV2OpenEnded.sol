@@ -63,10 +63,7 @@ contract SablierV2OpenEnded is
         uint128 balance = _streams[streamId].balance;
         uint128 remainingAmount = _streams[streamId].remainingAmount;
 
-        if (_streams[streamId].isPaused) {
-            return remainingAmount - balance;
-        }
-
+        // If the stream is pause it will return zero.
         uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
         uint128 sum = streamedAmount + remainingAmount;
@@ -106,7 +103,13 @@ contract SablierV2OpenEnded is
     }
 
     /// @inheritdoc ISablierV2OpenEnded
-    function withdrawableAmountOf(uint256 streamId) external view override returns (uint128 withdrawableAmount) {
+    function withdrawableAmountOf(uint256 streamId)
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 withdrawableAmount)
+    {
         withdrawableAmount = _withdrawableAmountOf(streamId, uint40(block.timestamp));
     }
 
@@ -319,8 +322,7 @@ contract SablierV2OpenEnded is
             : (amount / (10 ** normalizationFactor)).toUint128();
     }
 
-    /// @dev Checks whether the withdrawable amount or the sum of the withdrawable and refundable amounts is greater
-    /// than the stream's balance.
+    /// @dev Checks whether the withdrawable amount or the refundable amounts is greater than the stream's balance.
     function _checkCalculatedAmount(uint256 streamId, uint128 amount) internal view {
         uint128 balance = _streams[streamId].balance;
         if (amount > balance) {
@@ -377,7 +379,7 @@ contract SablierV2OpenEnded is
         uint128 remainingAmount = _streams[streamId].remainingAmount;
 
         // If the remaining amount is greater than the balance, return the stream balance.
-        if (remainingAmount >= balance) {
+        if (remainingAmount > balance) {
             return balance;
         }
 
@@ -392,7 +394,7 @@ contract SablierV2OpenEnded is
         uint128 sum = streamedAmount + remainingAmount;
 
         // If there has been streamed more than how much is available, return the stream balance.
-        if (sum >= balance) {
+        if (sum > balance) {
             return balance;
         } else {
             return sum;
@@ -419,14 +421,14 @@ contract SablierV2OpenEnded is
 
         uint128 recipientAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
+        // Effect: update the stream time.
+        _updateTime(streamId, uint40(block.timestamp));
+
         // Effect: sum up the remaining amount that the recipient is able to withdraw.
         _streams[streamId].remainingAmount += recipientAmount;
 
         // Effect: change the rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
-
-        // Effect: update the stream time.
-        _updateTime(streamId, uint40(block.timestamp));
 
         // Log the adjustment.
         emit ISablierV2OpenEnded.AdjustOpenEndedStream(streamId, recipientAmount, oldRatePerSecond, newRatePerSecond);
@@ -531,18 +533,14 @@ contract SablierV2OpenEnded is
     function _pause(uint256 streamId) internal {
         uint128 recipientAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
-        // Although the withdrawable should never exceed the balance, this condition is checked to avoid exploits in
-        // case of a bug.
-        _checkCalculatedAmount(streamId, recipientAmount);
-
-        // Effect: set the stream as paused.
-        _streams[streamId].isPaused = true;
+        // Effect: sum up the remaining amount that the recipient is able to withdraw.
+        _streams[streamId].remainingAmount += recipientAmount;
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
 
-        // Effect: sum up the remaining amount that the recipient is able to withdraw.
-        _streams[streamId].remainingAmount += recipientAmount;
+        // Effect: set the stream as paused.
+        _streams[streamId].isPaused = true;
 
         // Log the pause.
         emit ISablierV2OpenEnded.PauseOpenEndedStream({
@@ -594,14 +592,14 @@ contract SablierV2OpenEnded is
             revert Errors.SablierV2OpenEnded_RatePerSecondZero();
         }
 
+        // Effect: update the stream time.
+        _updateTime(streamId, uint40(block.timestamp));
+
         // Effect: set the rate per second.
         _streams[streamId].ratePerSecond = ratePerSecond;
 
         // Effect: set the stream as not paused.
         _streams[streamId].isPaused = false;
-
-        // Effect: update the stream time.
-        _updateTime(streamId, uint40(block.timestamp));
 
         // Log the restart.
         emit ISablierV2OpenEnded.RestartOpenEndedStream(streamId, msg.sender, _streams[streamId].asset, ratePerSecond);
@@ -656,11 +654,17 @@ contract SablierV2OpenEnded is
         // avoid exploits in case of a bug.
         _checkCalculatedAmount(streamId, withdrawableAmount);
 
-        // Effect: update the remaining amount.
-        _streams[streamId].remainingAmount -= withdrawableAmount;
-
         // Effect: update the stream time.
         _updateTime(streamId, time);
+
+        // Effect: update the remaining amount.
+        if (remainingAmount > withdrawableAmount) {
+            // If the remaining amount is greater than the withdrawable amount, subtract the withdrawable amount.
+            _streams[streamId].remainingAmount -= withdrawableAmount;
+        } else {
+            // Otherwise, set the remaining amount to zero.
+            _streams[streamId].remainingAmount = 0;
+        }
 
         // Interaction: perform the ERC-20 transfer.
         _extractFromStream(streamId, to, withdrawableAmount);
