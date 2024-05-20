@@ -2,13 +2,16 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 import { OpenEnded } from "../types/DataTypes.sol";
 
 /// @title ISablierV2OpenEndedState
 /// @notice State variables, storage and constants, for the {SablierV2OpenEnded} contract, and their respective getters.
 /// @dev This contract also includes helpful modifiers and helper functions.
-interface ISablierV2OpenEndedState {
+interface ISablierV2OpenEndedState is
+    IERC721Metadata // 2 inherited components
+{
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/

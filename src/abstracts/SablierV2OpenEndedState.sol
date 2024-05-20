@@ -12,9 +12,9 @@ import { Errors } from "../libraries/Errors.sol";
 /// @title SablierV2OpenEndedState
 /// @notice See the documentation in {ISablierV2OpenEndedState}.
 abstract contract SablierV2OpenEndedState is
-    ISablierV2OpenEndedState, // 0 inherited components
     IERC4906, // 2 inherited components
-    ERC721("Sablier V2 Open Ended NFT", "SAB-V2-OPEN-EN") // 6 inherited components
+    ISablierV2OpenEndedState, // 3 inherited component
+    ERC721 // 6 inherited components
 {
     /*//////////////////////////////////////////////////////////////////////////
                                   STATE VARIABLES
@@ -173,11 +173,10 @@ abstract contract SablierV2OpenEndedState is
                           INTERNAL NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Overrides the {ERC-721._update} function to check that the stream is transferable, and emits an
-    /// ERC-4906 event.
-    /// @dev There are two cases when the transferable flag is ignored:
-    /// - If the current owner is 0, then the update is a mint and is allowed.
-    /// - If `to` is 0, then the update is a burn and is also allowed.
+    /// @notice Overrides the {ERC-721._update} function to check that the stream is transferable.
+    /// @dev The transferable flag is ignored if the current owner is 0, as the update in this case is a mint and
+    /// is allowed. Transfers to the zero address are not allowed, preventing accidental burns.
+    ///
     /// @param to The address of the new recipient of the stream.
     /// @param streamId ID of the stream to update.
     /// @param auth Optional parameter. If the value is not zero, the overridden implementation will check that
@@ -195,7 +194,7 @@ abstract contract SablierV2OpenEndedState is
     {
         address from = _ownerOf(streamId);
 
-        if (from != address(0) && to != address(0) && !_streams[streamId].isTransferable) {
+        if (from != address(0) && !_streams[streamId].isTransferable) {
             revert Errors.SablierV2OpenEndedState_NotTransferable(streamId);
         }
 

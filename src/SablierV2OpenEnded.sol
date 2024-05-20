@@ -5,6 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
 import { SablierV2OpenEndedState } from "./abstracts/SablierV2OpenEndedState.sol";
@@ -21,6 +22,12 @@ contract SablierV2OpenEnded is
 {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    CONSTRUCTOR
+    //////////////////////////////////////////////////////////////////////////*/
+
+    constructor() ERC721("Sablier V2 Open Ended NFT", "SAB-V2-OPEN-EN") { }
 
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS

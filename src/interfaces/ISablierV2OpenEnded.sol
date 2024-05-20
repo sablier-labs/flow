@@ -7,7 +7,9 @@ import { ISablierV2OpenEndedState } from "./ISablierV2OpenEndedState.sol";
 
 /// @title ISablierV2OpenEnded
 /// @notice Creates and manages Open Ended streams with linear streaming functions.
-interface ISablierV2OpenEnded is ISablierV2OpenEndedState {
+interface ISablierV2OpenEnded is
+    ISablierV2OpenEndedState // 3 inherited component
+{
     /*//////////////////////////////////////////////////////////////////////////
                                        EVENTS
     //////////////////////////////////////////////////////////////////////////*/
