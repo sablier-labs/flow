@@ -17,31 +17,25 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     function test_WithdrawMax_Paused() external {
         openEnded.pause(defaultStreamId);
 
-        uint128 beforeStreamBalance = openEnded.getBalance(defaultStreamId);
-        uint128 beforeRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
-
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({
-            from: address(openEnded),
-            to: users.recipient,
-            value: normalizeTransferAmount(defaultStreamId, beforeRemainingAmount)
-        });
+        emit IERC20.Transfer({ from: address(openEnded), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
 
         vm.expectEmit({ emitter: address(openEnded) });
         emit WithdrawFromOpenEndedStream({
             streamId: defaultStreamId,
             to: users.recipient,
             asset: dai,
-            withdrawnAmount: beforeRemainingAmount
+            withdrawnAmount: ONE_MONTH_STREAMED_AMOUNT
         });
 
         openEnded.withdrawMax(defaultStreamId, users.recipient);
 
-        uint128 afterStreamBalance = openEnded.getBalance(defaultStreamId);
-        uint128 afterRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
+        uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        assertEq(beforeStreamBalance, afterStreamBalance, "stream balance should not change");
-        assertEq(afterRemainingAmount, 0, "remaining amount should be 0");
+        uint128 actualRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
+        assertEq(actualRemainingAmount, 0, "remaining amount");
         assertEq(openEnded.getLastTimeUpdate(defaultStreamId), WARP_ONE_MONTH, "last time update not updated");
     }
 

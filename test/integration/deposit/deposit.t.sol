@@ -23,14 +23,17 @@ contract Deposit_Integration_Test is Integration_Test {
         openEnded.deposit(nullStreamId, DEPOSIT_AMOUNT);
     }
 
-    function test_RevertGiven_Paused() external whenNotDelegateCalled givenNotNull {
-        expectRevertPaused();
-        openEnded.deposit(defaultStreamId, DEPOSIT_AMOUNT);
-    }
-
     function test_RevertWhen_DepositAmountZero() external whenNotDelegateCalled givenNotNull givenNotPaused {
         vm.expectRevert(Errors.SablierV2OpenEnded_DepositAmountZero.selector);
         openEnded.deposit(defaultStreamId, 0);
+    }
+
+    function test_Deposit_Paused() external whenNotDelegateCalled givenNotNull {
+        openEnded.deposit(defaultStreamId, DEPOSIT_AMOUNT);
+
+        uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
     function test_Deposit_AssetMissingReturnValue_AssetNot18Decimals()
