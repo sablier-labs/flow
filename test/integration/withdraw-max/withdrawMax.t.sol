@@ -47,7 +47,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({
             from: address(openEnded),
             to: users.recipient,
-            value: normalizeTransferAmount(defaultStreamId, ONE_MONTH_STREAMED_AMOUNT)
+            value: normalizeAmountWithStreamId(defaultStreamId, ONE_MONTH_STREAMED_AMOUNT)
         });
 
         vm.expectEmit({ emitter: address(openEnded) });

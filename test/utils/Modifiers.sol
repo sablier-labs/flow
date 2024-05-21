@@ -34,6 +34,14 @@ abstract contract Modifiers {
         _;
     }
 
+    modifier whenBrokerAddressIsNotZero() {
+        _;
+    }
+
+    modifier whenBrokerFeeNotGreaterThanMaxFee() {
+        _;
+    }
+
     modifier whenCallerIsNotTheSender() {
         _;
     }
@@ -42,7 +50,23 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenRatePerSecondNonZero() {
+    modifier whenRatePerSecondIsNotZero() {
+        _;
+    }
+
+    modifier whenSenderIsNotZeroAddress() {
+        _;
+    }
+
+    modifier whenTokenDecimalIsNotZero() {
+        _;
+    }
+
+    modifier whenTokenDoesNotMissERC20Return() {
+        _;
+    }
+
+    modifier whenTotalAmountIsNotZero() {
         _;
     }
 
@@ -55,7 +79,7 @@ abstract contract Modifiers {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                       CANCEL
+                                       PAUSE
     //////////////////////////////////////////////////////////////////////////*/
 
     modifier givenRefundableAmountNotZero() {
@@ -75,10 +99,6 @@ abstract contract Modifiers {
     }
 
     modifier whenRecipientNonZeroAddress() {
-        _;
-    }
-
-    modifier whenSenderNonZeroAddress() {
         _;
     }
 
