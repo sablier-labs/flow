@@ -241,7 +241,7 @@ interface ISablierV2OpenEnded is
     /// @param streamId The ID of the stream to pause.
     function pause(uint256 streamId) external;
 
-    /// @notice Pauses multiple streams and refunds available assets to the sender of each stream.
+    /// @notice Pauses multiple streams by setting the rate per second to zero.
     ///
     /// @dev Emits multiple {Transfer} and {PauseOpenEndedStream} events.
     ///
