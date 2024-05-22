@@ -10,13 +10,13 @@ import { SablierV2OpenEnded } from "src/SablierV2OpenEnded.sol";
 import { ERC20Mock } from "./mocks/ERC20Mock.sol";
 import { ERC20MissingReturn } from "./mocks/ERC20MissingReturn.sol";
 import { Assertions } from "./utils/Assertions.sol";
-import { Defaults } from "./utils/Defaults.sol";
+import { Constants } from "./utils/Constants.sol";
 import { Events } from "./utils/Events.sol";
 import { Modifiers } from "./utils/Modifiers.sol";
 import { Users } from "./utils/Types.sol";
 import { Utils } from "./utils/Utils.sol";
 
-abstract contract Base_Test is Assertions, Defaults, Events, Modifiers, Test, Utils {
+abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, Utils {
     using SafeCast for uint256;
 
     /*//////////////////////////////////////////////////////////////////////////
