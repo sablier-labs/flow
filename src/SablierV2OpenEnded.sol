@@ -61,15 +61,13 @@ contract SablierV2OpenEnded is
     /// @inheritdoc ISablierV2OpenEnded
     function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
         uint128 balance = _streams[streamId].balance;
-        uint128 remainingAmount = _streams[streamId].remainingAmount;
 
-        // If the stream is pause it will return zero.
         uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
 
-        uint128 sum = streamedAmount + remainingAmount;
+        uint128 recipientAmount = streamedAmount + _streams[streamId].remainingAmount;
 
-        if (balance < sum) {
-            debt = sum - balance;
+        if (balance < recipientAmount) {
+            debt = recipientAmount - balance;
         } else {
             return 0;
         }
@@ -212,16 +210,6 @@ contract SablierV2OpenEnded is
     {
         // Checks, Effects and Interactions: pause the stream.
         _pause(streamId);
-    }
-
-    /// @inheritdoc ISablierV2OpenEnded
-    function pauseMultiple(uint256[] calldata streamIds) external override {
-        // Iterate over the provided array of stream IDs and pause each stream.
-        uint256 count = streamIds.length;
-        for (uint256 i = 0; i < count; ++i) {
-            // Effects and Interactions: pause the stream.
-            pause(streamIds[i]);
-        }
     }
 
     /// @inheritdoc ISablierV2OpenEnded
@@ -519,11 +507,11 @@ contract SablierV2OpenEnded is
 
     /// @dev Helper function to calculate the transfer amount and to perform the ERC-20 transfer.
     function _extractFromStream(uint256 streamId, address to, uint128 amount) internal {
-        // Effect: update the stream balance.
-        _streams[streamId].balance -= amount;
-
         // Calculate the transfer amount.
         uint128 transferAmount = _calculateTransferAmount(streamId, amount);
+
+        // Effect: update the stream balance.
+        _streams[streamId].balance -= amount;
 
         // Interaction: perform the ERC-20 transfer.
         _streams[streamId].asset.safeTransfer(to, transferAmount);
