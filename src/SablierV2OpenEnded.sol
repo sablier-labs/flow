@@ -334,7 +334,7 @@ contract SablierV2OpenEnded is
         }
     }
 
-    /// @dev Calculates the streamed amount.
+    /// @dev Calculates the streamed amount since last update.
     function _streamedAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
 
@@ -343,7 +343,7 @@ contract SablierV2OpenEnded is
             return 0;
         }
 
-        // Calculate the amount streamed since last update. Each number is normalized to 18 decimals.
+        // Calculate the amount streamed since last update. Each value is normalized to 18 decimals.
         unchecked {
             // Calculate how much time has passed since the last update.
             uint128 elapsedTime = time - lastTimeUpdate;
@@ -355,7 +355,7 @@ contract SablierV2OpenEnded is
         }
     }
 
-    /// @dev Calculates the withdrawable amount without looking at the stream's remaining amount.
+    /// @dev Calculates the amount available to withdraw at provided time.
     function _withdrawableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 
@@ -407,19 +407,20 @@ contract SablierV2OpenEnded is
             revert Errors.SablierV2OpenEnded_RatePerSecondNotDifferent(newRatePerSecond);
         }
 
-        uint128 recipientAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
+        // Calculate the streamed amount since last update.
+        uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
+
+        // Effect: update the remainingAmount.
+        _streams[streamId].remainingAmount += streamedAmount;
 
         // Effect: update the stream time.
         _updateTime(streamId, uint40(block.timestamp));
 
-        // Effect: sum up the remaining amount that the recipient is able to withdraw.
-        _streams[streamId].remainingAmount += recipientAmount;
-
-        // Effect: change the rate per second.
+        // Effect: update the rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
 
         // Log the adjustment.
-        emit ISablierV2OpenEnded.AdjustOpenEndedStream(streamId, recipientAmount, oldRatePerSecond, newRatePerSecond);
+        emit ISablierV2OpenEnded.AdjustOpenEndedStream(streamId, streamedAmount, oldRatePerSecond, newRatePerSecond);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.

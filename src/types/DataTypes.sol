@@ -12,7 +12,7 @@ library OpenEnded {
     /// subtracted by the sum of withdrawn amounts, denoted in 18 decimals.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param sender The address streaming the assets, with the ability to pause the stream.
-    /// @param lastTimeUpdate The Unix timestamp for the streamed amount calculation.
+    /// @param lastTimeUpdate The Unix timestamp used for the streamed amount calculation.
     /// @param isStream Boolean indicating if the struct entity exists.
     /// @param isPaused Boolean indicating if the stream is paused.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
