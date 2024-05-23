@@ -40,27 +40,28 @@ contract SablierV2OpenEnded is
         override
         notNull(streamId)
         notPaused(streamId)
-        returns (uint128 depletionTime)
+        returns (uint40 depletionTime)
     {
-        uint128 streamBalance = _streams[streamId].balance;
+        uint128 balance = _streams[streamId].balance;
 
         // If the stream balance is zero, return zero.
-        if (streamBalance == 0) {
+        if (balance == 0) {
             return 0;
         }
 
+        // Calculate here the recipient amount for gas optimization.
         uint128 recipientAmount =
             _streams[streamId].remainingAmount + _streamedAmountOf(streamId, uint40(block.timestamp));
 
-        // Check that the stream has no debt. Return 0 if the stream has debt.
-        if (recipientAmount < streamBalance) {
-            // Safe to unchecked because subtraction cannot underflow.
-            unchecked {
-                uint128 solvencyPeriod = (streamBalance - recipientAmount) / _streams[streamId].ratePerSecond;
-                return uint128(block.timestamp) + solvencyPeriod;
-            }
-        } else {
+        // If the stream has debt, return zero.
+        if (recipientAmount >= balance) {
             return 0;
+        }
+
+        // Safe to unchecked because subtraction cannot underflow.
+        unchecked {
+            uint128 solvencyPeriod = (balance - recipientAmount) / _streams[streamId].ratePerSecond;
+            depletionTime = uint40(block.timestamp + solvencyPeriod);
         }
     }
 

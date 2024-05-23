@@ -103,7 +103,7 @@ interface ISablierV2OpenEnded is
     ///
     /// @param streamId The stream ID for the query.
     /// @return depletionTime The UNIX timestamp.
-    function depletionTimeOf(uint256 streamId) external view returns (uint128 depletionTime);
+    function depletionTimeOf(uint256 streamId) external view returns (uint40 depletionTime);
 
     /// @notice Calculates the amount that the sender can refund from stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.

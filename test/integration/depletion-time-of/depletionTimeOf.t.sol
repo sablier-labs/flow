@@ -18,7 +18,7 @@ contract DepletionTimeOf_Integration_Test is Integration_Test {
 
     function test_WhenBalanceIsZero() external view givenNotNull givenNotPaused {
         // it should return 0
-        uint128 depletionTime = openEnded.depletionTimeOf(defaultStreamId);
+        uint40 depletionTime = openEnded.depletionTimeOf(defaultStreamId);
         assertEq(depletionTime, 0, "depletion time");
     }
 
@@ -30,13 +30,13 @@ contract DepletionTimeOf_Integration_Test is Integration_Test {
     function test_WhenStreamHasDebt() external givenNotNull givenNotPaused whenBalanceIsNotZero {
         vm.warp({ newTimestamp: block.timestamp + SOLVENCY_PERIOD });
         // it should return 0
-        uint128 depletionTime = openEnded.depletionTimeOf(defaultStreamId);
+        uint40 depletionTime = openEnded.depletionTimeOf(defaultStreamId);
         assertEq(depletionTime, 0, "depletion time");
     }
 
     function test_WhenStreamHasNoDebt() external givenNotNull givenNotPaused whenBalanceIsNotZero {
         // it should return the time at which the stream depletes its balance
-        uint128 depletionTime = openEnded.depletionTimeOf(defaultStreamId);
+        uint40 depletionTime = openEnded.depletionTimeOf(defaultStreamId);
         assertEq(depletionTime, block.timestamp + SOLVENCY_PERIOD, "depletion time");
     }
 }
