@@ -71,6 +71,8 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         }
     }
 
+    /// @dev The sum of all stream balances for a specific asset should be less than or equal to the contract
+    /// `ERC20.balanceOf`.
     function invariant_ContractBalanceGeStreamBalances() external useCurrentTimestamp {
         uint256 contractBalance = dai.balanceOf(address(openEnded));
 
@@ -84,7 +86,7 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
         assertGe(
             contractBalance,
             streamBalancesSumNormalized,
-            unicode"Invariant violation: contract balanceOf < Σ stream balances + remaining amounts normalized"
+            unicode"Invariant violation: contract balanceOf < Σ stream balances"
         );
     }
 
@@ -97,22 +99,6 @@ contract OpenEnded_Invariant_Test is Invariant_Test {
                     openEnded.withdrawableAmountOf(streamId),
                     openEnded.getBalance(streamId),
                     "Invariant violation: withdrawable amount != balance"
-                );
-            }
-        }
-    }
-
-    function invariant_Debt_WithdrawableAmountEqRemainingAmount() external useCurrentTimestamp {
-        uint256 lastStreamId = openEndedStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = openEndedStore.streamIds(i);
-            uint128 balance = openEnded.getBalance(streamId);
-            uint128 remainingAmount = openEnded.getRemainingAmount(streamId);
-            if (openEnded.streamDebtOf(streamId) > 0 && remainingAmount > balance) {
-                assertEq(
-                    openEnded.withdrawableAmountOf(streamId),
-                    balance,
-                    "Invariant violation: withdrawable amount != remaining amount"
                 );
             }
         }
