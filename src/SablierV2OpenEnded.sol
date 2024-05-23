@@ -34,6 +34,37 @@ contract SablierV2OpenEnded is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierV2OpenEnded
+    function depletionTimeOf(uint256 streamId)
+        external
+        view
+        override
+        notNull(streamId)
+        notPaused(streamId)
+        returns (uint128 depletionTime)
+    {
+        uint128 streamBalance = _streams[streamId].balance;
+
+        // If the stream balance is zero, return zero.
+        if (streamBalance == 0) {
+            return 0;
+        }
+
+        uint128 recipientAmount =
+            _streams[streamId].remainingAmount + _streamedAmountOf(streamId, uint40(block.timestamp));
+
+        // Check that the stream has no debt. Return 0 if the stream has debt.
+        if (recipientAmount < streamBalance) {
+            // Safe to unchecked because subtraction cannot underflow.
+            unchecked {
+                uint128 solvencyPeriod = (streamBalance - recipientAmount) / _streams[streamId].ratePerSecond;
+                return uint128(block.timestamp) + solvencyPeriod;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    /// @inheritdoc ISablierV2OpenEnded
     function refundableAmountOf(uint256 streamId)
         external
         view
