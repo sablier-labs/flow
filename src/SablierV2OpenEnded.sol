@@ -379,13 +379,13 @@ contract SablierV2OpenEnded is
         // Calculate the streamed amount since last update.
         uint128 streamedAmount = _streamedAmountOf(streamId, time);
 
-        uint128 sum = streamedAmount + remainingAmount;
+        uint128 recipientAmount = streamedAmount + remainingAmount;
 
         // If there has been streamed more than how much is available, return the stream balance.
-        if (sum > balance) {
+        if (recipientAmount > balance) {
             return balance;
         } else {
-            return sum;
+            return recipientAmount;
         }
     }
 

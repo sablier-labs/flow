@@ -70,7 +70,7 @@ contract OpenEndedCreateHandler is BaseHandler {
             openEnded.create(params.sender, params.recipient, params.ratePerSecond, asset, params.isTransferable);
 
         // Store the stream id.
-        openEndedStore.pushStreamId(streamId, params.sender, params.recipient, openEnded.getLastTimeUpdate(streamId));
+        openEndedStore.pushStreamId(streamId, params.sender, params.recipient);
     }
 
     function createAndDeposit(
@@ -104,7 +104,7 @@ contract OpenEndedCreateHandler is BaseHandler {
         );
 
         // Store the stream id.
-        openEndedStore.pushStreamId(streamId, params.sender, params.recipient, openEnded.getLastTimeUpdate(streamId));
+        openEndedStore.pushStreamId(streamId, params.sender, params.recipient);
 
         // Store the deposited amount.
         openEndedStore.updateStreamDepositedAmountsSum(streamId, depositAmount);

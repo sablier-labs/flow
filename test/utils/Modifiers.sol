@@ -30,11 +30,11 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenCallerAuthorized() {
+    modifier whenCallerIsTheSender() {
         _;
     }
 
-    modifier whenCallerUnauthorized() {
+    modifier whenCallerIsNotTheSender() {
         _;
     }
 

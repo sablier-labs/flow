@@ -34,7 +34,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenPaused
-        whenCallerUnauthorized
+        whenCallerIsNotTheSender
     {
         resetPrank({ msgSender: users.recipient });
         vm.expectRevert(
@@ -48,7 +48,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenPaused
-        whenCallerUnauthorized
+        whenCallerIsNotTheSender
     {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(
@@ -62,7 +62,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
     {
         vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
         openEnded.restartStream({ streamId: defaultStreamId, ratePerSecond: 0 });
@@ -73,7 +73,7 @@ contract RestartStream_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
         whenRatePerSecondNonZero
     {
         vm.expectEmit({ emitter: address(openEnded) });

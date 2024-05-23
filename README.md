@@ -84,7 +84,7 @@ The refundable amount is calculated by subtracting the streamed amount from the 
 | streamedAmount     | sa           |
 | debt               | debt         |
 | withdrawableAmount | wa           |
-| refundableAmount   | ra           |
+| refundableAmount   | rfa          |
 
 ### Issues:
 
@@ -147,11 +147,9 @@ _wa ≤ bal_
 
 _if(debt = 0) then wa = sa + ra_
 
-_if(debt > 0 && ra <= bal) then wa = ra_
+_if(debt = 0 && isPaused = true) then wa = ra_
 
-_if(debt > 0 && ra > bal) then wa = bal_
-
-_ra ≤ sa(from create time to now)_
+_if(debt > 0) then wa = bal_
 
 _bal = sum of deposits - sum of withdrawals_
 

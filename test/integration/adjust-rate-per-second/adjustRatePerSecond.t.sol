@@ -32,7 +32,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerUnauthorized
+        whenCallerIsNotTheSender
     {
         resetPrank({ msgSender: users.recipient });
         vm.expectRevert(
@@ -46,7 +46,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerUnauthorized
+        whenCallerIsNotTheSender
     {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(
@@ -60,7 +60,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
     {
         vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
         openEnded.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: 0 });
@@ -71,7 +71,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
         whenRatePerSecondNonZero
     {
         vm.expectRevert(
@@ -85,7 +85,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
         whenRatePerSecondNonZero
         whenRatePerSecondNotDifferent
     {
@@ -131,7 +131,7 @@ contract AdjustRatePerSecond_Integration_Test is Integration_Test {
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
     {
         openEnded.deposit(defaultStreamId, DEPOSIT_AMOUNT);
         vm.warp({ newTimestamp: WARP_ONE_MONTH });

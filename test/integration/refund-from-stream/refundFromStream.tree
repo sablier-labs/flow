@@ -5,12 +5,12 @@ refundFromStream.t.sol
    ├── given the id references a null stream
    │  └── it should revert
    └── given the id does not reference a null stream
-      ├── when the caller is unauthorized
+      ├── when the caller is not the sender
       │  ├── when the caller is the recipient
       │  │  └── it should revert
       │  └── when the caller is a malicious third party
       │     └── it should revert
-      └── when the caller is authorized
+      └── when the caller is the sender
          ├── when the refund amount is zero
          │  └── it should revert
          └── when the refund amount is not zero

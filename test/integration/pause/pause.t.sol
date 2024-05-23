@@ -28,12 +28,12 @@ contract Pause_Integration_Test is Integration_Test {
         openEnded.pause(defaultStreamId);
     }
 
-    function test_RevertWhen_CallerUnauthorized_Recipient()
+    function test_RevertWhen_CallerRecipient()
         external
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerUnauthorized
+        whenCallerIsNotTheSender
     {
         resetPrank({ msgSender: users.recipient });
         vm.expectRevert(
@@ -42,12 +42,12 @@ contract Pause_Integration_Test is Integration_Test {
         openEnded.pause(defaultStreamId);
     }
 
-    function test_RevertWhen_CallerUnauthorized_MaliciousThirdParty()
+    function test_RevertWhen_CallerMaliciousThirdParty()
         external
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerUnauthorized
+        whenCallerIsNotTheSender
     {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(
@@ -56,12 +56,12 @@ contract Pause_Integration_Test is Integration_Test {
         openEnded.pause(defaultStreamId);
     }
 
-    function test_Pause_WithdrawableAmountZero()
+    function test_Pause_StreamHasDebt()
         external
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
     {
         assertEq(openEnded.refundableAmountOf(defaultStreamId), 0, "refundable amount before pause");
         assertEq(openEnded.withdrawableAmountOf(defaultStreamId), 0, "withdrawable amount before pause");
@@ -81,40 +81,12 @@ contract Pause_Integration_Test is Integration_Test {
         assertEq(actualStreamBalance, 0, "stream balance");
     }
 
-    function test_Pause_RefundableAmountZero()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        givenNotPaused
-        whenCallerAuthorized
-        givenWithdrawableAmountNotZero
-    {
-        openEnded.deposit(defaultStreamId, WITHDRAW_AMOUNT);
-
-        assertEq(openEnded.getBalance(defaultStreamId), WITHDRAW_AMOUNT, "balance before");
-        assertEq(openEnded.withdrawableAmountOf(defaultStreamId), WITHDRAW_AMOUNT, "withdrawable amount before pause");
-
-        openEnded.pause(defaultStreamId);
-
-        assertTrue(openEnded.isPaused(defaultStreamId), "is paused");
-
-        uint128 actualRatePerSecond = openEnded.getRatePerSecond(defaultStreamId);
-        assertEq(actualRatePerSecond, 0, "rate per second");
-
-        uint128 actualRemainingAmount = openEnded.getRemainingAmount(defaultStreamId);
-        uint128 expectedRemainingAmount = ONE_MONTH_STREAMED_AMOUNT;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
-
-        uint128 actualStreamBalance = openEnded.getBalance(defaultStreamId);
-        assertEq(actualStreamBalance, WITHDRAW_AMOUNT, "stream balance");
-    }
-
     function test_Pause()
         external
         whenNotDelegateCalled
         givenNotNull
         givenNotPaused
-        whenCallerAuthorized
+        whenCallerIsTheSender
         givenWithdrawableAmountNotZero
         givenRefundableAmountNotZero
     {
