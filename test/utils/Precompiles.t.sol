@@ -19,10 +19,11 @@ contract Precompiles_Test is Base_Test {
     }
 
     function test_DeployFlow() external onlyTestOptimizedProfile {
-        address actualFlow = address(precompiles.deployFlow());
-        address expectedFlow = address(deployOptimizedFlow());
-        bytes memory expectedFlowCode = adjustBytecode(expectedFlow.code, expectedFlow, actualFlow);
-        assertEq(actualFlow.code, expectedFlowCode, "bytecodes mismatch");
+        address actualSablierFlow = address(precompiles.deploySablierFlow());
+        address expectedSablierFlow = address(deployOptimizedSablierFlow());
+        bytes memory expectedSablierFlowCode =
+            adjustBytecode(expectedSablierFlow.code, expectedSablierFlow, actualSablierFlow);
+        assertEq(actualSablierFlow.code, expectedSablierFlowCode, "bytecodes mismatch");
     }
 
     /// @dev The expected bytecode has to be adjusted because {SablierFlow} inherits from {NoDelegateCall}, which

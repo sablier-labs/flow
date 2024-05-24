@@ -28,7 +28,7 @@ contract SablierFlow is
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
 
-    constructor() ERC721("Sablier Flow NFT", "SAB-FLW") { }
+    constructor() ERC721("Sablier Flow NFT", "SAB-FLOW") { }
 
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS

@@ -43,7 +43,7 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         if (!isTestOptimizedProfile()) {
             flow = new SablierFlow();
         } else {
-            flow = deployOptimizedFlow();
+            flow = deployOptimizedSablierFlow();
         }
 
         users.broker = createUser("broker");
@@ -77,7 +77,7 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
     }
 
     /// @dev Deploys {SablierFlow} from an optimized source compiled with `--via-ir`.
-    function deployOptimizedFlow() internal returns (SablierFlow) {
+    function deployOptimizedSablierFlow() internal returns (SablierFlow) {
         return SablierFlow(deployCode("out-optimized/SablierFlow.sol/SablierFlow.json"));
     }
 
