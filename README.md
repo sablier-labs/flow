@@ -1,8 +1,8 @@
-## Sablier V2 Open-Ended
+## Sablier Flow
 
-This repository contains the smart contracts for the EOES (EVM open-ended streams) concept. By open-ended, we mean that
-the streams have no fixed duration and no deposit amount at stream creation. This concept is primarily beneficial for
-salaries and not for vesting or airdrops, where lockups are more appropriate.
+This repository contains the smart contracts for "flow" streams. By flow, we mean that the streams have no fixed
+duration and no deposit amount at stream creation. This concept is primarily beneficial for salaries and not for vesting
+or airdrops, where lockups are more appropriate.
 
 ### Motivation
 
@@ -36,14 +36,14 @@ As mentioned above, the creation and deposit operations are distinct. This means
 stream is created, and deposits are made afterward. However, a `createAndDeposit` function is implemented to maintain
 the same user experience.
 
-Since the streams are open-ended, we don't have a start time nor an end time, instead we have a time reference
+Since the streams are flow, we don't have a start time nor an end time, instead we have a time reference
 (`lastTimeUpdate`) which will be set to `block.timestamp` at the creation of the stream. There are several actions that
 will update this time reference:
 
 - when a withdrawal is made
 
   - `lastTimeUpdate` will be set to the given `time` parameter passed in the function, you can see why this parameter is
-    needed in the explantion from [this PR](https://github.com/sablier-labs/v2-open-ended/pull/4)
+    needed in the explantion from [this PR](https://github.com/sablier-labs/flow/pull/4)
 
 - when the rate per second is changed
   - `lastTimeUpdate` will be set to `block.timestamp`, this time update is required in the `_adjustRatePerSecond`
@@ -120,7 +120,7 @@ time to get that 10 per day "streamed", using the 18 decimals format would delay
 
 $\ 0.000115740740740740 \times (oneDayInSeconds + 1 second) = 10.000115740740677000 \$
 
-Currently, I don't think it's possible to address this precision problem entirely, given the nature of open-endedness.
+Currently, I don't think it's possible to address this precision problem entirely.
 
 ### Technical decisions
 
@@ -155,7 +155,7 @@ _bal = sum of deposits - sum of withdrawals_
 
 _sum of withdrawn amounts ≤ sum of deposits_
 
-_sum of stream balances normalized to asset decimals ≤ asset.balanceOf(SablierV2OpenEnded)_
+_sum of stream balances normalized to asset decimals ≤ asset.balanceOf(SablierFlow)_
 
 _ltu ≤ now_
 
