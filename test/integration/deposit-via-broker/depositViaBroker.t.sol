@@ -60,7 +60,7 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
         openEnded.depositViaBroker(defaultStreamId, 0, defaultBroker);
     }
 
-    function test_WhenTokenMissesERC20Return()
+    function test_WhenAssetMissesERC20Return()
         external
         whenNotDelegateCalled
         givenNotNull
@@ -73,14 +73,14 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
         _test_DepositViaBroker(streamId, IERC20(address(usdt)), defaultBroker);
     }
 
-    function test_GivenTokenDoesNotHave18Decimals()
+    function test_GivenAssetDoesNotHave18Decimals()
         external
         whenNotDelegateCalled
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressIsNotZero
         whenTotalAmountIsNotZero
-        whenTokenDoesNotMissERC20Return
+        whenAssetDoesNotMissERC20Return
     {
         // it should update the stream balance
         // it should perform the ERC20 transfer
@@ -89,14 +89,14 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
         _test_DepositViaBroker(streamId, IERC20(address(usdc)), defaultBroker);
     }
 
-    function test_GivenTokenHas18Decimals()
+    function test_GivenAssetHas18Decimals()
         external
         whenNotDelegateCalled
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressIsNotZero
         whenTotalAmountIsNotZero
-        whenTokenDoesNotMissERC20Return
+        whenAssetDoesNotMissERC20Return
     {
         // it should update the stream balance
         // it should perform the ERC20 transfer

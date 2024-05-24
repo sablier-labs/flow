@@ -14,14 +14,14 @@ DepositViaBroker_Integration_Test
                 ├── when total amount is zero
                 │   └── it should revert
                 └── when total amount is not zero
-                    ├── when token misses ERC20 return
+                    ├── when asset misses ERC20 return
                     │   └── it should make the deposit
-                    └── when token does not miss ERC20 return
-                        ├── given token does not have 18 decimals
+                    └── when asset does not miss ERC20 return
+                        ├── given asset does not have 18 decimals
                         │   ├── it should update the stream balance
                         │   ├── it should perform the ERC20 transfer
                         │   └── it should emit 2 {Transfer}, 1 {DepositOpenEndedStream}, 1 {MetadataUpdate} events
-                        └── given token has 18 decimals
+                        └── given asset has 18 decimals
                             ├── it should update the stream balance
                             ├── it should perform the ERC20 transfer
                             └── it should emit 2 {Transfer}, 1 {DepositOpenEndedStream}, 1 {MetadataUpdate} events

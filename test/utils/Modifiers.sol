@@ -22,15 +22,15 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier givenRemainingAmountZero() {
-        _;
-    }
-
     modifier givenRemainingAmountNotZero() {
         _;
     }
 
-    modifier whenCallerIsTheSender() {
+    modifier givenRemainingAmountZero() {
+        _;
+    }
+
+    modifier whenAssetDoesNotMissERC20Return() {
         _;
     }
 
@@ -43,6 +43,10 @@ abstract contract Modifiers {
     }
 
     modifier whenCallerIsNotTheSender() {
+        _;
+    }
+
+    modifier whenCallerIsTheSender() {
         _;
     }
 
@@ -62,10 +66,6 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenTokenDoesNotMissERC20Return() {
-        _;
-    }
-
     modifier whenTotalAmountIsNotZero() {
         _;
     }
@@ -82,11 +82,7 @@ abstract contract Modifiers {
                                        PAUSE
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier givenRefundableAmountNotZero() {
-        _;
-    }
-
-    modifier givenWithdrawableAmountNotZero() {
+    modifier givenStreamHasNoDebt() {
         _;
     }
 
