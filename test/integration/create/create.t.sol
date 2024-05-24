@@ -48,7 +48,7 @@ contract Create_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         whenSenderIsNotZeroAddress
-        whenRecipientNonZeroAddress
+        whenRecipientIsNotZeroAddress
     {
         vm.expectRevert(Errors.SablierV2OpenEnded_RatePerSecondZero.selector);
         openEnded.create({
@@ -64,7 +64,7 @@ contract Create_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         whenSenderIsNotZeroAddress
-        whenRecipientNonZeroAddress
+        whenRecipientIsNotZeroAddress
         whenRatePerSecondIsNotZero
     {
         address nonContract = address(8128);
@@ -84,7 +84,7 @@ contract Create_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         whenSenderIsNotZeroAddress
-        whenRecipientNonZeroAddress
+        whenRecipientIsNotZeroAddress
         whenRatePerSecondIsNotZero
         whenAssetContract
     {

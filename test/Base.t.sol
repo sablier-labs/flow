@@ -87,11 +87,6 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         vm.label(address(usdt), "USDT");
     }
 
-    /// @dev Normalizes `amount` to the decimal of `streamId` asset.
-    function normalizeAmountWithStreamId(uint256 streamId, uint128 amount) internal view returns (uint256) {
-        return normalizeAmountToDecimal(amount, openEnded.getAssetDecimals(streamId));
-    }
-
     /// @dev Normalizes `amount` to `decimals`.
     function normalizeAmountToDecimal(
         uint128 amount,
@@ -113,6 +108,11 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         normalizedAmount = isGreaterThan18
             ? (amount * (10 ** normalizationFactor)).toUint128()
             : (amount / (10 ** normalizationFactor)).toUint128();
+    }
+
+    /// @dev Normalizes `amount` to the decimal of `streamId` asset.
+    function normalizeAmountWithStreamId(uint256 streamId, uint128 amount) internal view returns (uint256) {
+        return normalizeAmountToDecimal(amount, openEnded.getAssetDecimals(streamId));
     }
 
     /// @dev Normalizes stream balance to the decimal of `streamId` asset.

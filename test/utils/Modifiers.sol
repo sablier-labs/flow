@@ -98,7 +98,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenRecipientNonZeroAddress() {
+    modifier whenRecipientIsNotZeroAddress() {
         _;
     }
 
