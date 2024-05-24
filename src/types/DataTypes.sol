@@ -18,8 +18,10 @@ library OpenEnded {
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param assetDecimals The decimals of the ERC-20 asset used for streaming.
-    /// @param remainingAmount The amount of assets still available for withdrawal, when the stream is paused or the
-    /// `ratePerSecond` is adjusted, denoted in 18 decimals.
+    /// @param remainingAmount The amount of assets that the sender owes to the recipient. This, along with the streamed
+    /// amount, can be used to calculate the total amount owed to the recipient at any given point in time. In case of
+    /// debt, this amount is subtracted by the balance when a withdrawal happens, otherwise, it is set to zero. This
+    /// amount is increased when the stream is paused or the `ratePerSecond` is adjusted, denoted in 18 decimals.
     struct Stream {
         // slot 0
         uint128 balance;
