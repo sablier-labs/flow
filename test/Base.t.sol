@@ -51,7 +51,7 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         users.recipient = createUser("recipient");
         users.sender = createUser("sender");
 
-        labelConctracts();
+        labelContracts();
 
         resetPrank(users.sender);
 
@@ -81,9 +81,9 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         return SablierFlow(deployCode("out-optimized/SablierFlow.sol/SablierFlow.json"));
     }
 
-    function labelConctracts() internal {
-        vm.label(address(flow), "Flow");
+    function labelContracts() internal {
         vm.label(address(dai), "DAI");
+        vm.label(address(flow), "Flow");
         vm.label(address(usdt), "USDT");
     }
 

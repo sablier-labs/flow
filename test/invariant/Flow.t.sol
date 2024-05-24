@@ -2,8 +2,8 @@
 pragma solidity >=0.8.22 <0.9.0;
 
 import { Invariant_Test } from "./Invariant.t.sol";
-import { FlowHandler } from "./handlers/FlowHandler.sol";
 import { FlowCreateHandler } from "./handlers/FlowCreateHandler.sol";
+import { FlowHandler } from "./handlers/FlowHandler.sol";
 import { FlowStore } from "./stores/FlowStore.sol";
 
 /// @notice Common invariant test logic needed across contracts that inherit from {SablierFlow}.
@@ -12,8 +12,8 @@ contract Flow_Invariant_Test is Invariant_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    FlowHandler internal flowHandler;
     FlowCreateHandler internal flowCreateHandler;
+    FlowHandler internal flowHandler;
     FlowStore internal flowStore;
 
     /*//////////////////////////////////////////////////////////////////////////

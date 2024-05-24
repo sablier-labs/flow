@@ -24,7 +24,7 @@ interface ISablierFlow is
         uint256 indexed streamId, uint128 recipientAmount, uint128 oldRatePerSecond, uint128 newRatePerSecond
     );
 
-    /// @notice Emitted when a flow stream is created.
+    /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
     /// @param sender The address from which to stream the assets, which has the ability to
     /// adjust and pause the stream.
@@ -41,8 +41,8 @@ interface ISablierFlow is
         uint40 lastTimeUpdate
     );
 
-    /// @notice Emitted when a flow stream is funded.
-    /// @param streamId The ID of the flow stream.
+    /// @notice Emitted when a Flow stream is funded.
+    /// @param streamId The ID of the Flow stream.
     /// @param funder The address which funded the stream.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param depositAmount The amount of assets deposited into the stream, denoted in 18 decimals.
@@ -50,7 +50,7 @@ interface ISablierFlow is
         uint256 indexed streamId, address indexed funder, IERC20 indexed asset, uint128 depositAmount
     );
 
-    /// @notice Emitted when a flow stream is paused.
+    /// @notice Emitted when a Flow stream is paused.
     /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
@@ -64,8 +64,8 @@ interface ISablierFlow is
         uint128 recipientAmount
     );
 
-    /// @notice Emitted when assets are refunded from a flow stream.
-    /// @param streamId The ID of the flow stream.
+    /// @notice Emitted when assets are refunded from a Flow stream.
+    /// @param streamId The ID of the Flow stream.
     /// @param sender The address of the stream's sender.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param refundAmount The amount of assets refunded to the sender, denoted in 18 decimals.
@@ -73,8 +73,8 @@ interface ISablierFlow is
         uint256 indexed streamId, address indexed sender, IERC20 indexed asset, uint128 refundAmount
     );
 
-    /// @notice Emitted when a flow stream is re-started.
-    /// @param streamId The ID of the flow stream.
+    /// @notice Emitted when a Flow stream is re-started.
+    /// @param streamId The ID of the Flow stream.
     /// @param sender The address of the stream's sender.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
@@ -82,7 +82,7 @@ interface ISablierFlow is
         uint256 indexed streamId, address indexed sender, IERC20 indexed asset, uint128 ratePerSecond
     );
 
-    /// @notice Emitted when assets are withdrawn from a flow stream.
+    /// @notice Emitted when assets are withdrawn from a Flow stream.
     /// @param streamId The ID of the stream.
     /// @param to The address that has received the withdrawn assets.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
@@ -168,10 +168,10 @@ interface ISablierFlow is
     /// - `newRatePerSecond` must be greater than zero and not equal to the current rate per second.
     ///
     /// @param streamId The ID of the stream to adjust.
-    /// @param newRatePerSecond The new rate per second of the flow stream, denoted in 18 decimals.
+    /// @param newRatePerSecond The new rate per second of the Flow stream, denoted in 18 decimals.
     function adjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) external;
 
-    /// @notice Creates a new flow stream with `block.timestamp` as `lastTimeUpdate` and set stream balance to 0.
+    /// @notice Creates a new Flow stream with `block.timestamp` as `lastTimeUpdate` and set stream balance to 0.
     /// The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits a {CreateFlowStream} event.
@@ -201,7 +201,7 @@ interface ISablierFlow is
         external
         returns (uint256 streamId);
 
-    /// @notice Creates a new flow stream with `block.timestamp` as `lastTimeUpdate` and set the stream balance to
+    /// @notice Creates a new Flow stream with `block.timestamp` as `lastTimeUpdate` and set the stream balance to
     /// `amount`. The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits a {CreateFlowStream}, {Transfer} and {DepositFlowStream} events.
@@ -227,7 +227,7 @@ interface ISablierFlow is
         external
         returns (uint256 streamId);
 
-    /// @notice Creates a new flow stream with `block.timestamp` as `lastTimeUpdate` and set the stream balance to
+    /// @notice Creates a new Flow stream with `block.timestamp` as `lastTimeUpdate` and set the stream balance to
     /// an amount calculated from the `totalAmount` after broker fee amount deduction. The stream is wrapped in an
     /// ERC-721 NFT.
     ///

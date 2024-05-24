@@ -10,7 +10,7 @@ import { TimestampStore } from "../stores/TimestampStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
 
 /// @dev This contract is a complement of {FlowHandler}. The goal is to bias the invariant calls
-/// toward the flow functions (especially the create stream functions) by creating multiple handlers for
+/// toward the Flow functions (especially the create stream functions) by creating multiple handlers for
 /// the contracts.
 contract FlowCreateHandler is BaseHandler {
     /*//////////////////////////////////////////////////////////////////////////
