@@ -33,6 +33,24 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: address(0), time: WITHDRAW_TIME });
     }
 
+    function test_RevertWhen_CallerSender()
+        external
+        whenNotDelegateCalled
+        givenNotNull
+        whenToNonZeroAddress
+        whenWithdrawalAddressNotRecipient
+    {
+        resetPrank({ msgSender: users.sender });
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, users.sender, users.sender
+            )
+        );
+
+        flow.withdrawAt({ streamId: defaultStreamId, to: users.sender, time: WITHDRAW_TIME });
+    }
+
     function test_RevertWhen_CallerUnknown()
         external
         whenNotDelegateCalled
@@ -52,25 +70,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: unknownCaller, time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_CallerSender()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressNotRecipient
-    {
-        resetPrank({ msgSender: users.sender });
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, users.sender, users.sender
-            )
-        );
-
-        flow.withdrawAt({ streamId: defaultStreamId, to: users.sender, time: WITHDRAW_TIME });
-    }
-
-    function test_RevertWhen_LastTimeNotLessThanWithdrawalTime()
+    function test_RevertWhen_WithdrawalTimeLessThanLastTime()
         external
         whenNotDelegateCalled
         givenNotNull
@@ -91,9 +91,9 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         external
         whenNotDelegateCalled
         givenNotNull
+        whenWithdrawalTimeNotLessThanLastTime
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
     {
         uint40 futureTime = uint40(block.timestamp + 1);
 
@@ -105,15 +105,15 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: futureTime });
     }
 
-    function test_RevertGiven_BalanceZero()
+    function test_RevertGiven_RemainingAmountZero()
         external
         whenNotDelegateCalled
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
-        givenRemainingAmountZero
+        givenBalanceZero
     {
         vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
         uint256 streamId = createDefaultStream();
@@ -123,15 +123,15 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
-    function test_WithdrawAt_BalanceZero()
+    function test_WithdrawAt_RemainingAmountNotZero()
         external
         whenNotDelegateCalled
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
-        givenRemainingAmountNotZero
+        givenBalanceZero
     {
         vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
         uint256 streamId = createDefaultStream();
@@ -165,7 +165,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
         givenRemainingAmountZero
@@ -187,7 +187,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
         givenRemainingAmountZero
@@ -212,7 +212,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
         givenRemainingAmountNotZero
@@ -250,7 +250,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
         givenRemainingAmountNotZero
@@ -286,7 +286,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
         whenCallerRecipient
@@ -307,7 +307,7 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         givenNotNull
         whenToNonZeroAddress
         whenWithdrawalAddressIsRecipient
-        whenLastTimeNotLessThanWithdrawalTime
+        whenWithdrawalTimeNotLessThanLastTime
         whenWithdrawalTimeNotInTheFuture
         givenBalanceNotZero
         whenCallerRecipient
