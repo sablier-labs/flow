@@ -18,13 +18,13 @@ contract RefundFromStream_Integration_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(ISablierFlow.refundFromStream, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(ISablierFlow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNotDelegateCalled {
         expectRevertNull();
-        flow.refundFromStream({ streamId: nullStreamId, amount: REFUND_AMOUNT });
+        flow.refund({ streamId: nullStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertWhen_CallerRecipient() external whenNotDelegateCalled givenNotNull whenCallerIsNotTheSender {
@@ -32,7 +32,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierFlow_Unauthorized.selector, defaultStreamId, users.recipient)
         );
-        flow.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertWhen_CallerMaliciousThirdParty()
@@ -43,12 +43,12 @@ contract RefundFromStream_Integration_Test is Integration_Test {
     {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_Unauthorized.selector, defaultStreamId, users.eve));
-        flow.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
     }
 
     function test_RevertWhen_RefundAmountZero() external whenNotDelegateCalled givenNotNull whenCallerIsTheSender {
         vm.expectRevert(Errors.SablierFlow_RefundAmountZero.selector);
-        flow.refundFromStream({ streamId: defaultStreamId, amount: 0 });
+        flow.refund({ streamId: defaultStreamId, amount: 0 });
     }
 
     function test_RevertWhen_Overrefund()
@@ -66,14 +66,14 @@ contract RefundFromStream_Integration_Test is Integration_Test {
                 DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
             )
         );
-        flow.refundFromStream({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
     }
 
     function test_RefundFromStream_PausedStream() external whenNotDelegateCalled givenNotNull whenCallerIsTheSender {
         flow.pause(defaultStreamId);
 
         expectCallToTransfer({ asset: dai, to: users.sender, amount: REFUND_AMOUNT });
-        flow.refundFromStream({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
 
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
@@ -124,7 +124,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
             to: users.sender,
             amount: normalizeAmountWithStreamId(streamId, REFUND_AMOUNT)
         });
-        flow.refundFromStream({ streamId: streamId, amount: REFUND_AMOUNT });
+        flow.refund({ streamId: streamId, amount: REFUND_AMOUNT });
 
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
