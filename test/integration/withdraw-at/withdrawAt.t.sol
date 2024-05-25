@@ -28,6 +28,11 @@ contract WithdrawAt_Integration_Test is Integration_Test {
         flow.withdrawAt({ streamId: nullStreamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
+    function test_RevertWhen_ToAddressZero() external whenNotDelegateCalled givenNotNull {
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawToZeroAddress.selector));
+        flow.withdrawAt({ streamId: defaultStreamId, to: address(0), time: WITHDRAW_TIME });
+    }
+
     function test_RevertWhen_CallerUnknown()
         external
         whenNotDelegateCalled
