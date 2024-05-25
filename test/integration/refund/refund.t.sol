@@ -8,7 +8,7 @@ import { Errors } from "src/libraries/Errors.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
 
-contract RefundFromStream_Integration_Test is Integration_Test {
+contract Refund_Integration_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
@@ -69,7 +69,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         flow.refund({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
     }
 
-    function test_RefundFromStream_PausedStream() external whenNotDelegateCalled givenNotNull whenCallerIsTheSender {
+    function test_Refund_PausedStream() external whenNotDelegateCalled givenNotNull whenCallerIsTheSender {
         flow.pause(defaultStreamId);
 
         expectCallToTransfer({ asset: dai, to: users.sender, amount: REFUND_AMOUNT });
@@ -80,7 +80,7 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
-    function test_RefundFromStream_AssetNot18Decimals()
+    function test_Refund_AssetNot18Decimals()
         external
         whenNotDelegateCalled
         givenNotNull
@@ -94,10 +94,10 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         flow.deposit(streamId, DEPOSIT_AMOUNT);
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
-        test_RefundFromStream(streamId, IERC20(address(usdt)));
+        test_Refund(streamId, IERC20(address(usdt)));
     }
 
-    function test_RefundFromStream()
+    function test_Refund()
         external
         whenNotDelegateCalled
         givenNotNull
@@ -105,10 +105,10 @@ contract RefundFromStream_Integration_Test is Integration_Test {
         whenRefundAmountNotZero
         whenNoOverrefund
     {
-        test_RefundFromStream(defaultStreamId, dai);
+        test_Refund(defaultStreamId, dai);
     }
 
-    function test_RefundFromStream(uint256 streamId, IERC20 asset) internal {
+    function test_Refund(uint256 streamId, IERC20 asset) internal {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({
             from: address(flow),
