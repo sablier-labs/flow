@@ -49,6 +49,7 @@ contract Flow_Invariant_Test is Invariant_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @dev For any stream, `lastTimeUpdate` should never exceed the current block timestamp.
     function invariant_BlockTimestampGeLastTimeUpdate() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -61,8 +62,8 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
-    /// @dev The sum of all stream balances for a specific asset should be less than or equal to the contract
-    /// `ERC20.balanceOf`.
+    /// @dev For a given asset, sum of all stream balances normalized to asset decimal should never exceed
+    /// asset balance of flow contract.
     function invariant_ContractBalanceGeStreamBalances() external view {
         uint256 contractBalance = dai.balanceOf(address(flow));
 
@@ -80,6 +81,7 @@ contract Flow_Invariant_Test is Invariant_Test {
         );
     }
 
+    /// @dev For any stream, if debt > 0, then withdrawable amount should equal the stream balance.
     function invariant_Debt_WithdrawableAmountEqBalance() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -94,39 +96,36 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
-    function invariant_DepositAmountsSumGeExtractedAmountsSum() external view {
-        uint256 streamDepositedAmountsSum = flowStore.streamDepositedAmountsSum();
-        uint256 streamExtractedAmountsSum = flowStore.streamExtractedAmountsSum();
-
-        assertGe(
-            streamDepositedAmountsSum,
-            streamExtractedAmountsSum,
-            "Invariant violation: stream deposited amounts sum < stream extracted amounts sum"
-        );
-    }
-
-    function invariant_DepositedAmountsSumGeExtractedAmountsSum() external view {
+    /// @dev For any stream, sum of all deposited should always be greater than or equal to sum of all withdrawn and
+    /// refunded.
+    function invariant_InflowGeOutflow() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
 
             assertGe(
                 flowStore.depositedAmounts(streamId),
-                flowStore.extractedAmounts(streamId),
-                "Invariant violation: deposited amount < extracted amount"
+                flowStore.refundedAmounts(streamId) + flowStore.withdrawnAmounts(streamId),
+                "Invariant violation: deposited amount < refunded amount + withdrawn amount"
             );
         }
+    }
 
+    /// @dev Sum of all deposited amounts should always be greater than or equal to sum of withdrawn and refunded
+    /// amounts.
+    function invariant_InflowsSumGeOutflowsSum() external view {
         uint256 streamDepositedAmountsSum = flowStore.streamDepositedAmountsSum();
-        uint256 streamExtractedAmountsSum = flowStore.streamExtractedAmountsSum();
+        uint256 streamRefundedAmountsSum = flowStore.streamRefundedAmountsSum();
+        uint256 streamWithdrawnAmountsSum = flowStore.streamWithdrawnAmountsSum();
 
         assertGe(
             streamDepositedAmountsSum,
-            streamExtractedAmountsSum,
-            "Invariant violation: stream deposited amounts sum < stream extracted amounts sum"
+            streamRefundedAmountsSum + streamWithdrawnAmountsSum,
+            "Invariant violation: stream deposited amounts sum < refunded amounts sum + withdrawn amounts sum"
         );
     }
 
+    /// @dev Next stream ID should always be incremented by 1.
     function invariant_NextStreamId() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -135,6 +134,8 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
+    /// @dev If there is no debt and stream is paused, withdrawable amount should always be equal to the remaining
+    /// amount.
     function invariant_NoDebt_StreamedPaused_WithdrawableAmountEqRemainingAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -149,6 +150,8 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
+    /// @dev If there is no debt and stream is not paused, withdrawable amount should always be equal to the remaining
+    /// amount + streamed amount.
     function invariant_NoDebt_WithdrawableAmountEqStreamedAmountPlusRemainingAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -163,6 +166,7 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
+    /// @dev Stream balance should be equal to the sum of withdrawable amount and refundable amount.
     function invariant_StreamBalanceEqWithdrawableAmountPlusRefundableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -175,20 +179,20 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
+    /// @dev Stream balance should always be greater than or equal to the refundable amount.
     function invariant_StreamBalanceGeRefundableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            if (!flow.isPaused(streamId)) {
-                assertGe(
-                    flow.getBalance(streamId),
-                    flow.refundableAmountOf(streamId),
-                    "Invariant violation: stream balance < refundable amount"
-                );
-            }
+            assertGe(
+                flow.getBalance(streamId),
+                flow.refundableAmountOf(streamId),
+                "Invariant violation: stream balance < refundable amount"
+            );
         }
     }
 
+    /// @dev Stream balance should always be greater than or equal to the withdrawable amount.
     function invariant_StreamBalanceGeWithdrawableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -202,6 +206,7 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
+    /// @dev If stream is paused, then the rate per second should always be zero.
     function invariant_StreamPaused_RatePerSecondZero() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -211,6 +216,36 @@ contract Flow_Invariant_Test is Invariant_Test {
                     flow.getRatePerSecond(streamId),
                     0,
                     "Invariant violation: paused stream with a non-zero rate per second"
+                );
+            }
+        }
+    }
+
+    /// @dev If rps > 0, no additional deposits are made, then debt should never decrease.
+    function invariant_DebtGt0_RpsGt0_DebtIncrease() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (flow.getRatePerSecond(streamId) > 0 && flowHandler.calls("deposit") == 0) {
+                assertGe(
+                    flow.streamDebtOf(streamId),
+                    flowHandler.previousDebtOf(streamId),
+                    "Invariant violation: debt should never decrease"
+                );
+            }
+        }
+    }
+
+    /// @dev If rps > 0, no withdraws are made, (remaining amount + streamed amount) should never decrease.
+    function invariant_RpsGt0_RemainingPlusStreamedIncrease() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (flow.getRatePerSecond(streamId) > 0 && flowHandler.calls("withdrawAt") == 0) {
+                assertGe(
+                    flow.getRemainingAmount(streamId) + flow.streamedAmountOf(streamId),
+                    flowHandler.lastRemainingAmountOf(streamId) + flowHandler.lastStreamedAmountOf(streamId),
+                    "Invariant violation: (ra + sa) should never decrease"
                 );
             }
         }

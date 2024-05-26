@@ -147,23 +147,33 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 ### Invariants:
 
-_wa ≤ bal_
+1. $\text{For any stream, } ltu \le now$
 
-_if(debt = 0) then wa = sa + ra_
+2. $\text{For a given asset, } \sum \text{{stream balances normalized to asset decimal}} \leq \text{{asset.balanceOf(SablierFlow)}}$
 
-_if(debt = 0 && isPaused = true) then wa = ra_
+3. $\text{For any stream, } \text{if } debt > 0 \implies wa = bal$
 
-_if(debt > 0) then wa = bal_
+4. $\text{For any stream, } \text{sum of deposited amounts} \ge \text{sum of withdrawn amounts} + \text{sum of refunded}$
 
-_bal = sum of deposits - sum of withdrawals_
+5. $\text{sum of all deposited amounts} \ge \text{sum of all withdrawn amounts} + \text{sum of all refunded}$
 
-_sum of withdrawn amounts ≤ sum of deposits_
+6. $\text{next stream id} = \text{current stream id} + 1$
 
-_sum of stream balances normalized to asset decimals ≤ asset.balanceOf(SablierFlow)_
+7. $\text{if }debt = 0 \text{ and } isPaused = true \implies wa = ra$
 
-_ltu ≤ now_
+8. $\text{if }debt = 0 \text{ and } isPaused = false \implies wa = ra + sa$
 
-_if(isPaused = true) then rps = 0_
+9. $bal = rfa + wa$
+
+10. $bal \ge rfa$
+
+11. $bal \ge wa$
+
+12. $\text{if }isPaused = true \implies rps = 0$
+
+13. $\text{if } rps \gt 0 \text{ and no deposits are made} \implies \text{debt should never decrease}$
+
+14. $\text{if } rps \gt 0 \text{ and no withdraws are made} \implies \text{ra + sa should never decrease}$
 
 ### Actions Access Control:
 
