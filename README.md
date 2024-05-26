@@ -175,14 +175,14 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 14. $\text{if } rps \gt 0 \text{ and no withdraws are made} \implies \text{ra + sa should never decrease}$
 
-### Actions Access Control:
+### Access Control:
 
-| Action              | Sender | Recipient | Operator(s) |      Unknown User      |
-| ------------------- | :----: | :-------: | :---------: | :--------------------: |
-| AdjustRatePerSecond |   ✅   |    ❌     |     ❌      |           ❌           |
-| Deposit             |   ✅   |    ✅     |     ✅      |           ✅           |
-| Refund              |   ✅   |    ❌     |     ❌      |           ❌           |
-| Restart             |   ✅   |    ❌     |     ❌      |           ❌           |
-| Pause               |   ✅   |    ❌     |     ❌      |           ❌           |
-| Transfer NFT        |   ❌   |    ✅     |     ✅      |           ❌           |
-| Withdraw            |   ✅   |    ✅     |     ✅      | ✅ (only to Recipient) |
+| Action              |         Sender         | Recipient | Operator(s) |      Unknown User      |
+| ------------------- | :--------------------: | :-------: | :---------: | :--------------------: |
+| AdjustRatePerSecond |           ✅           |    ❌     |     ❌      |           ❌           |
+| Deposit             |           ✅           |    ✅     |     ✅      |           ✅           |
+| Refund              |           ✅           |    ❌     |     ❌      |           ❌           |
+| Restart             |           ✅           |    ❌     |     ❌      |           ❌           |
+| Pause               |           ✅           |    ❌     |     ❌      |           ❌           |
+| Transfer NFT        |           ❌           |    ✅     |     ✅      |           ❌           |
+| Withdraw            | ✅ (only to Recipient) |    ✅     |     ✅      | ✅ (only to Recipient) |
