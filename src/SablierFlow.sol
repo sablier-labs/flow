@@ -735,21 +735,28 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawNoFundsAvailable(streamId);
         }
 
-        // Calculate the withdrawable amount.
-        uint128 withdrawableAmount = _withdrawableAmountOf(streamId, time);
+        uint128 withdrawableAmount;
 
-        // Assert that the withdraw amount is less than or equal to the stream's balance. This condition is checked to
-        // avoid exploits in case of a bug.
-        assert(withdrawableAmount <= balance);
+        // Calculate the total amount owed amount at this time.
+        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, time);
 
-        // Effect: update the remaining amount.
-        _updateRemainingAmount(streamId);
+        // If the stream balance is less than or equal to the amount owed, set withdrawableAmount to balance.
+        // Otherwise, set withdrawableAmount to amount owed.
+        if (balance < amountOwedToRecipient) {
+            withdrawableAmount = balance;
+            // Safe to unchecked because subtraction cannot underflow.
+            unchecked {
+                // Effect: update the remaining amount.
+                _streams[streamId].remainingAmount = amountOwedToRecipient - balance;
+            }
+        } else {
+            withdrawableAmount = amountOwedToRecipient;
+            // Effect: update the remaining amount.
+            _streams[streamId].remainingAmount = 0;
+        }
 
         // Effect: update the stream time.
         _updateTime(streamId, time);
-
-        // Effect: update the stream time.
-        _streams[streamId].remainingAmount -= withdrawableAmount;
 
         // Interaction: update the balance and perform the ERC-20 transfer to the recipient.
         _extractFromStream(streamId, to, withdrawableAmount);
