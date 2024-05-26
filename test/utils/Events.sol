@@ -20,17 +20,9 @@ abstract contract Events {
                                     SABLIER-FLOW
     //////////////////////////////////////////////////////////////////////////*/
 
-    event AdjustFlowStream(
-        uint256 indexed streamId, uint128 recipientAmount, uint128 oldRatePerSecond, uint128 newRatePerSecond
-    );
+    event AdjustFlowStream(uint256 indexed streamId, uint128 oldRatePerSecond, uint128 newRatePerSecond);
 
-    event PauseFlowStream(
-        uint256 streamId,
-        address indexed sender,
-        address indexed recipient,
-        IERC20 indexed asset,
-        uint128 recipientAmount
-    );
+    event PauseFlowStream(uint256 streamId, address indexed sender, address indexed recipient, IERC20 indexed asset);
 
     event CreateFlowStream(
         uint256 streamId,

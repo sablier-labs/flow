@@ -30,9 +30,6 @@ library Errors {
     /// @notice Thrown when trying to create a stream with an asset with no decimals.
     error SablierFlow_InvalidAssetDecimals(IERC20 asset);
 
-    /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
-    error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
-
     /// @notice Thrown when trying to withdraw assets with a withdrawal time not greater than or equal to
     /// `lastTimeUpdate`.
     error SablierFlow_LastUpdateNotLessThanWithdrawalTime(uint40 lastUpdate, uint40 time);

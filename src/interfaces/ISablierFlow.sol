@@ -17,12 +17,9 @@ interface ISablierFlow is
 
     /// @notice Emitted when the sender changes the rate per second.
     /// @param streamId The ID of the stream.
-    /// @param recipientAmount The amount of assets that the recipient is able to withdraw, denoted in 18 decimals.
     /// @param oldRatePerSecond The rate per second to change.
     /// @param newRatePerSecond The newly changed rate per second.
-    event AdjustFlowStream(
-        uint256 indexed streamId, uint128 recipientAmount, uint128 oldRatePerSecond, uint128 newRatePerSecond
-    );
+    event AdjustFlowStream(uint256 indexed streamId, uint128 oldRatePerSecond, uint128 newRatePerSecond);
 
     /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
@@ -55,14 +52,7 @@ interface ISablierFlow is
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
-    /// @param recipientAmount The amount of assets left for the stream's recipient to withdraw, denoted in 18 decimals.
-    event PauseFlowStream(
-        uint256 streamId,
-        address indexed sender,
-        address indexed recipient,
-        IERC20 indexed asset,
-        uint128 recipientAmount
-    );
+    event PauseFlowStream(uint256 streamId, address indexed sender, address indexed recipient, IERC20 indexed asset);
 
     /// @notice Emitted when assets are refunded from a Flow stream.
     /// @param streamId The ID of the Flow stream.
