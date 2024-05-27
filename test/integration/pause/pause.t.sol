@@ -92,7 +92,13 @@ contract Pause_Integration_Test is Integration_Test {
         uint128 withdrawableAmount = flow.withdrawableAmountOf(defaultStreamId);
 
         vm.expectEmit({ emitter: address(flow) });
-        emit PauseFlowStream({ streamId: defaultStreamId, sender: users.sender, recipient: users.recipient, asset: dai });
+        emit PauseFlowStream({
+            streamId: defaultStreamId,
+            sender: users.sender,
+            recipient: users.recipient,
+            recipientAmount: withdrawableAmount,
+            asset: dai
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
