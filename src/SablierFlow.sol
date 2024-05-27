@@ -51,17 +51,17 @@ contract SablierFlow is
         }
 
         // Calculate here the recipient amount for gas optimization.
-        uint128 recipientAmount =
+        uint128 amountOwedToRecipient =
             _streams[streamId].remainingAmount + _streamedAmountOf(streamId, uint40(block.timestamp));
 
         // If the stream has debt, return zero.
-        if (recipientAmount >= balance) {
+        if (amountOwedToRecipient >= balance) {
             return 0;
         }
 
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
-            uint128 solvencyPeriod = (balance - recipientAmount) / _streams[streamId].ratePerSecond;
+            uint128 solvencyPeriod = (balance - amountOwedToRecipient) / _streams[streamId].ratePerSecond;
             depletionTime = uint40(block.timestamp + solvencyPeriod);
         }
     }
@@ -95,10 +95,10 @@ contract SablierFlow is
     function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
         uint128 balance = _streams[streamId].balance;
 
-        uint128 recipientAmount = _amountOwedToRecipient(streamId, uint40(block.timestamp));
+        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, uint40(block.timestamp));
 
-        if (balance < recipientAmount) {
-            debt = recipientAmount - balance;
+        if (balance < amountOwedToRecipient) {
+            debt = amountOwedToRecipient - balance;
         } else {
             return 0;
         }
@@ -411,14 +411,6 @@ contract SablierFlow is
         }
     }
 
-    /// @dev Checks whether the withdrawable amount or the refundable amount is greater than the stream's balance.
-    function _checkCalculatedAmount(uint256 streamId, uint128 amount) internal view {
-        uint128 balance = _streams[streamId].balance;
-        if (amount > balance) {
-            revert Errors.SablierFlow_InvalidCalculation(streamId, balance, amount);
-        }
-    }
-
     /// @dev Calculates the refundable amount.
     function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         return _streams[streamId].balance - _withdrawableAmountOf(streamId, time);
@@ -465,14 +457,14 @@ contract SablierFlow is
             return 0;
         }
 
-        uint128 recipientAmount = _amountOwedToRecipient(streamId, time);
+        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, time);
 
         // If the stream balance is less than or equal to the amount owed, return the stream balance.
-        if (balance < recipientAmount) {
+        if (balance < amountOwedToRecipient) {
             return balance;
         }
 
-        return recipientAmount;
+        return amountOwedToRecipient;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -494,7 +486,7 @@ contract SablierFlow is
         }
 
         // Effect: update the remaining amount.
-        uint128 recipientAmount = _updateRemainingAmount(streamId);
+        uint128 amountOwedToRecipient = _updateRemainingAmount(streamId);
 
         // Effect: update the stream time.
         _updateTime(streamId, uint40(block.timestamp));
@@ -503,7 +495,7 @@ contract SablierFlow is
         _streams[streamId].ratePerSecond = newRatePerSecond;
 
         // Log the adjustment.
-        emit ISablierFlow.AdjustFlowStream(streamId, oldRatePerSecond, newRatePerSecond, recipientAmount);
+        emit ISablierFlow.AdjustFlowStream(streamId, oldRatePerSecond, newRatePerSecond, amountOwedToRecipient);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -625,7 +617,7 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
         // Effect: update the remaining amount.
-        uint128 recipientAmount = _updateRemainingAmount(streamId);
+        uint128 amountOwedToRecipient = _updateRemainingAmount(streamId);
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
@@ -639,7 +631,7 @@ contract SablierFlow is
             sender: _streams[streamId].sender,
             recipient: _ownerOf(streamId),
             asset: _streams[streamId].asset,
-            recipientAmount: recipientAmount
+            amountOwedToRecipient: amountOwedToRecipient
         });
     }
 
@@ -658,9 +650,11 @@ contract SablierFlow is
             revert Errors.SablierFlow_Overrefund(streamId, amount, refundableAmount);
         }
 
-        // Although the refundable amount should never exceed the available amount in stream, this condition is checked
+        // Although the refundable amount should never exceed the balance, this condition is checked
         // to avoid exploits in case of a bug.
-        _checkCalculatedAmount(streamId, amount);
+        if (amount > _streams[streamId].balance) {
+            revert Errors.SablierFlow_InvalidCalculation(streamId, _streams[streamId].balance, amount);
+        }
 
         address sender = _streams[streamId].sender;
 
@@ -697,15 +691,13 @@ contract SablierFlow is
     }
 
     /// @dev Update the remaining amount by adding the streamed amount since last time update.
-    /// This function also returns the value that has been summed up.
+    /// This function also returns the new remaining amount updated.
     function _updateRemainingAmount(uint256 streamId) internal returns (uint128) {
-        // Calculate the streamed amount since last update.
-        uint128 streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
-
         // Effect: update the remaining amount.
-        _streams[streamId].remainingAmount += streamedAmount;
+        _streams[streamId].remainingAmount += _streamedAmountOf(streamId, uint40(block.timestamp));
 
-        return streamedAmount;
+        // Return the updated remaining amount.
+        return _streams[streamId].remainingAmount;
     }
 
     /// @dev Set the stream time to the current block timestamp.
@@ -754,10 +746,6 @@ contract SablierFlow is
                 _streams[streamId].remainingAmount = 0;
             }
         }
-
-        // Although the withdraw amount should never exceed the available amount in stream, this condition is checked to
-        // avoid exploits in case of a bug.
-        _checkCalculatedAmount(streamId, withdrawAmount);
 
         // Effect: update the stream time.
         _updateTime(streamId, time);
