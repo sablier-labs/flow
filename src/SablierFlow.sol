@@ -399,15 +399,12 @@ contract SablierFlow is
             return amount;
         }
 
-        // Safe to unchecked because subtraction cannot underflow.
-        unchecked {
-            if (assetDecimals > 18) {
-                uint8 normalizingFactor = assetDecimals - 18;
-                return (amount * (10 ** normalizingFactor)).toUint128();
-            } else {
-                uint8 normalizingFactor = 18 - assetDecimals;
-                return (amount / (10 ** normalizingFactor)).toUint128();
-            }
+        if (assetDecimals > 18) {
+            uint8 normalizingFactor = assetDecimals - 18;
+            return (amount * (10 ** normalizingFactor)).toUint128();
+        } else {
+            uint8 normalizingFactor = 18 - assetDecimals;
+            return (amount / (10 ** normalizingFactor)).toUint128();
         }
     }
 
