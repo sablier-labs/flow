@@ -697,7 +697,7 @@ contract SablierFlow is
         return _streams[streamId].remainingAmount;
     }
 
-    /// @dev Set the stream time to the current block timestamp.
+    /// @dev Updates the `lastTimeUpdate` to the specified time.
     function _updateTime(uint256 streamId, uint40 time) internal {
         _streams[streamId].lastTimeUpdate = time;
     }
