@@ -273,12 +273,11 @@ interface ISablierFlow is
     /// @param amount The amount deposited in the stream, denoted in 18 decimals.
     function deposit(uint256 streamId, uint128 amount) external;
 
-    /// @notice Deposits assets in a stream and pauses it. The amount deposited must not exceed the stream's debt.
+    /// @notice Deposits assets in a stream and pauses it.
     ///
     /// @dev Emits a {Transfer}, {DepositFlowStream} and {PauseFlowStream} event.
     ///
     /// Requirements:
-    /// - `amount` must not exceed the stream's debt.
     /// - Refer to the requirements in {deposit} and {pause}.
     ///
     /// @param streamId The ID of the stream to deposit on and then pause.
