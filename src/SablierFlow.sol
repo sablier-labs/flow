@@ -92,7 +92,7 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function streamDebtOf(uint256 streamId) public view override notNull(streamId) returns (uint128 debt) {
+    function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
         debt = _streamDebtOf(streamId);
     }
 
@@ -175,7 +175,7 @@ contract SablierFlow is
         IERC20 asset,
         bool isTransferable
     )
-        public
+        external
         override
         noDelegateCall
         returns (uint256 streamId)
@@ -232,7 +232,7 @@ contract SablierFlow is
         uint256 streamId,
         uint128 amount
     )
-        public
+        external
         override
         noDelegateCall
         notNull(streamId)
@@ -247,7 +247,7 @@ contract SablierFlow is
         uint256 streamId,
         uint128 amount
     )
-        public
+        external
         override
         noDelegateCall
         notNull(streamId)
@@ -273,7 +273,7 @@ contract SablierFlow is
         uint128 totalAmount,
         Broker calldata broker
     )
-        public
+        external
         override
         noDelegateCall
         notNull(streamId)
@@ -285,7 +285,7 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function pause(uint256 streamId)
-        public
+        external
         override
         noDelegateCall
         notNull(streamId)
@@ -302,7 +302,7 @@ contract SablierFlow is
         uint256 streamId,
         uint128 ratePerSecond
     )
-        public
+        external
         override
         noDelegateCall
         notNull(streamId)
@@ -354,7 +354,7 @@ contract SablierFlow is
         address to,
         uint40 time
     )
-        public
+        external
         override
         noDelegateCall
         notNull(streamId)
