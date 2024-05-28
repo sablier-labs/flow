@@ -92,16 +92,8 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
-        uint128 balance = _streams[streamId].balance;
-
-        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, uint40(block.timestamp));
-
-        if (balance < amountOwedToRecipient) {
-            debt = amountOwedToRecipient - balance;
-        } else {
-            return 0;
-        }
+    function streamDebtOf(uint256 streamId) public view override notNull(streamId) returns (uint128 debt) {
+        debt = _streamDebtOf(streamId);
     }
 
     /// @inheritdoc ISablierFlow
@@ -248,6 +240,32 @@ contract SablierFlow is
     {
         // Checks, Effects and Interactions: deposit on stream.
         _deposit(streamId, amount);
+    }
+
+    /// @inheritdoc ISablierFlow
+    function depositAndPause(
+        uint256 streamId,
+        uint128 amount
+    )
+        public
+        override
+        noDelegateCall
+        notNull(streamId)
+        notPaused(streamId)
+        onlySender(streamId)
+        updateMetadata(streamId)
+    {
+        uint128 debt = _streamDebtOf(streamId);
+
+        if (amount > debt) {
+            revert Errors.SablierFlow_DepositExceedsDebt(streamId, amount, debt);
+        }
+
+        // Checks, Effects and Interactions: deposit on stream.
+        _deposit(streamId, amount);
+
+        // Checks, Effects and Interactions: pause the stream.
+        _pause(streamId);
     }
 
     function depositViaBroker(
@@ -419,6 +437,19 @@ contract SablierFlow is
         (bool success, bytes memory returnData) = asset.staticcall(abi.encodeCall(IERC20Metadata.decimals, ()));
         if (success && returnData.length == 32) {
             return abi.decode(returnData, (uint8));
+        } else {
+            return 0;
+        }
+    }
+
+    /// @dev Calculates the stream's debt at `block.timestamp`.
+    function _streamDebtOf(uint256 streamId) internal view returns (uint128) {
+        uint128 balance = _streams[streamId].balance;
+
+        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, uint40(block.timestamp));
+
+        if (balance < amountOwedToRecipient) {
+            return amountOwedToRecipient - balance;
         } else {
             return 0;
         }
