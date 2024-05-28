@@ -27,9 +27,6 @@ library Errors {
     /// @notice Thrown when trying to create a stream with a zero deposit amount.
     error SablierFlow_DepositAmountZero();
 
-    /// @notice Thrown when deposit amount exceeds debt amount .
-    error SablierFlow_DepositExceedsDebt(uint256 streamId, uint128 depositAmount, uint128 debt);
-
     /// @notice Thrown when trying to create a stream with an asset with no decimals.
     error SablierFlow_InvalidAssetDecimals(IERC20 asset);
 

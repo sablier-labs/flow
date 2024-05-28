@@ -255,12 +255,6 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
-        uint128 debt = _streamDebtOf(streamId);
-
-        if (amount > debt) {
-            revert Errors.SablierFlow_DepositExceedsDebt(streamId, amount, debt);
-        }
-
         // Checks, Effects and Interactions: deposit on stream.
         _deposit(streamId, amount);
 

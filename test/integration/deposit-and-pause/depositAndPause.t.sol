@@ -62,30 +62,7 @@ contract DepositAndPause_Integration_Test is Integration_Test {
         flow.depositAndPause(defaultStreamId, DEPOSIT_AMOUNT);
     }
 
-    function test_RevertWhen_AmountExceedsDebt()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        givenNotPaused
-        whenCallerIsSender
-    {
-        uint128 debt = flow.streamDebtOf(defaultStreamId);
-        uint128 depositAmount = debt + 1;
-
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierFlow_DepositExceedsDebt.selector, defaultStreamId, depositAmount, debt)
-        );
-        // it should revert
-        flow.depositAndPause(defaultStreamId, depositAmount);
-    }
-
-    function test_WhenAmountDoesNotExceedDebt()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        givenNotPaused
-        whenCallerIsSender
-    {
+    function test_WhenCallerIsSender() external whenNotDelegateCalled givenNotNull givenNotPaused {
         uint128 depositAmount = flow.streamDebtOf(defaultStreamId);
         uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
         uint128 previousRemainingAmount = flow.getRemainingAmount(defaultStreamId);
