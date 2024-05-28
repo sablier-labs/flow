@@ -29,14 +29,8 @@ contract CreateAndDepositViaBroker_Integration_Test is Integration_Test {
     function test_WhenNotDelegateCalled() external {
         uint256 expectedStreamId = flow.nextStreamId();
 
-        // It should create the stream
-        // It should bump the next stream id
-        // It should mint the NFT
-        // It should update the stream balance
-        // It should perform the ERC20 transfers
         // It should emit events: 1 {MetadataUpdate}, 1 {CreateFlowStream}, 2 {Transfer}, 1
         // {DepositFlowStream}
-
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: expectedStreamId });
 
@@ -72,6 +66,7 @@ contract CreateAndDepositViaBroker_Integration_Test is Integration_Test {
             value: normalizeAmountToDecimal(BROKER_FEE_AMOUNT, 18)
         });
 
+        // It should perform the ERC20 transfers
         expectCallToTransferFrom({
             asset: dai,
             from: users.sender,
@@ -110,13 +105,18 @@ contract CreateAndDepositViaBroker_Integration_Test is Integration_Test {
             sender: users.sender
         });
 
-        assertEq(actualStreamId, expectedStreamId, "stream id");
+        // It should create the stream
         assertEq(actualStream, expectedStream);
 
+        // It should bump the next stream id
+        assertEq(actualStreamId, expectedStreamId, "stream id");
+
+        // It should mint the NFT
         address actualNFTOwner = flow.ownerOf({ tokenId: actualStreamId });
         address expectedNFTOwner = users.recipient;
         assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
 
+        // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(expectedStreamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");

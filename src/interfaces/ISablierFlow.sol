@@ -20,7 +20,7 @@ interface ISablierFlow is
     /// @param oldRatePerSecond The rate per second to change.
     /// @param newRatePerSecond The newly changed rate per second.
     /// @param amountOwedToRecipient The amount of assets owed by the sender to the recipient, including debt,
-    /// denominated in 18 decimal places.
+    /// denoted in 18 decimals.
     event AdjustFlowStream(
         uint256 indexed streamId, uint128 oldRatePerSecond, uint128 newRatePerSecond, uint128 amountOwedToRecipient
     );
@@ -56,7 +56,7 @@ interface ISablierFlow is
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
     /// @param amountOwedToRecipient The amount of assets owed by the sender to the recipient, including debt,
-    /// denominated in 18 decimal places.
+    /// denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     event PauseFlowStream(
         uint256 streamId,
@@ -97,8 +97,7 @@ interface ISablierFlow is
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Returns the amount owed by the sender to the recipient, including debt, denominated in 18 decimal
-    /// places.
+    /// @notice Returns the amount owed by the sender to the recipient, including debt, denoted in 18 decimals.
     /// @dev Reverts if `streamId` refers to a null stream.
     /// @param streamId The stream ID for the query.
     /// @return amountOwed The amount owed by the sender to the recipient.

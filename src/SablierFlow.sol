@@ -431,12 +431,12 @@ contract SablierFlow is
     /// @notice Calculates the amount owed to the recipient at a given time.
     /// @dev The amount owed is the sum of the stored remaining amount and the streamed amount since the last update.
     /// This value is independent of the stream's balance.
-    function _amountOwedToRecipient(uint256 streamId, uint40 time) internal view returns (uint128 amountOwed) {
+    function _amountOwedToRecipient(uint256 streamId, uint40 time) internal view returns (uint128) {
         // Calculate the streamed amount since last update.
         uint128 streamedAmount = _streamedAmountOf(streamId, time);
 
         // Calculate the total amount that is owed to the recipient.
-        amountOwed = _streams[streamId].remainingAmount + streamedAmount;
+        return _streams[streamId].remainingAmount + streamedAmount;
     }
 
     /// @notice Calculates the transfer amount based on the asset's decimals.
@@ -533,7 +533,7 @@ contract SablierFlow is
         }
 
         // Effect: update the remaining amount.
-        uint128 amountOwed = _updateRemainingAmount(streamId);
+        _updateRemainingAmount(streamId);
 
         // Effect: update the stream time.
         _updateTime(streamId, uint40(block.timestamp));
@@ -542,7 +542,9 @@ contract SablierFlow is
         _streams[streamId].ratePerSecond = newRatePerSecond;
 
         // Log the adjustment.
-        emit ISablierFlow.AdjustFlowStream(streamId, oldRatePerSecond, newRatePerSecond, amountOwed);
+        emit ISablierFlow.AdjustFlowStream(
+            streamId, oldRatePerSecond, newRatePerSecond, _streams[streamId].remainingAmount
+        );
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -664,7 +666,7 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
         // Effect: update the remaining amount.
-        uint128 amountOwed = _updateRemainingAmount(streamId);
+        _updateRemainingAmount(streamId);
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
@@ -678,7 +680,7 @@ contract SablierFlow is
             sender: _streams[streamId].sender,
             recipient: _ownerOf(streamId),
             asset: _streams[streamId].asset,
-            amountOwedToRecipient: amountOwed
+            amountOwedToRecipient: _streams[streamId].remainingAmount
         });
     }
 
@@ -738,13 +740,9 @@ contract SablierFlow is
     }
 
     /// @dev Update the remaining amount by adding the streamed amount since last time update.
-    /// This function also returns the new remaining amount updated.
-    function _updateRemainingAmount(uint256 streamId) internal returns (uint128) {
+    function _updateRemainingAmount(uint256 streamId) internal {
         // Effect: update the remaining amount.
         _streams[streamId].remainingAmount += _streamedAmountOf(streamId, uint40(block.timestamp));
-
-        // Return the updated remaining amount.
-        return _streams[streamId].remainingAmount;
     }
 
     /// @dev Updates the `lastTimeUpdate` to the specified time.

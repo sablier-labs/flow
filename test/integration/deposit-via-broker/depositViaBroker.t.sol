@@ -82,9 +82,6 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
         whenTotalAmountIsNotZero
         whenAssetDoesNotMissERC20Return
     {
-        // It should update the stream balance
-        // It should perform the ERC20 transfer
-        // It should emit 2 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdc)));
         _test_DepositViaBroker(streamId, IERC20(address(usdc)), defaultBroker);
     }
@@ -98,14 +95,12 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
         whenTotalAmountIsNotZero
         whenAssetDoesNotMissERC20Return
     {
-        // It should update the stream balance
-        // It should perform the ERC20 transfer
-        // It should emit 2 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(dai)));
         _test_DepositViaBroker(streamId, IERC20(address(dai)), defaultBroker);
     }
 
     function _test_DepositViaBroker(uint256 streamId, IERC20 asset, Broker memory broker) private {
+        // It should emit 2 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({
             from: users.sender,
@@ -126,6 +121,7 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
+        // It should perform the ERC20 transfers
         expectCallToTransferFrom({
             asset: asset,
             from: users.sender,
@@ -142,6 +138,7 @@ contract DepositViaBroker_Integration_Test is Integration_Test {
 
         flow.depositViaBroker(streamId, DEPOSIT_AMOUNT_WITH_BROKER_FEE, broker);
 
+        // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
