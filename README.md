@@ -153,23 +153,23 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 3. For any stream, if $debt > 0 \implies wa = bal$
 
-4. For any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
+4. if $rps \gt 0$ and no deposits are made $\implies$ debt should never decrease
 
-5. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
+5. For any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
-6. next stream id = current stream id + 1
+6. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
 
-7. if $debt = 0$ and $isPaused = true \implies wa = ra$
+7. next stream id = current stream id + 1
 
-8. if $debt = 0$ and $isPaused = false \implies wa = ra + sa$
+8. if $debt = 0$ and $isPaused = true \implies wa = ra$
 
-9. $bal = rfa + wa$
+9. if $debt = 0$ and $isPaused = false \implies wa = ra + sa$
 
-10. if $isPaused = true \implies rps = 0$
+10. if $rps \gt 0$ and no withdraws are made $\implies$ ra + sa should never decrease
 
-11. if $rps \gt 0$ and no deposits are made $\implies$ debt should never decrease
+11. $bal = rfa + wa$
 
-12. if $rps \gt 0$ and no withdraws are made $\implies$ ra + sa should never decrease
+12. if $isPaused = true \implies rps = 0$
 
 ### Access Control:
 
