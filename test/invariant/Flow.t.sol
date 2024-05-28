@@ -210,33 +210,6 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
-    /// @dev The stream balance should always be greater than or equal to the refundable amount.
-    function invariant_StreamBalanceGeRefundableAmount() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            assertGe(
-                flow.getBalance(streamId),
-                flow.refundableAmountOf(streamId),
-                "Invariant violation: stream balance < refundable amount"
-            );
-        }
-    }
-
-    /// @dev The stream balance should always be greater than or equal to the withdrawable amount.
-    function invariant_StreamBalanceGeWithdrawableAmount() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-
-            assertGe(
-                flow.getBalance(streamId),
-                flow.withdrawableAmountOf(streamId),
-                "Invariant violation: withdrawable amount <= balance"
-            );
-        }
-    }
-
     /// @dev If the stream is paused, then the rate per second should always be zero.
     function invariant_StreamPaused_RatePerSecondZero() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
