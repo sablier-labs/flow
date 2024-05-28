@@ -298,6 +298,41 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
+    function refund(
+        uint256 streamId,
+        uint128 amount
+    )
+        external
+        override
+        noDelegateCall
+        notNull(streamId)
+        onlySender(streamId)
+    {
+        // Checks, Effects and Interactions: make the refund.
+        _refund(streamId, amount);
+    }
+
+    /// @inheritdoc ISablierFlow
+    function refundAndPause(
+        uint256 streamId,
+        uint128 amount
+    )
+        external
+        override
+        noDelegateCall
+        notNull(streamId)
+        notPaused(streamId)
+        onlySender(streamId)
+        updateMetadata(streamId)
+    {
+        // Checks, Effects and Interactions: make the refund.
+        _refund(streamId, amount);
+
+        // Checks, Effects and Interactions: pause the stream.
+        _pause(streamId);
+    }
+
+    /// @inheritdoc ISablierFlow
     function restart(
         uint256 streamId,
         uint128 ratePerSecond
@@ -331,21 +366,6 @@ contract SablierFlow is
 
         // Checks, Effects and Interactions: deposit on stream.
         _deposit(streamId, amount);
-    }
-
-    /// @inheritdoc ISablierFlow
-    function refund(
-        uint256 streamId,
-        uint128 amount
-    )
-        external
-        override
-        noDelegateCall
-        notNull(streamId)
-        onlySender(streamId)
-    {
-        // Checks, Effects and Interactions: make the refund.
-        _refund(streamId, amount);
     }
 
     /// @inheritdoc ISablierFlow

@@ -328,6 +328,17 @@ interface ISablierFlow is
     /// @param amount The amount to refund, denoted in 18 decimals.
     function refund(uint256 streamId, uint128 amount) external;
 
+    /// @notice Refunds the provided amount of assets from the stream to the sender's address.
+    ///
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {PauseFlowStream} event.
+    ///
+    /// Requirements:
+    /// - Refer to the requirements in {refund} and {pause}.
+    ///
+    /// @param streamId The ID of the stream to refund from and then pause.
+    /// @param amount The amount to refund, denoted in 18 decimals.
+    function refundAndPause(uint256 streamId, uint128 amount) external;
+
     /// @notice Restarts the stream with the provided rate per second.
     ///
     /// @dev Emits a {RestartFlowStream} event.
