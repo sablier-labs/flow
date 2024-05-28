@@ -97,6 +97,13 @@ interface ISablierFlow is
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Returns the amount owed by the sender to the recipient, including debt, denominated in 18 decimal
+    /// places.
+    /// @dev Reverts if `streamId` refers to a null stream.
+    /// @param streamId The stream ID for the query.
+    /// @return amountOwed The amount owed by the sender to the recipient.
+    function amountOwedToRecipient(uint256 streamId) external view returns (uint128 amountOwed);
+
     /// @notice Returns the timestamp at which the stream depletes its balance and starts to accumulate debt.
     /// @dev Reverts if `streamId` refers to a paused or a null stream.
     ///

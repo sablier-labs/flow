@@ -35,6 +35,17 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlow
+    function amountOwedToRecipient(uint256 streamId)
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 amountOwed)
+    {
+        amountOwed = _amountOwedToRecipient(streamId, uint40(block.timestamp));
+    }
+
+    /// @inheritdoc ISablierFlow
     function depletionTimeOf(uint256 streamId)
         external
         view
@@ -51,17 +62,16 @@ contract SablierFlow is
         }
 
         // Calculate here the recipient amount for gas optimization.
-        uint128 amountOwedToRecipient =
-            _streams[streamId].remainingAmount + _streamedAmountOf(streamId, uint40(block.timestamp));
+        uint128 amountOwed = _streams[streamId].remainingAmount + _streamedAmountOf(streamId, uint40(block.timestamp));
 
         // If the stream has debt, return zero.
-        if (amountOwedToRecipient >= balance) {
+        if (amountOwed >= balance) {
             return 0;
         }
 
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
-            uint128 solvencyPeriod = (balance - amountOwedToRecipient) / _streams[streamId].ratePerSecond;
+            uint128 solvencyPeriod = (balance - amountOwed) / _streams[streamId].ratePerSecond;
             depletionTime = uint40(block.timestamp + solvencyPeriod);
         }
     }
@@ -93,7 +103,15 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
-        debt = _streamDebtOf(streamId);
+        uint128 balance = _streams[streamId].balance;
+
+        uint128 amountOwed = _amountOwedToRecipient(streamId, uint40(block.timestamp));
+
+        if (balance < amountOwed) {
+            debt = amountOwed - balance;
+        } else {
+            return 0;
+        }
     }
 
     /// @inheritdoc ISablierFlow
@@ -456,19 +474,6 @@ contract SablierFlow is
         }
     }
 
-    /// @dev Calculates the stream's debt at `block.timestamp`.
-    function _streamDebtOf(uint256 streamId) internal view returns (uint128) {
-        uint128 balance = _streams[streamId].balance;
-
-        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, uint40(block.timestamp));
-
-        if (balance < amountOwedToRecipient) {
-            return amountOwedToRecipient - balance;
-        } else {
-            return 0;
-        }
-    }
-
     /// @dev Calculates the streamed amount since last update. Return 0 if the stream is paused.
     function _streamedAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
@@ -499,14 +504,14 @@ contract SablierFlow is
             return 0;
         }
 
-        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, time);
+        uint128 amountOwed = _amountOwedToRecipient(streamId, time);
 
         // If the stream balance is less than or equal to the amount owed, return the stream balance.
-        if (balance < amountOwedToRecipient) {
+        if (balance < amountOwed) {
             return balance;
         }
 
-        return amountOwedToRecipient;
+        return amountOwed;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -528,7 +533,7 @@ contract SablierFlow is
         }
 
         // Effect: update the remaining amount.
-        uint128 amountOwedToRecipient = _updateRemainingAmount(streamId);
+        uint128 amountOwed = _updateRemainingAmount(streamId);
 
         // Effect: update the stream time.
         _updateTime(streamId, uint40(block.timestamp));
@@ -537,7 +542,7 @@ contract SablierFlow is
         _streams[streamId].ratePerSecond = newRatePerSecond;
 
         // Log the adjustment.
-        emit ISablierFlow.AdjustFlowStream(streamId, oldRatePerSecond, newRatePerSecond, amountOwedToRecipient);
+        emit ISablierFlow.AdjustFlowStream(streamId, oldRatePerSecond, newRatePerSecond, amountOwed);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -659,7 +664,7 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
         // Effect: update the remaining amount.
-        uint128 amountOwedToRecipient = _updateRemainingAmount(streamId);
+        uint128 amountOwed = _updateRemainingAmount(streamId);
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
@@ -673,7 +678,7 @@ contract SablierFlow is
             sender: _streams[streamId].sender,
             recipient: _ownerOf(streamId),
             asset: _streams[streamId].asset,
-            amountOwedToRecipient: amountOwedToRecipient
+            amountOwedToRecipient: amountOwed
         });
     }
 
@@ -767,22 +772,22 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawNoFundsAvailable(streamId);
         }
 
-        uint128 amountOwedToRecipient = _amountOwedToRecipient(streamId, time);
+        uint128 amountOwed = _amountOwedToRecipient(streamId, time);
         uint128 withdrawAmount;
 
         // Safe to use unchecked because subtraction cannot underflow.
         unchecked {
             // If there is debt, the withdraw amount is the balance, and the remaining amount is updated so that we
             // don't lose track of the debt.
-            if (amountOwedToRecipient > balance) {
+            if (amountOwed > balance) {
                 withdrawAmount = balance;
 
                 // Effect: update the remaining amount.
-                _streams[streamId].remainingAmount = amountOwedToRecipient - balance;
+                _streams[streamId].remainingAmount = amountOwed - balance;
             }
             // Otherwise, recipient can withdraw the full amount, and the remaining amount must be set to zero.
             else {
-                withdrawAmount = amountOwedToRecipient;
+                withdrawAmount = amountOwed;
 
                 // Effect: set the remaining amount to zero.
                 _streams[streamId].remainingAmount = 0;

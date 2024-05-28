@@ -22,19 +22,19 @@ contract CreateAndDepositViaBroker_Integration_Test is Integration_Test {
                 defaultBroker
             )
         );
-        // it should revert
+        // It should revert
         expectRevertDueToDelegateCall(callData);
     }
 
     function test_WhenNotDelegateCalled() external {
         uint256 expectedStreamId = flow.nextStreamId();
 
-        // it should create the stream
-        // it should bump the next stream id
-        // it should mint the NFT
-        // it should update the stream balance
-        // it should perform the ERC20 transfers
-        // it should emit events: 1 {MetadataUpdate}, 1 {CreateFlowStream}, 2 {Transfer}, 1
+        // It should create the stream
+        // It should bump the next stream id
+        // It should mint the NFT
+        // It should update the stream balance
+        // It should perform the ERC20 transfers
+        // It should emit events: 1 {MetadataUpdate}, 1 {CreateFlowStream}, 2 {Transfer}, 1
         // {DepositFlowStream}
 
         vm.expectEmit({ emitter: address(flow) });
