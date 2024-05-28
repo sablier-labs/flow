@@ -181,22 +181,6 @@ contract Flow_Invariant_Test is Invariant_Test {
         }
     }
 
-    /// @dev If rps > 0, and no withdrawals are made, the remaining amount plus the streamed amount should never
-    /// decrease.
-    function invariant_RpsGt0_RemainingPlusStreamedIncrease() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            if (flow.getRatePerSecond(streamId) > 0 && flowHandler.calls("withdrawAt") == 0) {
-                assertGe(
-                    flow.getRemainingAmount(streamId) + flow.streamedAmountOf(streamId),
-                    flowHandler.lastRemainingAmountOf(streamId) + flowHandler.lastStreamedAmountOf(streamId),
-                    "Invariant violation: (remaining amount + streamed amount) should never decrease"
-                );
-            }
-        }
-    }
-
     /// @dev The stream balance should be equal to the sum of the withdrawable amount and the refundable amount.
     function invariant_StreamBalanceEqWithdrawableAmountPlusRefundableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();

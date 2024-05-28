@@ -165,11 +165,9 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 9. if $debt = 0$ and $isPaused = false \implies wa = ra + sa$
 
-10. if $rps \gt 0$ and no withdraws are made $\implies$ ra + sa should never decrease
+10. $bal = rfa + wa$
 
-11. $bal = rfa + wa$
-
-12. if $isPaused = true \implies rps = 0$
+11. if $isPaused = true \implies rps = 0$
 
 ### Access Control:
 
