@@ -141,7 +141,7 @@ $0.000115740740740740 \times oneDayInSeconds = 9.999999999999936000$
 
 $10.000000000000000000 - 9.999999999999936000 = 0.0000000000000064000$
 
-An improvement by $\ \approx 10^{11} \$, this is not ideal but clearly much better.
+An improvement by $\approx 10^{11}$, this is not ideal but clearly much better.
 
 It is important to mention that the funds will never be stuck on the contract, the recipient will just have to wait more
 time to get that 10 per day "streamed", using the 18 decimals format would delay it to 1 more second:
@@ -171,7 +171,7 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 ### Invariants:
 
-1. For any stream, $\ ltu \le now $
+1. For any stream, $ltu \le now$
 
 2. For a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
 
