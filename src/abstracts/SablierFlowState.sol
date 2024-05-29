@@ -8,8 +8,8 @@ import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions
 import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 import { Adminable } from "./Adminable.sol";
-import { ISablierNFTDescriptor } from "../interfaces/ISablierNFTDescriptor.sol";
 import { ISablierFlowState } from "../interfaces/ISablierFlowState.sol";
+import { ISablierNFTDescriptor } from "../interfaces/ISablierNFTDescriptor.sol";
 import { Flow } from "../types/DataTypes.sol";
 import { Errors } from "../libraries/Errors.sol";
 

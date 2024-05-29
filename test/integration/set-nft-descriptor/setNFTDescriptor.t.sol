@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-// import { ISablierNFTDescriptor } from "src/interfaces/ISablierNFTDescriptor.sol";
 import { Errors } from "src/libraries/Errors.sol";
 import { SablierNFTDescriptor } from "src/SablierNFTDescriptor.sol";
 

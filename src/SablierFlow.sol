@@ -36,8 +36,8 @@ contract SablierFlow is
         address initialAdmin,
         ISablierNFTDescriptor initialNFTDescriptor
     )
-        SablierFlowState(initialAdmin, initialNFTDescriptor)
         ERC721("Sablier Flow NFT", "SAB-FLOW")
+        SablierFlowState(initialAdmin, initialNFTDescriptor)
     { }
 
     /*//////////////////////////////////////////////////////////////////////////
