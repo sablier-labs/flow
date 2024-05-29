@@ -60,8 +60,8 @@ but sender can call `pause` to pause the stream at any time. We also use a time 
 
 #### Recent amount
 
-The recent amount (rca) is calculated as the multiple of rate per second (rps) and the delta between the current time
-and the value of `lastTimeUpdate`:
+The recent amount (rca) is calculated as the rate per second (rps) multiplied by the delta between the current time and
+the value of `lastTimeUpdate`:
 
 $ rca = rps \times (now - ltu) $
 
@@ -74,8 +74,8 @@ $ ra = \sum rca_t $
 
 #### Amount Owed
 
-The amount owed (ao) is the amount that the sender owes to the recipient. At a given time t, this is calculated as the
-sum of remaining amount and the recent amount.
+The amount owed (ao) is the amount that the sender owes to the recipient. At a given time, this is calculated as the sum
+of remaining amount and the recent amount.
 
 $ ao = ra + rca $
 
@@ -122,10 +122,10 @@ which has 6 decimals).
 
 Let's consider this example: If someone wants to stream 10 USDC per day, the _rps_ should be
 
-$\ rps = 0.000115740740740740740740... \$(with many decimals)
+$rps = 0.000115740740740740740740...$ (with many decimals)
 
-But since USDC only has 6 decimals, the _rps_ would be limited to $\ rps = 0.000115 \$, this leads to $\ 0.000115 \times
-oneDayInSeconds = 9.936000 \$, at the end of the day, resulting less with $\ 0.064000 \$.
+But since USDC only has 6 decimals, the _rps_ would be limited to $rps = 0.000115$ , this leads to
+$0.000115 \times oneDayInSeconds = 9.936000$ , at the end of the day, resulting less with $0.064000$ .
 
 As you can see this is problematic.
 
@@ -137,16 +137,16 @@ completely solves the issue, it minimizes it significantly.
 Using the above example (stream of 10 USDC per day), if the _rps_ has 18 decimals, at the end of the day the result
 would be:
 
-$\ 0.000115740740740740 \times oneDayInSeconds = 9.999999999999936000 \$
+$0.000115740740740740 \times oneDayInSeconds = 9.999999999999936000$
 
-$\ 10.000000000000000000 - 9.999999999999936000 = 0.0000000000000064000 \$
+$10.000000000000000000 - 9.999999999999936000 = 0.0000000000000064000$
 
 An improvement by $\ \approx 10^{11} \$, this is not ideal but clearly much better.
 
 It is important to mention that the funds will never be stuck on the contract, the recipient will just have to wait more
 time to get that 10 per day "streamed", using the 18 decimals format would delay it to 1 more second:
 
-$\ 0.000115740740740740 \times (oneDayInSeconds + 1 second) = 10.000115740740677000 \$
+$0.000115740740740740 \times (oneDayInSeconds + 1 second) = 10.000115740740677000$
 
 Currently, I don't think it's possible to address this precision problem entirely.
 

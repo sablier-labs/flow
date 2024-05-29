@@ -390,7 +390,7 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
-    /// @param time The Unix timestamp.
+    /// @param time The Unix timestamp to calculate the recent streamed amount since last time update.
     function withdrawAt(uint256 streamId, address to, uint40 time) external;
 
     /// @notice Withdraws the maximum withdrawable amount from the stream to the provided address `to`.
