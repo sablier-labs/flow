@@ -63,41 +63,41 @@ but sender can call `pause` to pause the stream at any time. We also use a time 
 The recent amount (rca) is calculated as the rate per second (rps) multiplied by the delta between the current time and
 the value of `lastTimeUpdate`:
 
-$ rca = rps \times (now - ltu) $
+$rca = rps \times (now - ltu)$
 
 #### Remaining amount
 
 The remaining amount (ra) is the amount that sender owed to the recipient until the last time update. When
 `lastTimeUpdate` is updated, remaining amount is increased by recent amount.
 
-$ ra = \sum rca_t $
+$ra = \sum rca_t$
 
 #### Amount Owed
 
 The amount owed (ao) is the amount that the sender owes to the recipient. At a given time, this is calculated as the sum
 of remaining amount and the recent amount.
 
-$ ao = ra + rca $
+$ao = ra + rca$
 
 #### Debt
 
 Since amount owed can be higher than the balance. the _debt_ becomes the difference between _ao_ and the actual balance.
 
-$ debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}$
+$`debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}`$
 
 #### Withdrawable amount
 
 The withdrawable amount is the amount owed when there is no debt. In presence of debt, the withdrawable amount is the
 stream balance.
 
-$ wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}$
+$`wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}`$
 
 #### Refundable amount
 
 The refundable amount is the amount that sender can refund from the stream. It is calculated as the difference between
 stream balance and the amount owed.
 
-$ rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 \end{cases}$
+$`rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 \end{cases}`$
 
 #### Abbreviation table
 
@@ -124,8 +124,8 @@ Let's consider this example: If someone wants to stream 10 USDC per day, the _rp
 
 $rps = 0.000115740740740740740740...$ (with many decimals)
 
-But since USDC only has 6 decimals, the _rps_ would be limited to $rps = 0.000115$ , this leads to
-$0.000115 \times oneDayInSeconds = 9.936000$ , at the end of the day, resulting less with $0.064000$ .
+But since USDC only has 6 decimals, the _rps_ would be limited to $rps = 0.000115$, this leads to
+$0.000115 \times oneDayInSeconds = 9.936000$, at the end of the day, resulting less with $0.064000$.
 
 As you can see this is problematic.
 
