@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { Integration_Test } from "../Integration.t.sol";
 
-contract AmountOwedToRecipient_Integration_Test is Integration_Test {
+contract AmountOwedOf_Integration_Test is Integration_Test {
     function setUp() public virtual override {
         Integration_Test.setUp();
 
@@ -13,7 +13,7 @@ contract AmountOwedToRecipient_Integration_Test is Integration_Test {
     function test_RevertGiven_Null() external {
         // It should revert
         expectRevertNull();
-        flow.amountOwedToRecipient(nullStreamId);
+        flow.amountOwedOf(nullStreamId);
     }
 
     function test_GivenPaused() external givenNotNull {
@@ -22,7 +22,7 @@ contract AmountOwedToRecipient_Integration_Test is Integration_Test {
         uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
 
         // It should return remaining amount
-        uint128 amountOwed = flow.amountOwedToRecipient(defaultStreamId);
+        uint128 amountOwed = flow.amountOwedOf(defaultStreamId);
         assertEq(amountOwed, remainingAmount, "amount owed");
     }
 
@@ -34,17 +34,17 @@ contract AmountOwedToRecipient_Integration_Test is Integration_Test {
         uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
 
         // It should return remaining amount
-        uint128 amountOwed = flow.amountOwedToRecipient(defaultStreamId);
+        uint128 amountOwed = flow.amountOwedOf(defaultStreamId);
         assertEq(amountOwed, remainingAmount, "amount owed");
     }
 
     function test_WhenCurrentTimeIsGreaterThanLastTimeUpdate() external view givenNotNull givenNotPaused {
         // Fetch updated remaining amount
         uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
-        uint128 streamedAmount = flow.streamedAmountOf(defaultStreamId);
+        uint128 recentAmount = flow.recentAmountOf(defaultStreamId);
 
-        // It should return the sum of remaining amount and streamed amount since last time update
-        uint128 amountOwed = flow.amountOwedToRecipient(defaultStreamId);
-        assertEq(amountOwed, remainingAmount + streamedAmount, "amount owed");
+        // It should return the sum of remaining amount and recent amount.
+        uint128 amountOwed = flow.amountOwedOf(defaultStreamId);
+        assertEq(amountOwed, remainingAmount + recentAmount, "amount owed");
     }
 }

@@ -30,17 +30,17 @@ available in the stream. This is made possible by introducing some new variables
   streamed to the recipients.
 - If streams run out of balance, they will start to accumulate debt until they are paused or sufficient deposits are
   made to them.
-- Sender can pause and restart the streams anytime without losing track of debt and streamed amount.
+- Sender can pause and restart the streams anytime without losing track of debt and amount owed to the recipient.
 
 ### How it works
 
-As mentioned above, the creation and deposit are distinct operations. When a stream is created, the baalnce balance
-begins with 0. Sender can deposit any amount into the stream anytime. However, to improve the user experience, a
-`createAndDeposit` function is implemented to initiate create and deposit in a single transaction.
+As mentioned above, no deposit is required when the stream is created. So at the time of creation, the balance can begin
+with 0. Sender can deposit any amount into the stream anytime. However, to improve the user experience, a
+`createAndDeposit` function is also implemented to allow `create` and `deposit` in a single transaction.
 
-These streams don't have a start time or an end time. As a result, we use a time value (`lastTimeUpdate`) which is set
-to `block.timestamp` when the stream is created. `lastTimeUpdate` plays a key role into several features of Sablier
-Flow:
+These streams start streaming as soon as the transaction gets confirmed on the blockchain. They don't have any end date
+but sender can call `pause` to pause the stream at any time. We also use a time value (`lastTimeUpdate`) which is set to
+`block.timestamp` when the stream is created. `lastTimeUpdate` plays a key role into several features of Sablier Flow:
 
 - When a withdrawal is made
 
@@ -58,37 +58,61 @@ Flow:
 
 ### Amounts calculation
 
-#### Streamed amount
+#### Recent amount
 
-The streamed amount (sa) is calculated simply by multiplying the rate per second (rps) by the delta between the current
-time and the time stored in the stream `lastTimeUpdate` (ltu):
+The recent amount (rca) is calculated as the multiple of rate per second (rps) and the delta between the current time
+and the value of `lastTimeUpdate`:
 
-$\ sa = rps \times (now - ltu) \$
+$ rca = rps \times (now - ltu) $
 
-_sa_ can be higher than the balance, this explaines the _debt_ I was referring to. The _debt_ is the difference between
-_sa_ and the actual balance - which is **not** stored in the contracts but calculated dynamically in a view function.
+#### Remaining amount
+
+The remaining amount (ra) is the amount that sender owed to the recipient until the last time update. When
+`lastTimeUpdate` is updated, remaining amount is increased by recent amount.
+
+$ ra = \sum rca_t $
+
+#### Amount Owed
+
+The amount owed (ao) is the amount that the sender owes to the recipient. At a given time t, this is calculated as the
+sum of remaining amount and the recent amount.
+
+$ ao = ra + rca $
+
+#### Debt
+
+Since amount owed can be higher than the balance. the _debt_ becomes the difference between _ao_ and the actual balance.
+
+$ debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}$
 
 #### Withdrawable amount
 
-The withdrawable amount is actually the streamed amount when there is no debt or the balance itself when there is debt.
+The withdrawable amount is the amount owed when there is no debt. In presence of debt, the withdrawable amount is the
+stream balance.
+
+$ wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}$
 
 #### Refundable amount
 
-The refundable amount is calculated by subtracting the streamed amount from the balance.
+The refundable amount is the amount that sender can refund from the stream. It is calculated as the difference between
+stream balance and the amount owed.
+
+$ rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 \end{cases}$
 
 #### Abbreviation table
 
 | Full Name          | Abbreviation |
 | ------------------ | ------------ |
-| lastTimeUpdate     | ltu          |
-| block.timestamp    | now          |
+| amount owed        | ao           |
 | balance            | bal          |
-| ratePerSecond      | rps          |
-| remainingAmount    | ra           |
-| streamedAmount     | sa           |
+| block.timestamp    | now          |
 | debt               | debt         |
-| withdrawableAmount | wa           |
+| lastTimeUpdate     | ltu          |
+| ratePerSecond      | rps          |
+| recentAmount       | rca          |
 | refundableAmount   | rfa          |
+| remainingAmount    | ra           |
+| withdrawableAmount | wa           |
 
 ### Issues:
 
@@ -163,7 +187,7 @@ Sender address **must** be checked because there is no `ERC20` transfer in `_cre
 
 8. if $debt = 0$ and $isPaused = true \implies wa = ra$
 
-9. if $debt = 0$ and $isPaused = false \implies wa = ra + sa$
+9. if $debt = 0$ and $isPaused = false \implies wa = ra + rca$
 
 10. $bal = rfa + wa$
 

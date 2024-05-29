@@ -65,8 +65,7 @@ contract DepositAndPause_Integration_Test is Integration_Test {
     function test_WhenCallerIsSender() external whenNotDelegateCalled givenNotNull givenNotPaused {
         uint128 depositAmount = flow.streamDebtOf(defaultStreamId);
         uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 previousRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        uint128 previousStreamedAmount = flow.streamedAmountOf(defaultStreamId);
+        uint128 previousAmountOwed = flow.amountOwedOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
         vm.expectEmit({ emitter: address(dai) });
@@ -89,7 +88,7 @@ contract DepositAndPause_Integration_Test is Integration_Test {
             streamId: defaultStreamId,
             sender: users.sender,
             recipient: users.recipient,
-            amountOwedToRecipient: previousRemainingAmount + previousStreamedAmount,
+            amountOwed: previousAmountOwed,
             asset: dai
         });
 
@@ -120,6 +119,6 @@ contract DepositAndPause_Integration_Test is Integration_Test {
 
         // It should update the remaining amount
         uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        assertEq(actualRemainingAmount, previousRemainingAmount + previousStreamedAmount, "remaining amount");
+        assertEq(actualRemainingAmount, previousAmountOwed, "remaining amount");
     }
 }

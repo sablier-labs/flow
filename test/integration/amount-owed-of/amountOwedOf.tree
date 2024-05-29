@@ -1,4 +1,4 @@
-AmountOwedToRecipient_Integration_Test
+AmountOwedOf_Integration_Test
 ├── given null
 │   └── it should revert
 └── given not null
@@ -8,4 +8,4 @@ AmountOwedToRecipient_Integration_Test
         ├── when current time equals last time update
         │   └── it should return remaining amount
         └── when current time is greater than last time update
-            └── it should return the sum of remaining amount and streamed amount since last time update
+            └── it should return the sum of remaining amount and recent amount.

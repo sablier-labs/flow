@@ -35,14 +35,8 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlow
-    function amountOwedToRecipient(uint256 streamId)
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 amountOwed)
-    {
-        amountOwed = _amountOwedToRecipient(streamId, uint40(block.timestamp));
+    function amountOwedOf(uint256 streamId) external view override notNull(streamId) returns (uint128 amountOwed) {
+        amountOwed = _amountOwedOf(streamId, uint40(block.timestamp));
     }
 
     /// @inheritdoc ISablierFlow
@@ -62,7 +56,7 @@ contract SablierFlow is
         }
 
         // Calculate here the recipient amount for gas optimization.
-        uint128 amountOwed = _streams[streamId].remainingAmount + _streamedAmountOf(streamId, uint40(block.timestamp));
+        uint128 amountOwed = _streams[streamId].remainingAmount + _recentAmountOf(streamId, uint40(block.timestamp));
 
         // If the stream has debt, return zero.
         if (amountOwed >= balance) {
@@ -74,6 +68,25 @@ contract SablierFlow is
             uint128 solvencyPeriod = (balance - amountOwed) / _streams[streamId].ratePerSecond;
             depletionTime = uint40(block.timestamp + solvencyPeriod);
         }
+    }
+
+    /// @inheritdoc ISablierFlow
+    function recentAmountOf(uint256 streamId) external view override notNull(streamId) returns (uint128 recentAmount) {
+        recentAmount = _recentAmountOf(streamId, uint40(block.timestamp));
+    }
+
+    /// @inheritdoc ISablierFlow
+    function recentAmountOf(
+        uint256 streamId,
+        uint40 time
+    )
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 recentAmount)
+    {
+        recentAmount = _recentAmountOf(streamId, time);
     }
 
     /// @inheritdoc ISablierFlow
@@ -105,38 +118,13 @@ contract SablierFlow is
     function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
         uint128 balance = _streams[streamId].balance;
 
-        uint128 amountOwed = _amountOwedToRecipient(streamId, uint40(block.timestamp));
+        uint128 amountOwed = _amountOwedOf(streamId, uint40(block.timestamp));
 
         if (balance < amountOwed) {
             debt = amountOwed - balance;
         } else {
             return 0;
         }
-    }
-
-    /// @inheritdoc ISablierFlow
-    function streamedAmountOf(uint256 streamId)
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 streamedAmount)
-    {
-        streamedAmount = _streamedAmountOf(streamId, uint40(block.timestamp));
-    }
-
-    /// @inheritdoc ISablierFlow
-    function streamedAmountOf(
-        uint256 streamId,
-        uint40 time
-    )
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 streamedAmount)
-    {
-        streamedAmount = _streamedAmountOf(streamId, time);
     }
 
     /// @inheritdoc ISablierFlow
@@ -429,14 +417,14 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Calculates the amount owed to the recipient at a given time.
-    /// @dev The amount owed is the sum of the stored remaining amount and the streamed amount since the last update.
-    /// This value is independent of the stream's balance.
-    function _amountOwedToRecipient(uint256 streamId, uint40 time) internal view returns (uint128) {
-        // Calculate the streamed amount since last update.
-        uint128 streamedAmount = _streamedAmountOf(streamId, time);
+    /// @dev The amount owed is the sum of the stored remaining amount and the recent amount streamed since the last
+    /// update. This value is independent of the stream's balance.
+    function _amountOwedOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+        // Calculate the recent amount streamed since last update.
+        uint128 recentAmount = _recentAmountOf(streamId, time);
 
         // Calculate the total amount that is owed to the recipient.
-        return _streams[streamId].remainingAmount + streamedAmount;
+        return _streams[streamId].remainingAmount + recentAmount;
     }
 
     /// @notice Calculates the transfer amount based on the asset's decimals.
@@ -458,6 +446,27 @@ contract SablierFlow is
         }
     }
 
+    /// @dev Calculates the recent amount streamed since last update. Return 0 if the stream is paused.
+    function _recentAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+        uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
+
+        // If the stream is paused or the time is less than the `lastTimeUpdate`, return zero.
+        if (_streams[streamId].isPaused || time <= lastTimeUpdate) {
+            return 0;
+        }
+
+        uint128 elapsedTime;
+
+        // Safe to unchecked because subtraction cannot underflow.
+        unchecked {
+            // Calculate time elapsed since the last update.
+            elapsedTime = time - lastTimeUpdate;
+        }
+
+        // Calculate the recent amount streamed by multiplying the elapsed time by the rate per second.
+        return elapsedTime * _streams[streamId].ratePerSecond;
+    }
+
     /// @dev Calculates the refundable amount.
     function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         return _streams[streamId].balance - _withdrawableAmountOf(streamId, time);
@@ -474,27 +483,6 @@ contract SablierFlow is
         }
     }
 
-    /// @dev Calculates the streamed amount since last update. Return 0 if the stream is paused.
-    function _streamedAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
-
-        // If the stream is paused or the time is less than the `lastTimeUpdate`, return zero.
-        if (_streams[streamId].isPaused || time <= lastTimeUpdate) {
-            return 0;
-        }
-
-        uint128 elapsedTime;
-
-        // Safe to unchecked because subtraction cannot underflow.
-        unchecked {
-            // Calculate time elapsed since the last update.
-            elapsedTime = time - lastTimeUpdate;
-        }
-
-        // Calculate the streamed amount by multiplying the elapsed time by the rate per second.
-        return elapsedTime * _streams[streamId].ratePerSecond;
-    }
-
     /// @dev Calculates the amount available to withdraw at provided time. The return value considers stream balance.
     function _withdrawableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
@@ -504,7 +492,7 @@ contract SablierFlow is
             return 0;
         }
 
-        uint128 amountOwed = _amountOwedToRecipient(streamId, time);
+        uint128 amountOwed = _amountOwedOf(streamId, time);
 
         // If the stream balance is less than or equal to the amount owed, return the stream balance.
         if (balance < amountOwed) {
@@ -680,7 +668,7 @@ contract SablierFlow is
             sender: _streams[streamId].sender,
             recipient: _ownerOf(streamId),
             asset: _streams[streamId].asset,
-            amountOwedToRecipient: _streams[streamId].remainingAmount
+            amountOwed: _streams[streamId].remainingAmount
         });
     }
 
@@ -739,10 +727,10 @@ contract SablierFlow is
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, _streams[streamId].asset, ratePerSecond);
     }
 
-    /// @dev Update the remaining amount by adding the streamed amount since last time update.
+    /// @dev Update the remaining amount by adding the recent amount streamed since last time update.
     function _updateRemainingAmount(uint256 streamId) internal {
         // Effect: update the remaining amount.
-        _streams[streamId].remainingAmount += _streamedAmountOf(streamId, uint40(block.timestamp));
+        _streams[streamId].remainingAmount += _recentAmountOf(streamId, uint40(block.timestamp));
     }
 
     /// @dev Updates the `lastTimeUpdate` to the specified time.
@@ -770,7 +758,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawNoFundsAvailable(streamId);
         }
 
-        uint128 amountOwed = _amountOwedToRecipient(streamId, time);
+        uint128 amountOwed = _amountOwedOf(streamId, time);
         uint128 withdrawAmount;
 
         // Safe to use unchecked because subtraction cannot underflow.
