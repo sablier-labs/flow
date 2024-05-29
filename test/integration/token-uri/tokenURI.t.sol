@@ -12,7 +12,7 @@ contract TokenURI_Integration_Test is Integration_Test {
     }
 
     function test_GivenTheNFTExists() external view {
-        // it should return the correct token URI
+        // It should return the correct token URI
         string memory actualURI = flow.tokenURI({ streamId: defaultStreamId });
         string memory expectedURI = "";
         assertEq(actualURI, expectedURI, "tokenURI");

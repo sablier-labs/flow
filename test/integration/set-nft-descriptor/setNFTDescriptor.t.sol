@@ -24,13 +24,13 @@ contract SetNFTDescriptor_Integration_Test is Integration_Test {
     }
 
     function test_WhenTheNewNFTDescriptorIsTheSame() external whenTheCallerIsTheAdmin {
-        // it should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
+        // It should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
         vm.expectEmit({ emitter: address(flow) });
         emit SetNFTDescriptor(users.admin, nftDescriptor, nftDescriptor);
         vm.expectEmit({ emitter: address(flow) });
         emit BatchMetadataUpdate({ _fromTokenId: 1, _toTokenId: flow.nextStreamId() - 1 });
 
-        // it should re-set the NFT descriptor
+        // It should re-set the NFT descriptor
         flow.setNFTDescriptor(nftDescriptor);
         vm.expectCall(address(nftDescriptor), abi.encodeCall(SablierNFTDescriptor.tokenURI, (flow, 1)));
         flow.tokenURI({ streamId: defaultStreamId });
@@ -40,13 +40,13 @@ contract SetNFTDescriptor_Integration_Test is Integration_Test {
         // Deploy another NFT descriptor.
         SablierNFTDescriptor newNFTDescriptor = new SablierNFTDescriptor();
 
-        // it should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
+        // It should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
         vm.expectEmit({ emitter: address(flow) });
         emit SetNFTDescriptor(users.admin, nftDescriptor, newNFTDescriptor);
         vm.expectEmit({ emitter: address(flow) });
         emit BatchMetadataUpdate({ _fromTokenId: 1, _toTokenId: flow.nextStreamId() - 1 });
 
-        // it should set the new NFT descriptor
+        // It should set the new NFT descriptor
         flow.setNFTDescriptor(newNFTDescriptor);
         address actualNFTDescriptor = address(flow.nftDescriptor());
         address expectedNFTDescriptor = address(newNFTDescriptor);
