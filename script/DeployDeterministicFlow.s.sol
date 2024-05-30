@@ -2,7 +2,7 @@
 pragma solidity >=0.8.22 <0.9.0;
 
 import { SablierFlow } from "src/SablierFlow.sol";
-import { SablierNFTDescriptor } from "src/SablierNFTDescriptor.sol";
+import { SablierFlowNFTDescriptor } from "src/SablierFlowNFTDescriptor.sol";
 
 import { BaseScript } from "./Base.s.sol";
 
@@ -12,10 +12,10 @@ contract DeployDeterministicFlow is BaseScript {
     function run(address initialAdmin)
         public
         broadcast
-        returns (SablierFlow flow, SablierNFTDescriptor nftDescriptor)
+        returns (SablierFlow flow, SablierFlowNFTDescriptor nftDescriptor)
     {
         bytes32 salt = constructCreate2Salt();
-        nftDescriptor = new SablierNFTDescriptor{ salt: salt }();
+        nftDescriptor = new SablierFlowNFTDescriptor{ salt: salt }();
         flow = new SablierFlow{ salt: salt }(initialAdmin, nftDescriptor);
     }
 }

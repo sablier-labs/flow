@@ -2,9 +2,9 @@ SetNFTDescriptor_Integration_Test
 ├── when the caller is not the admin
 │  └── it should revert
 └── when the caller is the admin
-   ├── when the new NFT descriptor is the same
+   ├── when new and old NFT descriptors are same
    │  ├── it should re-set the NFT descriptor
    │  └── it should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
-   └── when the new NFT descriptor is not the same
+   └── when new NFT descriptor is not the same
       ├── it should set the new NFT descriptor
       └── it should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events

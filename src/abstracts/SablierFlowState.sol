@@ -9,7 +9,7 @@ import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 import { Adminable } from "./Adminable.sol";
 import { ISablierFlowState } from "../interfaces/ISablierFlowState.sol";
-import { ISablierNFTDescriptor } from "../interfaces/ISablierNFTDescriptor.sol";
+import { ISablierFlowNFTDescriptor } from "../interfaces/ISablierFlowNFTDescriptor.sol";
 import { Flow } from "../types/DataTypes.sol";
 import { Errors } from "../libraries/Errors.sol";
 
@@ -32,7 +32,7 @@ abstract contract SablierFlowState is
     uint256 public override nextStreamId;
 
     /// @inheritdoc ISablierFlowState
-    ISablierNFTDescriptor public override nftDescriptor;
+    ISablierFlowNFTDescriptor public override nftDescriptor;
 
     /// @dev Sablier Flow streams mapped by unsigned integers.
     mapping(uint256 id => Flow.Stream stream) internal _streams;
@@ -44,7 +44,7 @@ abstract contract SablierFlowState is
     /// @dev Emits a {TransferAdmin} event.
     /// @param initialAdmin The address of the initial contract admin.
     /// @param initialNFTDescriptor The address of the initial NFT descriptor.
-    constructor(address initialAdmin, ISablierNFTDescriptor initialNFTDescriptor) {
+    constructor(address initialAdmin, ISablierFlowNFTDescriptor initialNFTDescriptor) {
         nextStreamId = 1;
         admin = initialAdmin;
         nftDescriptor = initialNFTDescriptor;
@@ -182,9 +182,9 @@ abstract contract SablierFlowState is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowState
-    function setNFTDescriptor(ISablierNFTDescriptor newNFTDescriptor) external override onlyAdmin {
+    function setNFTDescriptor(ISablierFlowNFTDescriptor newNFTDescriptor) external override onlyAdmin {
         // Effect: set the NFT descriptor.
-        ISablierNFTDescriptor oldNftDescriptor = nftDescriptor;
+        ISablierFlowNFTDescriptor oldNftDescriptor = nftDescriptor;
         nftDescriptor = newNFTDescriptor;
 
         // Log the change of the NFT descriptor.

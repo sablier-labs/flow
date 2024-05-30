@@ -5,7 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
-import { ISablierNFTDescriptor } from "./ISablierNFTDescriptor.sol";
+import { ISablierFlowNFTDescriptor } from "./ISablierFlowNFTDescriptor.sol";
 import { Flow } from "../types/DataTypes.sol";
 
 /// @title ISablierFlowState
@@ -19,7 +19,7 @@ interface ISablierFlowState is
     /// @param oldNFTDescriptor The address of the old NFT descriptor contract.
     /// @param newNFTDescriptor The address of the new NFT descriptor contract.
     event SetNFTDescriptor(
-        address indexed admin, ISablierNFTDescriptor oldNFTDescriptor, ISablierNFTDescriptor newNFTDescriptor
+        address indexed admin, ISablierFlowNFTDescriptor oldNFTDescriptor, ISablierFlowNFTDescriptor newNFTDescriptor
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ interface ISablierFlowState is
     function nextStreamId() external view returns (uint256);
 
     /// @notice Contract that generates the non-fungible token URI.
-    function nftDescriptor() external view returns (ISablierNFTDescriptor);
+    function nftDescriptor() external view returns (ISablierFlowNFTDescriptor);
 
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
@@ -109,5 +109,5 @@ interface ISablierFlowState is
     /// - `msg.sender` must be the contract admin.
     ///
     /// @param newNFTDescriptor The address of the new NFT descriptor contract.
-    function setNFTDescriptor(ISablierNFTDescriptor newNFTDescriptor) external;
+    function setNFTDescriptor(ISablierFlowNFTDescriptor newNFTDescriptor) external;
 }

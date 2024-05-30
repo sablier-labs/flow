@@ -3,8 +3,8 @@
 pragma solidity >=0.8.22;
 
 import { ISablierFlow } from "./../src/interfaces/ISablierFlow.sol";
-import { ISablierNFTDescriptor } from "../src/interfaces/ISablierNFTDescriptor.sol";
-import { SablierNFTDescriptor } from "../src/SablierNFTDescriptor.sol";
+import { ISablierFlowNFTDescriptor } from "../src/interfaces/ISablierFlowNFTDescriptor.sol";
+import { SablierFlowNFTDescriptor } from "../src/SablierFlowNFTDescriptor.sol";
 
 /// @notice This is useful for external integrations seeking to test against the exact deployed bytecode, as recompiling
 /// with via IR enabled would be time-consuming.
@@ -19,16 +19,16 @@ contract Precompiles {
         hex"6080806040523461001657610137908161001b8239f35b5f80fdfe6080600436101561000e575f80fd5b5f3560e01c63e9dc637514610021575f80fd5b34610126576040807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101265760043573ffffffffffffffffffffffffffffffffffffffff811603610126576020916020810181811067ffffffffffffffff8211176100f95782939193525f83528151928391602083528151918260208501525f5b8381106100e35750505f83830185015250601f017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0168101030190f35b81810183015187820187015286945082016100a6565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b5f80fdfea164736f6c6343000817000a";
 
     /// @notice Deploys {SablierFlow} from precompiled bytecode.
-    /// @dev A dummy {SablierNFTDescriptor} is deployed so that the user does not have to provide one.
+    /// @dev A dummy {SablierFlowNFTDescriptor} is deployed so that the user does not have to provide one.
     function deploySablierFlow(address initialAdmin) public returns (ISablierFlow flow) {
-        ISablierNFTDescriptor nftDescriptor = new SablierNFTDescriptor();
+        ISablierFlowNFTDescriptor nftDescriptor = new SablierFlowNFTDescriptor();
         flow = deploySablierFlow(initialAdmin, nftDescriptor);
     }
 
     /// @notice Deploys {SablierFlow} from precompiled bytecode.
     function deploySablierFlow(
         address initialAdmin,
-        ISablierNFTDescriptor nftDescriptor
+        ISablierFlowNFTDescriptor nftDescriptor
     )
         public
         returns (ISablierFlow flow)

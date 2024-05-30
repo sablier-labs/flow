@@ -11,7 +11,7 @@ import { ud } from "@prb/math/src/UD60x18.sol";
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
 import { SablierFlowState } from "./abstracts/SablierFlowState.sol";
 import { ISablierFlow } from "./interfaces/ISablierFlow.sol";
-import { ISablierNFTDescriptor } from "./interfaces/ISablierNFTDescriptor.sol";
+import { ISablierFlowNFTDescriptor } from "./interfaces/ISablierFlowNFTDescriptor.sol";
 import { Errors } from "./libraries/Errors.sol";
 import { Broker, Flow } from "./types/DataTypes.sol";
 
@@ -34,7 +34,7 @@ contract SablierFlow is
     /// @param initialNFTDescriptor The address of the initial NFT descriptor.
     constructor(
         address initialAdmin,
-        ISablierNFTDescriptor initialNFTDescriptor
+        ISablierFlowNFTDescriptor initialNFTDescriptor
     )
         ERC721("Sablier Flow NFT", "SAB-FLOW")
         SablierFlowState(initialAdmin, initialNFTDescriptor)

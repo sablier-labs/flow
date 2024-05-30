@@ -2,7 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { Errors } from "src/libraries/Errors.sol";
-import { SablierNFTDescriptor } from "src/SablierNFTDescriptor.sol";
+import { SablierFlowNFTDescriptor } from "src/SablierFlowNFTDescriptor.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
 
@@ -16,14 +16,14 @@ contract SetNFTDescriptor_Integration_Test is Integration_Test {
     function test_RevertWhen_TheCallerIsNotTheAdmin() external {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(abi.encodeWithSelector(Errors.CallerNotAdmin.selector, users.admin, users.eve));
-        flow.setNFTDescriptor(SablierNFTDescriptor(users.eve));
+        flow.setNFTDescriptor(SablierFlowNFTDescriptor(users.eve));
     }
 
     modifier whenTheCallerIsTheAdmin() {
         _;
     }
 
-    function test_WhenTheNewNFTDescriptorIsTheSame() external whenTheCallerIsTheAdmin {
+    function test_WhenNewAndOldNFTDescriptorsAreSame() external whenTheCallerIsTheAdmin {
         // It should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
         vm.expectEmit({ emitter: address(flow) });
         emit SetNFTDescriptor(users.admin, nftDescriptor, nftDescriptor);
@@ -32,13 +32,13 @@ contract SetNFTDescriptor_Integration_Test is Integration_Test {
 
         // It should re-set the NFT descriptor
         flow.setNFTDescriptor(nftDescriptor);
-        vm.expectCall(address(nftDescriptor), abi.encodeCall(SablierNFTDescriptor.tokenURI, (flow, 1)));
+        vm.expectCall(address(nftDescriptor), abi.encodeCall(SablierFlowNFTDescriptor.tokenURI, (flow, 1)));
         flow.tokenURI({ streamId: defaultStreamId });
     }
 
-    function test_WhenTheNewNFTDescriptorIsNotTheSame() external whenTheCallerIsTheAdmin {
+    function test_WhenNewNFTDescriptorIsNotTheSame() external whenTheCallerIsTheAdmin {
         // Deploy another NFT descriptor.
-        SablierNFTDescriptor newNFTDescriptor = new SablierNFTDescriptor();
+        SablierFlowNFTDescriptor newNFTDescriptor = new SablierFlowNFTDescriptor();
 
         // It should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
         vm.expectEmit({ emitter: address(flow) });

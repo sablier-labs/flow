@@ -3,11 +3,11 @@ pragma solidity >=0.8.22;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
-import { ISablierNFTDescriptor } from "./interfaces/ISablierNFTDescriptor.sol";
+import { ISablierFlowNFTDescriptor } from "./interfaces/ISablierFlowNFTDescriptor.sol";
 
-/// @title ISablierNFTDescriptor
-/// @notice See the documentation in {ISablierNFTDescriptor}.
-contract SablierNFTDescriptor is ISablierNFTDescriptor {
+/// @title ISablierFlowNFTDescriptor
+/// @notice See the documentation in {ISablierFlowNFTDescriptor}.
+contract SablierFlowNFTDescriptor is ISablierFlowNFTDescriptor {
     /// @dev Currently it returns an empty string. In the future, it will return an NFT SVG.
     function tokenURI(
         IERC721Metadata, /* sablierFlow */

@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ISablierNFTDescriptor } from "../../src/interfaces/ISablierNFTDescriptor.sol";
+import { ISablierFlowNFTDescriptor } from "../../src/interfaces/ISablierFlowNFTDescriptor.sol";
 
 abstract contract Events {
     /*//////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event SetNFTDescriptor(
-        address indexed admin, ISablierNFTDescriptor oldNFTDescriptor, ISablierNFTDescriptor newNFTDescriptor
+        address indexed admin, ISablierFlowNFTDescriptor oldNFTDescriptor, ISablierFlowNFTDescriptor newNFTDescriptor
     );
 
     /*//////////////////////////////////////////////////////////////////////////
