@@ -13,17 +13,17 @@ contract SetNFTDescriptor_Integration_Test is Integration_Test {
         resetPrank({ msgSender: users.admin });
     }
 
-    function test_RevertWhen_TheCallerIsNotTheAdmin() external {
+    function test_RevertWhen_CallerIsNotAdmin() external {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(abi.encodeWithSelector(Errors.CallerNotAdmin.selector, users.admin, users.eve));
         flow.setNFTDescriptor(SablierFlowNFTDescriptor(users.eve));
     }
 
-    modifier whenTheCallerIsTheAdmin() {
+    modifier whenCallerIsAdmin() {
         _;
     }
 
-    function test_WhenNewAndOldNFTDescriptorsAreSame() external whenTheCallerIsTheAdmin {
+    function test_WhenNewAndOldNFTDescriptorsAreSame() external whenCallerIsAdmin {
         // It should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
         vm.expectEmit({ emitter: address(flow) });
         emit SetNFTDescriptor(users.admin, nftDescriptor, nftDescriptor);
@@ -36,7 +36,7 @@ contract SetNFTDescriptor_Integration_Test is Integration_Test {
         flow.tokenURI({ streamId: defaultStreamId });
     }
 
-    function test_WhenNewNFTDescriptorIsNotTheSame() external whenTheCallerIsTheAdmin {
+    function test_WhenNewAndOldNFTDescriptorsAreNotSame() external whenCallerIsAdmin {
         // Deploy another NFT descriptor.
         SablierFlowNFTDescriptor newNFTDescriptor = new SablierFlowNFTDescriptor();
 
