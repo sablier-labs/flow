@@ -18,13 +18,13 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         expectRevert_DelegateCall(callData);
     }
 
-    function test_RevertGiven_Null() external whenNotDelegateCalled {
+    function test_RevertGiven_Null() external whenNoDelegateCall {
         bytes memory callData =
             abi.encodeCall(flow.depositViaBroker, (nullStreamId, TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE, defaultBroker));
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_BrokerFeeGreaterThanMaxFee() external whenNotDelegateCalled givenNotNull {
+    function test_RevertWhen_BrokerFeeGreaterThanMaxFee() external whenNoDelegateCall givenNotNull {
         defaultBroker.fee = MAX_BROKER_FEE.add(ud(1));
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierFlow_BrokerFeeTooHigh.selector, defaultBroker.fee, MAX_BROKER_FEE)
@@ -34,7 +34,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertWhen_BrokeAddressIsZero()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
     {
@@ -45,7 +45,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertWhen_TotalAmountIsZero()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressIsNotZero
@@ -56,14 +56,14 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
 
     function test_WhenAssetMissesERC20Return()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressIsNotZero
         whenTotalAmountIsNotZero
     {
         // It should make the deposit
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdt)));
         _test_DepositViaBroker(
             streamId,
             IERC20(address(usdt)),
@@ -76,14 +76,14 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
 
     function test_GivenAssetDoesNotHave18Decimals()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressIsNotZero
         whenTotalAmountIsNotZero
         whenAssetDoesNotMissERC20Return
     {
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdc)));
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
         _test_DepositViaBroker(
             streamId,
             IERC20(address(usdc)),
@@ -96,14 +96,14 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
 
     function test_GivenAssetHas18Decimals()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressIsNotZero
         whenTotalAmountIsNotZero
         whenAssetDoesNotMissERC20Return
     {
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(dai)));
+        uint256 streamId = createStreamWithAsset(IERC20(address(dai)));
         _test_DepositViaBroker(
             streamId, dai, TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE, TRANSFER_AMOUNT, BROKER_FEE_AMOUNT, 18
         );

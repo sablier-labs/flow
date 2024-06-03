@@ -12,338 +12,288 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
+        // Deposit to the default stream.
         depositToDefaultStream();
 
+        // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        // Set recipient as the caller for this test.
+        resetPrank({ msgSender: users.recipient });
     }
 
     function test_RevertWhen_DelegateCall() external {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawAt, (defaultStreamId, users.recipient, WITHDRAW_TIME));
         expectRevert_DelegateCall(callData);
     }
 
-    function test_RevertGiven_Null() external whenNotDelegateCalled {
+    function test_RevertGiven_Null() external whenNoDelegateCall {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawAt, (nullStreamId, users.recipient, WITHDRAW_TIME));
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_ToAddressZero() external whenNotDelegateCalled givenNotNull {
+    function test_RevertWhen_TimeIsLessThanLastTimeUpdate() external whenNoDelegateCall givenNotNull {
+        // Set the last time update to the current block timestamp.
+        updateLastTimeToBlockTimestamp(defaultStreamId);
+
+        uint40 lastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
+
+        // It should revert.
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, WITHDRAW_TIME
+            )
+        );
+        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
+    }
+
+    function test_RevertWhen_TimeIsGreaterThanCurrentTime() external whenNoDelegateCall givenNotNull {
+        // It should revert.
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.SablierFlow_WithdrawalTimeInTheFuture.selector, getBlockTimestamp() + 1, getBlockTimestamp()
+            )
+        );
+        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: getBlockTimestamp() + 1 });
+    }
+
+    modifier whenTimeIsBetweenLastTimeUpdateAndCurrentTime() {
+        _;
+    }
+
+    function test_RevertWhen_WithdrawalAddressIsZero()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+    {
+        // It should revert.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawToZeroAddress.selector));
         flow.withdrawAt({ streamId: defaultStreamId, to: address(0), time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_CallerSender()
+    function test_RevertWhen_CallerIsSender()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressNotRecipient
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsNotOwner
     {
         resetPrank({ msgSender: users.sender });
 
+        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, users.sender, users.sender
             )
         );
-
         flow.withdrawAt({ streamId: defaultStreamId, to: users.sender, time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_CallerUnknown()
+    function test_RevertWhen_CallerIsUnknown()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressNotRecipient
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsNotOwner
     {
-        address unknownCaller = address(0xCAFE);
-        resetPrank({ msgSender: unknownCaller });
+        resetPrank({ msgSender: users.eve });
 
+        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, unknownCaller, unknownCaller
+                Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, users.eve, users.eve
             )
         );
-
-        flow.withdrawAt({ streamId: defaultStreamId, to: unknownCaller, time: WITHDRAW_TIME });
+        flow.withdrawAt({ streamId: defaultStreamId, to: users.eve, time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_WithdrawalTimeLessThanLastTime()
+    function test_WhenCallerIsRecipient()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsNotOwner
     {
-        uint40 lastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, lastTimeUpdate - 1
-            )
-        );
-        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: lastTimeUpdate - 1 });
+        // It should withdraw.
+        test_Withdraw({ streamId: defaultStreamId, to: users.eve, expectedWithdrawAmount: WITHDRAW_AMOUNT });
     }
 
-    function test_RevertWhen_WithdrawalTimeInTheFuture()
+    function test_RevertGiven_BalanceIsZero()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenWithdrawalTimeNotLessThanLastTime
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsOwner
     {
-        uint40 futureTime = uint40(block.timestamp + 1);
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: MAY_1_2024 });
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierFlow_WithdrawalTimeInTheFuture.selector, futureTime, uint40(block.timestamp)
-            )
-        );
-        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: futureTime });
-    }
-
-    function test_RevertGiven_RemainingAmountZero()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceZero
-    {
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
+        // Create a new stream with a deposit of 0.
         uint256 streamId = createDefaultStream();
+
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
+        // It should revert.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawNoFundsAvailable.selector, streamId));
         flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
-    function test_WithdrawAt_RemainingAmountNotZero()
+    function test_WhenAmountOwedExceedsBalance()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceZero
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsOwner
+        givenBalanceIsNotZero
     {
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: MAY_1_2024 });
+
+        resetPrank({ msgSender: users.sender });
+
+        uint128 smallDepositAmount = DEPOSIT_AMOUNT / 20;
+
+        // Create a new stream with very less deposit.
         uint256 streamId = createDefaultStream();
-        vm.warp({ newTimestamp: WITHDRAW_TIME });
+        depositToStreamId(streamId, smallDepositAmount);
 
-        flow.deposit(streamId, WITHDRAW_AMOUNT);
-        flow.adjustRatePerSecond(streamId, RATE_PER_SECOND - 1);
-
-        uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = WITHDRAW_AMOUNT;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
-
-        uint128 actualRemainingAmount = flow.getRemainingAmount(streamId);
-        uint128 expectedRemainingAmount = WITHDRAW_AMOUNT;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
-
-        flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
-
-        actualRemainingAmount = flow.getRemainingAmount(streamId);
-        expectedRemainingAmount = 0;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
-
-        actualStreamBalance = flow.getBalance(streamId);
-        expectedStreamBalance = 0;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
-    }
-
-    function test_WithdrawAt_CallerSender()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceNotZero
-        givenRemainingAmountZero
-    {
-        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
-
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = WITHDRAW_TIME;
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
-
-        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
-    }
-
-    function test_WithdrawAt_CallerUnknown()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceNotZero
-        givenRemainingAmountZero
-    {
-        address unknownCaller = address(0xCAFE);
-        resetPrank({ msgSender: unknownCaller });
-
-        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
-
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = WITHDRAW_TIME;
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
-
-        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
-    }
-
-    function test_WithdrawAt_StreamPaused()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceNotZero
-        givenRemainingAmountNotZero
-        whenCallerRecipient
-    {
-        flow.pause(defaultStreamId);
-
-        uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        uint128 expectedRemainingAmount = ONE_MONTH_STREAMED_AMOUNT;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
-
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
-
-        vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: defaultStreamId,
-            to: users.recipient,
-            asset: dai,
-            withdrawnAmount: ONE_MONTH_STREAMED_AMOUNT
-        });
-
-        expectCallToTransfer({ asset: dai, to: users.recipient, amount: ONE_MONTH_STREAMED_AMOUNT });
-
-        flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
-
-        actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        expectedRemainingAmount = 0;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
-    }
-
-    function test_WithdrawAt_StreamHasDebt()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceNotZero
-        givenRemainingAmountNotZero
-        whenCallerRecipient
-    {
-        // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
-        uint256 streamId = createDefaultStream();
+        // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
-        uint128 depositAmount = ONE_MONTH_STREAMED_AMOUNT / 2;
-        flow.deposit(streamId, depositAmount);
-        flow.adjustRatePerSecond(streamId, RATE_PER_SECOND - 1);
+        // Make recipient the caller for subsequent tests.
+        resetPrank({ msgSender: users.recipient });
 
-        uint128 actualRemainingAmount = flow.getRemainingAmount(streamId);
-        uint128 expectedRemainingAmount = ONE_MONTH_STREAMED_AMOUNT;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
+        uint128 previousAmountOwed = flow.amountOwedOf(streamId);
 
-        flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WARP_ONE_MONTH });
+        // It should withdraw the balance.
+        test_Withdraw({ streamId: streamId, to: users.recipient, expectedWithdrawAmount: smallDepositAmount });
 
-        actualRemainingAmount = flow.getRemainingAmount(streamId);
-        expectedRemainingAmount = ONE_MONTH_STREAMED_AMOUNT - depositAmount;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
+        // It should update lastTimeUpdate.
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
+
+        // It should decrease the amount owed by balance.
+        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedAmountOwed = previousAmountOwed - smallDepositAmount;
+        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+
+        // It should update the stream balance to 0.
+        uint128 actualStreamBalance = flow.getBalance(streamId);
+        assertEq(actualStreamBalance, 0, "stream balance");
     }
 
-    modifier givenNoDebt() {
+    modifier whenAmountOwedDoesNotExceedBalance() {
         _;
     }
 
-    function test_WithdrawAt_AssetNot18Decimals()
+    function test_GivenAssetDoesNotHave18Decimals()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceNotZero
-        whenCallerRecipient
-        givenNoDebt
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsOwner
+        givenBalanceIsNotZero
+        whenAmountOwedDoesNotExceedBalance
     {
-        // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        flow.deposit(streamId, TRANSFER_AMOUNT_6D);
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: MAY_1_2024 });
+
+        resetPrank({ msgSender: users.sender });
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
+        // Deposit to the stream.
+        depositToStreamId(streamId, TRANSFER_AMOUNT_6D);
+
+        // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
-        _test_Withdraw(streamId, IERC20(address(usdt)), 6);
-    }
-
-    function test_Withdraw()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenToNonZeroAddress
-        whenWithdrawalAddressIsRecipient
-        whenWithdrawalTimeNotLessThanLastTime
-        whenWithdrawalTimeNotInTheFuture
-        givenBalanceNotZero
-        whenCallerRecipient
-        givenNoDebt
-    {
-        _test_Withdraw(defaultStreamId, dai, 18);
-    }
-
-    function _test_Withdraw(uint256 streamId, IERC20 asset, uint8 assetDecimals) internal {
+        // Make recipient the caller for subsequent tests.
         resetPrank({ msgSender: users.recipient });
 
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        uint40 expectedLastTimeUpdate = uint40(block.timestamp - ONE_MONTH);
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
+        uint128 previousAmountOwed = flow.amountOwedOf(streamId);
 
         uint128 transferAmount = Helpers.calculateTransferAmount(WITHDRAW_AMOUNT, assetDecimals);
 
-        vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: transferAmount });
+        // It should withdraw the amount owed.
+        test_Withdraw({ streamId: streamId, to: users.recipient, expectedWithdrawAmount: WITHDRAW_AMOUNT });
 
-        vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: streamId,
-            to: users.recipient,
-            asset: asset,
-            withdrawnAmount: WITHDRAW_AMOUNT
-        });
+        // It should update lastTimeUpdate.
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
 
-        expectCallToTransfer({ asset: asset, to: users.recipient, amount: transferAmount });
-        flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
+        // It should decrease the amount owed by withdrawn value.
+        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedAmountOwed = previousAmountOwed - WITHDRAW_AMOUNT;
+        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
 
-        actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        expectedLastTimeUpdate = WITHDRAW_TIME;
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
-
+        // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+    }
+
+    function test_GivenAssetHas18Decimals()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressIsNotZero
+        whenWithdrawalAddressIsOwner
+        givenBalanceIsNotZero
+        whenAmountOwedDoesNotExceedBalance
+    {
+        uint128 previousAmountOwed = flow.amountOwedOf(defaultStreamId);
+
+        // It should withdraw the amount owed.
+        test_Withdraw({ streamId: defaultStreamId, to: users.recipient, expectedWithdrawAmount: WITHDRAW_AMOUNT });
+
+        // It should update lastTimeUpdate.
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
+        assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
+
+        // It should decrease the amount owed by withdrawn value.
+        uint128 actualAmountOwed = flow.amountOwedOf(defaultStreamId);
+        uint128 expectedAmountOwed = previousAmountOwed - WITHDRAW_AMOUNT;
+        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+
+        // It should reduce the stream balance by the withdrawn amount.
+        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+    }
+
+    function test_Withdraw(uint256 streamId, address to, uint128 expectedWithdrawAmount) internal {
+        IERC20 asset = flow.getAsset(streamId);
+
+        // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
+        vm.expectEmit({ emitter: address(asset) });
+        emit IERC20.Transfer({
+            from: address(flow),
+            to: to,
+            value: normalizeAmountWithStreamId(streamId, expectedWithdrawAmount)
+        });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit WithdrawFromFlowStream({ streamId: streamId, to: to, asset: asset, withdrawnAmount: expectedWithdrawAmount });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        // It should perform the ERC20 transfer.
+        expectCallToTransfer({
+            asset: asset,
+            to: to,
+            amount: normalizeAmountWithStreamId(streamId, expectedWithdrawAmount)
+        });
+
+        flow.withdrawAt({ streamId: streamId, to: to, time: WITHDRAW_TIME });
     }
 }

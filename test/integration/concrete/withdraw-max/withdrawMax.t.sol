@@ -9,19 +9,40 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
+        // Deposit to the default stream.
         depositToDefaultStream();
 
+        // Simulate one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
     }
 
     function test_RevertWhen_DelegateCall() external {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawMax, (defaultStreamId, users.recipient));
         expectRevert_DelegateCall(callData);
     }
 
-    function test_WithdrawMax_Paused() external {
+    function test_RevertGiven_Null() external whenNoDelegateCall {
+        // It should revert.
+        bytes memory callData = abi.encodeCall(flow.withdrawMax, (nullStreamId, users.recipient));
+        expectRevert_Null(callData);
+    }
+
+    function test_GivenPaused() external whenNoDelegateCall givenNotNull {
+        // Pause the stream.
         flow.pause(defaultStreamId);
 
+        // Withdraw the maximum amount.
+        test_WithdrawMax();
+    }
+
+    function test_GivenNotPaused() external whenNoDelegateCall givenNotNull {
+        // Withdraw the maximum amount.
+        test_WithdrawMax();
+    }
+
+    function test_WithdrawMax() internal {
+        // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(dai) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
 
@@ -33,41 +54,29 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
             withdrawnAmount: ONE_MONTH_STREAMED_AMOUNT
         });
 
-        flow.withdrawMax(defaultStreamId, users.recipient);
-
-        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
-
-        uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        assertEq(actualRemainingAmount, 0, "remaining amount");
-        assertEq(flow.getLastTimeUpdate(defaultStreamId), WARP_ONE_MONTH, "last time update not updated");
-    }
-
-    function test_WithdrawMax() external givenNotPaused {
-        uint128 beforeStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 beforeRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
-
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: defaultStreamId,
-            to: users.recipient,
+        emit MetadataUpdate({ _tokenId: defaultStreamId });
+
+        // It should perform the ERC20 transfer
+        expectCallToTransfer({
             asset: dai,
-            withdrawnAmount: beforeRemainingAmount + ONE_MONTH_STREAMED_AMOUNT
+            to: users.recipient,
+            amount: normalizeAmountWithStreamId(defaultStreamId, ONE_MONTH_STREAMED_AMOUNT)
         });
 
         flow.withdrawMax(defaultStreamId, users.recipient);
 
-        uint128 afterStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 afterRemainingAmount = flow.getRemainingAmount(defaultStreamId);
+        // It should update the stream balance.
+        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        assertEq(
-            beforeStreamBalance - ONE_MONTH_STREAMED_AMOUNT, afterStreamBalance, "stream balance not updated correctly"
-        );
-        assertEq(afterRemainingAmount, 0, "remaining amount should be 0");
-        assertEq(flow.getLastTimeUpdate(defaultStreamId), WARP_ONE_MONTH, "last time update not updated");
+        // It should set the remaining amount to zero.
+        uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
+        assertEq(actualRemainingAmount, 0, "remaining amount");
+
+        // It should update lastTimeUpdate.
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
+        assertEq(actualLastTimeUpdate, getBlockTimestamp(), "last time update");
     }
 }

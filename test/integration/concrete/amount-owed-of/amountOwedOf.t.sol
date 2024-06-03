@@ -7,6 +7,7 @@ contract AmountOwedOf_Integration_Concrete_Test is Integration_Test {
     function setUp() public virtual override {
         Integration_Test.setUp();
 
+        // Simulate one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
     }
 

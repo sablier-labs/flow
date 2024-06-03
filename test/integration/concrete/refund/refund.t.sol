@@ -12,48 +12,51 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
+        // Deposit to the default stream.
         depositToDefaultStream();
 
+        // Simulate one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
     }
 
     function test_RevertWhen_DelegateCall() external {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
-    function test_RevertGiven_Null() external whenNotDelegateCalled {
+    function test_RevertGiven_Null() external whenNoDelegateCall {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (nullStreamId, REFUND_AMOUNT));
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_CallerRecipient() external whenNotDelegateCalled givenNotNull whenCallerIsNotSender {
+    function test_RevertWhen_CallerRecipient() external whenNoDelegateCall givenNotNull whenCallerNotSender {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevert_CallerRecipient(callData);
     }
 
-    function test_RevertWhen_CallerMaliciousThirdParty()
-        external
-        whenNotDelegateCalled
-        givenNotNull
-        whenCallerIsNotSender
-    {
+    function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull whenCallerNotSender {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_RevertWhen_RefundAmountZero() external whenNotDelegateCalled givenNotNull whenCallerIsSender {
+    function test_RevertWhen_RefundAmountIsZero() external whenNoDelegateCall givenNotNull whenCallerSender {
+        // It should revert.
         vm.expectRevert(Errors.SablierFlow_RefundAmountZero.selector);
         flow.refund({ streamId: defaultStreamId, amount: 0 });
     }
 
-    function test_RevertWhen_Overrefund()
+    function test_RevertWhen_OverRefund()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenCallerIsSender
-        whenRefundAmountNotZero
+        whenCallerSender
+        whenRefundAmountIsNotZero
     {
+        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_Overrefund.selector,
@@ -65,57 +68,82 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         flow.refund({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
     }
 
-    function test_Refund_PausedStream() external whenNotDelegateCalled givenNotNull whenCallerIsSender {
+    function test_GivenPaused()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenCallerSender
+        whenRefundAmountIsNotZero
+        whenNoOverRefund
+    {
         flow.pause(defaultStreamId);
 
-        expectCallToTransfer({ asset: dai, to: users.sender, amount: REFUND_AMOUNT });
-        flow.refund({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
-
-        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+        // It should make the refund.
+        test_Refund(defaultStreamId, dai);
     }
 
-    function test_Refund_AssetNot18Decimals()
+    function test_WhenAssetMissesERC20Return()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenCallerIsSender
-        whenRefundAmountNotZero
-        whenNoOverrefund
+        whenCallerSender
+        whenRefundAmountIsNotZero
+        whenNoOverRefund
+        givenNotPaused
     {
-        // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        flow.deposit(streamId, TRANSFER_AMOUNT_6D);
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdt)));
+        depositToStreamId(streamId, TRANSFER_AMOUNT_6D);
 
-        test_Refund(streamId, IERC20(address(usdt)), 6);
+        // It should make the refund.
+        _test_Refund(streamId, IERC20(address(usdt)), 6);
     }
 
-    function test_Refund()
+    function test_GivenAssetDoesNotHave18Decimals()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        whenCallerIsSender
-        whenRefundAmountNotZero
-        whenNoOverrefund
+        whenCallerSender
+        whenRefundAmountIsNotZero
+        whenNoOverRefund
+        givenNotPaused
+        whenAssetDoesNotMissERC20Return
     {
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
+        depositToStreamId(streamId, DEPOSIT_AMOUNT);
+
+        // It should make the refund.
+        test_Refund(streamId, IERC20(address(usdc)));
+    }
+
+    function test_GivenAssetHas18Decimals()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenCallerSender
+        whenRefundAmountIsNotZero
+        whenNoOverRefund
+        givenNotPaused
+        whenAssetDoesNotMissERC20Return
+    {
+        // It should make the refund.
         test_Refund(defaultStreamId, dai, 18);
     }
 
-    function test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) internal {
+    function _test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) private {
         uint128 transferAmount = Helpers.calculateTransferAmount(REFUND_AMOUNT, assetDecimals);
 
+        // It should emit a {Transfer} and {RefundFromFlowStream} event.
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: transferAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit RefundFromFlowStream({ streamId: streamId, sender: users.sender, asset: asset, refundAmount: REFUND_AMOUNT });
 
+        // It should perform the ERC20 transfer.
         expectCallToTransfer({ asset: asset, to: users.sender, amount: transferAmount });
         flow.refund({ streamId: streamId, amount: REFUND_AMOUNT });
 
+        // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");

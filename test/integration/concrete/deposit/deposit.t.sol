@@ -9,56 +9,56 @@ import { Helpers } from "src/libraries/Helpers.sol";
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract Deposit_Integration_Concrete_Test is Integration_Test {
-    function setUp() public override {
-        Integration_Test.setUp();
-    }
-
     function test_RevertWhen_DelegateCall() external {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.deposit, (defaultStreamId, TRANSFER_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
-    function test_RevertGiven_Null() external whenNotDelegateCalled {
+    function test_RevertGiven_Null() external whenNoDelegateCall {
+        // It should revert.
         bytes memory callData = abi.encodeCall(flow.deposit, (nullStreamId, TRANSFER_AMOUNT));
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_DepositAmountZero() external whenNotDelegateCalled givenNotNull givenNotPaused {
+    function test_RevertWhen_DepositAmountIsZero() external whenNoDelegateCall givenNotNull {
+        // It should revert.
         vm.expectRevert(Errors.SablierFlow_DepositAmountZero.selector);
         flow.deposit(defaultStreamId, 0);
     }
 
-    function test_Deposit_Paused() external whenNotDelegateCalled givenNotNull {
-        flow.deposit(defaultStreamId, TRANSFER_AMOUNT);
+    function test_WhenAssetMissesERC20Return() external whenNoDelegateCall givenNotNull whenDepositAmountIsNotZero {
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdt)));
 
-        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = TRANSFER_AMOUNT;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+        // It should make the deposit
+        test_Deposit(streamId, usdt, TRANSFER_AMOUNT_6D, 6);
     }
 
-    function test_Deposit_AssetMissingReturnValue()
+    function test_GivenAssetDoesNotHave18Decimals()
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
-        givenNotPaused
-        whenDepositAmountNonZero
+        whenDepositAmountIsNotZero
+        whenAssetDoesNotMissERC20Return
     {
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        _test_Deposit(streamId, IERC20(address(usdt)), TRANSFER_AMOUNT_6D, 6);
-    }
-
-    function test_Deposit_Asset18Decimals() external {
-        _test_Deposit(defaultStreamId, dai, TRANSFER_AMOUNT, 18);
-    }
-
-    function test_Deposit_AssetLessThan18Decimals() external {
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdc)));
+        // It should make the deposit.
+        uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
         _test_Deposit(streamId, usdc, TRANSFER_AMOUNT_6D, 6);
     }
 
-    function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) internal {
-        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, assetDecimals);
+    function test_GivenAssetHas18Decimals()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenDepositAmountIsNotZero
+        whenAssetDoesNotMissERC20Return
+    {
+        // It should make the deposit.
+        _test_Deposit(defaultStreamId, dai, TRANSFER_AMOUNT, 18);
+    }
 
+    function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) private {
+        // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: transferAmount });
 
@@ -73,9 +73,11 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
+        // It should perform the ERC20 transfer.
         expectCallToTransferFrom({ asset: asset, from: users.sender, to: address(flow), amount: transferAmount });
         flow.deposit(streamId, transferAmount);
 
+        // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = normalizedAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");

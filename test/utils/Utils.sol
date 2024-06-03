@@ -6,6 +6,11 @@ import { PRBMathUtils } from "@prb/math/test/utils/Utils.sol";
 import { CommonBase } from "forge-std/src/Base.sol";
 
 abstract contract Utils is CommonBase, PRBMathUtils {
+    /// @dev Retrieves the current block timestamp as an `uint40`.
+    function getBlockTimestamp() internal view returns (uint40) {
+        return uint40(block.timestamp);
+    }
+
     /// @dev Checks if the Foundry profile is "test-optimized".
     function isTestOptimizedProfile() internal view returns (bool) {
         string memory profile = vm.envOr({ name: "FOUNDRY_PROFILE", defaultValue: string("default") });

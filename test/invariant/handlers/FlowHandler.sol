@@ -239,7 +239,7 @@ contract FlowHandler is BaseHandler {
         }
 
         // Bound the time so that it is between last time update and current time.
-        time = uint40(_bound(time, flow.getLastTimeUpdate(currentStreamId), block.timestamp));
+        time = uint40(_bound(time, flow.getLastTimeUpdate(currentStreamId), getBlockTimestamp()));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.
