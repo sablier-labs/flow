@@ -31,7 +31,7 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
     //////////////////////////////////////////////////////////////////////////*/
 
     ERC20Mock internal assetWithoutDecimals = new ERC20Mock("Asset without decimals", "AWD", 0);
-    ERC20Mock internal assetWithMoreDecimals = new ERC20Mock("Asset without decimals", "AWD", 24);
+    ERC20Mock internal assetWith24Decimals = new ERC20Mock("Asset with more decimals", "AWMD", 24);
     ERC20Mock internal dai = new ERC20Mock("Dai stablecoin", "DAI", 18);
     ERC20Mock internal usdc = new ERC20Mock("USD Coin", "USDC", 6);
     ERC20MissingReturn internal usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
@@ -73,12 +73,12 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
     function createUser(string memory name) internal returns (address payable) {
         address payable user = payable(makeAddr(name));
         vm.deal({ account: user, newBalance: 100 ether });
-        deal({ token: address(assetWithMoreDecimals), to: user, give: 1_000_000e24 });
+        deal({ token: address(assetWith24Decimals), to: user, give: 1_000_000e24 });
         deal({ token: address(dai), to: user, give: 1_000_000e18 });
         deal({ token: address(usdc), to: user, give: 1_000_000e6 });
         deal({ token: address(usdt), to: user, give: 1_000_000e18 });
         resetPrank(user);
-        assetWithMoreDecimals.approve({ spender: address(flow), value: type(uint256).max });
+        assetWith24Decimals.approve({ spender: address(flow), value: type(uint256).max });
         dai.approve({ spender: address(flow), value: type(uint256).max });
         usdc.approve({ spender: address(flow), value: type(uint256).max });
         usdt.approve({ spender: address(flow), value: type(uint256).max });
