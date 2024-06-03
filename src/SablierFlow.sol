@@ -2,10 +2,8 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
 import { SablierFlowState } from "./abstracts/SablierFlowState.sol";
@@ -421,17 +419,6 @@ contract SablierFlow is
         return _streams[streamId].balance - _withdrawableAmountOf(streamId, time);
     }
 
-    /// @notice Retrieves the asset's decimals safely, reverts with a custom error if an error occurs.
-    /// @dev Performs a low-level call to handle assets decimals that are implemented as a number less than 256.
-    function _safeAssetDecimals(address asset) internal view returns (uint8) {
-        (bool success, bytes memory returnData) = asset.staticcall(abi.encodeCall(IERC20Metadata.decimals, ()));
-        if (success && returnData.length == 32) {
-            return abi.decode(returnData, (uint8));
-        } else {
-            revert Errors.SablierFlow_InvalidAssetDecimals(asset);
-        }
-    }
-
     /// @dev Calculates the amount available to withdraw at provided time. The return value considers stream balance.
     function _withdrawableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
@@ -505,7 +492,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondZero();
         }
 
-        uint8 assetDecimals = _safeAssetDecimals(address(asset));
+        uint8 assetDecimals = Helpers.safeAssetDecimals(address(asset));
 
         // Load the stream id.
         streamId = nextStreamId;
@@ -565,24 +552,15 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _depositViaBroker(uint256 streamId, uint128 totalTransferAmount, Broker memory broker) internal {
-        // Check: the broker's fee is not greater than `MAX_BROKER_FEE`.
-        if (broker.fee.gt(MAX_BROKER_FEE)) {
-            revert Errors.SablierFlow_BrokerFeeTooHigh(streamId, broker.fee, MAX_BROKER_FEE);
-        }
-
-        // Check: the broker recipient is not the zero address.
-        if (broker.account == address(0)) {
-            revert Errors.SablierFlow_BrokerAddressZero();
-        }
-
-        // Calculate the broker's amount.
-        uint128 brokerAmount = uint128(ud(totalTransferAmount).mul(broker.fee).intoUint256());
+        // Check: verify the `broker` and calculate the amounts.
+        (uint128 brokerFeeAmount, uint128 transferAmount) =
+            Helpers.checkAndCalculateBrokerFee(totalTransferAmount, broker, MAX_BROKER_FEE);
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit({ streamId: streamId, transferAmount: totalTransferAmount - brokerAmount });
+        _deposit(streamId, transferAmount);
 
         // Interaction: transfer the broker's amount.
-        _streams[streamId].asset.safeTransferFrom(msg.sender, broker.account, brokerAmount);
+        _streams[streamId].asset.safeTransferFrom(msg.sender, broker.account, brokerFeeAmount);
     }
 
     /// @dev Helper function to calculate the transfer amount and perform the ERC-20 transfer.

@@ -27,9 +27,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_BrokerFeeGreaterThanMaxFee() external whenNotDelegateCalled givenNotNull {
         defaultBroker.fee = MAX_BROKER_FEE.add(ud(1));
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierFlow_BrokerFeeTooHigh.selector, defaultStreamId, defaultBroker.fee, MAX_BROKER_FEE
-            )
+            abi.encodeWithSelector(Errors.SablierFlow_BrokerFeeTooHigh.selector, defaultBroker.fee, MAX_BROKER_FEE)
         );
         flow.depositViaBroker(defaultStreamId, TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE, defaultBroker);
     }

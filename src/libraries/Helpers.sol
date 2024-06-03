@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.8.22;
 
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { UD60x18, ud } from "@prb/math/src/UD60x18.sol";
+
+import { Errors } from "./Errors.sol";
+import { Broker } from "../types/DataTypes.sol";
 
 /// @title Helpers
 /// @notice Library with helper functions in {SablierFlo} contract.
@@ -60,6 +65,48 @@ library Helpers {
         } else {
             uint8 normalizingFactor = 18 - assetDecimals;
             return (amount / (10 ** normalizingFactor)).toUint128();
+        }
+    }
+
+    /// @dev Checks the `Broker` parameter, and then calculates the broker fee amount and the transfer amount from the
+    /// total transfer amount.
+    function checkAndCalculateBrokerFee(
+        uint128 totalTransferAmount,
+        Broker memory broker,
+        UD60x18 maxBrokerFee
+    )
+        internal
+        pure
+        returns (uint128, uint128)
+    {
+        // Check: the broker's fee is not greater than `MAX_BROKER_FEE`.
+        if (broker.fee.gt(maxBrokerFee)) {
+            revert Errors.SablierFlow_BrokerFeeTooHigh(broker.fee, maxBrokerFee);
+        }
+
+        // Check: the broker recipient is not the zero address.
+        if (broker.account == address(0)) {
+            revert Errors.SablierFlow_BrokerAddressZero();
+        }
+
+        // Calculate the broker fee amount that is going to be transfer to the `broker.account`.
+        // The cast to uint128 is safe because the maximum fee is hard coded.
+        uint128 brokerFeeAmount = uint128(ud(totalTransferAmount).mul(broker.fee).intoUint256());
+
+        // Calculate the transfer amount to the Flow contract.
+        uint128 transferAmount = totalTransferAmount - brokerFeeAmount;
+
+        return (brokerFeeAmount, transferAmount);
+    }
+
+    /// @notice Retrieves the asset's decimals safely, reverts with a custom error if an error occurs.
+    /// @dev Performs a low-level call to handle assets decimals that are implemented as a number less than 256.
+    function safeAssetDecimals(address asset) internal view returns (uint8) {
+        (bool success, bytes memory returnData) = asset.staticcall(abi.encodeCall(IERC20Metadata.decimals, ()));
+        if (success && returnData.length == 32) {
+            return abi.decode(returnData, (uint8));
+        } else {
+            revert Errors.SablierFlow_InvalidAssetDecimals(asset);
         }
     }
 }
