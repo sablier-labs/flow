@@ -3,7 +3,6 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ud } from "@prb/math/src/UD60x18.sol";
@@ -13,6 +12,7 @@ import { SablierFlowState } from "./abstracts/SablierFlowState.sol";
 import { ISablierFlow } from "./interfaces/ISablierFlow.sol";
 import { ISablierFlowNFTDescriptor } from "./interfaces/ISablierFlowNFTDescriptor.sol";
 import { Errors } from "./libraries/Errors.sol";
+import { Helpers } from "./libraries/Helpers.sol";
 import { Broker, Flow } from "./types/DataTypes.sol";
 
 /// @title SablierFlow
@@ -22,7 +22,6 @@ contract SablierFlow is
     ISablierFlow, // 4 inherited components
     SablierFlowState // 8 inherited components
 {
-    using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -186,7 +185,7 @@ contract SablierFlow is
         uint128 ratePerSecond,
         IERC20 asset,
         bool isTransferable,
-        uint128 totalAmount,
+        uint128 totalTransferAmount,
         Broker calldata broker
     )
         external
@@ -198,13 +197,13 @@ contract SablierFlow is
         streamId = _create(sender, recipient, ratePerSecond, asset, isTransferable);
 
         // Checks, Effects and Interactions: deposit into stream through {depositViaBroker}.
-        _depositViaBroker(streamId, totalAmount, broker);
+        _depositViaBroker(streamId, totalTransferAmount, broker);
     }
 
     /// @inheritdoc ISablierFlow
     function deposit(
         uint256 streamId,
-        uint128 amount
+        uint128 transferAmount
     )
         external
         override
@@ -213,13 +212,13 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, amount);
+        _deposit(streamId, transferAmount);
     }
 
     /// @inheritdoc ISablierFlow
     function depositAndPause(
         uint256 streamId,
-        uint128 amount
+        uint128 transferAmount
     )
         external
         override
@@ -230,15 +229,16 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, amount);
+        _deposit(streamId, transferAmount);
 
         // Checks, Effects and Interactions: pause the stream.
         _pause(streamId);
     }
 
+    /// @inheritdoc ISablierFlow
     function depositViaBroker(
         uint256 streamId,
-        uint128 totalAmount,
+        uint128 totalTransferAmount,
         Broker calldata broker
     )
         external
@@ -248,7 +248,7 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects and Interactions: deposit on stream through broker.
-        _depositViaBroker(streamId, totalAmount, broker);
+        _depositViaBroker(streamId, totalTransferAmount, broker);
     }
 
     /// @inheritdoc ISablierFlow
@@ -320,7 +320,7 @@ contract SablierFlow is
     function restartAndDeposit(
         uint256 streamId,
         uint128 ratePerSecond,
-        uint128 amount
+        uint128 transferAmount
     )
         external
         override
@@ -333,7 +333,7 @@ contract SablierFlow is
         _restart(streamId, ratePerSecond);
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, amount);
+        _deposit(streamId, transferAmount);
     }
 
     /// @inheritdoc ISablierFlow
@@ -393,25 +393,6 @@ contract SablierFlow is
 
         // Calculate the total amount that is owed to the recipient.
         return _streams[streamId].remainingAmount + recentAmount;
-    }
-
-    /// @notice Calculates the transfer amount based on the asset's decimals.
-    /// @dev Changes the amount based on the asset's decimal difference from 18:
-    /// - if the asset has fewer decimals, the amount is reduced
-    /// - if the asset has more decimals, the amount is increased
-    function _calculateTransferAmount(uint128 amount, uint8 assetDecimals) internal pure returns (uint128) {
-        // Return the original amount if asset's decimals are already 18.
-        if (assetDecimals == 18) {
-            return amount;
-        }
-
-        if (assetDecimals > 18) {
-            uint8 normalizingFactor = assetDecimals - 18;
-            return (amount * (10 ** normalizingFactor)).toUint128();
-        } else {
-            uint8 normalizingFactor = 18 - assetDecimals;
-            return (amount / (10 ** normalizingFactor)).toUint128();
-        }
     }
 
     /// @dev Calculates the recent amount streamed since last update. Return 0 if the stream is paused.
@@ -557,30 +538,33 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _deposit(uint256 streamId, uint128 amount) internal {
+    function _deposit(uint256 streamId, uint128 transferAmount) internal {
         // Check: the deposit amount is not zero.
-        if (amount == 0) {
+        if (transferAmount == 0) {
             revert Errors.SablierFlow_DepositAmountZero();
         }
 
         // Retrieve the ERC-20 asset from storage.
         IERC20 asset = _streams[streamId].asset;
 
-        // Calculate the transfer amount.
-        uint128 transferAmount = _calculateTransferAmount(amount, _streams[streamId].assetDecimals);
+        uint128 normalizedAmount;
+
+        // Calculate the amount normalized.
+        (transferAmount, normalizedAmount) =
+            Helpers.calculateNormalizedAmount(transferAmount, _streams[streamId].assetDecimals);
 
         // Effect: update the stream balance.
-        _streams[streamId].balance += amount;
+        _streams[streamId].balance += normalizedAmount;
 
-        // Interaction: transfer the deposit amount.
+        // Interaction: transfer the amount.
         asset.safeTransferFrom(msg.sender, address(this), transferAmount);
 
         // Log the deposit.
-        emit ISablierFlow.DepositFlowStream(streamId, msg.sender, asset, amount);
+        emit ISablierFlow.DepositFlowStream(streamId, msg.sender, asset, normalizedAmount);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _depositViaBroker(uint256 streamId, uint128 totalAmount, Broker memory broker) internal {
+    function _depositViaBroker(uint256 streamId, uint128 totalTransferAmount, Broker memory broker) internal {
         // Check: the broker's fee is not greater than `MAX_BROKER_FEE`.
         if (broker.fee.gt(MAX_BROKER_FEE)) {
             revert Errors.SablierFlow_BrokerFeeTooHigh(streamId, broker.fee, MAX_BROKER_FEE);
@@ -592,11 +576,10 @@ contract SablierFlow is
         }
 
         // Calculate the broker's amount.
-        uint128 brokerAmountIn18Decimals = uint128(ud(totalAmount).mul(broker.fee).intoUint256());
-        uint128 brokerAmount = _calculateTransferAmount(brokerAmountIn18Decimals, _streams[streamId].assetDecimals);
+        uint128 brokerAmount = uint128(ud(totalTransferAmount).mul(broker.fee).intoUint256());
 
         // Checks, Effects and Interactions: deposit on stream.
-        _deposit({ streamId: streamId, amount: totalAmount - brokerAmountIn18Decimals });
+        _deposit({ streamId: streamId, transferAmount: totalTransferAmount - brokerAmount });
 
         // Interaction: transfer the broker's amount.
         _streams[streamId].asset.safeTransferFrom(msg.sender, broker.account, brokerAmount);
@@ -605,7 +588,7 @@ contract SablierFlow is
     /// @dev Helper function to calculate the transfer amount and perform the ERC-20 transfer.
     function _extractFromStream(uint256 streamId, address to, uint128 amount) internal {
         // Calculate the transfer amount.
-        uint128 transferAmount = _calculateTransferAmount(amount, _streams[streamId].assetDecimals);
+        uint128 transferAmount = Helpers.calculateTransferAmount(amount, _streams[streamId].assetDecimals);
 
         // Effect: update the stream balance.
         _streams[streamId].balance -= amount;
