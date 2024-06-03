@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22 <0.9.0;
 
+import { Helpers } from "src/libraries/Helpers.sol";
+
 import { Invariant_Test } from "./Invariant.t.sol";
 import { FlowCreateHandler } from "./handlers/FlowCreateHandler.sol";
 import { FlowHandler } from "./handlers/FlowHandler.sol";
@@ -68,15 +70,16 @@ contract Flow_Invariant_Test is Invariant_Test {
         uint256 contractBalance = dai.balanceOf(address(flow));
 
         uint256 lastStreamId = flowStore.lastStreamId();
-        uint256 streamBalancesSumNormalized;
+        uint256 streamBalancesSumNormalizedToAssetDecimals;
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            streamBalancesSumNormalized += uint256(normalizeStreamBalance(streamId));
+            streamBalancesSumNormalizedToAssetDecimals +=
+                uint256(Helpers.calculateTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId)));
         }
 
         assertGe(
             contractBalance,
-            streamBalancesSumNormalized,
+            streamBalancesSumNormalizedToAssetDecimals,
             unicode"Invariant violation: contract balance < Σ stream balances"
         );
     }

@@ -31,6 +31,7 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
     //////////////////////////////////////////////////////////////////////////*/
 
     ERC20Mock internal assetWithoutDecimals = new ERC20Mock("Asset without decimals", "AWD", 0);
+    ERC20Mock internal assetWithMoreDecimals = new ERC20Mock("Asset without decimals", "AWD", 24);
     ERC20Mock internal dai = new ERC20Mock("Dai stablecoin", "DAI", 18);
     ERC20Mock internal usdc = new ERC20Mock("USD Coin", "USDC", 6);
     ERC20MissingReturn internal usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
@@ -72,10 +73,12 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
     function createUser(string memory name) internal returns (address payable) {
         address payable user = payable(makeAddr(name));
         vm.deal({ account: user, newBalance: 100 ether });
+        deal({ token: address(assetWithMoreDecimals), to: user, give: 1_000_000e24 });
         deal({ token: address(dai), to: user, give: 1_000_000e18 });
         deal({ token: address(usdc), to: user, give: 1_000_000e6 });
         deal({ token: address(usdt), to: user, give: 1_000_000e18 });
         resetPrank(user);
+        assetWithMoreDecimals.approve({ spender: address(flow), value: type(uint256).max });
         dai.approve({ spender: address(flow), value: type(uint256).max });
         usdc.approve({ spender: address(flow), value: type(uint256).max });
         usdt.approve({ spender: address(flow), value: type(uint256).max });
@@ -99,39 +102,6 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         vm.label(address(dai), "DAI");
         vm.label(address(flow), "Flow");
         vm.label(address(usdt), "USDT");
-    }
-
-    /// @dev Normalizes `amount` to `decimals`.
-    function normalizeAmountToDecimal(
-        uint128 amount,
-        uint8 decimals
-    )
-        internal
-        pure
-        returns (uint128 normalizedAmount)
-    {
-        // Return the original amount if it's already in the standard 18-decimal format.
-        if (decimals == 18) {
-            return amount;
-        }
-
-        bool isGreaterThan18 = decimals > 18;
-
-        uint8 normalizingFactor = isGreaterThan18 ? decimals - 18 : 18 - decimals;
-
-        normalizedAmount = isGreaterThan18
-            ? (amount * (10 ** normalizingFactor)).toUint128()
-            : (amount / (10 ** normalizingFactor)).toUint128();
-    }
-
-    /// @dev Normalizes `amount` to the decimal of `streamId` asset.
-    function normalizeAmountWithStreamId(uint256 streamId, uint128 amount) internal view returns (uint256) {
-        return normalizeAmountToDecimal(amount, flow.getAssetDecimals(streamId));
-    }
-
-    /// @dev Normalizes stream balance to the decimal of `streamId` asset.
-    function normalizeStreamBalance(uint256 streamId) internal view returns (uint256) {
-        return normalizeAmountToDecimal(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
     }
 
     /*//////////////////////////////////////////////////////////////////////////

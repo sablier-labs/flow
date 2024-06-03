@@ -17,7 +17,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
                 RATE_PER_SECOND,
                 dai,
                 IS_TRANFERABLE,
-                DEPOSIT_AMOUNT_WITH_BROKER_FEE,
+                TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
                 defaultBroker
             )
         );
@@ -43,41 +43,23 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
         });
 
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({
-            from: users.sender,
-            to: address(flow),
-            value: normalizeAmountToDecimal(DEPOSIT_AMOUNT, 18)
-        });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: TRANSFER_AMOUNT });
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
             streamId: expectedStreamId,
             funder: users.sender,
             asset: dai,
-            depositAmount: DEPOSIT_AMOUNT
+            depositAmount: DEPOSITED_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({
-            from: users.sender,
-            to: users.broker,
-            value: normalizeAmountToDecimal(BROKER_FEE_AMOUNT, 18)
-        });
+        emit IERC20.Transfer({ from: users.sender, to: users.broker, value: BROKER_FEE_AMOUNT });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({
-            asset: dai,
-            from: users.sender,
-            to: address(flow),
-            amount: normalizeAmountToDecimal(DEPOSIT_AMOUNT, 18)
-        });
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: TRANSFER_AMOUNT });
 
-        expectCallToTransferFrom({
-            asset: dai,
-            from: users.sender,
-            to: users.broker,
-            amount: normalizeAmountToDecimal(BROKER_FEE_AMOUNT, 18)
-        });
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: users.broker, amount: BROKER_FEE_AMOUNT });
 
         uint256 actualStreamId = flow.createAndDepositViaBroker({
             sender: users.sender,
@@ -85,7 +67,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
             isTransferable: IS_TRANFERABLE,
-            totalAmount: DEPOSIT_AMOUNT_WITH_BROKER_FEE,
+            totalTransferAmount: TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
             broker: defaultBroker
         });
 
@@ -94,7 +76,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
             assetDecimals: 18,
-            balance: DEPOSIT_AMOUNT,
+            balance: DEPOSITED_AMOUNT,
             lastTimeUpdate: uint40(block.timestamp),
             isPaused: false,
             isStream: true,
@@ -116,7 +98,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(expectedStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSITED_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }
