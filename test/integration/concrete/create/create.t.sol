@@ -60,7 +60,6 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-
     function test_RevertWhen_AssetDecimalsExceeds18()
         external
         whenNoDelegateCall
@@ -83,7 +82,6 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             isTransferable: IS_TRANFERABLE
         });
     }
-
 
     function test_RevertWhen_RecipientIsZero()
         external
@@ -165,6 +163,5 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         address actualNFTOwner = flow.ownerOf({ tokenId: actualStreamId });
         address expectedNFTOwner = users.recipient;
         assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
-    }
     }
 }

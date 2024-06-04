@@ -3,6 +3,8 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import { Helpers } from "src/libraries/Helpers.sol";
+
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
@@ -33,15 +35,17 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         // Withdraw the maximum amount.
-        test_WithdrawMax();
+        _test_WithdrawMax();
     }
 
     function test_GivenNotPaused() external whenNoDelegateCall givenNotNull {
         // Withdraw the maximum amount.
-        test_WithdrawMax();
+        _test_WithdrawMax();
     }
 
-    function test_WithdrawMax() internal {
+    function _test_WithdrawMax() private {
+        uint128 transferAmount = Helpers.calculateNormalizedAmount(ONE_MONTH_STREAMED_AMOUNT, 18);
+
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(dai) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
@@ -58,11 +62,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        expectCallToTransfer({
-            asset: dai,
-            to: users.recipient,
-            amount: normalizeAmountWithStreamId(defaultStreamId, ONE_MONTH_STREAMED_AMOUNT)
-        });
+        expectCallToTransfer({ asset: dai, to: users.recipient, amount: transferAmount });
 
         flow.withdrawMax(defaultStreamId, users.recipient);
 

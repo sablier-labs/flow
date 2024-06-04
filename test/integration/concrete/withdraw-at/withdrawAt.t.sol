@@ -121,7 +121,12 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressIsNotOwner
     {
         // It should withdraw.
-        test_Withdraw({ streamId: defaultStreamId, to: users.eve, expectedWithdrawAmount: WITHDRAW_AMOUNT });
+        _test_Withdraw({
+            streamId: defaultStreamId,
+            to: users.eve,
+            expectedWithdrawAmount: WITHDRAW_AMOUNT,
+            assetDecimals: 18
+        });
     }
 
     function test_RevertGiven_BalanceIsZero()
@@ -174,7 +179,12 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 previousAmountOwed = flow.amountOwedOf(streamId);
 
         // It should withdraw the balance.
-        test_Withdraw({ streamId: streamId, to: users.recipient, expectedWithdrawAmount: smallDepositAmount });
+        _test_Withdraw({
+            streamId: streamId,
+            to: users.recipient,
+            expectedWithdrawAmount: smallDepositAmount,
+            assetDecimals: 18
+        });
 
         // It should update lastTimeUpdate.
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
@@ -220,10 +230,13 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         uint128 previousAmountOwed = flow.amountOwedOf(streamId);
 
-        uint128 transferAmount = Helpers.calculateTransferAmount(WITHDRAW_AMOUNT, assetDecimals);
-
         // It should withdraw the amount owed.
-        test_Withdraw({ streamId: streamId, to: users.recipient, expectedWithdrawAmount: WITHDRAW_AMOUNT });
+        _test_Withdraw({
+            streamId: streamId,
+            to: users.recipient,
+            expectedWithdrawAmount: WITHDRAW_AMOUNT,
+            assetDecimals: 6
+        });
 
         // It should update lastTimeUpdate.
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
@@ -253,7 +266,12 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 previousAmountOwed = flow.amountOwedOf(defaultStreamId);
 
         // It should withdraw the amount owed.
-        test_Withdraw({ streamId: defaultStreamId, to: users.recipient, expectedWithdrawAmount: WITHDRAW_AMOUNT });
+        _test_Withdraw({
+            streamId: defaultStreamId,
+            to: users.recipient,
+            expectedWithdrawAmount: WITHDRAW_AMOUNT,
+            assetDecimals: 18
+        });
 
         // It should update lastTimeUpdate.
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
@@ -270,16 +288,20 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
-    function test_Withdraw(uint256 streamId, address to, uint128 expectedWithdrawAmount) internal {
+    function _test_Withdraw(
+        uint256 streamId,
+        address to,
+        uint128 expectedWithdrawAmount,
+        uint8 assetDecimals
+    )
+        private
+    {
         IERC20 asset = flow.getAsset(streamId);
+        uint128 transferAmount = Helpers.calculateTransferAmount(expectedWithdrawAmount, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({
-            from: address(flow),
-            to: to,
-            value: normalizeAmountWithStreamId(streamId, expectedWithdrawAmount)
-        });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: transferAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({ streamId: streamId, to: to, asset: asset, withdrawnAmount: expectedWithdrawAmount });
@@ -288,11 +310,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransfer({
-            asset: asset,
-            to: to,
-            amount: normalizeAmountWithStreamId(streamId, expectedWithdrawAmount)
-        });
+        expectCallToTransfer({ asset: asset, to: to, amount: transferAmount });
 
         flow.withdrawAt({ streamId: streamId, to: to, time: WITHDRAW_TIME });
     }

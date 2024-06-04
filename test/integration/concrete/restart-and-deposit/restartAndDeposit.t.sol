@@ -68,7 +68,11 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
         // It should perform the ERC20 transfer.
         expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: TRANSFER_AMOUNT });
 
-        flow.restartAndDeposit({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND, amount: TRANSFER_AMOUNT });
+        flow.restartAndDeposit({
+            streamId: defaultStreamId,
+            ratePerSecond: RATE_PER_SECOND,
+            transferAmount: TRANSFER_AMOUNT
+        });
 
         // It should restart the stream.
         bool isPaused = flow.isPaused(defaultStreamId);

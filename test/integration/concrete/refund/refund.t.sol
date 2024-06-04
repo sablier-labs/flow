@@ -79,7 +79,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         // It should make the refund.
-        test_Refund(defaultStreamId, dai);
+        _test_Refund(defaultStreamId, dai, 18);
     }
 
     function test_WhenAssetMissesERC20Return()
@@ -109,10 +109,10 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenAssetDoesNotMissERC20Return
     {
         uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
-        depositToStreamId(streamId, DEPOSIT_AMOUNT);
+        depositToStreamId(streamId, TRANSFER_AMOUNT_6D);
 
         // It should make the refund.
-        test_Refund(streamId, IERC20(address(usdc)));
+        _test_Refund(streamId, IERC20(address(usdc)), 6);
     }
 
     function test_GivenAssetHas18Decimals()
@@ -126,7 +126,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenAssetDoesNotMissERC20Return
     {
         // It should make the refund.
-        test_Refund(defaultStreamId, dai, 18);
+        _test_Refund(defaultStreamId, dai, 18);
     }
 
     function _test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) private {

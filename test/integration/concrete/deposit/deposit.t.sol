@@ -31,7 +31,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         uint256 streamId = createStreamWithAsset(IERC20(address(usdt)));
 
         // It should make the deposit
-        test_Deposit(streamId, usdt, TRANSFER_AMOUNT_6D, 6);
+        _test_Deposit(streamId, IERC20(address(usdt)), TRANSFER_AMOUNT_6D, 6);
     }
 
     function test_GivenAssetDoesNotHave18Decimals()
@@ -58,6 +58,8 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) private {
+        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, assetDecimals);
+
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: transferAmount });

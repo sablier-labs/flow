@@ -6,7 +6,6 @@ import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
 import { Helpers } from "src/libraries/Helpers.sol";
-import { Broker } from "src/types/DataTypes.sol";
 
 import { Integration_Test } from "../../Integration.t.sol";
 
