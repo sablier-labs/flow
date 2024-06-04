@@ -4,7 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { Integration_Test } from "../../Integration.t.sol";
 
@@ -297,7 +296,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         private
     {
         IERC20 asset = flow.getAsset(streamId);
-        uint128 transferAmount = Helpers.calculateTransferAmount(expectedWithdrawAmount, assetDecimals);
+        uint128 transferAmount = getTransferValue(expectedWithdrawAmount, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(asset) });

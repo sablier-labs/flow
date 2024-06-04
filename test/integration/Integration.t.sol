@@ -4,6 +4,7 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
+import { Helpers } from "src/libraries/Helpers.sol";
 import { Broker } from "src/types/DataTypes.sol";
 
 import { Base_Test } from "../Base.t.sol";
@@ -50,6 +51,14 @@ abstract contract Integration_Test is Base_Test {
 
     function depositToStreamId(uint256 streamId, uint128 amount) internal {
         flow.deposit(streamId, amount);
+    }
+
+    function getNormalizedValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.calculateNormalizedAmount(amount, decimals);
+    }
+
+    function getTransferValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.calculateTransferAmount(amount, decimals);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

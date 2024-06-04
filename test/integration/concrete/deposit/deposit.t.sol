@@ -4,7 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { Integration_Test } from "../../Integration.t.sol";
 
@@ -58,7 +57,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) private {
-        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, assetDecimals);
+        uint128 normalizedAmount = getNormalizedValue(transferAmount, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });

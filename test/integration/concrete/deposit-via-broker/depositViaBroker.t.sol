@@ -5,7 +5,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ud } from "@prb/math/src/UD60x18.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { Integration_Test } from "../../Integration.t.sol";
 
@@ -122,7 +121,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: transferAmount });
 
-        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, assetDecimals);
+        uint128 normalizedAmount = getNormalizedValue(transferAmount, assetDecimals);
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({

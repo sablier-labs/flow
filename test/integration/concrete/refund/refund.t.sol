@@ -4,7 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { Integration_Test } from "../../Integration.t.sol";
 
@@ -130,7 +129,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) private {
-        uint128 transferAmount = Helpers.calculateTransferAmount(REFUND_AMOUNT, assetDecimals);
+        uint128 transferAmount = getTransferValue(REFUND_AMOUNT, assetDecimals);
 
         // It should emit a {Transfer} and {RefundFromFlowStream} event.
         vm.expectEmit({ emitter: address(asset) });
