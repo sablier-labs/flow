@@ -219,7 +219,13 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // Make recipient the caller for subsequent tests.
         resetPrank({ msgSender: users.recipient });
 
+<<<<<<< HEAD
         uint128 previousFullAmountOwed = flow.amountOwedOf(streamId);
+=======
+        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        uint40 expectedLastTimeUpdate = getBlockTimestamp() - ONE_MONTH;
+        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
+>>>>>>> f0f8e3a (test: fuzz tests for create and deposit)
 
         // It should withdraw the amount owed.
         _test_Withdraw({

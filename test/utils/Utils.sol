@@ -8,6 +8,27 @@ import { CommonBase } from "forge-std/src/Base.sol";
 import { Helpers } from "src/libraries/Helpers.sol";
 
 abstract contract Utils is CommonBase, PRBMathUtils {
+    /// @dev Bound `amount` and `decimals` to avoid overflow.
+    function boundDepositAmount(uint128 amount_, uint8 decimals_) internal pure returns (uint128 amount) {
+        uint128 maxDeposit = uint128(uint128(type(uint128).max / (10 ** decimals_)));
+        amount = boundUint128(amount_, 1, maxDeposit);
+    }
+
+    /// @dev Bounds a `uint128` number.
+    function boundUint128(uint128 x, uint128 min, uint128 max) internal pure returns (uint128) {
+        return uint128(_bound(uint256(x), uint256(min), uint256(max)));
+    }
+
+    /// @dev Bounds a `uint40` number.
+    function boundUint40(uint40 x, uint40 min, uint40 max) internal pure returns (uint40) {
+        return uint40(_bound(uint256(x), uint256(min), uint256(max)));
+    }
+
+    /// @dev Bounds a `uint8` number.
+    function boundUint8(uint8 x, uint8 min, uint8 max) internal pure returns (uint8) {
+        return uint8(_bound(uint256(x), uint256(min), uint256(max)));
+    }
+
     /// @dev Retrieves the current block timestamp as an `uint40`.
     function getBlockTimestamp() internal view returns (uint40) {
         return uint40(block.timestamp);
