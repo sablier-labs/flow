@@ -50,7 +50,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             streamId: expectedStreamId,
             funder: users.sender,
             asset: dai,
-            depositAmount: DEPOSITED_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(dai) });
@@ -76,7 +76,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
             assetDecimals: 18,
-            balance: DEPOSITED_AMOUNT,
+            balance: DEPOSIT_AMOUNT,
             lastTimeUpdate: uint40(block.timestamp),
             isPaused: false,
             isStream: true,
@@ -98,7 +98,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(expectedStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

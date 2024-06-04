@@ -70,16 +70,16 @@ contract Flow_Invariant_Test is Invariant_Test {
         uint256 contractBalance = dai.balanceOf(address(flow));
 
         uint256 lastStreamId = flowStore.lastStreamId();
-        uint128 streamBalancesSumNormalizedToAssetDecimals;
+        uint128 streamBalancesSumNormalized;
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            streamBalancesSumNormalizedToAssetDecimals +=
+            streamBalancesSumNormalized +=
                 Helpers.calculateTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
         }
 
         assertGe(
             contractBalance,
-            streamBalancesSumNormalizedToAssetDecimals,
+            streamBalancesSumNormalized,
             unicode"Invariant violation: contract balance < Σ stream balances"
         );
     }

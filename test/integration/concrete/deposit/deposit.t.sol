@@ -44,7 +44,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         whenDepositAmountNonZero
     {
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        _test_Deposit(streamId, IERC20(address(usdt)), TRANSFER_AMOUNT_6_DECIMALS, 6);
+        _test_Deposit(streamId, IERC20(address(usdt)), TRANSFER_AMOUNT_6D, 6);
     }
 
     function test_Deposit_Asset18Decimals() external {
@@ -53,7 +53,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
 
     function test_Deposit_AssetLessThan18Decimals() external {
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdc)));
-        _test_Deposit(streamId, usdc, TRANSFER_AMOUNT_6_DECIMALS, 6);
+        _test_Deposit(streamId, usdc, TRANSFER_AMOUNT_6D, 6);
     }
 
     function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) internal {

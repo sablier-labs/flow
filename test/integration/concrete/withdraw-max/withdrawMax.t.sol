@@ -36,7 +36,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         flow.withdrawMax(defaultStreamId, users.recipient);
 
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);

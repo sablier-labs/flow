@@ -71,7 +71,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             funder: users.sender,
             asset: dai,
-            depositAmount: DEPOSITED_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -93,7 +93,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
         assertEq(actualLastTimeUpdate, block.timestamp, "lastTimeUpdate");
 
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

@@ -67,9 +67,9 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         _test_DepositViaBroker(
             streamId,
             IERC20(address(usdt)),
-            TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE_6_DECIMALS,
-            TRANSFER_AMOUNT_6_DECIMALS,
-            BROKER_FEE_AMOUNT_6_DECIMALS,
+            TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE_6D,
+            TRANSFER_AMOUNT_6D,
+            BROKER_FEE_AMOUNT_6D,
             6
         );
     }
@@ -87,9 +87,9 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         _test_DepositViaBroker(
             streamId,
             IERC20(address(usdc)),
-            TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE_6_DECIMALS,
-            TRANSFER_AMOUNT_6_DECIMALS,
-            BROKER_FEE_AMOUNT_6_DECIMALS,
+            TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE_6D,
+            TRANSFER_AMOUNT_6D,
+            BROKER_FEE_AMOUNT_6D,
             6
         );
     }

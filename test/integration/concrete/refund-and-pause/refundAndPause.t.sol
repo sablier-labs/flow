@@ -85,7 +85,7 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - REFUND_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should pause the stream

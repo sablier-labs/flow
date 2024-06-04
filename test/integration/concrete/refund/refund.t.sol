@@ -58,11 +58,11 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
             abi.encodeWithSelector(
                 Errors.SablierFlow_Overrefund.selector,
                 defaultStreamId,
-                DEPOSITED_AMOUNT,
-                DEPOSITED_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
+                DEPOSIT_AMOUNT,
+                DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
             )
         );
-        flow.refund({ streamId: defaultStreamId, amount: DEPOSITED_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
     }
 
     function test_Refund_PausedStream() external whenNotDelegateCalled givenNotNull whenCallerIsSender {
@@ -72,7 +72,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         flow.refund({ streamId: defaultStreamId, amount: REFUND_AMOUNT });
 
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - REFUND_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -87,7 +87,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
         vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        flow.deposit(streamId, TRANSFER_AMOUNT_6_DECIMALS);
+        flow.deposit(streamId, TRANSFER_AMOUNT_6D);
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
         test_Refund(streamId, IERC20(address(usdt)), 6);
@@ -117,7 +117,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         flow.refund({ streamId: streamId, amount: REFUND_AMOUNT });
 
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - REFUND_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

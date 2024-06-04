@@ -151,19 +151,22 @@ calculated amount (withdrawable or refundable) based on the asset's decimals:
 
 Deposit:
 
-- if the asset has 18 decimals, the amount is the same
-- if the asset has fewer decimals, the amount is increased
+- if the asset has 18 decimals, the internal deposited amount remains same as the transfer amount
+- if the asset has fewer decimals, the internal deposited amount is increased by the difference between the asset
+  decimals and 18
 
 Withdraw and Refund:
 
-- if the asset has 18 decimals, the amount is the same
-- if the asset has fewer decimals, the amount is decreased
+- if the asset has 18 decimals, the transfer amount is the same as the internal amount
+- if the asset has fewer decimals, the transfer amount is decreased by the difference between 18 and asset decimals
 
 Asset decimal is retrieved directly from the ERC20 contract. We store the asset decimals to avoid making an external
 call to get the decimals of the asset each time a deposit or withdraw is made. Decimals are stored as `uint8`, making
 them inexpensive to store.
 
-**Note:** we do not allow assets with more than 18 decimals.
+### Limitations
+
+- ERC20 tokens with decimals higher than 18 are not supported.
 
 ## Invariants
 

@@ -176,7 +176,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -201,7 +201,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -294,7 +294,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // Set the timestamp to 1 month ago to create the stream with the same `lastTimeUpdate` as `defaultStreamId`.
         vm.warp({ newTimestamp: WARP_ONE_MONTH - ONE_MONTH });
         uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdt)));
-        flow.deposit(streamId, TRANSFER_AMOUNT_6_DECIMALS);
+        flow.deposit(streamId, TRANSFER_AMOUNT_6D);
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
         _test_Withdraw(streamId, IERC20(address(usdt)), 6);
@@ -343,7 +343,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
 
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSITED_AMOUNT - WITHDRAW_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }
