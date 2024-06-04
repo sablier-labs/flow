@@ -30,9 +30,9 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    ERC20Mock internal assetWithoutDecimals = new ERC20Mock("Asset without decimals", "AWD", 0);
-    ERC20Mock internal dai = new ERC20Mock("Dai stablecoin", "DAI", 18);
-    ERC20Mock internal usdc = new ERC20Mock("USD Coin", "USDC", 6);
+    ERC20Mock internal assetWithoutDecimals = createAsset(0);
+    ERC20Mock internal dai = createAsset(18);
+    ERC20Mock internal usdc = createAsset(6);
     ERC20MissingReturn internal usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
 
     SablierFlow internal flow;
@@ -68,6 +68,11 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
     /*//////////////////////////////////////////////////////////////////////////
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @dev Creates a new ERC20 asset with `decimals`.
+    function createAsset(uint8 decimals) internal returns (ERC20Mock) {
+        return new ERC20Mock("", "", decimals);
+    }
 
     function createUser(string memory name) internal returns (address payable) {
         address payable user = payable(makeAddr(name));
