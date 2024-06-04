@@ -494,6 +494,11 @@ contract SablierFlow is
 
         uint8 assetDecimals = Helpers.safeAssetDecimals(address(asset));
 
+        // Check: the asset decimals are not greater than 18.
+        if (assetDecimals > 18) {
+            revert Errors.SablierFlow_InvalidAssetDecimals(address(asset));
+        }
+
         // Load the stream id.
         streamId = nextStreamId;
 
@@ -534,11 +539,8 @@ contract SablierFlow is
         // Retrieve the ERC-20 asset from storage.
         IERC20 asset = _streams[streamId].asset;
 
-        uint128 normalizedAmount;
-
         // Calculate the amount normalized.
-        (transferAmount, normalizedAmount) =
-            Helpers.calculateNormalizedAmount(transferAmount, _streams[streamId].assetDecimals);
+        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, _streams[streamId].assetDecimals);
 
         // Effect: update the stream balance.
         _streams[streamId].balance += normalizedAmount;

@@ -15,8 +15,7 @@ library Helpers {
 
     /// @notice Calculates the normalized amount based on the asset's decimals.
     /// @dev Changes the transfer amount based on the asset's decimal difference from 18:
-    /// - if the asset has more decimals, the amount is reduced, also the transfer amount is rounded to zero after the
-    /// 18th decimal place
+    /// - if the asset has 18 decimals, the transfer amount is returned
     /// - if the asset has fewer decimals, the amount is increased
     function calculateNormalizedAmount(
         uint128 transferAmount,
@@ -24,54 +23,48 @@ library Helpers {
     )
         internal
         pure
-        returns (uint128, uint128)
+        returns (uint128 normalizedAmount)
     {
         // If the asset's decimals are 18, the transfer amount and the normalized amount are equal.
         if (assetDecimals == 18) {
-            return (transferAmount, transferAmount);
+            return transferAmount;
         }
 
+        uint8 normalizingFactor;
+
+        // Safe to use unchecked because the asset's decimals can't be greater than 18.
         unchecked {
-            if (assetDecimals > 18) {
-                uint8 normalizingFactor = assetDecimals - 18;
-                uint128 factor = (10 ** normalizingFactor).toUint128();
-
-                // Normalize the amount to 18 decimals.
-                uint128 normalizedAmount = transferAmount / factor;
-
-                // If the number has 10.000..(asset decimals)..005, the transfer amount will be rounded to zero after
-                // the 18th decimal place, i.e. to 10.000..(asset decimals)..000. This is because we do not account for
-                // more than 18 decimals internally, which would otherwise lead to an excess of assets in our contract.
-                transferAmount = normalizedAmount * factor;
-
-                return (transferAmount, normalizedAmount);
-            } else {
-                uint128 normalizingFactor = 18 - assetDecimals;
-                uint128 normalizedAmount = transferAmount * (10 ** normalizingFactor).toUint128();
-                return (transferAmount, normalizedAmount);
-            }
+            normalizingFactor = 18 - assetDecimals;
         }
+
+        normalizedAmount = transferAmount * (10 ** normalizingFactor).toUint128();
     }
 
     /// @notice Calculates the transfer amount based on the asset's decimals.
     /// @dev Changes the amount based on the asset's decimal difference from 18:
+    /// - if the asset has 18 decimals, the amount is returned
     /// - if the asset has fewer decimals, the amount is reduced
-    /// - if the asset has more decimals, the amount is increased
-    function calculateTransferAmount(uint128 amount, uint8 assetDecimals) internal pure returns (uint128) {
+    function calculateTransferAmount(
+        uint128 amount,
+        uint8 assetDecimals
+    )
+        internal
+        pure
+        returns (uint128 transferAmount)
+    {
         // Return the original amount if asset's decimals are already 18.
         if (assetDecimals == 18) {
             return amount;
         }
 
+        uint8 normalizingFactor;
+
+        // Safe to use unchecked because the asset's decimals can't be greater than 18.
         unchecked {
-            if (assetDecimals > 18) {
-                uint8 normalizingFactor = assetDecimals - 18;
-                return (amount * (10 ** normalizingFactor)).toUint128();
-            } else {
-                uint8 normalizingFactor = 18 - assetDecimals;
-                return (amount / (10 ** normalizingFactor)).toUint128();
-            }
+            normalizingFactor = 18 - assetDecimals;
         }
+
+        transferAmount = (amount / (10 ** normalizingFactor)).toUint128();
     }
 
     /// @dev Checks the `Broker` parameter, and then calculates the broker fee amount and the transfer amount from the

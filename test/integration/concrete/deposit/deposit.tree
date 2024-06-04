@@ -19,21 +19,8 @@ deposit.t.sol
                │  ├── it should perform the ERC-20 transfer
                │  ├── it should emit a {Transfer} and {DepositFlowStream} event
                │  └── it should emit a {MetadataUpdate} event
-               └── given the does not have 18 decimals
-                  ├── given the asset has less than 18 decimals
-                  │  ├── it should update the stream balance
-                  │  ├── it should perform the ERC-20 transfer
-                  │  ├── it should emit a {Transfer} and {DepositFlowStream} event
-                  │  └── it should emit a {MetadataUpdate} event
-                  └── given the asset has more than 18 decimals
-                     ├── when the transfer amount has only zeros after 18th decimal
-                     │  ├── it should update the stream balance
-                     │  ├── it should perform the ERC-20 transfer
-                     │  ├── it should emit a {Transfer} and {DepositFlowStream} event
-                     │  └── it should emit a {MetadataUpdate} event
-                     └── when the transfer amount does not have only zeros after 18th decimal
-                        ├── it should update the transfer amount to have only zeroes after 18th decimal
-                        ├── it should update the stream balance
-                        ├── it should perform the ERC-20 transfer
-                        ├── it should emit a {Transfer} and {DepositFlowStream} event
-                        └── it should emit a {MetadataUpdate} event
+               └── given the asset has less than 18 decimals
+                  ├── it should update the stream balance
+                  ├── it should perform the ERC-20 transfer
+                  ├── it should emit a {Transfer} and {DepositFlowStream} event
+                  └── it should emit a {MetadataUpdate} event

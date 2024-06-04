@@ -155,7 +155,7 @@ contract FlowHandler is BaseHandler {
         // Deposit into the stream.
         flow.deposit({ streamId: currentStreamId, transferAmount: transferAmount });
 
-        (, uint128 normalizedAmount) =
+        uint128 normalizedAmount =
             Helpers.calculateNormalizedAmount(transferAmount, flow.getAssetDecimals(currentStreamId));
 
         // Update the deposited amount.

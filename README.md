@@ -149,12 +149,21 @@ actual `ERC20` balances. The only time we perform these conversions is during ex
 `transfer`/`transferFrom` (i.e. deposit, withdraw and refund operations). When performing these actions, we adjust the
 calculated amount (withdrawable or refundable) based on the asset's decimals:
 
-- if the asset has fewer decimals, the transfer amount is reduced.
-- if the asset has more decimals, the transfer amount is increased.
+Deposit:
+
+- if the asset has 18 decimals, the amount is the same
+- if the asset has fewer decimals, the amount is increased
+
+Withdraw and Refund:
+
+- if the asset has 18 decimals, the amount is the same
+- if the asset has fewer decimals, the amount is decreased
 
 Asset decimal is retrieved directly from the ERC20 contract. We store the asset decimals to avoid making an external
 call to get the decimals of the asset each time a deposit or withdraw is made. Decimals are stored as `uint8`, making
 them inexpensive to store.
+
+**Note:** we do not allow assets with more than 18 decimals.
 
 ## Invariants
 

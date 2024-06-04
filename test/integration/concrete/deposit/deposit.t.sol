@@ -56,22 +56,8 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         _test_Deposit(streamId, usdc, TRANSFER_AMOUNT_6_DECIMALS, 6);
     }
 
-    function test_Deposit_AssetMoreThan18Decimals_OnlyZeros() external {
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(assetWith24Decimals)));
-        uint128 transferAmount = 50_000e24;
-        _test_Deposit(streamId, assetWith24Decimals, transferAmount, 24);
-    }
-
-    function test_Deposit_AssetMoreThan18Decimals_NotOnlyZeros() external {
-        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(assetWith24Decimals)));
-        uint128 transferAmount = 50_000e24;
-        transferAmount += 5;
-        _test_Deposit(streamId, assetWith24Decimals, transferAmount, 24);
-    }
-
     function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) internal {
-        uint128 normalizedAmount;
-        (transferAmount, normalizedAmount) = Helpers.calculateNormalizedAmount(transferAmount, assetDecimals);
+        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, assetDecimals);
 
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: transferAmount });

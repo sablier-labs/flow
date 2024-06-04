@@ -169,7 +169,8 @@ interface ISablierFlow is
     /// - `recipient` must not be the zero address.
     /// - `sender` must not be the zero address.
     /// - `ratePerSecond` must be greater than zero.
-    /// - `asset` must have implemented `decimals` function and should not return a number greater than 255.
+    /// - `asset` must implement `decimals` function and should not return a number greater than 255.
+    /// - Asset decimals must not be greater than 18.
     ///
     /// @param recipient The address receiving the assets.
     /// @param sender The address streaming the assets, with the ability to adjust and pause the stream. It doesn't
@@ -250,7 +251,8 @@ interface ISablierFlow is
     /// @dev Emits a {Transfer} and {DepositFlowStream} event.
     ///
     /// Notes:
-    /// - The amount deposited in the stream balance is going to be normalized to 18 decimals.
+    /// - If the asset does not have 18 decimals, the amount deposited in the stream balance is going to be normalized
+    /// to 18 decimals.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -285,8 +287,7 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to deposit on.
     /// @param totalTransferAmount The total transfer amount, including the stream transfer amount and broker fee
-    /// amount, denoted
-    /// in units of the  asset's decimals.
+    /// amount, denoted in units of the  asset's decimals.
     /// @param broker The broker's address and fee.
     function depositViaBroker(uint256 streamId, uint128 totalTransferAmount, Broker calldata broker) external;
 
