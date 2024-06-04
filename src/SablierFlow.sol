@@ -539,7 +539,7 @@ contract SablierFlow is
         // Retrieve the ERC-20 asset from storage.
         IERC20 asset = _streams[streamId].asset;
 
-        // Calculate the amount normalized.
+        // Calculate the normalized amount.
         uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, _streams[streamId].assetDecimals);
 
         // Effect: update the stream balance.

@@ -70,11 +70,11 @@ contract Flow_Invariant_Test is Invariant_Test {
         uint256 contractBalance = dai.balanceOf(address(flow));
 
         uint256 lastStreamId = flowStore.lastStreamId();
-        uint256 streamBalancesSumNormalizedToAssetDecimals;
+        uint128 streamBalancesSumNormalizedToAssetDecimals;
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             streamBalancesSumNormalizedToAssetDecimals +=
-                uint256(Helpers.calculateTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId)));
+                Helpers.calculateTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
         }
 
         assertGe(

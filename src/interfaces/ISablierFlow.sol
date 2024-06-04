@@ -251,8 +251,7 @@ interface ISablierFlow is
     /// @dev Emits a {Transfer} and {DepositFlowStream} event.
     ///
     /// Notes:
-    /// - If the asset does not have 18 decimals, the amount deposited in the stream balance is going to be normalized
-    /// to 18 decimals.
+    /// - If the asset has less than 18 decimals, the amount deposited will normalized to 18 decimals.
     ///
     /// Requirements:
     /// - Must not be delegate called.
