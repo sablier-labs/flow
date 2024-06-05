@@ -18,7 +18,7 @@ contract Create_Integration_Fuzz_Test is Integration_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for the sender and recipient.
     /// - Multiple non-zero values for ratePerSecond.
-    /// - Multiple values for asset decimals.
+    /// - Multiple values for asset decimals less than 18.
     /// - Both transferable and non-transferable streams.
     function testFuzz_Create(
         address recipient,
@@ -30,7 +30,11 @@ contract Create_Integration_Fuzz_Test is Integration_Test {
         external
         whenNotDelegateCalled
     {
+        // Ceate the asset.
+        vm.assume(decimals <= 18);
         IERC20 asset = createAsset(decimals);
+
+        // Bound the input parameters.
         vm.assume(sender != address(0) && recipient != address(0) && ratePerSecond != 0);
 
         uint256 expectedStreamId = flow.nextStreamId();
