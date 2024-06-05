@@ -44,6 +44,29 @@ abstract contract Integration_Test is Base_Test {
         });
     }
 
+    function createDefaultStreamWithAssetAndRps(IERC20 asset_, uint128 ratePerSecond_) internal returns (uint256) {
+        return flow.create({
+            sender: users.sender,
+            recipient: users.recipient,
+            ratePerSecond: ratePerSecond_,
+            asset: asset_,
+            isTransferable: IS_TRANFERABLE
+        });
+    }
+
+    function createStreamAndDefaultDeposit(
+        IERC20 asset_,
+        uint8 decimals_,
+        uint128 ratePerSecond_
+    )
+        internal
+        returns (uint256 streamId)
+    {
+        streamId = createDefaultStreamWithAssetAndRps(asset_, ratePerSecond_);
+        uint128 transferAmount = uint128(TRANSFER_VALUE * 10 ** decimals_);
+        flow.deposit(streamId, transferAmount);
+    }
+
     function depositToDefaultStream() internal {
         flow.deposit(defaultStreamId, TRANSFER_AMOUNT);
     }
