@@ -5,10 +5,20 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { PRBMathUtils } from "@prb/math/test/utils/Utils.sol";
 import { CommonBase } from "forge-std/src/Base.sol";
 
+import { Helpers } from "src/libraries/Helpers.sol";
+
 abstract contract Utils is CommonBase, PRBMathUtils {
     /// @dev Retrieves the current block timestamp as an `uint40`.
     function getBlockTimestamp() internal view returns (uint40) {
         return uint40(block.timestamp);
+    }
+
+    function getNormalizedValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.calculateNormalizedAmount(amount, decimals);
+    }
+
+    function getTransferValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.calculateTransferAmount(amount, decimals);
     }
 
     /// @dev Checks if the Foundry profile is "test-optimized".

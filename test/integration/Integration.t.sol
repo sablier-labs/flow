@@ -4,7 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 import { Broker } from "src/types/DataTypes.sol";
 
 import { Base_Test } from "../Base.t.sol";
@@ -53,12 +52,16 @@ abstract contract Integration_Test is Base_Test {
         flow.deposit(streamId, amount);
     }
 
-    function getNormalizedValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
-        return Helpers.calculateNormalizedAmount(amount, decimals);
-    }
+    /// @dev Update the `lastTimeUpdate` of a stream to the current block timestamp.
+    function updateLastTimeToBlockTimestamp(uint256 streamId) internal {
+        resetPrank(users.sender);
+        uint128 ratePerSecond = flow.getRatePerSecond(streamId);
 
-    function getTransferValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
-        return Helpers.calculateTransferAmount(amount, decimals);
+        // Updates the last time update via `adjustRatePerSecond`.
+        flow.adjustRatePerSecond(streamId, 1);
+
+        // Restores the rate per second.
+        flow.adjustRatePerSecond(streamId, ratePerSecond);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -50,7 +50,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_WhenCallerIsSender() external whenNoDelegateCall givenNotNull givenNotPaused {
+    function test_WhenCallerSender() external whenNoDelegateCall givenNotNull givenNotPaused {
         uint128 transferAmount = flow.streamDebtOf(defaultStreamId);
         uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
         uint128 previousAmountOwed = flow.amountOwedOf(defaultStreamId);

@@ -7,19 +7,16 @@ import { Integration_Test } from "../../Integration.t.sol";
 
 contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (nullStreamId, RATE_PER_SECOND));
         expectRevert_Null(callData);
     }
 
     function test_RevertGiven_Paused() external whenNoDelegateCall givenNotNull {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
         expectRevert_Paused(callData);
     }
@@ -31,7 +28,6 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenCallerNotSender
     {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
         expectRevert_CallerRecipient(callData);
     }
@@ -43,19 +39,17 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenCallerNotSender
     {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_RevertWhen_NewRatePerSecondIsZero()
+    function test_RevertWhen_NewRatePerSecondZero()
         external
         whenNoDelegateCall
         givenNotNull
         givenNotPaused
         whenCallerSender
     {
-        // It should revert.
         vm.expectRevert(Errors.SablierFlow_RatePerSecondZero.selector);
         flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: 0 });
     }
@@ -66,9 +60,8 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         givenNotNull
         givenNotPaused
         whenCallerSender
-        whenNewRatePerSecondIsNotZero
+        whenNewRatePerSecondNotZero
     {
-        // It should revert.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_RatePerSecondNotDifferent.selector, RATE_PER_SECOND));
         flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: RATE_PER_SECOND });
     }
@@ -79,7 +72,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         givenNotNull
         givenNotPaused
         whenCallerSender
-        whenNewRatePerSecondIsNotZero
+        whenNewRatePerSecondNotZero
     {
         flow.deposit(defaultStreamId, TRANSFER_AMOUNT);
         vm.warp({ newTimestamp: WARP_ONE_MONTH });

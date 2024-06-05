@@ -9,24 +9,21 @@ import { Integration_Test } from "../../Integration.t.sol";
 
 contract Deposit_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.deposit, (defaultStreamId, TRANSFER_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.deposit, (nullStreamId, TRANSFER_AMOUNT));
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_DepositAmountIsZero() external whenNoDelegateCall givenNotNull {
-        // It should revert.
-        vm.expectRevert(Errors.SablierFlow_DepositAmountZero.selector);
+    function test_RevertWhen_TransferAmountAmountZero() external whenNoDelegateCall givenNotNull {
+        vm.expectRevert(Errors.SablierFlow_TransferAmountZero.selector);
         flow.deposit(defaultStreamId, 0);
     }
 
-    function test_WhenAssetMissesERC20Return() external whenNoDelegateCall givenNotNull whenDepositAmountIsNotZero {
+    function test_WhenAssetMissesERC20Return() external whenNoDelegateCall givenNotNull whenTransferAmountNotZero {
         uint256 streamId = createStreamWithAsset(IERC20(address(usdt)));
 
         // It should make the deposit
@@ -37,7 +34,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenDepositAmountIsNotZero
+        whenTransferAmountNotZero
         whenAssetDoesNotMissERC20Return
     {
         // It should make the deposit.
@@ -49,7 +46,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenDepositAmountIsNotZero
+        whenTransferAmountNotZero
         whenAssetDoesNotMissERC20Return
     {
         // It should make the deposit.

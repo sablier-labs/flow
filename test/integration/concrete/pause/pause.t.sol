@@ -5,19 +5,16 @@ import { Integration_Test } from "../../Integration.t.sol";
 
 contract Pause_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
-        // It should revert..
         bytes memory callData = abi.encodeCall(flow.pause, (defaultStreamId));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.pause, (nullStreamId));
         expectRevert_Null(callData);
     }
 
     function test_RevertGiven_Paused() external whenNoDelegateCall givenNotNull {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.pause, (defaultStreamId));
         expectRevert_Paused(callData);
     }
@@ -29,7 +26,6 @@ contract Pause_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenCallerNotSender
     {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.pause, (defaultStreamId));
         expectRevert_CallerRecipient(callData);
     }
@@ -41,12 +37,11 @@ contract Pause_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenCallerNotSender
     {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.pause, (defaultStreamId));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_GivenStreamWithDebt() external whenNoDelegateCall givenNotNull givenNotPaused whenCallerSender {
+    function test_GivenStreamHasDebt() external whenNoDelegateCall givenNotNull givenNotPaused whenCallerSender {
         // Simulate the passage of time to create debt.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
@@ -57,7 +52,7 @@ contract Pause_Integration_Concrete_Test is Integration_Test {
         test_Pause();
     }
 
-    function test_GivenStreamWithNoDebt() external whenNoDelegateCall givenNotNull givenNotPaused whenCallerSender {
+    function test_GivenStreamHasNoDebt() external whenNoDelegateCall givenNotNull givenNotPaused whenCallerSender {
         // Simulate the passage of time to create debt.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 

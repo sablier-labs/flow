@@ -9,12 +9,11 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertGiven_Null() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawableAmountOf, nullStreamId);
         expectRevert_Null(callData);
     }
 
-    function test_GivenBalanceIsZero() external givenNotNull {
+    function test_GivenBalanceZero() external givenNotNull {
         // Create a new stream with zero balance.
         uint256 streamId = createStreamWithAsset(dai);
 
@@ -23,7 +22,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(withdrawableAmount, 0, "withdrawable amount");
     }
 
-    modifier givenBalanceIsNotZero() override {
+    modifier givenBalanceNotZero() override {
         // Deposit into stream.
         depositToDefaultStream();
 
@@ -32,7 +31,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         _;
     }
 
-    function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceIsNotZero {
+    function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceNotZero {
         // Simulate the passage of time until debt begins.
         vm.warp({ newTimestamp: getBlockTimestamp() + SOLVENCY_PERIOD });
 
@@ -43,7 +42,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(withdrawableAmount, balance, "withdrawable amount");
     }
 
-    function test_WhenAmountOwedDoesNotExceedBalance() external givenNotNull givenBalanceIsNotZero {
+    function test_WhenAmountOwedDoesNotExceedBalance() external givenNotNull givenBalanceNotZero {
         // It should return the correct withdraw amount.
         uint128 withdrawableAmount = flow.withdrawableAmountOf(defaultStreamId);
         assertEq(withdrawableAmount, ONE_MONTH_STREAMED_AMOUNT, "withdrawable amount");

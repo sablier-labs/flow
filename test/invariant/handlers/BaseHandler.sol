@@ -30,7 +30,7 @@ abstract contract BaseHandler is Constants, StdCheats, Utils {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Default ERC-20 asset used for testing.
+    /// @dev Default ERC20 asset used for testing.
     IERC20 public asset;
 
     /*//////////////////////////////////////////////////////////////////////////

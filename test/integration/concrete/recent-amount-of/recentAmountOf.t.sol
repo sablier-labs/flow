@@ -12,7 +12,6 @@ contract RecentAmountOf_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertGiven_Null() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.recentAmountOf, nullStreamId);
         expectRevert_Null(callData);
     }

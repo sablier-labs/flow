@@ -102,18 +102,6 @@ abstract contract Base_Test is Assertions, Constants, Events, Modifiers, Test, U
         vm.label(address(usdt), "USDT");
     }
 
-    /// @dev Update the `lastTimeUpdate` of a stream to the current block timestamp.
-    function updateLastTimeToBlockTimestamp(uint256 streamId) internal {
-        resetPrank(users.sender);
-        uint128 ratePerSecond = flow.getRatePerSecond(streamId);
-
-        // Updates the last time update via `adjustRatePerSecond`.
-        flow.adjustRatePerSecond(streamId, 1);
-
-        // Restores the rate per second.
-        flow.adjustRatePerSecond(streamId, ratePerSecond);
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
                                     CALL EXPECTS
     //////////////////////////////////////////////////////////////////////////*/

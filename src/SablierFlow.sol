@@ -533,7 +533,7 @@ contract SablierFlow is
     function _deposit(uint256 streamId, uint128 transferAmount) internal {
         // Check: the deposit amount is not zero.
         if (transferAmount == 0) {
-            revert Errors.SablierFlow_DepositAmountZero();
+            revert Errors.SablierFlow_TransferAmountZero();
         }
 
         // Retrieve the ERC-20 asset from storage.
