@@ -13,7 +13,7 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     /// @dev Bound deposit amount to avoid overflow.
     function boundDepositAmount(uint128 amount_, uint8 decimals_) internal pure returns (uint128 amount) {
         uint128 maxDeposit = uint128(UINT128_MAX / (10 ** (18 - decimals_)));
-        amount = boundUint128(amount_, 1, maxDeposit);
+        amount = boundUint128(amount_, 1, maxDeposit / 2);
     }
 
     /// @dev Bounds a `uint128` number.
