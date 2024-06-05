@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.8.22 <0.9.0;
+pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { StdCheats } from "forge-std/src/StdCheats.sol";
 
-import { Constants } from "../../utils/Constants.sol";
 import { Utils } from "../../utils/Utils.sol";
 
 /// @notice Base contract with common logic needed by all handler contracts.
-abstract contract BaseHandler is Constants, StdCheats, Utils {
+abstract contract BaseHandler is StdCheats, Utils {
     /*//////////////////////////////////////////////////////////////////////////
                                      CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
