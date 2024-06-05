@@ -27,7 +27,7 @@ WithdrawAt_Integration_Concrete_Test
                         ├── when amount owed exceeds balance
                         │   ├── it should withdraw the balance
                         │   ├── it should update lastTimeUpdate
-                        │   ├── it should decrease the amount owed by balance
+                        │   ├── it should decrease the full amount owed by balance
                         │   ├── it should update the stream balance to 0
                         │   ├── it should perform the ERC20 transfer
                         │   └── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
@@ -35,14 +35,14 @@ WithdrawAt_Integration_Concrete_Test
                             ├── given asset does not have 18 decimals
                             │   ├── it should withdraw the amount owed
                             │   ├── it should update lastTimeUpdate
-                            │   ├── it should decrease the amount owed by withdrawn value
+                            │   ├── it should decrease the full amount owed by withdrawn value
                             │   ├── it should reduce the stream balance by the withdrawn amount
                             │   ├── it should perform the ERC20 transfer
                             │   └── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
                             └── given asset has 18 decimals
                                 ├── it should withdraw the amount owed
                                 ├── it should update lastTimeUpdate
-                                ├── it should decrease the amount owed by withdrawn value
+                                ├── it should decrease the full amount owed by withdrawn value
                                 ├── it should reduce the stream balance by the withdrawn amount
                                 ├── it should perform the ERC20 transfer
                                 └── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events

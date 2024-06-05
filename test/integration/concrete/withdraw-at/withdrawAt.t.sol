@@ -163,11 +163,11 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         resetPrank({ msgSender: users.sender });
 
-        uint128 smallDepositAmount = DEPOSIT_AMOUNT / 20;
+        uint128 chickenfeed = 50e18;
 
         // Create a new stream with very less deposit.
         uint256 streamId = createDefaultStream();
-        depositToStreamId(streamId, smallDepositAmount);
+        depositToStreamId(streamId, chickenfeed);
 
         // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
@@ -175,13 +175,13 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // Make recipient the caller for subsequent tests.
         resetPrank({ msgSender: users.recipient });
 
-        uint128 previousAmountOwed = flow.amountOwedOf(streamId);
+        uint128 previousFullAmountOwed = flow.amountOwedOf(streamId);
 
         // It should withdraw the balance.
         _test_Withdraw({
             streamId: streamId,
             to: users.recipient,
-            expectedWithdrawAmount: smallDepositAmount,
+            expectedWithdrawAmount: chickenfeed,
             assetDecimals: 18
         });
 
@@ -189,10 +189,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
         assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
 
-        // It should decrease the amount owed by balance.
-        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
-        uint128 expectedAmountOwed = previousAmountOwed - smallDepositAmount;
-        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+        // It should decrease the full amount owed by balance.
+        uint128 actualFullAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedFullAmountOwed = previousFullAmountOwed - chickenfeed;
+        assertEq(actualFullAmountOwed, expectedFullAmountOwed, "amount owed");
 
         // It should update the stream balance to 0.
         uint128 actualStreamBalance = flow.getBalance(streamId);
@@ -227,7 +227,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // Make recipient the caller for subsequent tests.
         resetPrank({ msgSender: users.recipient });
 
-        uint128 previousAmountOwed = flow.amountOwedOf(streamId);
+        uint128 previousFullAmountOwed = flow.amountOwedOf(streamId);
 
         // It should withdraw the amount owed.
         _test_Withdraw({
@@ -241,10 +241,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
         assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
 
-        // It should decrease the amount owed by withdrawn value.
-        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
-        uint128 expectedAmountOwed = previousAmountOwed - WITHDRAW_AMOUNT;
-        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+        // It should decrease the full amount owed by withdrawn value.
+        uint128 actualFullAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedFullAmountOwed = previousFullAmountOwed - WITHDRAW_AMOUNT;
+        assertEq(actualFullAmountOwed, expectedFullAmountOwed, "full amount owed");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
@@ -262,7 +262,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         givenBalanceIsNotZero
         whenAmountOwedDoesNotExceedBalance
     {
-        uint128 previousAmountOwed = flow.amountOwedOf(defaultStreamId);
+        uint128 previousFullAmountOwed = flow.amountOwedOf(defaultStreamId);
 
         // It should withdraw the amount owed.
         _test_Withdraw({
@@ -276,10 +276,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
         assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
 
-        // It should decrease the amount owed by withdrawn value.
-        uint128 actualAmountOwed = flow.amountOwedOf(defaultStreamId);
-        uint128 expectedAmountOwed = previousAmountOwed - WITHDRAW_AMOUNT;
-        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+        // It should decrease the full amount owed by withdrawn value.
+        uint128 actualFullAmountOwed = flow.amountOwedOf(defaultStreamId);
+        uint128 expectedFullAmountOwed = previousFullAmountOwed - WITHDRAW_AMOUNT;
+        assertEq(actualFullAmountOwed, expectedFullAmountOwed, "full amount owed");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
