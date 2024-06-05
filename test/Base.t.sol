@@ -80,9 +80,9 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         deal({ token: address(usdc), to: user, give: 1_000_000e6 });
         deal({ token: address(usdt), to: user, give: 1_000_000e18 });
         resetPrank(user);
-        dai.approve({ spender: address(flow), value: type(uint256).max });
-        usdc.approve({ spender: address(flow), value: type(uint256).max });
-        usdt.approve({ spender: address(flow), value: type(uint256).max });
+        dai.approve({ spender: address(flow), value: UINT256_MAX });
+        usdc.approve({ spender: address(flow), value: UINT256_MAX });
+        usdt.approve({ spender: address(flow), value: UINT256_MAX });
         return user;
     }
 
@@ -97,6 +97,11 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
                 "out-optimized/SablierFlow.sol/SablierFlow.json", abi.encode(users.admin, address(nftDescriptor))
             )
         );
+    }
+
+    // Calculate transfer amount using TRANSFER_VALUE and `decimals`.
+    function getDefaultAmountWithDecimals(uint8 decimals) internal pure returns (uint128 transferAmount) {
+        return TRANSFER_VALUE * (10 ** decimals).toUint128();
     }
 
     function labelContracts() internal {

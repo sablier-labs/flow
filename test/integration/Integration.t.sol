@@ -10,9 +10,17 @@ import { Base_Test } from "../Base.t.sol";
 
 /// @notice Common logic needed by all integration tests, both concrete and fuzz tests.
 abstract contract Integration_Test is Base_Test {
+    /*//////////////////////////////////////////////////////////////////////////
+                                     VARIABLES
+    //////////////////////////////////////////////////////////////////////////*/
+
     Broker internal defaultBroker;
     uint256 internal defaultStreamId;
     uint256 internal nullStreamId = 420;
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                        SETUP
+    //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -44,35 +52,8 @@ abstract contract Integration_Test is Base_Test {
         });
     }
 
-    function createDefaultStreamWithAssetAndRps(IERC20 asset_, uint128 ratePerSecond_) internal returns (uint256) {
-        return flow.create({
-            sender: users.sender,
-            recipient: users.recipient,
-            ratePerSecond: ratePerSecond_,
-            asset: asset_,
-            isTransferable: IS_TRANFERABLE
-        });
-    }
-
-    function createStreamAndDefaultDeposit(
-        IERC20 asset_,
-        uint8 decimals_,
-        uint128 ratePerSecond_
-    )
-        internal
-        returns (uint256 streamId)
-    {
-        streamId = createDefaultStreamWithAssetAndRps(asset_, ratePerSecond_);
-        uint128 transferAmount = uint128(TRANSFER_VALUE * 10 ** decimals_);
-        flow.deposit(streamId, transferAmount);
-    }
-
     function depositToDefaultStream() internal {
         flow.deposit(defaultStreamId, TRANSFER_AMOUNT);
-    }
-
-    function depositToStreamId(uint256 streamId, uint128 amount) internal {
-        flow.deposit(streamId, amount);
     }
 
     /// @dev Update the `lastTimeUpdate` of a stream to the current block timestamp.
@@ -85,6 +66,17 @@ abstract contract Integration_Test is Base_Test {
 
         // Restores the rate per second.
         flow.adjustRatePerSecond(streamId, ratePerSecond);
+    }
+
+    function depositDefaultAmount(uint256 streamId) internal {
+        IERC20 asset = flow.getAsset(streamId);
+        uint8 decimals = flow.getAssetDecimals(streamId);
+        uint128 depositAmount = getDefaultAmountWithDecimals(decimals);
+
+        deal({ token: address(asset), to: users.sender, give: depositAmount });
+        asset.approve(address(flow), depositAmount);
+
+        flow.deposit(streamId, depositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
