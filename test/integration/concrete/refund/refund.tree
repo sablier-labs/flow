@@ -11,28 +11,28 @@ Refund_Integration_Concrete_Test
         │   └── when caller malicious third party
         │       └── it should revert
         └── when caller sender
-            ├── when refund amount is zero
+            ├── when refund amount zero
             │   └── it should revert
-            └── when refund amount is not zero
+            └── when refund amount not zero
                 ├── when over refund
                 │   └── it should revert
                 └── when no over refund
                     ├── given paused
                     │   ├── it should make the refund
                     │   ├── it should update the stream balance
-                    │   ├── it should perform the ERC-20 transfer
+                    │   ├── it should perform the ERC20 transfer
                     │   └── it should emit a {Transfer} and {RefundFromFlowStream} event
                     └── given not paused
                         ├── when asset misses ERC20 return
                         │   ├── it should make the refund
                         │   ├── it should update the stream balance
-                        │   ├── it should perform the ERC-20 transfer
+                        │   ├── it should perform the ERC20 transfer
                         │   └── it should emit a {Transfer} and {RefundFromFlowStream} event
                         └── when asset does not miss ERC20 return
                             ├── given asset does not have 18 decimals
                             │   ├── it should make the refund
                             │   ├── it should update the stream balance
-                            │   ├── it should perform the ERC-20 transfer
+                            │   ├── it should perform the ERC20 transfer
                             │   └── it should emit a {Transfer} and {RefundFromFlowStream} event
                             └── given asset has 18 decimals
                                 ├── it should make the refund

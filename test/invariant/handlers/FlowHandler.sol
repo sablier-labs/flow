@@ -142,7 +142,7 @@ contract FlowHandler is BaseHandler {
         useFuzzedStreamSender
         updateFlowStates
     {
-        // Bound the deposit amount.
+        // Bound the transfer amount.
         transferAmount = uint128(_bound(transferAmount, 100, 1_000_000_000e18));
 
         // Mint enough assets to the Sender.

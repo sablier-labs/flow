@@ -19,31 +19,26 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (nullStreamId, REFUND_AMOUNT));
         expectRevert_Null(callData);
     }
 
     function test_RevertWhen_CallerRecipient() external whenNoDelegateCall givenNotNull whenCallerNotSender {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevert_CallerRecipient(callData);
     }
 
     function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull whenCallerNotSender {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_RevertWhen_RefundAmountIsZero() external whenNoDelegateCall givenNotNull whenCallerSender {
-        // It should revert.
+    function test_RevertWhen_RefundAmountZero() external whenNoDelegateCall givenNotNull whenCallerSender {
         vm.expectRevert(Errors.SablierFlow_RefundAmountZero.selector);
         flow.refund({ streamId: defaultStreamId, amount: 0 });
     }
@@ -53,9 +48,8 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenCallerSender
-        whenRefundAmountIsNotZero
+        whenRefundAmountNotZero
     {
-        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_Overrefund.selector,
@@ -72,7 +66,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenCallerSender
-        whenRefundAmountIsNotZero
+        whenRefundAmountNotZero
         whenNoOverRefund
     {
         flow.pause(defaultStreamId);
@@ -86,7 +80,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenCallerSender
-        whenRefundAmountIsNotZero
+        whenRefundAmountNotZero
         whenNoOverRefund
         givenNotPaused
     {
@@ -102,7 +96,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenCallerSender
-        whenRefundAmountIsNotZero
+        whenRefundAmountNotZero
         whenNoOverRefund
         givenNotPaused
         whenAssetDoesNotMissERC20Return
@@ -119,7 +113,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenCallerSender
-        whenRefundAmountIsNotZero
+        whenRefundAmountNotZero
         whenNoOverRefund
         givenNotPaused
         whenAssetDoesNotMissERC20Return

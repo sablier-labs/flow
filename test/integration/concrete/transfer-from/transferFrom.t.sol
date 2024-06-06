@@ -13,7 +13,7 @@ contract TransferFrom_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
     }
 
-    function test_RevertGiven_StreamIsNotTransferable() external {
+    function test_RevertGiven_StreamNotTransferable() external {
         // Create a non-transferrable stream.
         uint256 notTransferableStreamId = flow.create({
             sender: users.sender,
@@ -23,14 +23,13 @@ contract TransferFrom_Integration_Concrete_Test is Integration_Test {
             isTransferable: false
         });
 
-        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierFlowState_NotTransferable.selector, notTransferableStreamId)
         );
         flow.transferFrom({ from: users.recipient, to: users.eve, tokenId: notTransferableStreamId });
     }
 
-    function test_GivenStreamIsTransferable() external {
+    function test_GivenStreamTransferable() external {
         // It should emit 1 {Transfer} and 1 {MetadataUpdate} event.
         vm.expectEmit({ emitter: address(flow) });
         emit Transfer({ from: users.recipient, to: users.sender, tokenId: defaultStreamId });

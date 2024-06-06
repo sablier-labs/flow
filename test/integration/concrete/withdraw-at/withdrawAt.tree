@@ -5,25 +5,25 @@ WithdrawAt_Integration_Concrete_Test
     ├── given null
     │   └── it should revert
     └── given not null
-        ├── when time is less than last time update
+        ├── when time less than last time update
         │   └── it should revert
-        ├── when time is greater than current time
+        ├── when time greater than current time
         │   └── it should revert
-        └── when time is between last time update and current time
-            ├── when withdrawal address is zero
+        └── when time between last time update and current time
+            ├── when withdrawal address zero
             │   └── it should revert
-            └── when withdrawal address is not zero
-                ├── when withdrawal address is not owner
-                │   ├── when caller is sender
+            └── when withdrawal address not zero
+                ├── when withdrawal address not owner
+                │   ├── when caller sender
                 │   │   └── it should revert
-                │   ├── when caller is unknown
+                │   ├── when caller unknown
                 │   │   └── it should revert
-                │   └── when caller is recipient
+                │   └── when caller recipient
                 │       └── it should withdraw
-                └── when withdrawal address is owner
-                    ├── given balance is zero
+                └── when withdrawal address owner
+                    ├── given balance zero
                     │   └── it should revert
-                    └── given balance is not zero
+                    └── given balance not zero
                         ├── when amount owed exceeds balance
                         │   ├── it should withdraw the balance
                         │   ├── it should update lastTimeUpdate

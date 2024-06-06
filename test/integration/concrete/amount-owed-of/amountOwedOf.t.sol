@@ -38,7 +38,7 @@ contract AmountOwedOf_Integration_Concrete_Test is Integration_Test {
         assertEq(amountOwed, remainingAmount, "amount owed");
     }
 
-    function test_WhenCurrentTimeIsGreaterThanLastTimeUpdate() external view givenNotNull givenNotPaused {
+    function test_WhenCurrentTimeGreaterThanLastTimeUpdate() external view givenNotNull givenNotPaused {
         // Fetch updated remaining amount
         uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
         uint128 recentAmount = flow.recentAmountOf(defaultStreamId);

@@ -6,7 +6,7 @@ abstract contract Modifiers {
                                        COMMON
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier givenBalanceIsNotZero() virtual {
+    modifier givenBalanceNotZero() virtual {
         _;
     }
 
@@ -38,7 +38,7 @@ abstract contract Modifiers {
                               ADJUST-AMOUNT-PER-SECOND
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenNewRatePerSecondIsNotZero() {
+    modifier whenNewRatePerSecondNotZero() {
         _;
     }
 
@@ -54,11 +54,11 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenRatePerSecondIsNotZero() {
+    modifier whenRatePerSecondNotZero() {
         _;
     }
 
-    modifier whenSenderIsNotZero() {
+    modifier whenSenderNotAddressZero() {
         _;
     }
 
@@ -66,7 +66,7 @@ abstract contract Modifiers {
                                       DEPOSIT
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenBrokerAddressIsNotZero() {
+    modifier whenBrokerAddressNotZero() {
         _;
     }
 
@@ -74,11 +74,11 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenDepositAmountIsNotZero() {
+    modifier whenTransferAmountNotZero() {
         _;
     }
 
-    modifier whenTotalAmountIsNotZero() {
+    modifier whenTotalAmountNotZero() {
         _;
     }
 
@@ -90,7 +90,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenRefundAmountIsNotZero() {
+    modifier whenRefundAmountNotZero() {
         _;
     }
 
@@ -106,11 +106,11 @@ abstract contract Modifiers {
                                     WITHDRAW-AT
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenWithdrawalAddressIsNotOwner() {
+    modifier whenWithdrawalAddressNotOwner() {
         _;
     }
 
-    modifier whenWithdrawalAddressIsNotZero() {
+    modifier whenWithdrawalAddressNotZero() {
         _;
     }
 

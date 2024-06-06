@@ -17,13 +17,11 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawMax, (defaultStreamId, users.recipient));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawMax, (nullStreamId, users.recipient));
         expectRevert_Null(callData);
     }

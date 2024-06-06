@@ -14,27 +14,23 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        // It should revert.
         bytes memory callData =
             abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.restartAndDeposit, (nullStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
         expectRevert_Null(callData);
     }
 
     function test_RevertWhen_CallerRecipient() external whenNoDelegateCall givenNotNull whenCallerNotSender {
-        // It should revert.
         bytes memory callData =
             abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
         expectRevert_CallerRecipient(callData);
     }
 
     function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull whenCallerNotSender {
-        // It should revert.
         bytes memory callData =
             abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
         expectRevert_CallerMaliciousThirdParty(callData);

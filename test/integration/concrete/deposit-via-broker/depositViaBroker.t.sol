@@ -30,7 +30,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         flow.depositViaBroker(defaultStreamId, TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE, defaultBroker);
     }
 
-    function test_RevertWhen_BrokeAddressIsZero()
+    function test_RevertWhen_BrokeAddressZero()
         external
         whenNoDelegateCall
         givenNotNull
@@ -41,14 +41,14 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         flow.depositViaBroker(defaultStreamId, TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE, defaultBroker);
     }
 
-    function test_RevertWhen_TotalAmountIsZero()
+    function test_RevertWhen_TotalAmountZero()
         external
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
-        whenBrokerAddressIsNotZero
+        whenBrokerAddressNotZero
     {
-        vm.expectRevert(Errors.SablierFlow_DepositAmountZero.selector);
+        vm.expectRevert(Errors.SablierFlow_TransferAmountZero.selector);
         flow.depositViaBroker(defaultStreamId, 0, defaultBroker);
     }
 
@@ -57,8 +57,8 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
-        whenBrokerAddressIsNotZero
-        whenTotalAmountIsNotZero
+        whenBrokerAddressNotZero
+        whenTotalAmountNotZero
     {
         // It should make the deposit
         uint256 streamId = createStreamWithAsset(IERC20(address(usdt)));
@@ -77,8 +77,8 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
-        whenBrokerAddressIsNotZero
-        whenTotalAmountIsNotZero
+        whenBrokerAddressNotZero
+        whenTotalAmountNotZero
         whenAssetDoesNotMissERC20Return
     {
         uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
@@ -97,8 +97,8 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
-        whenBrokerAddressIsNotZero
-        whenTotalAmountIsNotZero
+        whenBrokerAddressNotZero
+        whenTotalAmountNotZero
         whenAssetDoesNotMissERC20Return
     {
         uint256 streamId = createStreamWithAsset(IERC20(address(dai)));

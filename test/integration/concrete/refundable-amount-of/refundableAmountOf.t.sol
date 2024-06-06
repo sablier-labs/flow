@@ -12,24 +12,23 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertGiven_Null() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.refundableAmountOf, nullStreamId);
         expectRevert_Null(callData);
     }
 
-    function test_GivenBalanceIsZero() external view givenNotNull {
+    function test_GivenBalanceZero() external view givenNotNull {
         // It should return zero.
         uint128 refundableAmount = flow.refundableAmountOf(defaultStreamId);
         assertEq(refundableAmount, 0, "refundable amount");
     }
 
-    modifier givenBalanceIsNotZero() override {
+    modifier givenBalanceNotZero() override {
         // Deposit into the stream.
         depositToDefaultStream();
         _;
     }
 
-    function test_GivenPaused() external givenNotNull givenBalanceIsNotZero {
+    function test_GivenPaused() external givenNotNull givenBalanceNotZero {
         // Pause the stream.
         flow.pause(defaultStreamId);
 
@@ -38,7 +37,7 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(refundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT, "refundable amount");
     }
 
-    function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceIsNotZero givenNotPaused {
+    function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
         // Simulate the passage of time until debt begins.
         vm.warp({ newTimestamp: getBlockTimestamp() + SOLVENCY_PERIOD });
 
@@ -47,7 +46,7 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(refundableAmount, 0, "refundable amount");
     }
 
-    function test_WhenAmountOwedDoesNotExceedBalance() external givenNotNull givenBalanceIsNotZero givenNotPaused {
+    function test_WhenAmountOwedDoesNotExceedBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
         // It should return correct refundable amount.
         uint128 refundableAmount = flow.refundableAmountOf(defaultStreamId);
         assertEq(refundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT, "refundable amount");

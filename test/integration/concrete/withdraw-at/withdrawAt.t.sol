@@ -22,24 +22,21 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawAt, (defaultStreamId, users.recipient, WITHDRAW_TIME));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        // It should revert.
         bytes memory callData = abi.encodeCall(flow.withdrawAt, (nullStreamId, users.recipient, WITHDRAW_TIME));
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_TimeIsLessThanLastTimeUpdate() external whenNoDelegateCall givenNotNull {
+    function test_RevertWhen_TimeLessThanLastTimeUpdate() external whenNoDelegateCall givenNotNull {
         // Set the last time update to the current block timestamp.
         updateLastTimeToBlockTimestamp(defaultStreamId);
 
         uint40 lastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
 
-        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime.selector, lastTimeUpdate, WITHDRAW_TIME
@@ -48,8 +45,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_TimeIsGreaterThanCurrentTime() external whenNoDelegateCall givenNotNull {
-        // It should revert.
+    function test_RevertWhen_TimeGreaterThanCurrentTime() external whenNoDelegateCall givenNotNull {
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_WithdrawalTimeInTheFuture.selector, getBlockTimestamp() + 1, getBlockTimestamp()
@@ -58,32 +54,30 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: getBlockTimestamp() + 1 });
     }
 
-    modifier whenTimeIsBetweenLastTimeUpdateAndCurrentTime() {
+    modifier whenTimeBetweenLastTimeUpdateAndCurrentTime() {
         _;
     }
 
-    function test_RevertWhen_WithdrawalAddressIsZero()
+    function test_RevertWhen_WithdrawalAddressZero()
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
     {
-        // It should revert.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawToZeroAddress.selector));
         flow.withdrawAt({ streamId: defaultStreamId, to: address(0), time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_CallerIsSender()
+    function test_RevertWhen_CallerSender()
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
-        whenWithdrawalAddressIsNotOwner
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressNotOwner
     {
         resetPrank({ msgSender: users.sender });
 
-        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, users.sender, users.sender
@@ -92,17 +86,16 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: users.sender, time: WITHDRAW_TIME });
     }
 
-    function test_RevertWhen_CallerIsUnknown()
+    function test_RevertWhen_CallerUnknown()
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
-        whenWithdrawalAddressIsNotOwner
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressNotOwner
     {
         resetPrank({ msgSender: users.eve });
 
-        // It should revert.
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, defaultStreamId, users.eve, users.eve
@@ -111,13 +104,13 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: users.eve, time: WITHDRAW_TIME });
     }
 
-    function test_WhenCallerIsRecipient()
+    function test_WhenCallerRecipient()
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
-        whenWithdrawalAddressIsNotOwner
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressNotOwner
     {
         // It should withdraw.
         _test_Withdraw({
@@ -128,12 +121,12 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    function test_RevertGiven_BalanceIsZero()
+    function test_RevertGiven_BalanceZero()
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
     {
         // Go back to the starting point.
@@ -144,7 +137,6 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
-        // It should revert.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawNoFundsAvailable.selector, streamId));
         flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
     }
@@ -153,10 +145,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
-        givenBalanceIsNotZero
+        givenBalanceNotZero
     {
         // Go back to the starting point.
         vm.warp({ newTimestamp: MAY_1_2024 });
@@ -207,10 +199,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
-        givenBalanceIsNotZero
+        givenBalanceNotZero
         whenAmountOwedDoesNotExceedBalance
     {
         // Go back to the starting point.
@@ -256,10 +248,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeIsBetweenLastTimeUpdateAndCurrentTime
-        whenWithdrawalAddressIsNotZero
+        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
-        givenBalanceIsNotZero
+        givenBalanceNotZero
         whenAmountOwedDoesNotExceedBalance
     {
         uint128 previousFullAmountOwed = flow.amountOwedOf(defaultStreamId);
