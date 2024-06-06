@@ -32,6 +32,21 @@ contract FlowCreateHandler is BaseHandler {
         _;
     }
 
+    modifier validateFuzzedInputs(CreateParams memory params) {
+        // We don't want to create more than a certain number of streams.
+        vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
+
+        // The protocol doesn't allow the sender or recipient to be the zero address.
+        vm.assume(params.sender != address(0) && params.recipient != address(0));
+
+        // Prevent the contract itself from playing the role of any user.
+        vm.assume(params.sender != address(this) && params.recipient != address(this));
+
+        // Reset the caller.
+        resetPrank(params.sender);
+        _;
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
@@ -56,9 +71,13 @@ contract FlowCreateHandler is BaseHandler {
         bool isTransferable;
     }
 
-    function create(CreateParams memory params) public {
-        _commonModifiersInit(params, "create");
-
+    function create(CreateParams memory params)
+        public
+        instrument("create")
+        adjustTimestamp(params.timeJumpSeed)
+        useFuzzedAsset(params.assetIndexSeed)
+        validateFuzzedInputs(params)
+    {
         // Bound the stream parameters.
         params.ratePerSecond = uint128(_bound(params.ratePerSecond, 0.0001e18, 1e18));
 
@@ -70,9 +89,16 @@ contract FlowCreateHandler is BaseHandler {
         flowStore.pushStreamId(streamId, params.sender, params.recipient);
     }
 
-    function createAndDeposit(CreateParams memory params, uint128 transferAmount) public {
-        _commonModifiersInit(params, "createAndDeposit");
-
+    function createAndDeposit(
+        CreateParams memory params,
+        uint128 transferAmount
+    )
+        public
+        instrument("createAndDeposit")
+        adjustTimestamp(params.timeJumpSeed)
+        useFuzzedAsset(params.assetIndexSeed)
+        validateFuzzedInputs(params)
+    {
         uint8 decimals = IERC20Metadata(address(currentAsset)).decimals();
 
         // Calculate the upper bound, based on the asset decimals, for the transfer amount.
@@ -104,32 +130,5 @@ contract FlowCreateHandler is BaseHandler {
 
         // Store the deposited amount.
         flowStore.updateStreamDepositedAmountsSum(streamId, normalizedAmount);
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                      HELPERS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @dev Helper function to avoid stack too deep error.
-    function _commonModifiersInit(
-        CreateParams memory params,
-        string memory functionName
-    )
-        internal
-        instrument(functionName)
-        adjustTimestamp(params.timeJumpSeed)
-        useFuzzedAsset(params.assetIndexSeed)
-    {
-        // We don't want to create more than a certain number of streams.
-        vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
-
-        // The protocol doesn't allow the sender or recipient to be the zero address.
-        vm.assume(params.sender != address(0) && params.recipient != address(0));
-
-        // Prevent the contract itself from playing the role of any user.
-        vm.assume(params.sender != address(this) && params.recipient != address(this));
-
-        // Reset the caller.
-        resetPrank(params.sender);
     }
 }
