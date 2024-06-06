@@ -19,7 +19,7 @@ abstract contract Integration_Test is Base_Test {
     uint256 internal nullStreamId = 420;
 
     /*//////////////////////////////////////////////////////////////////////////
-                                        SETUP
+                                        SET-UP
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual override {
@@ -43,10 +43,20 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function createDefaultStreamWithAsset(IERC20 asset_) internal returns (uint256) {
+        return createDefaultStreamWithRatePerSecondAndAsset(RATE_PER_SECOND, asset_);
+    }
+
+    function createDefaultStreamWithRatePerSecondAndAsset(
+        uint128 ratePerSecond,
+        IERC20 asset_
+    )
+        internal
+        returns (uint256)
+    {
         return flow.create({
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND,
+            ratePerSecond: ratePerSecond,
             asset: asset_,
             isTransferable: IS_TRANFERABLE
         });
@@ -62,13 +72,13 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function depositDefaultAmountToDefaultStream() internal {
-        flow.deposit(defaultStreamId, TRANSFER_AMOUNT);
+        depositAmountToStream(defaultStreamId, TRANSFER_AMOUNT);
     }
 
     function depositDefaultAmountToStream(uint256 streamId) internal {
         IERC20 asset = flow.getAsset(streamId);
         uint8 decimals = flow.getAssetDecimals(streamId);
-        uint128 transferAmount = getDefaultAmountWithDecimals(decimals);
+        uint128 transferAmount = getTransferValue(DEPOSIT_AMOUNT, decimals);
 
         deal({ token: address(asset), to: users.sender, give: transferAmount });
         asset.approve(address(flow), transferAmount);

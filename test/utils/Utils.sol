@@ -4,16 +4,19 @@ pragma solidity >=0.8.22;
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { PRBMathUtils } from "@prb/math/test/utils/Utils.sol";
 import { CommonBase } from "forge-std/src/Base.sol";
+import { SafeCastLib } from "solady/src/utils/SafeCastLib.sol";
 
 import { Helpers } from "src/libraries/Helpers.sol";
 
 import { Constants } from "./Constants.sol";
 
 abstract contract Utils is CommonBase, Constants, PRBMathUtils {
-    /// @dev Bound deposit amount to avoid overflow.
-    function boundDepositAmount(uint128 amount_, uint8 decimals_) internal pure returns (uint128 amount) {
-        uint128 maxDeposit = uint128(UINT128_MAX / (10 ** (18 - decimals_)));
-        amount = boundUint128(amount_, 1, maxDeposit / 2);
+    using SafeCastLib for uint256;
+
+    /// @dev Bound transfer amount to avoid overflow.
+    function boundTransferAmount(uint128 amount, uint8 decimals) internal pure returns (uint128 transferAmount) {
+        uint128 maxDeposit = uint128(UINT128_MAX / (10 ** (18 - decimals)));
+        transferAmount = boundUint128(amount, 1, maxDeposit / 2);
     }
 
     /// @dev Bounds a `uint128` number.
@@ -36,10 +39,17 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return uint40(block.timestamp);
     }
 
+    /// @dev Calculates the transfer amount using `TRANSFER_VALUE` and `decimals`.
+    function getDefaultTransferAmount(uint8 decimals) internal pure returns (uint128 transferAmount) {
+        return TRANSFER_VALUE * (10 ** decimals).toUint128();
+    }
+
+    /// @dev Mirror function for {Helpers.calculateNormalizedAmount}.
     function getNormalizedValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
         return Helpers.calculateNormalizedAmount(amount, decimals);
     }
 
+    /// @dev Mirror function for {Helpers.calculateTransferAmount}.
     function getTransferValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
         return Helpers.calculateTransferAmount(amount, decimals);
     }

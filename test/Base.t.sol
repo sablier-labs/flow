@@ -3,7 +3,6 @@ pragma solidity >=0.8.22;
 
 import { Test } from "forge-std/src/Test.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import { SablierFlow } from "src/SablierFlow.sol";
 import { SablierFlowNFTDescriptor } from "src/SablierFlowNFTDescriptor.sol";
@@ -17,8 +16,6 @@ import { Users } from "./utils/Types.sol";
 import { Utils } from "./utils/Utils.sol";
 
 abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
-    using SafeCast for uint256;
-
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -29,9 +26,9 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    ERC20Mock internal assetWithoutDecimals = createAsset(0);
-    ERC20Mock internal dai = createAsset(18);
-    ERC20Mock internal usdc = createAsset(6);
+    ERC20Mock internal assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
+    ERC20Mock internal dai = createAsset("Dai stablecoin", "DAI", 18);
+    ERC20Mock internal usdc = createAsset("USD Coin", "USDC", 6);
     ERC20MissingReturn internal usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
 
     SablierFlow internal flow;
@@ -70,7 +67,12 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
 
     /// @dev Creates a new ERC20 asset with `decimals`.
     function createAsset(uint8 decimals) internal returns (ERC20Mock) {
-        return new ERC20Mock("", "", decimals);
+        return createAsset("", "", decimals);
+    }
+
+    /// @dev Creates a new ERC20 asset with `name`, `symbol` and `decimals`.
+    function createAsset(string memory name, string memory symbol, uint8 decimals) internal returns (ERC20Mock) {
+        return new ERC20Mock(name, symbol, decimals);
     }
 
     function createUser(string memory name) internal returns (address payable) {
@@ -97,11 +99,6 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
                 "out-optimized/SablierFlow.sol/SablierFlow.json", abi.encode(users.admin, address(nftDescriptor))
             )
         );
-    }
-
-    // Calculate transfer amount using TRANSFER_VALUE and `decimals`.
-    function getDefaultAmountWithDecimals(uint8 decimals) internal pure returns (uint128 transferAmount) {
-        return TRANSFER_VALUE * (10 ** decimals).toUint128();
     }
 
     function labelContracts() internal {
