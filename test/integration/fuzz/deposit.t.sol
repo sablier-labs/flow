@@ -32,7 +32,8 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        vm.assume(funder != address(0) && streamId != 0);
+        vm.assume(funder != address(0) && funder != address(flow));
+        vm.assume(streamId != 0);
 
         // Check if stream id is picked from the fixtures.
         if (!flow.isStream(streamId)) {
@@ -41,6 +42,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             asset = createAsset(decimals);
             streamId = createDefaultStreamWithAsset(asset);
         } else {
+            // If it exists, load the asset and decimals.
             asset = flow.getAsset(streamId);
             decimals = flow.getAssetDecimals(streamId);
         }
