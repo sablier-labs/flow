@@ -95,15 +95,7 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
-        uint128 balance = _streams[streamId].balance;
-
-        uint128 amountOwed = _amountOwedOf(streamId, uint40(block.timestamp));
-
-        if (balance < amountOwed) {
-            debt = amountOwed - balance;
-        } else {
-            return 0;
-        }
+        debt = _streamDebtOf(streamId);
     }
 
     /// @inheritdoc ISablierFlow
@@ -335,6 +327,19 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
+    function void(uint256 streamId) external override noDelegateCall notNull(streamId) updateMetadata(streamId) {
+        uint128 debtToWriteOff = _streamDebtOf(streamId);
+
+        // Check: the stream has debt.
+        if (debtToWriteOff == 0) {
+            revert Errors.SablierFlow_DebtZero(streamId);
+        }
+
+        // Checks, Effects and Interactions: void the stream.
+        _void(streamId, debtToWriteOff);
+    }
+
+    /// @inheritdoc ISablierFlow
     function withdrawAt(
         uint256 streamId,
         address to,
@@ -417,6 +422,19 @@ contract SablierFlow is
     /// @dev Calculates the refundable amount.
     function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         return _streams[streamId].balance - _withdrawableAmountOf(streamId, time);
+    }
+
+    /// @dev Calculates the stream debt.
+    function _streamDebtOf(uint256 streamId) internal view returns (uint128 debt) {
+        uint128 balance = _streams[streamId].balance;
+
+        uint128 amountOwed = _amountOwedOf(streamId, uint40(block.timestamp));
+
+        if (balance < amountOwed) {
+            debt = amountOwed - balance;
+        } else {
+            return 0;
+        }
     }
 
     /// @dev Calculates the amount available to withdraw at provided time. The return value considers stream balance.
@@ -661,6 +679,34 @@ contract SablierFlow is
     /// @dev Updates the `lastTimeUpdate` to the specified time.
     function _updateTime(uint256 streamId, uint40 time) internal {
         _streams[streamId].lastTimeUpdate = time;
+    }
+
+    /// @dev Voids a stream with positive debt.
+    function _void(uint256 streamId, uint128 debtToWriteOff) internal {
+        address recipient = _ownerOf(streamId);
+
+        // Check: if `msg.sender` is either the stream's recipient or an approved third party.
+        if (msg.sender != recipient && !_isCallerStreamRecipientOrApproved(streamId)) {
+            revert Errors.SablierFlow_Unauthorized(streamId, msg.sender);
+        }
+
+        // Calculate the stream balance. This is the value of new amount owed used in the event log.
+        uint128 balance = _streams[streamId].balance;
+
+        // Effect: set the rate per second to zero.
+        _streams[streamId].ratePerSecond = 0;
+
+        // Effect: set the stream as paused.
+        _streams[streamId].isPaused = true;
+
+        // Effect: set the remaining amount to stream balance.
+        _streams[streamId].remainingAmount = balance;
+
+        // Effect: update the stream time. This sets recent amount to zero.
+        _updateTime(streamId, uint40(block.timestamp));
+
+        // Log the void.
+        emit ISablierFlow.VoidFlowStream(streamId, recipient, _streams[streamId].sender, balance, debtToWriteOff);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
