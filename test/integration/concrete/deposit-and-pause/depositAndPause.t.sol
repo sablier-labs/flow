@@ -64,7 +64,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             funder: users.sender,
             asset: dai,
-            depositAmount: transferAmount
+            depositAmount: getNormalizedValue(transferAmount, 18)
         });
 
         vm.expectEmit({ emitter: address(flow) });

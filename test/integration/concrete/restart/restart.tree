@@ -14,9 +14,9 @@ Restart_Integration_Concrete_Test
          ├── given not paused
          │  └── it should revert
          └── given paused
-            ├── when new rate per second is zero
+            ├── when new rate per second zero
             │  └── it should revert
-            └── when new rate per second is not zero
+            └── when new rate per second not zero
                ├── it should restart the stream
                ├── it should update rate per second
                ├── it should update lastTimeUpdate
