@@ -29,7 +29,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint40 timeJump
     )
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
         givenNotNull
     {
         vm.assume(funder != address(0) && streamId != 0);

@@ -39,10 +39,10 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function createDefaultStream() internal returns (uint256) {
-        return createStreamWithAsset(dai);
+        return createDefaultStreamWithAsset(dai);
     }
 
-    function createStreamWithAsset(IERC20 asset_) internal returns (uint256) {
+    function createDefaultStreamWithAsset(IERC20 asset_) internal returns (uint256) {
         return flow.create({
             sender: users.sender,
             recipient: users.recipient,
@@ -52,8 +52,28 @@ abstract contract Integration_Test is Base_Test {
         });
     }
 
-    function depositToDefaultStream() internal {
+    function depositAmountToStream(uint256 streamId, uint128 transferAmount) internal {
+        IERC20 asset = flow.getAsset(streamId);
+
+        deal({ token: address(asset), to: users.sender, give: transferAmount });
+        asset.approve(address(flow), transferAmount);
+
+        flow.deposit(streamId, transferAmount);
+    }
+
+    function depositDefaultAmountToDefaultStream() internal {
         flow.deposit(defaultStreamId, TRANSFER_AMOUNT);
+    }
+
+    function depositDefaultAmountToStream(uint256 streamId) internal {
+        IERC20 asset = flow.getAsset(streamId);
+        uint8 decimals = flow.getAssetDecimals(streamId);
+        uint128 transferAmount = getDefaultAmountWithDecimals(decimals);
+
+        deal({ token: address(asset), to: users.sender, give: transferAmount });
+        asset.approve(address(flow), transferAmount);
+
+        flow.deposit(streamId, transferAmount);
     }
 
     /// @dev Update the `lastTimeUpdate` of a stream to the current block timestamp.
@@ -66,17 +86,6 @@ abstract contract Integration_Test is Base_Test {
 
         // Restores the rate per second.
         flow.adjustRatePerSecond(streamId, ratePerSecond);
-    }
-
-    function depositDefaultAmount(uint256 streamId) internal {
-        IERC20 asset = flow.getAsset(streamId);
-        uint8 decimals = flow.getAssetDecimals(streamId);
-        uint128 depositAmount = getDefaultAmountWithDecimals(decimals);
-
-        deal({ token: address(asset), to: users.sender, give: depositAmount });
-        asset.approve(address(flow), depositAmount);
-
-        flow.deposit(streamId, depositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

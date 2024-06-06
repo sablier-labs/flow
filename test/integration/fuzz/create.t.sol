@@ -28,7 +28,7 @@ contract Create_Integration_Fuzz_Test is Integration_Test {
         bool isTransferable
     )
         external
-        whenNotDelegateCalled
+        whenNoDelegateCall
     {
         // Ceate the asset.
         vm.assume(decimals <= 18);

@@ -12,7 +12,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         Integration_Test.setUp();
 
         // Deposit to the default stream.
-        depositToDefaultStream();
+        depositDefaultAmountToDefaultStream();
 
         // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
@@ -159,7 +159,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         // Create a new stream with very less deposit.
         uint256 streamId = createDefaultStream();
-        depositToStreamId(streamId, chickenfeed);
+        depositAmountToStream(streamId, chickenfeed);
 
         // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
@@ -209,9 +209,9 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         vm.warp({ newTimestamp: MAY_1_2024 });
 
         resetPrank({ msgSender: users.sender });
-        uint256 streamId = createStreamWithAsset(IERC20(address(usdc)));
+        uint256 streamId = createDefaultStreamWithAsset(IERC20(address(usdc)));
         // Deposit to the stream.
-        depositToStreamId(streamId, TRANSFER_AMOUNT_6D);
+        depositDefaultAmountToStream(streamId);
 
         // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
@@ -219,13 +219,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // Make recipient the caller for subsequent tests.
         resetPrank({ msgSender: users.recipient });
 
-<<<<<<< HEAD
         uint128 previousFullAmountOwed = flow.amountOwedOf(streamId);
-=======
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        uint40 expectedLastTimeUpdate = getBlockTimestamp() - ONE_MONTH;
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
->>>>>>> f0f8e3a (test: fuzz tests for create and deposit)
 
         // It should withdraw the amount owed.
         _test_Withdraw({
