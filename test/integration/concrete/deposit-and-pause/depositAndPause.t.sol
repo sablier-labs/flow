@@ -13,7 +13,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
         vm.warp({ newTimestamp: getBlockTimestamp() + SOLVENCY_PERIOD + 1 days });
     }
 
-    function test_RevertWhen_DelegateCalled() external {
+    function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(flow.depositAndPause, (defaultStreamId, TRANSFER_AMOUNT));
         expectRevert_DelegateCall(callData);
     }

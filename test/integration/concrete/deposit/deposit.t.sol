@@ -18,7 +18,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_TransferAmountAmountZero() external whenNoDelegateCall givenNotNull {
+    function test_RevertWhen_TransferAmountZero() external whenNoDelegateCall givenNotNull {
         vm.expectRevert(Errors.SablierFlow_TransferAmountZero.selector);
         flow.deposit(defaultStreamId, 0);
     }

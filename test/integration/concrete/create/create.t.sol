@@ -17,7 +17,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         expectRevert_DelegateCall(callData);
     }
 
-    function test_RevertWhen_SenderZero() external whenNoDelegateCall {
+    function test_RevertWhen_SenderAddressZero() external whenNoDelegateCall {
         vm.expectRevert(Errors.SablierFlow_SenderZeroAddress.selector);
         flow.create({
             sender: address(0),

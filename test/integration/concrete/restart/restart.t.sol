@@ -51,7 +51,7 @@ contract Restart_Integration_Concrete_Test is Integration_Test {
         flow.restart({ streamId: defaultStreamId, ratePerSecond: 0 });
     }
 
-    function test_whenNewRatePerSecondNotZero() external whenNoDelegateCall givenNotNull whenCallerSender givenPaused {
+    function test_WhenNewRatePerSecondNotZero() external whenNoDelegateCall givenNotNull whenCallerSender givenPaused {
         // It should emit 1 {RestartFlowStream}, 1 {MetadataUpdate} event.
         vm.expectEmit({ emitter: address(flow) });
         emit RestartFlowStream({
