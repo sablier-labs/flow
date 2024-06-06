@@ -28,10 +28,10 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     function setUp() public override {
         Base_Test.setUp();
 
-        _create19StreamsAndDeposit();
+        _setupStreamsWithAllDecimals();
     }
 
-    function _create19StreamsAndDeposit() private {
+    function _setupStreamsWithAllDecimals() private {
         for (uint8 decimal; decimal < 19; ++decimal) {
             // Create asset, create stream and deposit.
             IERC20 asset_ = createAsset(decimal);
