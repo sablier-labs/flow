@@ -78,7 +78,7 @@ abstract contract Integration_Test is Base_Test {
     function depositDefaultAmountToStream(uint256 streamId) internal {
         IERC20 asset = flow.getAsset(streamId);
         uint8 decimals = flow.getAssetDecimals(streamId);
-        uint128 transferAmount = getTransferAmount(DEPOSIT_AMOUNT, decimals);
+        uint128 transferAmount = getDefaultTransferAmount(decimals);
 
         deal({ token: address(asset), to: users.sender, give: transferAmount });
         asset.approve(address(flow), transferAmount);
