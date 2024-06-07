@@ -28,9 +28,11 @@ abstract contract Fuzz_Integration_Test is Integration_Test {
         for (uint8 decimal; decimal < 19; ++decimal) {
             uint256 nextStreamId = flow.nextStreamId();
 
-            // Generate a random rate per second.
-            uint128 ratePerSecond =
-                uint128(_bound(uint256(keccak256(abi.encodePacked(nextStreamId, decimal))), 0.001e18, 10e18));
+            // Hash the next stream ID and the decimal to generate a seed.
+            uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(nextStreamId, decimal)));
+
+            // Bound the rate per second between a realistic range.
+            uint128 ratePerSecond = uint128(_bound(ratePerSecondSeed, 0.001e18, 10e18));
 
             // Create asset, create stream and deposit.
             IERC20 asset = createAsset(decimal);
