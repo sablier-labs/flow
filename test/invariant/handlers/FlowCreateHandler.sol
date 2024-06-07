@@ -20,7 +20,7 @@ contract FlowCreateHandler is BaseHandler {
 
     /// @dev Default ERC20 assets used for testing.
     IERC20[] public assets;
-    IERC20 currentAsset;
+    IERC20 public currentAsset;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      MODIFIERS

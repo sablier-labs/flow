@@ -6,7 +6,6 @@ import { StdCheats } from "forge-std/src/StdCheats.sol";
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
 import { FlowStore } from "../stores/FlowStore.sol";
-import { Constants } from "../../utils/Constants.sol";
 import { Utils } from "../../utils/Utils.sol";
 
 /// @notice Base contract with common logic needed by all handler contracts.
