@@ -126,9 +126,9 @@ contract FlowHandler is BaseHandler {
         updateFlowStates
     {
         // Calculate the upper bound, based on the asset decimals, for the transfer amount.
-        uint128 upperBound = getTransferAmountUpperBound(flow.getAssetDecimals(currentStreamId));
+        uint128 upperBound = getTransferAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
 
-        // Bound the deposit amount.
+        // Bound the transfer amount.
         transferAmount = uint128(_bound(transferAmount, 100, upperBound));
 
         IERC20 asset = flow.getAsset(currentStreamId);

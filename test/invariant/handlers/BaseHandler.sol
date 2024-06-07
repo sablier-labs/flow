@@ -57,19 +57,4 @@ abstract contract BaseHandler is StdCheats, Utils {
         totalCalls++;
         _;
     }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                       HELPERS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @dev Helper function to calculate the upper bound, based on the asset decimals, for the transfer amount.
-    function getTransferAmountUpperBound(uint8 assetDecimals) internal pure returns (uint128 upperBound) {
-        if (assetDecimals == 0) {
-            upperBound = 1_000_000;
-        } else if (assetDecimals == 6) {
-            upperBound = 1_000_000e6;
-        } else {
-            upperBound = 1_000_000e18;
-        }
-    }
 }
