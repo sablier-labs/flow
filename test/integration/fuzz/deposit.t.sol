@@ -69,7 +69,7 @@ contract Deposit_Integration_Fuzz_Test is Fuzz_Integration_Test {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: funder, to: address(flow), value: transferAmount });
 
-        uint128 normalizedAmount = getNormalizedValue(transferAmount, decimals);
+        uint128 normalizedAmount = getNormalizedAmount(transferAmount, decimals);
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({ streamId: streamId, funder: funder, asset: asset, depositAmount: normalizedAmount });

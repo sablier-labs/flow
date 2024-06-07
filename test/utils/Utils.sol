@@ -45,12 +45,12 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     }
 
     /// @dev Mirror function for {Helpers.calculateNormalizedAmount}.
-    function getNormalizedValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+    function getNormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
         return Helpers.calculateNormalizedAmount(amount, decimals);
     }
 
     /// @dev Mirror function for {Helpers.calculateTransferAmount}.
-    function getTransferValue(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+    function getTransferAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
         return Helpers.calculateTransferAmount(amount, decimals);
     }
 

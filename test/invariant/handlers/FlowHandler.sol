@@ -4,7 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { FlowStore } from "../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
@@ -143,8 +142,7 @@ contract FlowHandler is BaseHandler {
         // Deposit into the stream.
         flow.deposit({ streamId: currentStreamId, transferAmount: transferAmount });
 
-        uint128 normalizedAmount =
-            Helpers.calculateNormalizedAmount(transferAmount, flow.getAssetDecimals(currentStreamId));
+        uint128 normalizedAmount = getNormalizedAmount(transferAmount, flow.getAssetDecimals(currentStreamId));
 
         // Update the deposited amount.
         flowStore.updateStreamDepositedAmountsSum(currentStreamId, normalizedAmount);

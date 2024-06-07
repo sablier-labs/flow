@@ -3,8 +3,6 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { Helpers } from "src/libraries/Helpers.sol";
-
 import { Base_Test } from "../Base.t.sol";
 import { FlowCreateHandler } from "./handlers/FlowCreateHandler.sol";
 import { FlowHandler } from "./handlers/FlowHandler.sol";
@@ -92,8 +90,8 @@ contract Flow_Invariant_Test is Base_Test {
             uint256 streamId = flowStore.streamIds(i);
 
             if (flow.getAsset(streamId) == asset) {
-                streamBalancesSumNormalized +=
-                    Helpers.calculateTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
+                streamBalancesSumNormalized += streamBalancesSumNormalized +=
+                    getTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
             }
         }
 

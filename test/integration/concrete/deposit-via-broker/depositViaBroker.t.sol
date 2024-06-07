@@ -121,7 +121,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: transferAmount });
 
-        uint128 normalizedAmount = getNormalizedValue(transferAmount, assetDecimals);
+        uint128 normalizedAmount = getNormalizedAmount(transferAmount, assetDecimals);
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
