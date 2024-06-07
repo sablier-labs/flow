@@ -288,7 +288,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         private
     {
         IERC20 asset = flow.getAsset(streamId);
-        uint128 transferAmount = getTransferValue(expectedWithdrawAmount, assetDecimals);
+        uint128 transferAmount = getTransferAmount(expectedWithdrawAmount, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(asset) });

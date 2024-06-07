@@ -54,7 +54,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) private {
-        uint128 normalizedAmount = getNormalizedValue(transferAmount, assetDecimals);
+        uint128 normalizedAmount = getNormalizedAmount(transferAmount, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });

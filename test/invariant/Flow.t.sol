@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { Helpers } from "src/libraries/Helpers.sol";
-
 import { Invariant_Test } from "./Invariant.t.sol";
 import { FlowCreateHandler } from "./handlers/FlowCreateHandler.sol";
 import { FlowHandler } from "./handlers/FlowHandler.sol";
@@ -73,8 +71,7 @@ contract Flow_Invariant_Test is Invariant_Test {
         uint128 streamBalancesSumNormalized;
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            streamBalancesSumNormalized +=
-                Helpers.calculateTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
+            streamBalancesSumNormalized += getTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
         }
 
         assertGe(
