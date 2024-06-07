@@ -33,10 +33,11 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Check the sender and recipient are not zero.
         vm.assume(sender != address(0) && recipient != address(0));
 
-        // Bound the variables and create a new asset.
+        // Bound the variables.
         ratePerSecond = boundUint128(ratePerSecond, 1, UINT128_MAX - 1);
         decimals = boundUint8(decimals, 0, 18);
 
+        // Create a new asset.
         IERC20 asset = createAsset(decimals);
 
         uint256 expectedStreamId = flow.nextStreamId();

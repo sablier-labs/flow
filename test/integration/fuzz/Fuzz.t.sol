@@ -36,7 +36,6 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
             // Create asset, create stream and deposit.
             IERC20 asset = createAsset(decimal);
-
             uint256 streamId = createDefaultStreamWithRatePerSecondAndAsset(ratePerSecond, asset);
             depositDefaultAmountToStream(streamId);
 

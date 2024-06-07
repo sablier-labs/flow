@@ -90,7 +90,7 @@ contract Flow_Invariant_Test is Base_Test {
             uint256 streamId = flowStore.streamIds(i);
 
             if (flow.getAsset(streamId) == asset) {
-                streamBalancesSumNormalized += streamBalancesSumNormalized +=
+                streamBalancesSumNormalized +=
                     getTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
             }
         }
