@@ -36,5 +36,5 @@ abstract contract Constants {
     uint128 internal constant ONE_MONTH_REFUNDABLE_AMOUNT = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
 
     // Max value
-    uint256 internal constant UINT128_MAX = type(uint128).max;
+    uint128 internal constant UINT128_MAX = type(uint128).max;
 }
