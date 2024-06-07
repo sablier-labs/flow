@@ -5,7 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Integration_Test } from "../Integration.t.sol";
 
-abstract contract Fuzz_Integration_Test is Integration_Test {
+abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                      FIXTURES
     //////////////////////////////////////////////////////////////////////////*/

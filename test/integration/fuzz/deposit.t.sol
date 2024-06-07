@@ -3,9 +3,9 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { Fuzz_Integration_Test } from "./Fuzz.t.sol";
+import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
-contract Deposit_Integration_Fuzz_Test is Fuzz_Integration_Test {
+contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should deposit asset into a stream. 40% runs should load streams from fixtures.
     /// - It should emit the following events:
@@ -30,7 +30,7 @@ contract Deposit_Integration_Fuzz_Test is Fuzz_Integration_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        vm.assume(funder != address(0) && streamId > 0);
+        vm.assume(funder != address(0) && funder != address(flow) && streamId > 0);
 
         IERC20 asset;
 
@@ -77,7 +77,7 @@ contract Deposit_Integration_Fuzz_Test is Fuzz_Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // It should perform the ERC20 transfers.
+        // It should perform the ERC20 transfer.
         expectCallToTransferFrom({ asset: asset, from: funder, to: address(flow), amount: transferAmount });
 
         // Make the deposit.
