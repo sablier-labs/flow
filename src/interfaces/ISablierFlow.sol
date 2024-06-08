@@ -48,7 +48,7 @@ interface ISablierFlow is
     event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
 
     /// @notice Emitted when a Flow stream is paused.
-    /// @param streamId The ID of the stream.
+    /// @param streamId The ID of the Flow stream.
     /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
     /// @param amountOwed The amount of assets owed by the sender to the recipient, including debt, denoted in 18
@@ -68,7 +68,7 @@ interface ISablierFlow is
     event RestartFlowStream(uint256 indexed streamId, address sender, uint128 ratePerSecond);
 
     /// @notice Emitted when assets are withdrawn from a Flow stream.
-    /// @param streamId The ID of the stream.
+    /// @param streamId The ID of the Flow stream.
     /// @param to The address that has received the withdrawn assets.
     /// @param withdrawnAmount The amount of assets withdrawn, denoted in 18 decimals.
     event WithdrawFromFlowStream(uint256 indexed streamId, address indexed to, uint128 withdrawnAmount);
