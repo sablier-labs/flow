@@ -41,28 +41,46 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         _;
     }
 
-    function test_RevertWhen_CallerSender() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
+    function test_RevertWhen_CallerSender()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenStreamHasDebt
+        whenCallerNotRecipient
+    {
         bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
         expectRevert_CallerSender(callData);
     }
 
-    function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
+    function test_RevertWhen_CallerMaliciousThirdParty()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenStreamHasDebt
+        whenCallerNotRecipient
+    {
         bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
-        // It should void the stream.
-        _test_Void();
-    }
-
-    function test_WhenCallerApprovedThirdParty() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
+    function test_WhenCallerApprovedThirdParty()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenStreamHasDebt
+        whenCallerNotRecipient
+    {
         // Approve the operator to handle the stream.
         flow.approve({ to: users.operator, tokenId: defaultStreamId });
 
         // Make the operator the caller in this test.
         resetPrank({ msgSender: users.operator });
 
+        // It should void the stream.
+        _test_Void();
+    }
+
+    function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
         // It should void the stream.
         _test_Void();
     }
