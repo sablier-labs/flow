@@ -686,11 +686,11 @@ contract SablierFlow is
         address recipient = _ownerOf(streamId);
 
         // Check: if `msg.sender` is either the stream's recipient or an approved third party.
-        if (msg.sender != recipient && !_isCallerStreamRecipientOrApproved(streamId)) {
+        if (!_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized(streamId, msg.sender);
         }
 
-        // Calculate the stream balance. This is the value of new amount owed used in the event log.
+        // This is the value of new amount owed used in the event log.
         uint128 balance = _streams[streamId].balance;
 
         // Effect: set the rate per second to zero.
