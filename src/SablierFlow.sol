@@ -683,27 +683,27 @@ contract SablierFlow is
 
     /// @dev Voids a stream with positive debt.
     function _void(uint256 streamId, uint128 debtToWriteOff) internal {
-        address recipient = _ownerOf(streamId);
-
         // Check: if `msg.sender` is either the stream's recipient or an approved third party.
         if (!_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized(streamId, msg.sender);
         }
 
-        // This is the value of new amount owed used in the event log.
+        // The new amount owed will be set to the stream balance.
         uint128 balance = _streams[streamId].balance;
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
 
-        // Effect: set the stream as paused.
+        // Effect: set the stream as paused. This also sets the recent amount to zero.
         _streams[streamId].isPaused = true;
 
         // Effect: update the amount owed by setting remaining amount to stream balance.
         _streams[streamId].remainingAmount = balance;
 
         // Log the void.
-        emit ISablierFlow.VoidFlowStream(streamId, recipient, _streams[streamId].sender, balance, debtToWriteOff);
+        emit ISablierFlow.VoidFlowStream(
+            streamId, _ownerOf(streamId), _streams[streamId].sender, balance, debtToWriteOff
+        );
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
