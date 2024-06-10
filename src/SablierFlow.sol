@@ -328,15 +328,8 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function void(uint256 streamId) external override noDelegateCall notNull(streamId) updateMetadata(streamId) {
-        uint128 debtToWriteOff = _streamDebtOf(streamId);
-
-        // Check: the stream has debt.
-        if (debtToWriteOff == 0) {
-            revert Errors.SablierFlow_DebtZero(streamId);
-        }
-
         // Checks, Effects and Interactions: void the stream.
-        _void(streamId, debtToWriteOff);
+        _void(streamId);
     }
 
     /// @inheritdoc ISablierFlow
@@ -682,7 +675,14 @@ contract SablierFlow is
     }
 
     /// @dev Voids a stream with positive debt.
-    function _void(uint256 streamId, uint128 debtToWriteOff) internal {
+    function _void(uint256 streamId) internal {
+        uint128 debtToWriteOff = _streamDebtOf(streamId);
+
+        // Check: the stream has debt.
+        if (debtToWriteOff == 0) {
+            revert Errors.SablierFlow_DebtZero(streamId);
+        }
+
         // Check: if `msg.sender` is either the stream's recipient or an approved third party.
         if (!_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized(streamId, msg.sender);
