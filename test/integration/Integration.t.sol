@@ -4,7 +4,7 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
-import { Broker } from "src/types/DataTypes.sol";
+import { Broker, Flow } from "src/types/DataTypes.sol";
 
 import { Base_Test } from "../Base.t.sol";
 
@@ -62,6 +62,36 @@ abstract contract Integration_Test is Base_Test {
             ratePerSecond: ratePerSecond,
             asset: asset_,
             isTransferable: IS_TRANFERABLE
+        });
+    }
+
+    function defaultStream() internal view returns (Flow.Stream memory) {
+        return Flow.Stream({
+            ratePerSecond: RATE_PER_SECOND,
+            asset: dai,
+            assetDecimals: 18,
+            balance: 0,
+            lastTimeUpdate: getBlockTimestamp(),
+            isPaused: false,
+            isStream: true,
+            isTransferable: IS_TRANFERABLE,
+            remainingAmount: 0,
+            sender: users.sender
+        });
+    }
+
+    function defaultStreamWithDeposit() internal view returns (Flow.Stream memory) {
+        return Flow.Stream({
+            ratePerSecond: RATE_PER_SECOND,
+            asset: dai,
+            assetDecimals: 18,
+            balance: DEPOSIT_AMOUNT,
+            lastTimeUpdate: getBlockTimestamp(),
+            isPaused: false,
+            isStream: true,
+            isTransferable: IS_TRANFERABLE,
+            remainingAmount: 0,
+            sender: users.sender
         });
     }
 
