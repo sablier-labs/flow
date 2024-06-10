@@ -16,7 +16,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
         // Make the recipient the caller in this tests.
-        resetPrank(users.recipient);
+        resetPrank({ msgSender: users.recipient });
     }
 
     function test_RevertWhen_DelegateCall() external {
