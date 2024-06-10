@@ -702,9 +702,6 @@ contract SablierFlow is
         // Effect: set the remaining amount to stream balance.
         _streams[streamId].remainingAmount = balance;
 
-        // Effect: update the stream time. This sets recent amount to zero.
-        _updateTime(streamId, uint40(block.timestamp));
-
         // Log the void.
         emit ISablierFlow.VoidFlowStream(streamId, recipient, _streams[streamId].sender, balance, debtToWriteOff);
     }
