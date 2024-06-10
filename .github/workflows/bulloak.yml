@@ -9,6 +9,11 @@ jobs:
       - name: "Check out the repo"
         uses: "actions/checkout@v4"
 
+      - name: "Install Rust"
+        uses: "actions-rs/toolchain@v1"
+        with:
+          toolchain: "stable"
+
       - name: "Cache cargo"
         id: cache-cargo
         uses: "actions/cache@v4"
@@ -19,14 +24,12 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ hashFiles('Cargo.toml') }}
+          save-always: true
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
-      - name: "Install Rust"
-        uses: "actions-rs/toolchain@v1"
-        with:
-          toolchain: "stable"
-
-      - name: "Install bulloak"
+      - name: "Install bulloak or use the cached version"
+        if: steps.cache-cargo.outputs.cache-hit != 'true'
         run: "cargo install bulloak"
 
       - name: "Verify the concrete tests"
