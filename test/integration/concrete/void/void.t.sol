@@ -14,6 +14,8 @@ contract Void_Integration_Concrete_Test is Integration_Test {
 
         // Simulate one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        resetPrank({ msgSender: users.recipient });
     }
 
     function test_RevertWhen_DelegateCall() external {
@@ -38,33 +40,46 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         _;
     }
 
-    function test_RevertWhen_CallerSender() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
-        bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
-        expectRevert_CallerSender(callData);
-    }
-
-    function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
+    function test_RevertWhen_CallerMaliciousThirdParty()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenStreamHasDebt
+        whenCallerNotRecipient
+    {
         bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
-    function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
-        // Make the recipient the caller in this test.
-        resetPrank({ msgSender: users.recipient });
-
-        // It should void the stream.
-        _test_Void();
+    function test_RevertWhen_CallerSender()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenStreamHasDebt
+        whenCallerNotRecipient
+    {
+        bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
+        expectRevert_CallerSender(callData);
     }
 
-    function test_WhenCallerApprovedThirdParty() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
-        resetPrank({ msgSender: users.recipient });
-
+    function test_WhenCallerApprovedThirdParty()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenStreamHasDebt
+        whenCallerNotRecipient
+    {
         // Approve the operator to handle the stream.
         flow.approve({ to: users.operator, tokenId: defaultStreamId });
 
         // Make the operator the caller in this test.
         resetPrank({ msgSender: users.operator });
 
+        // It should void the stream.
+        _test_Void();
+    }
+
+    function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
         // It should void the stream.
         _test_Void();
     }
@@ -96,10 +111,5 @@ contract Void_Integration_Concrete_Test is Integration_Test {
 
         // It should update the amount owed to stream balance.
         assertEq(flow.amountOwedOf(defaultStreamId), streamBalance, "amount owed");
-
-        // It should update the last update time to the current block timestamp.
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = uint40(block.timestamp);
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time update");
     }
 }

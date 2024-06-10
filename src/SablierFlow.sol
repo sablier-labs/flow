@@ -328,15 +328,8 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function void(uint256 streamId) external override noDelegateCall notNull(streamId) updateMetadata(streamId) {
-        uint128 debtToWriteOff = _streamDebtOf(streamId);
-
-        // Check: the stream has debt.
-        if (debtToWriteOff == 0) {
-            revert Errors.SablierFlow_DebtZero(streamId);
-        }
-
         // Checks, Effects and Interactions: void the stream.
-        _void(streamId, debtToWriteOff);
+        _void(streamId);
     }
 
     /// @inheritdoc ISablierFlow
@@ -682,18 +675,23 @@ contract SablierFlow is
     }
 
     /// @dev Voids a stream with positive debt.
-    function _void(uint256 streamId, uint128 debtToWriteOff) internal {
-        address recipient = _ownerOf(streamId);
+    function _void(uint256 streamId) internal {
+        uint128 debtToWriteOff = _streamDebtOf(streamId);
+
+        // Check: the stream has debt.
+        if (debtToWriteOff == 0) {
+            revert Errors.SablierFlow_DebtZero(streamId);
+        }
 
         // Check: if `msg.sender` is either the stream's recipient or an approved third party.
-        if (msg.sender != recipient && !_isCallerStreamRecipientOrApproved(streamId)) {
+        if (!_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized(streamId, msg.sender);
         }
 
-        // Calculate the stream balance. This is the value of new amount owed used in the event log.
+        // The new amount owed will be the balance.
         uint128 balance = _streams[streamId].balance;
 
-        // Effect: set the rate per second to zero.
+        // Effect: set the rate per second to zero. This sets recent amount to zero.
         _streams[streamId].ratePerSecond = 0;
 
         // Effect: set the stream as paused.
@@ -702,11 +700,10 @@ contract SablierFlow is
         // Effect: set the remaining amount to stream balance.
         _streams[streamId].remainingAmount = balance;
 
-        // Effect: update the stream time. This sets recent amount to zero.
-        _updateTime(streamId, uint40(block.timestamp));
-
         // Log the void.
-        emit ISablierFlow.VoidFlowStream(streamId, recipient, _streams[streamId].sender, balance, debtToWriteOff);
+        emit ISablierFlow.VoidFlowStream(
+            streamId, _ownerOf(streamId), _streams[streamId].sender, balance, debtToWriteOff
+        );
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.

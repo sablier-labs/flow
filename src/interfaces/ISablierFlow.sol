@@ -71,8 +71,8 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream.
     /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
-    /// @param writenoffDebt The debt amount written-off by the recipient.
     /// @param newAmountOwed The updated amount of assets owed by the sender to the recipient, denoted in 18  decimals.
+    /// @param writenoffDebt The debt amount written-off by the recipient.
     event VoidFlowStream(
         uint256 indexed streamId, address recipient, address sender, uint128 newAmountOwed, uint128 writenoffDebt
     );
@@ -358,7 +358,7 @@ interface ISablierFlow is
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream.
     /// - `msg.sender` must either be the stream's recipient or an approved third party.
-    /// - stream debt must not be zero.
+    /// - stream debt must greater than zero.
     ///
     /// Notes:
     /// - A paused stream can also be voided if its debt is not zero.
