@@ -14,6 +14,9 @@ contract Void_Integration_Concrete_Test is Integration_Test {
 
         // Simulate one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        // Make the recipient the caller in this tests.
+        resetPrank(users.recipient);
     }
 
     function test_RevertWhen_DelegateCall() external {
@@ -49,16 +52,11 @@ contract Void_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
-        // Make the recipient the caller in this test.
-        resetPrank({ msgSender: users.recipient });
-
         // It should void the stream.
         _test_Void();
     }
 
     function test_WhenCallerApprovedThirdParty() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
-        resetPrank({ msgSender: users.recipient });
-
         // Approve the operator to handle the stream.
         flow.approve({ to: users.operator, tokenId: defaultStreamId });
 
