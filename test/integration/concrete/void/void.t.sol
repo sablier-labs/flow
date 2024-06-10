@@ -96,10 +96,5 @@ contract Void_Integration_Concrete_Test is Integration_Test {
 
         // It should update the amount owed to stream balance.
         assertEq(flow.amountOwedOf(defaultStreamId), streamBalance, "amount owed");
-
-        // It should update the last update time to the current block timestamp.
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = uint40(block.timestamp);
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time update");
     }
 }

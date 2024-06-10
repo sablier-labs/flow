@@ -62,7 +62,7 @@ contract SablierFlow is
             return 0;
         }
 
-        // Calculate here the recipient amount for gas optimization.
+        // Calculate here the amount owed for gas optimization.
         uint128 amountOwed = _streams[streamId].remainingAmount + _recentAmountOf(streamId, uint40(block.timestamp));
 
         // If the stream has debt, return zero.
@@ -699,7 +699,7 @@ contract SablierFlow is
         // Effect: set the stream as paused.
         _streams[streamId].isPaused = true;
 
-        // Effect: set the remaining amount to stream balance.
+        // Effect: update the amount owed by setting remaining amount to stream balance.
         _streams[streamId].remainingAmount = balance;
 
         // Log the void.
