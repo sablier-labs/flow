@@ -39,8 +39,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function test_Batch_AdjustRatePerSecond() external {
-        depositDefaultAmountToStream(defaultStreamIds[0]);
-        depositDefaultAmountToStream(defaultStreamIds[1]);
+        depositDefaultAmount(defaultStreamIds[0]);
+        depositDefaultAmount(defaultStreamIds[1]);
 
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
@@ -292,8 +292,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function test_Batch_RefundMultiple() external {
-        depositDefaultAmountToStream(defaultStreamIds[0]);
-        depositDefaultAmountToStream(defaultStreamIds[1]);
+        depositDefaultAmount(defaultStreamIds[0]);
+        depositDefaultAmount(defaultStreamIds[1]);
 
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
@@ -394,8 +394,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function test_Batch_WithdrawMultiple() external {
-        depositDefaultAmountToStream(defaultStreamIds[0]);
-        depositDefaultAmountToStream(defaultStreamIds[1]);
+        depositDefaultAmount(defaultStreamIds[0]);
+        depositDefaultAmount(defaultStreamIds[1]);
 
         // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
