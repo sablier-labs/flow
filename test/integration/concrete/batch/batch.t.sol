@@ -28,7 +28,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
     /// @dev The `SablierFlow_RatePerSecondZero` error was chosen random, it could be any error, and any function call,
     /// we just test if the {Batch.batch} function catches the error correctly.
-    function test_RevertWhen_RatePerSecondZero() external {
+    function test_RevertWhen_CustomError() external {
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](1);
         calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, 0, dai, IS_TRANFERABLE));
@@ -36,6 +36,42 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         bytes memory errorSelector = abi.encodeWithSelector(Errors.SablierFlow_RatePerSecondZero.selector);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.BatchError.selector, errorSelector));
+        flow.batch(calls);
+    }
+
+    function test_RevertWhen_StringMessage() external {
+        uint256 streamId = flow.create({
+            sender: users.sender,
+            recipient: users.recipient,
+            ratePerSecond: RATE_PER_SECOND,
+            asset: IERC20(address(usdt)),
+            isTransferable: IS_TRANFERABLE
+        });
+
+        address noAllowanceAddress = address(0xBEEF);
+        resetPrank({ msgSender: noAllowanceAddress });
+
+        uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT, 6);
+
+        // The calls declared as bytes
+        bytes[] memory calls = new bytes[](1);
+        calls[0] = abi.encodeCall(flow.deposit, (streamId, transferAmount));
+
+        vm.expectRevert("ERC20: insufficient allowance");
+        flow.batch(calls);
+    }
+
+    function test_RevertWhen_SilentRevert() external {
+        uint256 streamId = createDefaultStream(IERC20(address(usdt)));
+
+        // The calls declared as bytes
+        bytes[] memory calls = new bytes[](1);
+        calls[0] = abi.encodeCall(flow.refund, (streamId, REFUND_AMOUNT));
+
+        // Remove the ERC20 balance from flow contract.
+        deal({ token: address(usdt), to: address(flow), give: 0 });
+
+        vm.expectRevert();
         flow.batch(calls);
     }
 

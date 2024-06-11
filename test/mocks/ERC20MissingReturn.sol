@@ -64,7 +64,7 @@ contract ERC20MissingReturn {
 
     /// @dev This function does not return a value, although the ERC20 standard mandates that it should.
     function transferFrom(address from, address to, uint256 amount) public {
-        require(_allowances[from][to] >= amount, "ERC20: insufficient allowance");
+        require(_allowances[from][msg.sender] >= amount, "ERC20: insufficient allowance");
         _transfer(from, to, amount);
         _approve(from, msg.sender, _allowances[from][msg.sender] - amount);
     }
@@ -72,7 +72,7 @@ contract ERC20MissingReturn {
     function _transfer(address from, address to, uint256 amount) internal virtual {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
-        require(_balances[from] >= amount, "ERC20: transfer amount exceeds balance");
+        require(_balances[from] >= amount); // no revert message, because we need to test this case in {Batch}
         _balances[from] = _balances[from] - amount;
         _balances[to] = _balances[to] + amount;
         emit Transfer(from, to, amount);
