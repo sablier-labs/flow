@@ -14,7 +14,12 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
         defaultStreamIds.push(defaultStreamId);
+
+        // Create a second stream
+        vm.warp({ newTimestamp: getBlockTimestamp() - ONE_MONTH });
         defaultStreamIds.push(createDefaultStream());
+
+        vm.warp({ newTimestamp: WARP_ONE_MONTH });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -41,8 +46,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function test_Batch_AdjustRatePerSecond() external {
         depositDefaultAmount(defaultStreamIds[0]);
         depositDefaultAmount(defaultStreamIds[1]);
-
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
         uint128 newRatePerSecond = RATE_PER_SECOND + 1;
 
@@ -343,9 +346,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         flow.pause({ streamId: defaultStreamIds[0] });
         flow.pause({ streamId: defaultStreamIds[1] });
 
-        uint256 newTimestamp = getBlockTimestamp() + 100 seconds;
-        vm.warp(newTimestamp);
-
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
         calls[0] = abi.encodeCall(flow.restart, (defaultStreamIds[0], RATE_PER_SECOND));
@@ -377,7 +377,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         assertEq(actualRatePerSecond0, RATE_PER_SECOND, "ratePerSecond");
 
         uint40 actualLastTimeUpdate0 = flow.getLastTimeUpdate(defaultStreamIds[0]);
-        assertEq(actualLastTimeUpdate0, newTimestamp, "lastTimeUpdate");
+        assertEq(actualLastTimeUpdate0, getBlockTimestamp(), "lastTimeUpdate");
 
         // Second stream restart
         assertFalse(flow.isPaused(defaultStreamIds[1]), "is paused");
@@ -386,7 +386,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         assertEq(actualRatePerSecond1, RATE_PER_SECOND, "ratePerSecond");
 
         uint40 actualLastTimeUpdate1 = flow.getLastTimeUpdate(defaultStreamIds[1]);
-        assertEq(actualLastTimeUpdate1, newTimestamp, "lastTimeUpdate");
+        assertEq(actualLastTimeUpdate1, getBlockTimestamp(), "lastTimeUpdate");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -396,9 +396,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function test_Batch_WithdrawMultiple() external {
         depositDefaultAmount(defaultStreamIds[0]);
         depositDefaultAmount(defaultStreamIds[1]);
-
-        // Simulate the one month of streaming.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
         uint128 previousFullAmountOwed0 = flow.amountOwedOf(defaultStreamIds[0]);
         uint128 previousFullAmountOwed1 = flow.amountOwedOf(defaultStreamIds[1]);
