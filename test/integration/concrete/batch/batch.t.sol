@@ -28,7 +28,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         bytes[] memory calls = new bytes[](1);
         calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, 0, dai, IS_TRANFERABLE));
 
-        bytes4 errorSelector = Errors.SablierFlow_RatePerSecondZero.selector;
+        bytes memory errorSelector = abi.encodeWithSelector(Errors.SablierFlow_RatePerSecondZero.selector);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.BatchError.selector, errorSelector));
         flow.batch(calls);
