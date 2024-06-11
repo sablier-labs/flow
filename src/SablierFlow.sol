@@ -96,6 +96,29 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
+    function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
+        uint128 debt = _streamDebtOf(streamId);
+
+        if (_streams[streamId].isPaused) {
+            // If the stream is paused and has debt, return LIABLE.
+            if (debt > 0) {
+                return Flow.Status.LIABLE;
+            }
+
+            // If the stream is paused and has no debt, return DEFERRED.
+            return Flow.Status.DEFERRED;
+        }
+
+        // If the stream is active and has debt, return ACCRUING.
+        if (debt > 0) {
+            return Flow.Status.ACCRUING;
+        }
+
+        // If the stream is active and has no debt, return STREAMINIG.
+        status = Flow.Status.STREAMINIG;
+    }
+
+    /// @inheritdoc ISablierFlow
     function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
         debt = _streamDebtOf(streamId);
     }
