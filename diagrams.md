@@ -30,7 +30,139 @@ flowchart LR
 
 ---
 
-### State diagram
+## Statuses
+
+### Types
+
+| Type   | Statuses            | Description                                                   |
+| :----- | :------------------ | :------------------------------------------------------------ |
+| Active | Accruing, Streaming | The amount owed to the recipient is increasing over time.     |
+| Paused | Liable, Deferred    | The amount owed to the recipient is not increasing over time. |
+
+| Status    | Description                          |
+| --------- | ------------------------------------ |
+| Streaming | Active stream when there is no debt. |
+| Accruing  | Active stream when there is debt.    |
+| Liable    | Paused stream when there is debt.    |
+| Deferred  | Paused stream when there is no debt. |
+
+### Statuses diagram
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state Active {
+        Streaming
+        Accruing
+             --> Streaming
+        Streaming --> Accruing
+    }
+
+    state Paused {
+        # direction BT
+        Deferred
+        Liable
+        Liable --> Deferred
+    }
+
+    Streaming --> Deferred
+    Deferred --> Streaming
+    Accruing --> Liable
+    Liable --> Accruing
+
+    NULL --> Active
+    # Active --> Paused
+    # Paused --> Active
+
+
+    NULL:::grey
+    Paused:::lightYellow
+    Active:::lightGreen
+    Streaming:::intenseGreen
+    Accruing:::intenseGreen
+    Deferred:::intenseYellow
+    Liable:::intenseYellow
+
+    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
+    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+    classDef lightYellow fill:#ffff99,color:#000,font-weight:bold;
+    classDef intenseYellow fill:#ffd700,color:#000,font-weight:bold;
+
+```
+
+### Transition diagram
+
+```mermaid
+
+stateDiagram-v2
+    direction LR
+
+    NULL --> Active : create
+
+    NULL:::grey
+    Active:::lightGreen
+
+    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
+
+```
+
+```mermaid
+
+stateDiagram-v2
+    direction LR
+
+    Streaming --> Accruing : time
+
+    Streaming:::intenseGreen
+    Accruing:::intenseGreen
+
+    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+
+```
+
+```mermaid
+
+stateDiagram-v2
+    direction LR
+
+    Accruing --> Streaming : deposit
+
+    Accruing:::intenseGreen
+    Streaming:::intenseGreen
+
+    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+```
+
+```mermaid
+stateDiagram-v2
+ direction LR
+    Active --> Paused : pause
+
+    Active:::lightGreen
+    Paused:::lightYellow
+
+
+    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
+    classDef lightYellow fill:#ffff99,color:#000,font-weight:bold;
+    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+
+```
+
+```mermaid
+
+stateDiagram-v2
+    direction LR
+
+    Liable --> Deferred : deposit
+
+    Liable:::intenseYellow
+    Deferred:::intenseYellow
+
+    classDef intenseYellow fill:#ffd700,color:#000,font-weight:bold;
+```
 
 **Notes:**
 
@@ -40,20 +172,25 @@ flowchart LR
 4. Purple functions can be called only by the sender
 
 ```mermaid
-flowchart TD
+flowchart TB
     %% Functions
-    ADJRPS([ADJUST_RPS]):::purple
-    CR([CREATE]):::blue
-    DP([DEPOSIT]):::blue
-    PS([PAUSE]):::purple
-    RFD([REFUND]):::purple
-    RST([RESTART]):::purple
-    WTD([WITHDRAW]):::blue
+
 
     %% Statuses
     NULL((NULL)):::grey
-    STR((STREAMING)):::green
+    ACV((ACTIVE)):::green
     PSD((PAUSED)):::yellow
+
+    CR([CREATE]):::blue
+    ADJRPS([ADJUST_RPS]):::purple
+    DP([DEPOSIT]):::blue
+    WTD([WITHDRAW]):::blue
+    RFD([REFUND]):::purple
+
+    RST([RESTART]):::purple
+    PS([PAUSE]):::purple
+
+    VD([VOID]):::blue
 
     classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px;
     classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
@@ -61,26 +198,20 @@ flowchart TD
     classDef blue fill:#99ccff,stroke:#333,stroke-width:2px;
     classDef purple fill:#D0CEE2,stroke:#333,stroke-width:2px;
 
-    %% ltu is always updated to block.timestamp
-    %% the "update" comments refer only to the internal state
-
     NULL --> CR
-    CR -- "update rps\nupdate ltu" --> STR
-    ADJRPS -- "update ltu\nupdate ra (+rca)\nupdate rps" -->  STR
+    CR -- "update rps\nupdate ltu" --> ACV
+    ADJRPS -- "update ltu\nupdate ra (+rca)\nupdate rps" -->  ACV
 
-    DP -- "update bal (+)" --> STR:::red
-    DP -- "update bal (+)" --> PSD:::red
+    DP -- "update bal (+)" --> ACV:::red & PSD:::red
 
-    RFD -- "update bal (-)" --> STR:::red
-    RFD -- "update bal (-)" --> PSD:::red
+    RFD -- "update bal (-)" --> PSD:::red & ACV:::red
 
-    WTD -- "update ltu\nupdate bal (-)\nupdate ra (-)" --> STR
-    WTD -- "update ltu\nupdate bal (-)\nupdate ra (-)" --> PSD
+    WTD -- "update ltu\nupdate bal (-)\nupdate ra (-)" --> ACV & PSD
 
-    STR --> PS
+    ACV --> PS
     PS -- "update ra (+rca)\nupdate rps (0)" --> PSD
     PSD --> RST
-    RST -- "update ltu\nupdate rps" --> STR
+    RST -- "update ltu\nupdate rps" --> ACV
 
     linkStyle 3,4,5,6,7,8 stroke:#ff0000,stroke-width:2px
 ```
@@ -101,10 +232,10 @@ res_01([0 ]):::green1
 res_rca(["rps*(now - ltu)"]):::green1
 
 rca --> di0
-di0 -- "isNotPaused" --> di1
-di0 -- "isPaused" --> res_00
-di1 -- "now >= ltu" --> res_01
-di1 -- "now < ltu" --> res_rca
+di0 -- "active" --> di1
+di0 -- "paused" --> res_00
+di1 -- "now < ltu" --> res_01
+di1 -- "now >= ltu" --> res_rca
 
 classDef green0 fill:#98FB98,stroke:#333,stroke-width:2px;
 classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
@@ -134,8 +265,8 @@ flowchart TD
     di0 -- "bal > 0" --> di1
     di1 -- "debt > 0" --> res_bal
     di1 -- "debt = 0" --> di2
-    di2 -- "isPaused" --> res_ra
-    di2 -- "isNotPaused" --> res_sum
+    di2 -- "paused" --> res_ra
+    di2 -- "active" --> res_sum
 
     classDef blue0 fill:#DAE8FC,stroke:#333,stroke-width:2px;
     classDef blue1 fill:#1BA1E2,stroke:#333,stroke-width:2px;
