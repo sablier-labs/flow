@@ -30,12 +30,16 @@ abstract contract Batch {
                           INTERNAL NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Helper function to extract the revert message from a failed call.
-    /// If the returned data is malformed or not correctly abi encoded then this call can fail itself.
+    /// @notice Helper function to extract the revert message from a failed call.
+    /// If the returned data is malformed or not correctly ABI-encoded, then this call can fail itself.
+    ///
+    /// @dev If the returned data length is less than 101 bytes, it indicates a custom error or a silent failure
+    /// (without a revert message). Our protocol does not have a custom error greater than 100 bytes, but it is possible
+    /// to have a greater size if it includes more parameters.
     function _getRevertMsg(bytes memory returnData) internal pure {
-        // If the result length is less than 68, then the transaction failed with custom error or silently (without a
+        // If the result length is less than 101, then the transaction failed with custom error or silently (without a
         // revert message)
-        if (returnData.length < 68) {
+        if (returnData.length < 101) {
             revert Errors.BatchError(returnData);
         }
 

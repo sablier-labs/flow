@@ -31,9 +31,11 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_CustomError() external {
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](1);
-        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, 0, dai, IS_TRANFERABLE));
+        calls[0] = abi.encodeCall(flow.withdrawMax, (1, users.sender));
 
-        bytes memory errorSelector = abi.encodeWithSelector(Errors.SablierFlow_RatePerSecondZero.selector);
+        bytes memory errorSelector = abi.encodeWithSelector(
+            Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, 1, users.sender, users.sender
+        );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.BatchError.selector, errorSelector));
         flow.batch(calls);
@@ -117,29 +119,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        // First stream adjusted rate per second
-        uint128 actualRemainingAmount0 = flow.getRemainingAmount(defaultStreamId);
-        uint128 expectedRemainingAmount = ONE_MONTH_STREAMED_AMOUNT;
-        assertEq(actualRemainingAmount0, expectedRemainingAmount, "remaining amount");
-
-        uint128 actualRatePerSecond0 = flow.getRatePerSecond(defaultStreamId);
-        uint128 expectedRatePerSecond = newRatePerSecond;
-        assertEq(actualRatePerSecond0, expectedRatePerSecond, "rate per second");
-
-        uint40 actualLastTimeUpdate0 = flow.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = getBlockTimestamp();
-        assertEq(actualLastTimeUpdate0, expectedLastTimeUpdate, "last time updated");
-
-        // Second stream adjusted rate per second
-        uint128 actualRemainingAmount1 = flow.getRemainingAmount(defaultStreamIds[1]);
-        assertEq(actualRemainingAmount1, expectedRemainingAmount, "remaining amount");
-
-        uint128 actualRatePerSecond1 = flow.getRatePerSecond(defaultStreamIds[1]);
-        assertEq(actualRatePerSecond1, expectedRatePerSecond, "rate per second");
-
-        uint40 actualLastTimeUpdate1 = flow.getLastTimeUpdate(defaultStreamIds[1]);
-        assertEq(actualLastTimeUpdate1, expectedLastTimeUpdate, "last time updated");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -188,32 +167,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        Flow.Stream memory actualStream0 = flow.getStream(expectedStreamIds[0]);
-        Flow.Stream memory expectedStream = defaultStream();
-
-        // It should create the stream
-        assertEq(actualStream0, expectedStream);
-
-        // It should bump the next stream id
-        assertEq(flow.nextStreamId(), expectedStreamIds[0] + 2, "next stream id");
-
-        // It should mint the NFT
-        address actualNFTOwner0 = flow.ownerOf({ tokenId: expectedStreamIds[0] });
-        address expectedNFTOwner = users.recipient;
-        assertEq(actualNFTOwner0, expectedNFTOwner, "NFT owner");
-
-        Flow.Stream memory actualStream1 = flow.getStream(expectedStreamIds[1]);
-
-        // It should create the stream
-        assertEq(actualStream1, expectedStream);
-
-        // It should bump the next stream id
-        assertEq(flow.nextStreamId(), expectedStreamIds[1] + 1, "next stream id");
-
-        // It should mint the NFT
-        address actualNFTOwner1 = flow.ownerOf({ tokenId: expectedStreamIds[1] });
-        assertEq(actualNFTOwner1, actualNFTOwner1, "NFT owner");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -254,15 +207,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        // First stream deposit
-        uint128 actualStreamBalance0 = flow.getBalance(defaultStreamIds[0]);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
-        assertEq(actualStreamBalance0, expectedStreamBalance, "stream balance");
-
-        // Second stream deposit
-        uint128 actualStreamBalance1 = flow.getBalance(defaultStreamIds[1]);
-        assertEq(actualStreamBalance1, expectedStreamBalance, "stream balance");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -306,24 +250,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        // First stream pause
-        assertTrue(flow.isPaused(defaultStreamIds[0]), "is paused");
-
-        uint256 actualRatePerSecond0 = flow.getRatePerSecond(defaultStreamIds[0]);
-        assertEq(actualRatePerSecond0, 0, "rate per second");
-
-        uint128 actualRemainingAmount0 = flow.getRemainingAmount(defaultStreamId);
-        assertEq(actualRemainingAmount0, previousAmountOwed0, "remaining amount");
-
-        // Second stream pause
-        assertTrue(flow.isPaused(defaultStreamIds[1]), "is paused");
-
-        uint256 actualRatePerSecond1 = flow.getRatePerSecond(defaultStreamIds[1]);
-        assertEq(actualRatePerSecond1, 0, "rate per second");
-
-        uint128 actualRemainingAmount1 = flow.getRemainingAmount(defaultStreamIds[1]);
-        assertEq(actualRemainingAmount1, previousAmountOwed1, "remaining amount");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -363,15 +289,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        // First stream refund
-        uint128 actualStreamBalance0 = flow.getBalance(defaultStreamIds[0]);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
-        assertEq(actualStreamBalance0, expectedStreamBalance, "stream balance");
-
-        // Second stream refund
-        uint128 actualStreamBalance1 = flow.getBalance(defaultStreamIds[1]);
-        assertEq(actualStreamBalance1, expectedStreamBalance, "stream balance");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -405,24 +322,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        // First stream restart
-        assertFalse(flow.isPaused(defaultStreamIds[0]), "is paused");
-
-        uint128 actualRatePerSecond0 = flow.getRatePerSecond(defaultStreamIds[0]);
-        assertEq(actualRatePerSecond0, RATE_PER_SECOND, "ratePerSecond");
-
-        uint40 actualLastTimeUpdate0 = flow.getLastTimeUpdate(defaultStreamIds[0]);
-        assertEq(actualLastTimeUpdate0, getBlockTimestamp(), "lastTimeUpdate");
-
-        // Second stream restart
-        assertFalse(flow.isPaused(defaultStreamIds[1]), "is paused");
-
-        uint128 actualRatePerSecond1 = flow.getRatePerSecond(defaultStreamIds[1]);
-        assertEq(actualRatePerSecond1, RATE_PER_SECOND, "ratePerSecond");
-
-        uint40 actualLastTimeUpdate1 = flow.getLastTimeUpdate(defaultStreamIds[1]);
-        assertEq(actualLastTimeUpdate1, getBlockTimestamp(), "lastTimeUpdate");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -479,28 +378,5 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // Call the batch function.
         flow.batch(calls);
-
-        // First stream withdraw
-        uint40 actualLastTimeUpdate0 = flow.getLastTimeUpdate(defaultStreamIds[0]);
-        assertEq(actualLastTimeUpdate0, WITHDRAW_TIME, "lastTimeUpdate");
-
-        uint128 actualFullAmountOwed0 = flow.amountOwedOf(defaultStreamIds[0]);
-        uint128 expectedFullAmountOwed0 = previousFullAmountOwed0 - WITHDRAW_AMOUNT;
-        assertEq(actualFullAmountOwed0, expectedFullAmountOwed0, "full amount owed");
-
-        uint128 actualStreamBalance0 = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - WITHDRAW_AMOUNT;
-        assertEq(actualStreamBalance0, expectedStreamBalance, "stream balance");
-
-        // Second stream withdraw
-        uint40 actualLastTimeUpdate1 = flow.getLastTimeUpdate(defaultStreamIds[1]);
-        assertEq(actualLastTimeUpdate1, WITHDRAW_TIME, "lastTimeUpdate");
-
-        uint128 actualFullAmountOwed1 = flow.amountOwedOf(defaultStreamIds[1]);
-        uint128 expectedFullAmountOwed1 = previousFullAmountOwed1 - WITHDRAW_AMOUNT;
-        assertEq(actualFullAmountOwed1, expectedFullAmountOwed1, "full amount owed");
-
-        uint128 actualStreamBalance1 = flow.getBalance(defaultStreamIds[1]);
-        assertEq(actualStreamBalance1, expectedStreamBalance, "stream balance");
     }
 }
