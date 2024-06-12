@@ -38,4 +38,5 @@ abstract contract Constants {
 
     // Max value
     uint128 internal constant UINT128_MAX = type(uint128).max;
+    uint40 internal constant UINT40_MAX = type(uint40).max;
 }

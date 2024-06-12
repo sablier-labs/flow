@@ -38,7 +38,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         decimals = boundUint8(decimals, 0, 18);
 
         // Create a new asset.
-        IERC20 asset = createAsset(decimals);
+        asset = createAsset(decimals);
 
         uint256 expectedStreamId = flow.nextStreamId();
 

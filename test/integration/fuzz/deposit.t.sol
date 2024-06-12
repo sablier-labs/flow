@@ -30,9 +30,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        vm.assume(funder != address(0) && funder != address(flow) && streamId > 0);
-
-        IERC20 asset;
+        vm.assume(funder != address(0) && funder != address(flow));
 
         // Check if stream id is picked from the fixtures.
         if (!flow.isStream(streamId)) {

@@ -3,9 +3,13 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import { Base_Test } from "../../Base.t.sol";
 import { Integration_Test } from "../Integration.t.sol";
 
 abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
+    // Asset variable to be used during the fuzz tests.
+    IERC20 asset;
+
     /*//////////////////////////////////////////////////////////////////////////
                                      FIXTURES
     //////////////////////////////////////////////////////////////////////////*/
@@ -19,8 +23,10 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        Integration_Test.setUp();
+        // Base setup is used because stream created and time warp by Integration setup are not required.
+        Base_Test.setUp();
 
+        // Create streams with all possible decimals.
         _setupStreamsWithAllDecimals();
     }
 
@@ -35,8 +41,8 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
             uint128 ratePerSecond = uint128(_bound(ratePerSecondSeed, 0.001e18, 10e18));
 
             // Create asset, create stream and deposit.
-            IERC20 asset = createAsset(decimal);
-            uint256 streamId = createDefaultStream(ratePerSecond, asset);
+            IERC20 asset_ = createAsset(decimal);
+            uint256 streamId = createDefaultStream(ratePerSecond, asset_);
             depositDefaultAmount(streamId);
 
             fixtureStreamId[decimal] = streamId;
