@@ -7,8 +7,7 @@ import { Base_Test } from "../../Base.t.sol";
 import { Integration_Test } from "../Integration.t.sol";
 
 abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
-    // Asset variable to be used during the fuzz tests.
-    IERC20 asset;
+    IERC20 internal asset;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      FIXTURES
@@ -47,5 +46,31 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
             fixtureStreamId[decimal] = streamId;
         }
+    }
+
+    function useFuzzedStreamOrCreate(
+        uint256 streamId,
+        uint8 decimals,
+        bool deposit
+    )
+        internal
+        returns (uint256, uint8)
+    {
+        // Check if stream id is picked from the fixtures.
+        if (!flow.isStream(streamId)) {
+            // If not, create a new stream.
+            decimals = boundUint8(decimals, 0, 18);
+            asset = createAsset(decimals);
+            streamId = createDefaultStreamWithAsset(asset);
+            if (deposit) {
+                // Deposit the default amount to the stream.
+                depositDefaultAmountToStream(streamId);
+            }
+        } else {
+            decimals = flow.getAssetDecimals(streamId);
+            asset = flow.getAsset(streamId);
+        }
+
+        return (streamId, decimals);
     }
 }

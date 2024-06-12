@@ -28,6 +28,8 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Only allow non zero refund amounts.
         vm.assume(refundAmount > 0);
 
+        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+
         // Check if stream id is picked from the fixtures.
         if (!flow.isStream(streamId)) {
             // If not, create a new stream.
@@ -76,17 +78,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        // Check if stream id is picked from the fixtures.
-        if (!flow.isStream(streamId)) {
-            // If not, create a new stream.
-            decimals = boundUint8(decimals, 0, 18);
-            asset = createAsset(decimals);
-            streamId = createDefaultStreamWithAsset(asset);
-            depositDefaultAmountToStream(streamId);
-        } else {
-            decimals = flow.getAssetDecimals(streamId);
-            asset = flow.getAsset(streamId);
-        }
+        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame and not exceeding depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);

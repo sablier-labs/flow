@@ -32,16 +32,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(funder != address(0) && funder != address(flow));
 
-        // Check if stream id is picked from the fixtures.
-        if (!flow.isStream(streamId)) {
-            // If not, create a new stream.
-            decimals = boundUint8(decimals, 0, 18);
-            asset = createAsset(decimals);
-            streamId = createDefaultStream(asset);
-        } else {
-            decimals = flow.getAssetDecimals(streamId);
-            asset = flow.getAsset(streamId);
-        }
+        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, false);
 
         // Bound the transfer amount to avoid overflow.
         transferAmount = boundTransferAmount(transferAmount, decimals);
