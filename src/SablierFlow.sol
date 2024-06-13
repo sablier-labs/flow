@@ -496,11 +496,11 @@ contract SablierFlow is
         // Effect: update the remaining amount.
         _updateRemainingAmount(streamId);
 
-        // Effect: update the stream time.
-        _updateTime(streamId, uint40(block.timestamp));
-
         // Effect: set the new rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
+
+        // Effect: update the stream time.
+        _updateTime(streamId, uint40(block.timestamp));
 
         // Log the adjustment.
         emit ISablierFlow.AdjustFlowStream(
@@ -676,14 +676,14 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondZero();
         }
 
-        // Effect: update the stream time.
-        _updateTime(streamId, uint40(block.timestamp));
-
         // Effect: set the rate per second.
         _streams[streamId].ratePerSecond = ratePerSecond;
 
         // Effect: set the stream as not paused.
         _streams[streamId].isPaused = false;
+
+        // Effect: update the stream time.
+        _updateTime(streamId, uint40(block.timestamp));
 
         // Log the restart.
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
@@ -717,14 +717,14 @@ contract SablierFlow is
         // The new amount owed will be set to the stream balance.
         uint128 balance = _streams[streamId].balance;
 
+        // Effect: update the amount owed by setting remaining amount to stream balance.
+        _streams[streamId].remainingAmount = balance;
+
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
 
         // Effect: set the stream as paused. This also sets the recent amount to zero.
         _streams[streamId].isPaused = true;
-
-        // Effect: update the amount owed by setting remaining amount to stream balance.
-        _streams[streamId].remainingAmount = balance;
 
         // Log the void.
         emit ISablierFlow.VoidFlowStream(
