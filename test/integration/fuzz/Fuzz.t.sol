@@ -48,6 +48,12 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         }
     }
 
+    /// @dev An internal function to fuzz the stream id and decimals based on whether the stream ID exists or not.
+    /// @param streamId The stream ID to fuzz.
+    /// @param decimals The decimals to fuzz.
+    /// @param deposit A boolean to determine if the default amount should be deposited to the stream.
+    /// @return streamId The fuzzed stream ID of either a stream picked from the fixture or a new stream.
+    /// @return decimals The fuzzed decimals.
     function useFuzzedStreamOrCreate(
         uint256 streamId,
         uint8 decimals,
@@ -61,10 +67,10 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
             // If not, create a new stream.
             decimals = boundUint8(decimals, 0, 18);
             asset = createAsset(decimals);
-            streamId = createDefaultStreamWithAsset(asset);
+            streamId = createDefaultStream(asset);
             if (deposit) {
                 // Deposit the default amount to the stream.
-                depositDefaultAmountToStream(streamId);
+                depositDefaultAmount(streamId);
             }
         } else {
             decimals = flow.getAssetDecimals(streamId);

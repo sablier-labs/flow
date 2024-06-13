@@ -35,8 +35,8 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             // If not, create a new stream.
             decimals = boundUint8(decimals, 0, 18);
             asset = createAsset(decimals);
-            streamId = createDefaultStreamWithAsset(asset);
-            depositDefaultAmountToStream(streamId);
+            streamId = createDefaultStream(asset);
+            depositDefaultAmount(streamId);
         } else {
             decimals = flow.getAssetDecimals(streamId);
             asset = flow.getAsset(streamId);
