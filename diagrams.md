@@ -1,3 +1,122 @@
+## Statuses
+
+### Types
+
+| Type   | Statuses            | Description                                                   |
+| :----- | :------------------ | :------------------------------------------------------------ |
+| Active | Accruing, Streaming | The amount owed to the recipient is increasing over time.     |
+| Paused | Liable, Deferred    | The amount owed to the recipient is not increasing over time. |
+
+| Status    | Description                          |
+| --------- | ------------------------------------ |
+| Streaming | Active stream when there is no debt. |
+| Accruing  | Active stream when there is debt.    |
+| Liable    | Paused stream when there is debt.    |
+| Deferred  | Paused stream when there is no debt. |
+
+### Statuses diagram
+
+The transition between statuses is done by specific functions, which can be seen in the text on the edges or by the
+time.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state Active {
+        Streaming
+        Accruing --> Streaming : deposit
+        Streaming --> Accruing : time
+    }
+
+    state Paused {
+        # direction BT
+        Deferred
+        Liable
+        Liable --> Deferred : deposit || void
+    }
+
+    Streaming --> Deferred : pause
+    Deferred --> Streaming : restart
+    Accruing --> Liable : pause
+    Accruing --> Deferred : void
+    Liable --> Accruing : restart
+
+    NULL --> Streaming : create
+
+    NULL:::grey
+    Paused:::lightYellow
+    Active:::lightGreen
+    Streaming:::intenseGreen
+    Accruing:::intenseGreen
+    Deferred:::intenseYellow
+    Liable:::intenseYellow
+
+    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
+    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+    classDef lightYellow fill:#ffff99,color:#000,font-weight:bold;
+    classDef intenseYellow fill:#ffd700,color:#000,font-weight:bold;
+
+```
+
+### Function calls
+
+**Notes:**
+
+1. The "update" comments refer only to the internal state
+2. `ltu` is always updated to `block.timestamp`
+3. Red lines refers to the function that are doing an ERC20 transfer
+
+```mermaid
+flowchart LR
+    subgraph Statuses
+        NULL((NULL)):::grey
+        ACV((ACTIVE)):::green
+        PSD((PAUSED)):::yellow
+    end
+
+
+    subgraph Functions
+        CR([CREATE])
+        ADJRPS([ADJUST_RPS])
+        DP([DEPOSIT])
+        WTD([WITHDRAW])
+        RFD([REFUND])
+        RST([RESTART])
+        PS([PAUSE])
+        VD([VOID])
+    end
+
+    BOTH((  )):::black
+
+    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px;
+    classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
+    classDef yellow fill:#ffff99,stroke:#333,stroke-width:2px;
+    classDef black fill:#000000,stroke:#333,stroke-width:2px;
+
+    CR -- "update rps\nupdate ltu" --> NULL
+    ADJRPS -- "update ra (+rca)\nupdate rps\nupdate ltu" -->  ACV
+
+    DP -- "update bal (+)" --> BOTH
+
+    RFD -- "update bal (-)" --> BOTH
+
+    VD -- "update ra (bal)\nupdate rps (0)" --> BOTH
+
+    WTD -- "update ra (-) \nupdate ltu\nupdate bal (-)" --> BOTH
+
+    PS -- "update ra (+rca)\nupdate rps (0)" --> ACV
+
+    BOTH --> ACV & PSD
+
+    RST -- "update rps \nupdate ltu" --> PSD
+
+    linkStyle 2,3,5 stroke:#ff0000,stroke-width:2px
+```
+
+### Internal State
+
 ```mermaid
 flowchart LR
     stream[(Stream Internal State)]:::green
@@ -28,193 +147,7 @@ flowchart LR
     classDef red fill:#ff4e4e,stroke:#333,stroke-width:2px;
 ```
 
----
-
-## Statuses
-
-### Types
-
-| Type   | Statuses            | Description                                                   |
-| :----- | :------------------ | :------------------------------------------------------------ |
-| Active | Accruing, Streaming | The amount owed to the recipient is increasing over time.     |
-| Paused | Liable, Deferred    | The amount owed to the recipient is not increasing over time. |
-
-| Status    | Description                          |
-| --------- | ------------------------------------ |
-| Streaming | Active stream when there is no debt. |
-| Accruing  | Active stream when there is debt.    |
-| Liable    | Paused stream when there is debt.    |
-| Deferred  | Paused stream when there is no debt. |
-
-### Statuses diagram
-
-```mermaid
-stateDiagram-v2
-    direction LR
-
-    state Active {
-        Streaming
-        Accruing
-             --> Streaming
-        Streaming --> Accruing
-    }
-
-    state Paused {
-        # direction BT
-        Deferred
-        Liable
-        Liable --> Deferred
-    }
-
-    Streaming --> Deferred
-    Deferred --> Streaming
-    Accruing --> Liable
-    Liable --> Accruing
-
-    NULL --> Active
-    # Active --> Paused
-    # Paused --> Active
-
-
-    NULL:::grey
-    Paused:::lightYellow
-    Active:::lightGreen
-    Streaming:::intenseGreen
-    Accruing:::intenseGreen
-    Deferred:::intenseYellow
-    Liable:::intenseYellow
-
-    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
-    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
-    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
-    classDef lightYellow fill:#ffff99,color:#000,font-weight:bold;
-    classDef intenseYellow fill:#ffd700,color:#000,font-weight:bold;
-
-```
-
-### Transition diagram
-
-```mermaid
-
-stateDiagram-v2
-    direction LR
-
-    NULL --> Active : create
-
-    NULL:::grey
-    Active:::lightGreen
-
-    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
-    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
-
-```
-
-```mermaid
-
-stateDiagram-v2
-    direction LR
-
-    Streaming --> Accruing : time
-
-    Streaming:::intenseGreen
-    Accruing:::intenseGreen
-
-    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
-
-```
-
-```mermaid
-
-stateDiagram-v2
-    direction LR
-
-    Accruing --> Streaming : deposit
-
-    Accruing:::intenseGreen
-    Streaming:::intenseGreen
-
-    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
-```
-
-```mermaid
-stateDiagram-v2
- direction LR
-    Active --> Paused : pause
-
-    Active:::lightGreen
-    Paused:::lightYellow
-
-
-    classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
-    classDef lightYellow fill:#ffff99,color:#000,font-weight:bold;
-    classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
-
-```
-
-```mermaid
-
-stateDiagram-v2
-    direction LR
-
-    Liable --> Deferred : deposit
-
-    Liable:::intenseYellow
-    Deferred:::intenseYellow
-
-    classDef intenseYellow fill:#ffd700,color:#000,font-weight:bold;
-```
-
-**Notes:**
-
-1. The "update" comments refer only to the internal state
-2. `ltu` is always updated to `block.timestamp`
-3. Blue functions can be called by anyone
-4. Purple functions can be called only by the sender
-
-```mermaid
-flowchart TB
-    %% Functions
-
-
-    %% Statuses
-    NULL((NULL)):::grey
-    ACV((ACTIVE)):::green
-    PSD((PAUSED)):::yellow
-
-    CR([CREATE]):::blue
-    ADJRPS([ADJUST_RPS]):::purple
-    DP([DEPOSIT]):::blue
-    WTD([WITHDRAW]):::blue
-    RFD([REFUND]):::purple
-
-    RST([RESTART]):::purple
-    PS([PAUSE]):::purple
-
-    VD([VOID]):::blue
-
-    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px;
-    classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
-    classDef yellow fill:#ffff99,stroke:#333,stroke-width:2px;
-    classDef blue fill:#99ccff,stroke:#333,stroke-width:2px;
-    classDef purple fill:#D0CEE2,stroke:#333,stroke-width:2px;
-
-    NULL --> CR
-    CR -- "update rps\nupdate ltu" --> ACV
-    ADJRPS -- "update ltu\nupdate ra (+rca)\nupdate rps" -->  ACV
-
-    DP -- "update bal (+)" --> ACV:::red & PSD:::red
-
-    RFD -- "update bal (-)" --> PSD:::red & ACV:::red
-
-    WTD -- "update ltu\nupdate bal (-)\nupdate ra (-)" --> ACV & PSD
-
-    ACV --> PS
-    PS -- "update ra (+rca)\nupdate rps (0)" --> PSD
-    PSD --> RST
-    RST -- "update ltu\nupdate rps" --> ACV
-
-    linkStyle 3,4,5,6,7,8 stroke:#ff0000,stroke-width:2px
-```
+## Amount Calculations
 
 ---
 
