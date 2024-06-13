@@ -21,34 +21,8 @@ abstract contract Batch {
         for (uint256 i = 0; i < count; ++i) {
             (bool success, bytes memory result) = address(this).delegatecall(calls[i]);
             if (!success) {
-                _getRevertMsg(result);
+                revert Errors.BatchError(result);
             }
         }
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                          INTERNAL NON-CONSTANT FUNCTIONS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Helper function to extract the revert message from a failed call.
-    /// If the returned data is malformed or not correctly ABI-encoded, then this call can fail itself.
-    ///
-    /// @dev If the returned data length is less than 101 bytes, it indicates a custom error or a silent failure
-    /// (without a revert message). Our protocol does not have a custom error greater than 100 bytes, but it is possible
-    /// to have a greater size if it includes more parameters.
-    function _getRevertMsg(bytes memory returnData) internal pure {
-        // If the result length is less than 101, then the transaction failed with custom error or silently (without a
-        // revert message)
-        if (returnData.length < 101) {
-            revert Errors.BatchError(returnData);
-        }
-
-        // Slice the sighash.
-        assembly {
-            returnData := add(returnData, 0x04)
-        }
-
-        // Otherwise, the transaction failed with a revert message.
-        revert(abi.decode(returnData, (string)));
     }
 }

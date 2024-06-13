@@ -33,11 +33,14 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         bytes[] memory calls = new bytes[](1);
         calls[0] = abi.encodeCall(flow.withdrawMax, (1, users.sender));
 
-        bytes memory errorSelector = abi.encodeWithSelector(
-            Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, 1, users.sender, users.sender
+        bytes memory expectedRevertData = abi.encodeWithSelector(
+            Errors.BatchError.selector,
+            abi.encodeWithSelector(
+                Errors.SablierFlow_WithdrawalAddressNotRecipient.selector, 1, users.sender, users.sender
+            )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.BatchError.selector, errorSelector));
+        vm.expectRevert(expectedRevertData);
         flow.batch(calls);
     }
 
@@ -59,7 +62,11 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         bytes[] memory calls = new bytes[](1);
         calls[0] = abi.encodeCall(flow.deposit, (streamId, transferAmount));
 
-        vm.expectRevert("ERC20: insufficient allowance");
+        bytes memory expectedRevertData = abi.encodeWithSelector(
+            Errors.BatchError.selector, abi.encodeWithSignature("Error(string)", "ERC20: insufficient allowance")
+        );
+
+        vm.expectRevert(expectedRevertData);
         flow.batch(calls);
     }
 
@@ -331,9 +338,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function test_Batch_WithdrawMultiple() external {
         depositDefaultAmount(defaultStreamIds[0]);
         depositDefaultAmount(defaultStreamIds[1]);
-
-        uint128 previousFullAmountOwed0 = flow.amountOwedOf(defaultStreamIds[0]);
-        uint128 previousFullAmountOwed1 = flow.amountOwedOf(defaultStreamIds[1]);
 
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
