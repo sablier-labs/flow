@@ -26,8 +26,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
                                        REVERT
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev The `SablierFlow_RatePerSecondZero` error was chosen random, it could be any error, and any function call,
-    /// we just test if the {Batch.batch} function catches the error correctly.
     function test_RevertWhen_CustomError() external {
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](1);
