@@ -65,7 +65,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for refund amount, but not exceeding the refundable amount.
-    /// - Multiple streams to refund from, each with different asset decimals.
+    /// - Multiple streams to refund from, each with different asset decimals and rps.
     /// - Multiple points in time prior to depletion period.
     function testFuzz_Refund(
         uint256 streamId,

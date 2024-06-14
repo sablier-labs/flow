@@ -14,7 +14,7 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     // 40% of fuzz tests will load input parameters from the below fixtures.
-    address[3] public fixtureFunder = [users.sender, users.recipient, users.eve];
+    address[4] public fixtureCaller = [users.sender, users.recipient, users.operator, users.eve];
     uint256[19] public fixtureStreamId;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -67,12 +67,22 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
             // If not, create a new stream.
             decimals = boundUint8(decimals, 0, 18);
             asset = createAsset(decimals);
-            streamId = createDefaultStream(asset);
+
+            // Hash the next stream ID and the decimal to generate a seed.
+            uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals)));
+
+            // Bound the rate per second between a realistic range.
+            uint128 ratePerSecond = uint128(_bound(ratePerSecondSeed, 0.001e18, 10e18));
+
+            // Create stream.
+            streamId = createDefaultStream(ratePerSecond, asset);
+
             if (deposit) {
                 // Deposit the default amount to the stream.
                 depositDefaultAmount(streamId);
             }
         } else {
+            // If yes, get the asset and decimals.
             decimals = flow.getAssetDecimals(streamId);
             asset = flow.getAsset(streamId);
         }

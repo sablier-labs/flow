@@ -14,13 +14,13 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///   - {DepositFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non-zero values for funders.
+    /// - Multiple non-zero values for callers.
     /// - Multiple non-zero values for transfer amount.
-    /// - Multiple streams to deposit into, each with different asset decimals. Some of them would have amount deposited
-    /// previously and some of them would be fresh.
+    /// - Multiple streams to deposit into, each with different asset decimals and rps. Some of them would have amount
+    /// deposited previously and some of them would be fresh.
     /// - Multiple points in time to deposit into the stream.
     function testFuzz_Deposit(
-        address funder,
+        address caller,
         uint256 streamId,
         uint128 transferAmount,
         uint40 timeJump,
@@ -30,7 +30,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        vm.assume(funder != address(0) && funder != address(flow));
+        vm.assume(caller != address(0) && caller != address(flow));
 
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, false);
 
@@ -40,9 +40,9 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
-        // Change prank to funder and deal some tokens to him.
-        deal({ token: address(asset), to: funder, give: transferAmount });
-        resetPrank(funder);
+        // Change prank to caller and deal some tokens to him.
+        deal({ token: address(asset), to: caller, give: transferAmount });
+        resetPrank(caller);
 
         // Approve the flow contract to spend the asset.
         asset.approve(address(flow), transferAmount);
@@ -56,18 +56,18 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({ from: funder, to: address(flow), value: transferAmount });
+        emit IERC20.Transfer({ from: caller, to: address(flow), value: transferAmount });
 
         uint128 normalizedAmount = getNormalizedAmount(transferAmount, decimals);
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: streamId, funder: funder, depositAmount: normalizedAmount });
+        emit DepositFlowStream({ streamId: streamId, funder: caller, depositAmount: normalizedAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: asset, from: funder, to: address(flow), amount: transferAmount });
+        expectCallToTransferFrom({ asset: asset, from: caller, to: address(flow), amount: transferAmount });
 
         // Make the deposit.
         flow.deposit(streamId, transferAmount);
