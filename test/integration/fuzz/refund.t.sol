@@ -18,8 +18,8 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     function testFuzz_RevertWhen_PostDepletion(
         uint256 streamId,
         uint128 refundAmount,
-        uint8 decimals,
-        uint40 timeJump
+        uint40 timeJump,
+        uint8 decimals
     )
         external
         whenNoDelegateCall
@@ -67,12 +67,11 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple non-zero values for refund amount, but not exceeding the refundable amount.
     /// - Multiple streams to refund from, each with different asset decimals.
     /// - Multiple points in time prior to depletion period.
-
     function testFuzz_Refund(
         uint256 streamId,
         uint128 refundAmount,
-        uint8 decimals,
-        uint40 timeJump
+        uint40 timeJump,
+        uint8 decimals
     )
         external
         whenNoDelegateCall

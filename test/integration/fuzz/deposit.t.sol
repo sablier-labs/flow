@@ -20,11 +20,11 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// previously and some of them would be fresh.
     /// - Multiple points in time to deposit into the stream.
     function testFuzz_Deposit(
-        uint256 streamId,
         address funder,
+        uint256 streamId,
         uint128 transferAmount,
-        uint8 decimals,
-        uint40 timeJump
+        uint40 timeJump,
+        uint8 decimals
     )
         external
         whenNoDelegateCall

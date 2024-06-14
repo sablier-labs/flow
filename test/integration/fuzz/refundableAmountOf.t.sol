@@ -9,7 +9,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple paused streams, each with different asset decimals.
     /// - Multiple points in time pre depletion period.
-    function testFuzz_PreDepletion_Paused(uint256 streamId, uint8 decimals, uint40 timeJump) external givenNotNull {
+    function testFuzz_PreDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
@@ -34,7 +34,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-paused streams, each with different asset decimals.
     /// - Multiple points in time pre depletion period.
-    function testFuzz_PreDepletion_NotPaused(uint256 streamId, uint8 decimals, uint40 timeJump) external givenNotNull {
+    function testFuzz_PreDepletion_NotPaused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint128 ratePerSecond = flow.getRatePerSecond(streamId);
@@ -57,7 +57,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple paused streams, each with different asset decimals.
     /// - Multiple points in time post depletion period.
-    function testFuzz_PostDepletion_Paused(uint256 streamId, uint8 decimals, uint40 timeJump) external givenNotNull {
+    function testFuzz_PostDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
@@ -83,8 +83,8 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// - Multiple points in time post depletion period.
     function testFuzz_PostDepletion_NotPaused(
         uint256 streamId,
-        uint8 decimals,
-        uint40 timeJump
+        uint40 timeJump,
+        uint8 decimals
     )
         external
         givenNotNull
