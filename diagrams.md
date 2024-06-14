@@ -2,17 +2,17 @@
 
 ### Types
 
-| Type   | Statuses            | Description                                                   |
-| :----- | :------------------ | :------------------------------------------------------------ |
-| Active | Accruing, Streaming | The amount owed to the recipient is increasing over time.     |
-| Paused | Liable, Deferred    | The amount owed to the recipient is not increasing over time. |
+| Type   | Statuses                              | Description                                                   |
+| :----- | :------------------------------------ | :------------------------------------------------------------ |
+| Active | Streaming Insolvent, StreamingSolvent | The amount owed to the recipient is increasing over time.     |
+| Paused | PauseSolvent, PausedInsolvent         | The amount owed to the recipient is not increasing over time. |
 
-| Status    | Description                          |
-| --------- | ------------------------------------ |
-| Streaming | Active stream when there is no debt. |
-| Accruing  | Active stream when there is debt.    |
-| Liable    | Paused stream when there is debt.    |
-| Deferred  | Paused stream when there is no debt. |
+| Status              | Description                          |
+| ------------------- | ------------------------------------ |
+| Streaming Solvent   | Active stream when there is no debt. |
+| Streaming Insolvent | Active stream when there is debt.    |
+| Paused Solvent      | Paused stream when there is debt.    |
+| Paused Insolvent    | Paused stream when there is no debt. |
 
 ### Statuses diagram
 
@@ -24,33 +24,33 @@ stateDiagram-v2
     direction LR
 
     state Active {
-        Streaming
-        Accruing --> Streaming : deposit
-        Streaming --> Accruing : time
+        StreamingSolvent
+        StreamingInsolvent --> StreamingSolvent : deposit
+        StreamingSolvent --> StreamingInsolvent : time
     }
 
-    state Paused {
+    state Inactive {
         # direction BT
-        Deferred
-        Liable
-        Liable --> Deferred : deposit || void
+        PausedInsolvent
+        PauseSolvent
+        PauseSolvent --> PausedInsolvent : deposit || void
     }
 
-    Streaming --> Deferred : pause
-    Deferred --> Streaming : restart
-    Accruing --> Liable : pause
-    Accruing --> Deferred : void
-    Liable --> Accruing : restart
+    StreamingSolvent --> PausedInsolvent : pause
+    PausedInsolvent --> StreamingSolvent : restart
+    StreamingInsolvent --> PauseSolvent : pause
+    StreamingInsolvent --> PausedInsolvent : void
+    PauseSolvent --> StreamingInsolvent : restart
 
-    NULL --> Streaming : create
+    NULL --> StreamingSolvent : create
 
     NULL:::grey
-    Paused:::lightYellow
     Active:::lightGreen
-    Streaming:::intenseGreen
-    Accruing:::intenseGreen
-    Deferred:::intenseYellow
-    Liable:::intenseYellow
+    Inactive:::lightYellow
+    StreamingSolvent:::intenseGreen
+    StreamingInsolvent:::intenseGreen
+    PausedInsolvent:::intenseYellow
+    PauseSolvent:::intenseYellow
 
     classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
     classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
@@ -73,7 +73,7 @@ flowchart LR
     subgraph Statuses
         NULL((NULL)):::grey
         ACV((ACTIVE)):::green
-        PSD((PAUSED)):::yellow
+        INACV((INACTIVE)):::yellow
     end
 
 
@@ -108,12 +108,25 @@ flowchart LR
 
     PS -- "update ra (+rca)\nupdate rps (0)" --> ACV
 
-    BOTH --> ACV & PSD
+    BOTH --> ACV & INACV
 
-    RST -- "update rps \nupdate ltu" --> PSD
+    RST -- "update rps \nupdate ltu" --> INACV
 
     linkStyle 2,3,5 stroke:#ff0000,stroke-width:2px
 ```
+
+## Access Control
+
+| Action              |         Sender         | Recipient | Operator(s) |      Unknown User      |
+| ------------------- | :--------------------: | :-------: | :---------: | :--------------------: |
+| AdjustRatePerSecond |           ✅           |    ❌     |     ❌      |           ❌           |
+| Deposit             |           ✅           |    ✅     |     ✅      |           ✅           |
+| Refund              |           ✅           |    ❌     |     ❌      |           ❌           |
+| Restart             |           ✅           |    ❌     |     ❌      |           ❌           |
+| Pause               |           ✅           |    ❌     |     ❌      |           ❌           |
+| Transfer NFT        |           ❌           |    ✅     |     ✅      |           ❌           |
+| Void                |           ❌           |    ✅     |     ✅      |           ❌           |
+| Withdraw            | ✅ (only to Recipient) |    ✅     |     ✅      | ✅ (only to Recipient) |
 
 ### Internal State
 
@@ -166,7 +179,7 @@ res_rca(["rps*(now - ltu)"]):::green1
 
 rca --> di0
 di0 -- "active" --> di1
-di0 -- "paused" --> res_00
+di0 -- "inactive" --> res_00
 di1 -- "now < ltu" --> res_01
 di1 -- "now >= ltu" --> res_rca
 
@@ -198,7 +211,7 @@ flowchart TD
     di0 -- "bal > 0" --> di1
     di1 -- "debt > 0" --> res_bal
     di1 -- "debt = 0" --> di2
-    di2 -- "paused" --> res_ra
+    di2 -- "inactive" --> res_ra
     di2 -- "active" --> res_sum
 
     classDef blue0 fill:#DAE8FC,stroke:#333,stroke-width:2px;

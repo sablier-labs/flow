@@ -15,20 +15,20 @@ struct Broker {
 
 library Flow {
     /// @notice Enum representing the different statuses of a stream.
-    /// @dev There are two types of statuses:
+    /// @dev There are two types of streams:
     /// - ACTIVE: when the amount owed to the recipient is increasing over time.
-    /// - PAUSED: when the amount owed to the recipient is not increasing over time.
-    /// @custom:value0 STREAMINIG Active stream when there is no debt.
-    /// @custom:value1 ACCRUING Active stream when there is debt.
-    /// @custom:value2 LIABLE Paused stream when there is debt.
-    /// @custom:value3 DEFERRED Paused stream when there is no debt.
+    /// - INACTIVE: when the amount owed to the recipient is not increasing over time.
+    /// @custom:value0 STREAMING_SOLVENT Active stream when there is no debt.
+    /// @custom:value1 STREAMING_INSOLVENT Active stream when there is debt.
+    /// @custom:value2 PAUSED_SOLVENT Paused stream when there is debt.
+    /// @custom:value3 PAUSED_INSOLVENT Paused stream when there is no debt.
     enum Status {
         // ACTIVE:
-        STREAMINIG,
-        ACCRUING,
-        // PAUSED:
-        LIABLE,
-        DEFERRED
+        STREAMING_SOLVENT,
+        STREAMING_INSOLVENT,
+        // INACTIVE:
+        PAUSED_SOLVENT,
+        PAUSED_INSOLVENT
     }
 
     /// @notice Struct representing Flow streams.

@@ -97,25 +97,26 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
-        uint128 debt = _streamDebtOf(streamId);
+        // See that the stream has, or has not, debt.
+        bool hasDebt = _streamDebtOf(streamId) > 0;
 
         if (_streams[streamId].isPaused) {
-            // If the stream is paused and has debt, return LIABLE.
-            if (debt > 0) {
-                return Flow.Status.LIABLE;
+            // If the stream is inactive and has debt, return PAUSED_SOLVENT.
+            if (hasDebt) {
+                return Flow.Status.PAUSED_INSOLVENT;
             }
 
-            // If the stream is paused and has no debt, return DEFERRED.
-            return Flow.Status.DEFERRED;
+            // If the stream is inactive and has no debt, return PAUSED_INSOLVENT.
+            return Flow.Status.PAUSED_SOLVENT;
         }
 
-        // If the stream is active and has debt, return ACCRUING.
-        if (debt > 0) {
-            return Flow.Status.ACCRUING;
+        // If the stream is active and has debt, return STREAMING_INSOLVENT.
+        if (hasDebt) {
+            return Flow.Status.STREAMING_INSOLVENT;
         }
 
-        // If the stream is active and has no debt, return STREAMINIG.
-        status = Flow.Status.STREAMINIG;
+        // If the stream is active and has no debt, return STREAMING_SOLVENT.
+        status = Flow.Status.STREAMING_SOLVENT;
     }
 
     /// @inheritdoc ISablierFlow
