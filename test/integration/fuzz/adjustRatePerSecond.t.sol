@@ -78,7 +78,9 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         if (newRatePerSecond == currentRatePerSecond) {
             // Expect the relevant error.
             vm.expectRevert(
-                abi.encodeWithSelector(Errors.SablierFlow_RatePerSecondNotDifferent.selector, currentRatePerSecond)
+                abi.encodeWithSelector(
+                    Errors.SablierFlow_RatePerSecondNotDifferent.selector, streamId, newRatePerSecond
+                )
             );
         } else {
             // Expect the relevant events to be emitted.
