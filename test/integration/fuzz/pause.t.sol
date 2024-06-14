@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity >=0.8.22;
+
+import { Errors } from "src/libraries/Errors.sol";
+
+import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
+
+contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
+    /// @dev Checklist:
+    /// - It should revert.
+    ///
+    /// Given enough runs, all of the following scenarios should be fuzzed:
+    /// - Multiple paused streams.
+    /// - Multiple points in time to pause.
+    function testFuzz_RevertGiven_Paused(
+        uint256 streamId,
+        uint40 timeJump,
+        uint8 decimals
+    )
+        external
+        whenNoDelegateCall
+        givenNotNull
+    {
+        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, false);
+
+        // Make the stream paused.
+        flow.pause(streamId);
+
+        // Bound the time jump to provide a realistic time frame.
+        timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
+
+        // Simulate the passage of time.
+        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+
+        // Expect the relevant error.
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_StreamPaused.selector, streamId));
+
+        // Pause the stream.
+        flow.pause(streamId);
+    }
+
+    /// @dev Checklist:
+    /// - It should pause the stream. 40% runs should load streams from fixtures.
+    /// - It should emit the following events:
+    ///   - {MetadataUpdate}
+    ///   - {PauseFlowStream}
+    ///
+    /// Given enough runs, all of the following scenarios should be fuzzed:
+    /// - Multiple non-paused streams.
+    /// - Multiple points in time to pause.
+    function testFuzz_Pause(
+        uint256 streamId,
+        uint40 timeJump,
+        uint8 decimals
+    )
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenNotPaused
+    {
+        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, false);
+
+        // Bound the time jump to provide a realistic time frame.
+        timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
+
+        // Simulate the passage of time.
+        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+
+        // Expect the relevant events to be emitted.
+        vm.expectEmit({ emitter: address(flow) });
+        emit PauseFlowStream({
+            streamId: streamId,
+            recipient: users.recipient,
+            sender: users.sender,
+            amountOwed: flow.amountOwedOf(streamId)
+        });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        // Pause the stream.
+        flow.pause(streamId);
+    }
+}
