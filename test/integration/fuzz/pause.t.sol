@@ -6,12 +6,11 @@ import { Errors } from "src/libraries/Errors.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
-    /// @dev Checklist:
-    /// - It should revert.
+    /// @dev It should revert.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple paused streams.
-    /// - Multiple points in time to pause.
+    /// - Multiple points in time.
     function testFuzz_RevertGiven_Paused(
         uint256 streamId,
         uint40 timeJump,
@@ -40,14 +39,12 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should pause the stream. 40% runs should load streams from fixtures.
-    /// - It should emit the following events:
-    ///   - {MetadataUpdate}
-    ///   - {PauseFlowStream}
+    /// - It should pause the stream.
+    /// - It should emit the following events: {MetadataUpdate}, {PauseFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-paused streams.
-    /// - Multiple points in time to pause.
+    /// - Multiple points in time.
     function testFuzz_Pause(
         uint256 streamId,
         uint40 timeJump,

@@ -8,12 +8,11 @@ import { Errors } from "src/libraries/Errors.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
-    /// @dev Checklist:
-    /// - No refund should be allowed post depletion period.
+    /// @dev No refund should be allowed post depletion period.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for refund amount.
-    /// - Multiple streams to refund from, each with different asset decimals.
+    /// - Multiple streams to refund from, each with different asset decimals and rate per second.
     /// - Multiple points in time post depletion period.
     function testFuzz_RevertWhen_PostDepletion(
         uint256 streamId,
@@ -30,18 +29,6 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
-        // Check if stream id is picked from the fixtures.
-        if (!flow.isStream(streamId)) {
-            // If not, create a new stream.
-            decimals = boundUint8(decimals, 0, 18);
-            asset = createAsset(decimals);
-            streamId = createDefaultStream(asset);
-            depositDefaultAmount(streamId);
-        } else {
-            decimals = flow.getAssetDecimals(streamId);
-            asset = flow.getAsset(streamId);
-        }
-
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
         timeJump = boundUint40(timeJump, depletionPeriod + 1, UINT40_MAX);
@@ -57,15 +44,12 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should refund asset from a stream. 40% runs should load streams from fixtures.
-    /// - It should emit the following events:
-    ///   - {Transfer}
-    ///   - {MetadataUpdate}
-    ///   - {RefundFromFlowStream}
+    /// - It should refund asset from a stream.
+    /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {RefundFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for refund amount, but not exceeding the refundable amount.
-    /// - Multiple streams to refund from, each with different asset decimals and rps.
+    /// - Multiple streams to refund from, each with different asset decimals and rate per second.
     /// - Multiple points in time prior to depletion period.
     function testFuzz_Refund(
         uint256 streamId,

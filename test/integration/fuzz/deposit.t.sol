@@ -8,17 +8,14 @@ import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should deposit asset into a stream. 40% runs should load streams from fixtures.
-    /// - It should emit the following events:
-    ///   - {Transfer}
-    ///   - {MetadataUpdate}
-    ///   - {DepositFlowStream}
+    /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {DepositFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
     /// - Multiple non-zero values for transfer amount.
     /// - Multiple streams to deposit into, each with different asset decimals and rps. Some of them would have amount
     /// deposited previously and some of them would be fresh.
-    /// - Multiple points in time to deposit into the stream.
+    /// - Multiple points in time.
     function testFuzz_Deposit(
         address caller,
         uint256 streamId,

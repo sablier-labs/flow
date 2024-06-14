@@ -6,12 +6,62 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
+    /// @dev It should withdraw 0 amount from a stream.
+    function testFuzz_WithdrawAt_Paused(
+        address caller,
+        uint256 streamId,
+        uint40 timeJump,
+        uint40 withdrawTime,
+        uint8 decimals
+    )
+        external
+        whenNoDelegateCall
+        givenNotNull
+    {
+        vm.assume(caller != address(0));
+
+        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+
+        // Pause the stream.
+        flow.pause(streamId);
+
+        // Bound the time jump to provide a realistic time frame.
+        timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
+
+        // Simulate the passage of time.
+        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+
+        // Bound the withdraw time between the allowed range.
+        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
+
+        // Ensure no value is transferred.
+        vm.expectEmit({ emitter: address(asset) });
+        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
+
+        uint128 expectedAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedStreamBalance = flow.getBalance(streamId);
+        uint256 expectedAssetBalance = asset.balanceOf(address(flow));
+
+        // Withdraw the assets.
+        flow.withdrawAt(streamId, users.recipient, withdrawTime);
+
+        // Assert that all states are unchanged except for lastTimeUpdate.
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        assertEq(actualLastTimeUpdate, withdrawTime, "last time update");
+
+        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
+
+        uint128 actualStreamBalance = flow.getBalance(streamId);
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+
+        uint256 actualAssetBalance = asset.balanceOf(address(flow));
+        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+    }
+
     /// @dev Checklist:
-    /// - It should withdraw asset from a stream. 40% runs should load streams from fixtures.
-    /// - It should emit the following events:
-    ///   - {Transfer}
-    ///   - {MetadataUpdate}
-    ///   - {WithdrawFromFlowStream}
+    /// - It should withdraw asset from a stream.
+    /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
@@ -57,11 +107,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should withdraw asset from a stream. 40% runs should load streams from fixtures.
-    /// - It should emit the following events:
-    ///   - {Transfer}
-    ///   - {MetadataUpdate}
-    ///   - {WithdrawFromFlowStream}
+    /// - It should withdraw asset from a stream.
+    /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
@@ -133,9 +180,9 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(actualLastTimeUpdate, withdrawTime, "last time update");
 
         // It should decrease the full amount owed by withdrawn value.
-        uint128 actualFullAmountOwed = flow.amountOwedOf(streamId);
-        uint128 expectedFullAmountOwed = amountOwed - expectedWithdrawAmount;
-        assertEq(actualFullAmountOwed, expectedFullAmountOwed, "full amount owed");
+        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedAmountOwed = amountOwed - expectedWithdrawAmount;
+        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);

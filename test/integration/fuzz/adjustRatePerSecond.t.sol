@@ -6,13 +6,12 @@ import { Errors } from "src/libraries/Errors.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
-    /// @dev Checklist:
-    /// - It should revert.
+    /// @dev It should revert.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for ratePerSecond.
-    /// Multiple paused streams, each with different rate per second
-    /// - Multiple points in time.
+    /// - Multiple paused streams, each with different rate per second and decimals.
+    /// - Multiple points in time to adjust the rate per second.
     function testFuzz_RevertGiven_Paused(
         uint256 streamId,
         uint128 newRatePerSecond,
@@ -44,14 +43,12 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
     }
 
     /// @dev Checklist:
-    /// - It should adjust rate per second. 40% runs should load streams from fixtures.
-    /// - It should emit the following events:
-    ///   - {MetadataUpdate}
-    ///   - {AdjustFlowStream}
+    /// - It should adjust rate per second.
+    /// - It should emit the following events: {AdjustFlowStream}, {MetadataUpdate}.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for ratePerSecond.
-    /// - Multiple non-paused streams, each with different rate per second.
+    /// - Multiple non-paused streams, each with different rate per second and decimals.
     /// - Multiple points in time to adjust the rate per second.
     function testFuzz_AdjustRatePerSecond(
         uint256 streamId,

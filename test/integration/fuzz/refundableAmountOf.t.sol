@@ -7,8 +7,8 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// @dev It should return the refundable amount equal to the deposited amount, denoted in 18 decimals.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple paused streams, each with different asset decimals.
-    /// - Multiple points in time pre depletion period.
+    /// - Multiple paused streams, each with different asset decimals and rps.
+    /// - Multiple points in time prior to depletion period.
     function testFuzz_PreDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
@@ -32,9 +32,17 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// @dev It should return the refundable amount equal to the deposited amount minus streamed amount.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non-paused streams, each with different asset decimals.
-    /// - Multiple points in time pre depletion period.
-    function testFuzz_PreDepletion_NotPaused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
+    /// - Multiple non-paused streams, each with different asset decimals and rps.
+    /// - Multiple points in time prior to depletion period.
+    function testFuzz_PreDepletion(
+        uint256 streamId,
+        uint40 timeJump,
+        uint8 decimals
+    )
+        external
+        givenNotNull
+        givenPaused
+    {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint128 ratePerSecond = flow.getRatePerSecond(streamId);
@@ -55,7 +63,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// @dev It should return the zero value for refundable amount.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple paused streams, each with different asset decimals.
+    /// - Multiple paused streams, each with different asset decimals and rps.
     /// - Multiple points in time post depletion period.
     function testFuzz_PostDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
@@ -79,15 +87,16 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// @dev It should return the zero value for refundable amount.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non paused streams, each with different asset decimals.
+    /// - Multiple non-paused streams, each with different asset decimals and rps.
     /// - Multiple points in time post depletion period.
-    function testFuzz_PostDepletion_NotPaused(
+    function testFuzz_PostDepletion(
         uint256 streamId,
         uint40 timeJump,
         uint8 decimals
     )
         external
         givenNotNull
+        givenPaused
     {
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
