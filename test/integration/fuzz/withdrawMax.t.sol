@@ -5,13 +5,12 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
-contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
+contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should withdraw 0 amount from a stream.
     function testFuzz_Paused(
         address caller,
         uint256 streamId,
         uint40 timeJump,
-        uint40 withdrawTime,
         uint8 decimals
     )
         external
@@ -31,9 +30,6 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
-
         // Ensure no value is transferred.
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
@@ -43,11 +39,11 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint256 expectedAssetBalance = asset.balanceOf(address(flow));
 
         // Withdraw the assets.
-        flow.withdrawAt(streamId, users.recipient, withdrawTime);
+        flow.withdrawMax(streamId, users.recipient);
 
         // Assert that all states are unchanged except for lastTimeUpdate.
         uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        assertEq(actualLastTimeUpdate, withdrawTime, "last time update");
+        assertEq(actualLastTimeUpdate, getBlockTimestamp(), "last time update");
 
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);
         assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
@@ -60,21 +56,18 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should withdraw asset from a stream.
+    /// - It should withdraw the max withdrawble amount from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
     /// - Multiple non-zero values for withdrawTo address.
     /// - Multiple streams to withdraw from, each with different asset decimals and rps.
-    /// - Multiple values for withdraw time in the range (lastTimeUpdate, currentTime). It could also be before or after
-    /// depletion time.
     /// - Multiple points in time.
     function testFuzz_WithdrawalAddressNotOwner(
         address withdrawTo,
         uint256 streamId,
         uint40 timeJump,
-        uint40 withdrawTime,
         uint8 decimals
     )
         external
@@ -92,9 +85,6 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
-
         // Prank caller as either recipient or operator.
         resetPrank({ msgSender: users.recipient });
         if (uint160(withdrawTo) % 2 == 0) {
@@ -103,24 +93,21 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         }
 
         // Withdraw the assets.
-        _test_WithdrawAt(withdrawTo, streamId, withdrawTime, decimals);
+        _test_WithdrawMax(withdrawTo, streamId, decimals);
     }
 
     /// @dev Checklist:
-    /// - It should withdraw asset from a stream.
+    /// - It should withdraw the max withdrawble amount from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
     /// - Multiple streams to withdraw from, each with different asset decimals and rps.
-    /// - Multiple values for withdraw time in the range (lastTimeUpdate, currentTime). It could also be before or after
-    /// depletion time.
     /// - Multiple points in time.
-    function testFuzz_WithdrawAt(
+    function testFuzz_WithdrawMax(
         address caller,
         uint256 streamId,
         uint40 timeJump,
-        uint40 withdrawTime,
         uint8 decimals
     )
         external
@@ -139,24 +126,16 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
-
         // Withdraw the assets.
-        _test_WithdrawAt(users.recipient, streamId, withdrawTime, decimals);
+        _test_WithdrawMax(users.recipient, streamId, decimals);
     }
 
     // Shared private function.
-    function _test_WithdrawAt(address withdrawTo, uint256 streamId, uint40 withdrawTime, uint8 decimals) private {
+    function _test_WithdrawMax(address withdrawTo, uint256 streamId, uint8 decimals) private {
         uint128 amountOwed = flow.amountOwedOf(streamId);
         uint256 assetbalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
-        uint128 expectedWithdrawAmount = flow.getRemainingAmount(streamId)
-            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getLastTimeUpdate(streamId));
-
-        if (streamBalance < expectedWithdrawAmount) {
-            expectedWithdrawAmount = streamBalance;
-        }
+        uint128 expectedWithdrawAmount = flow.withdrawableAmountOf(streamId);
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });
@@ -173,10 +152,10 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the assets.
-        flow.withdrawAt(streamId, withdrawTo, withdrawTime);
+        flow.withdrawMax(streamId, withdrawTo);
 
         // It should update lastTimeUpdate.
-        assertEq(flow.getLastTimeUpdate(streamId), withdrawTime, "last time update");
+        assertEq(flow.getLastTimeUpdate(streamId), getBlockTimestamp(), "last time update");
 
         // It should decrease the full amount owed by withdrawn value.
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);
