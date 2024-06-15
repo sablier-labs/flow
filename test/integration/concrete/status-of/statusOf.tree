@@ -1,0 +1,14 @@
+StatusOf_Integration_Concrete_Test
+├── given null
+│   └── it should revert
+└── given not null
+    ├── given inactive
+    │   ├── given stream does have debt
+    │   │   └── it should return PAUSED_INSOLVENT
+    │   └── given stream does not have debt
+    │       └── it should return PAUSED_SOLVENT
+    └── given active
+        ├── given stream has debt
+        │   └── it should return STREAMING_INSOLVENT
+        └── given stream has no debt
+            └── it should return STREAMING_SOLVENT

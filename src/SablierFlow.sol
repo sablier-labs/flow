@@ -101,12 +101,12 @@ contract SablierFlow is
         bool hasDebt = _streamDebtOf(streamId) > 0;
 
         if (_streams[streamId].isPaused) {
-            // If the stream is inactive and has debt, return PAUSED_SOLVENT.
+            // If the stream is inactive and has debt, return PAUSED_INSOLVENT.
             if (hasDebt) {
                 return Flow.Status.PAUSED_INSOLVENT;
             }
 
-            // If the stream is inactive and has no debt, return PAUSED_INSOLVENT.
+            // If the stream is inactive and has no debt, return PAUSED_SOLVENT.
             return Flow.Status.PAUSED_SOLVENT;
         }
 
