@@ -54,13 +54,25 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         });
 
         // Create the stream.
-        flow.create({
+        uint256 actualStreamId = flow.create({
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
             asset: asset,
             isTransferable: isTransferable
         });
+
+        // Assert stream's initial states. This is the only place testing for state's getter functions.
+        assertEq(flow.getAsset(actualStreamId), asset);
+        assertEq(flow.getAssetDecimals(actualStreamId), decimals);
+        assertEq(flow.getBalance(actualStreamId), 0);
+        assertEq(flow.getLastTimeUpdate(actualStreamId), getBlockTimestamp());
+        assertEq(flow.getRatePerSecond(actualStreamId), ratePerSecond);
+        assertEq(flow.getRecipient(actualStreamId), recipient);
+        assertEq(flow.getRemainingAmount(actualStreamId), 0);
+        assertEq(flow.getSender(actualStreamId), sender);
+        assertEq(flow.isPaused(actualStreamId), false);
+        assertEq(flow.isStream(actualStreamId), true);
 
         // Assert that the next stream ID has been bumped.
         uint256 actualNextStreamId = flow.nextStreamId();
