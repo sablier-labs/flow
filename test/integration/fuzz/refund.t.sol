@@ -65,7 +65,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Bound the time jump to provide a realistic time frame and not exceeding depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
-        timeJump = boundUint40(timeJump, getBlockTimestamp() + 1 seconds, depletionPeriod);
+        timeJump = boundUint40(timeJump, getBlockTimestamp(), depletionPeriod);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });

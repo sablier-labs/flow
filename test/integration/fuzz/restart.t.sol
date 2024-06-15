@@ -6,6 +6,8 @@ import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 contract Restart_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should restart the stream.
+    /// - It should update rate per second.
+    /// - It should update lastTimeUpdate.
     /// - It should emit the following events: {MetadataUpdate}, {RestartFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:

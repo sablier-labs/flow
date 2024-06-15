@@ -9,7 +9,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should revert.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple paused streams.
+    /// - Multiple paused streams, each with different asset decimals and rps.
     /// - Multiple points in time.
     function testFuzz_RevertGiven_Paused(
         uint256 streamId,
@@ -40,10 +40,11 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     /// @dev Checklist:
     /// - It should pause the stream.
+    /// - It should set rate per second to 0.
     /// - It should emit the following events: {MetadataUpdate}, {PauseFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non-paused streams.
+    /// - Multiple non-paused streams, each with different asset decimals and rps.
     /// - Multiple points in time.
     function testFuzz_Pause(
         uint256 streamId,
@@ -77,5 +78,11 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Pause the stream.
         flow.pause(streamId);
+
+        // Assert that the stream is paused.
+        assertTrue(flow.isPaused(streamId), "paused");
+
+        // Assert that the rate per second is 0.
+        assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
     }
 }
