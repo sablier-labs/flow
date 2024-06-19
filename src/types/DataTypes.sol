@@ -20,8 +20,8 @@ library Flow {
     /// - INACTIVE: when the amount owed to the recipient is not increasing over time.
     /// @custom:value0 STREAMING_SOLVENT Active stream when there is no debt.
     /// @custom:value1 STREAMING_INSOLVENT Active stream when there is debt.
-    /// @custom:value2 PAUSED_SOLVENT Paused stream when there is debt.
-    /// @custom:value3 PAUSED_INSOLVENT Paused stream when there is no debt.
+    /// @custom:value2 PAUSED_SOLVENT Paused stream when there is no debt.
+    /// @custom:value3 PAUSED_INSOLVENT Paused stream when there is debt.
     enum Status {
         // ACTIVE:
         STREAMING_SOLVENT,
