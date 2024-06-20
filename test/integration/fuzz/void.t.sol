@@ -22,7 +22,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it does not exceed depletion timestamp.
         uint40 depletionTime = flow.depletionTimeOf(streamId);
@@ -64,7 +64,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionTime = flow.depletionTimeOf(streamId);
@@ -107,7 +107,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionTime = flow.depletionTimeOf(streamId);

@@ -10,7 +10,7 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple paused streams, each with different rate per second and decimals.
     /// - Multiple points in time, both pre-depletion and post-depletion.
     function testFuzz_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Pause the stream.
         flow.pause(streamId);
@@ -43,20 +43,22 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint40 depletionTime = flow.depletionTimeOf(streamId);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
+        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
+
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        vm.warp({ newTimestamp: warpTimestamp });
 
         // Assert that stream debt equals expected value.
         uint128 actualStreamDebt = flow.streamDebtOf(streamId);
         uint128 expectedStreamDebt;
-        if (getBlockTimestamp() > depletionTime) {
+        if (warpTimestamp > depletionTime) {
             expectedStreamDebt = flow.amountOwedOf(streamId) - DEPOSIT_AMOUNT;
         } else {
             expectedStreamDebt = 0;

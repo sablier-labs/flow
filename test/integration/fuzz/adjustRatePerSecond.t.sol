@@ -22,7 +22,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         newRatePerSecond = boundUint128(newRatePerSecond, 1, UINT128_MAX);
 
@@ -61,7 +61,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         givenNotNull
         givenNotPaused
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         newRatePerSecond = boundUint128(newRatePerSecond, 1, UINT128_MAX);
 

@@ -31,17 +31,9 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
     function _setupStreamsWithAllDecimals() private {
         for (uint8 decimal; decimal < 19; ++decimal) {
-            uint256 nextStreamId = flow.nextStreamId();
-
-            // Hash the next stream ID and the decimal to generate a seed.
-            uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(nextStreamId, decimal)));
-
-            // Bound the rate per second between a realistic range.
-            uint128 ratePerSecond = uint128(_bound(ratePerSecondSeed, 0.001e18, 10e18));
-
             // Create asset, create stream and deposit.
-            IERC20 asset_ = createAsset(decimal);
-            uint256 streamId = createDefaultStream(ratePerSecond, asset_);
+            uint256 streamId = _createAssetAndStream(decimal);
+
             depositDefaultAmount(streamId);
 
             fixtureStreamId[decimal] = streamId;
@@ -66,16 +58,9 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         if (!flow.isStream(streamId)) {
             // If not, create a new stream.
             decimals = boundUint8(decimals, 0, 18);
-            asset = createAsset(decimals);
-
-            // Hash the next stream ID and the decimal to generate a seed.
-            uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals)));
-
-            // Bound the rate per second between a realistic range.
-            uint128 ratePerSecond = uint128(_bound(ratePerSecondSeed, 0.001e18, 10e18));
 
             // Create stream.
-            streamId = createDefaultStream(ratePerSecond, asset);
+            streamId = _createAssetAndStream(decimals);
 
             if (deposit) {
                 // Deposit the default amount to the stream.
@@ -88,5 +73,19 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         }
 
         return (streamId, decimals);
+    }
+
+    /// @dev Helper function to create an asset with the provided `decimals`, and the a stream with the new asset.
+    function _createAssetAndStream(uint8 decimals) private returns (uint256 streamId) {
+        asset = createAsset(decimals);
+
+        // Hash the next stream ID and the decimal to generate a seed.
+        uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals)));
+
+        // Bound the rate per second between a realistic range.
+        uint128 ratePerSecond = uint128(_bound(ratePerSecondSeed, 0.001e18, 10e18));
+
+        // Create stream.
+        streamId = createDefaultStream(ratePerSecond, asset);
     }
 }

@@ -20,7 +20,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Make the stream paused.
         flow.pause(streamId);
@@ -56,7 +56,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);

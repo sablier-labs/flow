@@ -23,7 +23,7 @@ contract Restart_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         ratePerSecond = boundUint128(ratePerSecond, 1, UINT128_MAX);
 

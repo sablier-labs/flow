@@ -7,7 +7,7 @@ import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should withdraw 0 amount from a stream.
-    function testFuzz_Paused(
+    function testFuzz_Paused_Withdraw(
         address caller,
         uint256 streamId,
         uint40 timeJump,
@@ -28,11 +28,13 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
+        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
+
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        vm.warp({ newTimestamp: warpTimestamp });
 
         // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
+        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
         // Ensure no value is transferred.
         vm.expectEmit({ emitter: address(asset) });
@@ -71,7 +73,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// depletion time.
     /// - Multiple points in time.
     function testFuzz_WithdrawalAddressNotOwner(
-        address withdrawTo,
+        address to,
         uint256 streamId,
         uint40 timeJump,
         uint40 withdrawTime,
@@ -82,28 +84,30 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        vm.assume(withdrawTo != address(0) && withdrawTo != address(flow));
+        vm.assume(to != address(0) && to != address(flow));
 
         (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
+        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
+
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        vm.warp({ newTimestamp: warpTimestamp });
 
         // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
+        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
         // Prank caller as either recipient or operator.
         resetPrank({ msgSender: users.recipient });
-        if (uint160(withdrawTo) % 2 == 0) {
+        if (uint160(to) % 2 == 0) {
             flow.approve({ to: users.operator, tokenId: streamId });
             resetPrank({ msgSender: users.operator });
         }
 
         // Withdraw the assets.
-        _test_WithdrawAt(withdrawTo, streamId, withdrawTime, decimals);
+        _test_WithdrawAt(to, streamId, withdrawTime, decimals);
     }
 
     /// @dev Checklist:
@@ -136,11 +140,13 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
+        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
+
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        vm.warp({ newTimestamp: warpTimestamp });
 
         // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, getBlockTimestamp());
+        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
         // Withdraw the assets.
         _test_WithdrawAt(users.recipient, streamId, withdrawTime, decimals);
