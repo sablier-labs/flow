@@ -14,18 +14,22 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
 
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
 
-        // Pause the stream.
-        flow.pause(streamId);
-
         // Bound the time jump so that it exceeds depletion timestamp.
         timeJump = boundUint40(timeJump, getBlockTimestamp(), depletionPeriod);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
+        uint128 expectedWithdrawbleAmount = flow.withdrawableAmountOf(streamId);
+
+        // Pause the stream.
+        flow.pause(streamId);
+
+        // Simulate the passage of time.
+        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+
         // Assert that the withdrawble amount equals 0.
         uint128 actualWithdrawbleAmount = flow.withdrawableAmountOf(streamId);
-        uint128 expectedWithdrawbleAmount = 0;
         assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
     }
 
