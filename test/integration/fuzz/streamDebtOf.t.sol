@@ -70,6 +70,6 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         }
 
         // Due to the precision loss, assert that the stream debt is slightly greater than the expected value.
-        assertApproxGeAbs(actualStreamDebt, expectedStreamDebt, 0.5e18);
+        assertApproxGeAbs(actualStreamDebt, expectedStreamDebt, MAX_DELTA);
     }
 }

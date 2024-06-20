@@ -30,7 +30,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         assertEq(actualRefundableAmount, previousStreamBalance);
 
         // Due to the precision loss, assert that the refundable amount is slightly less than the deposited amount.
-        assertApproxLeAbs(actualRefundableAmount, depositedAmount, 0.5e18);
+        assertApproxLeAbs(actualRefundableAmount, depositedAmount, MAX_DELTA);
     }
 
     /// @dev It should return the refundable amount equal to the deposited amount minus streamed amount.
@@ -62,7 +62,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         // streamed amount.
         uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
         uint128 expectedRefundableAmount = depositedAmount - ratePerSecond * (timeJump - MAY_1_2024);
-        assertApproxLeAbs(actualRefundableAmount, expectedRefundableAmount, 0.5e18);
+        assertApproxLeAbs(actualRefundableAmount, expectedRefundableAmount, MAX_DELTA);
     }
 
     /// @dev It should return the zero value for refundable amount.

@@ -163,6 +163,6 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.amountOwedOf(streamId), flow.getBalance(streamId), "amount owed");
 
         // Due to the precision loss, assert that the new amount owed is slightly less than the deposited amount.
-        assertApproxLeAbs(flow.amountOwedOf(streamId), depositedAmount, 0.5e18);
+        assertApproxLeAbs(flow.amountOwedOf(streamId), depositedAmount, MAX_DELTA);
     }
 }

@@ -84,6 +84,6 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
 
         // Due to the precision loss, assert that the withdrawble amount is slightly less than the deposited amount.
-        assertApproxLeAbs(actualWithdrawbleAmount, depositedAmount, 0.5e18);
+        assertApproxLeAbs(actualWithdrawbleAmount, depositedAmount, MAX_DELTA);
     }
 }
