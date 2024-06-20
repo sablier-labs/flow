@@ -8,6 +8,7 @@ import { Integration_Test } from "../Integration.t.sol";
 
 abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     IERC20 internal asset;
+    uint128 depositedAmount;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      FIXTURES
@@ -41,41 +42,50 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     }
 
     /// @dev An internal function to fuzz the stream id and decimals based on whether the stream ID exists or not.
-    /// @param streamId The stream ID to fuzz.
-    /// @param decimals The decimals to fuzz.
-    /// @param deposit A boolean to determine if the default amount should be deposited to the stream.
+    /// @param streamId_ The stream ID to fuzz.
+    /// @param decimals_ The decimals to fuzz.
+    /// @param flag A boolean to determine if the default amount should be deposited to the stream.
     /// @return streamId The fuzzed stream ID of either a stream picked from the fixture or a new stream.
     /// @return decimals The fuzzed decimals.
+    /// @return amount The fuzzed deposit amount.
     function useFuzzedStreamOrCreate(
-        uint256 streamId,
-        uint8 decimals,
-        bool deposit
+        uint256 streamId_,
+        uint8 decimals_,
+        bool flag
     )
         internal
-        returns (uint256, uint8)
+        returns (uint256 streamId, uint8 decimals, uint128 amount)
     {
         // Check if stream id is picked from the fixtures.
-        if (!flow.isStream(streamId)) {
+        if (!flow.isStream(streamId_)) {
             // If not, create a new stream.
-            decimals = boundUint8(decimals, 0, 18);
+            decimals = boundUint8(decimals_, 0, 18);
 
             // Create stream.
             streamId = _createAssetAndStream(decimals);
 
-            if (deposit) {
-                // Deposit the default amount to the stream.
-                depositDefaultAmount(streamId);
+            if (flag) {
+                // Hash the next stream ID and the decimal to generate a seed.
+                uint128 amountSeed = uint128(uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals, flag))));
+
+                // Bound the deposit amount between a realistic range.
+                amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
+
+                // Deposit into the stream.
+                depositAmount(streamId, getTransferAmount(amount, decimals));
             }
         } else {
             // If yes, get the asset and decimals.
-            decimals = flow.getAssetDecimals(streamId);
+            streamId = streamId_;
+            amount = DEPOSIT_AMOUNT;
             asset = flow.getAsset(streamId);
+            decimals = flow.getAssetDecimals(streamId);
         }
 
-        return (streamId, decimals);
+        return (streamId, decimals, amount);
     }
 
-    /// @dev Helper function to create an asset with the provided `decimals`, and the a stream with the new asset.
+    /// @dev Helper function to create an asset with the `decimals` and then a stream using the newly created asset.
     function _createAssetAndStream(uint8 decimals) private returns (uint256 streamId) {
         asset = createAsset(decimals);
 

@@ -19,7 +19,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0));
 
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Pause the stream.
         flow.pause(streamId);
@@ -77,7 +77,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(withdrawTo != address(0) && withdrawTo != address(flow));
 
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
@@ -118,7 +118,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0));
 
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);

@@ -5,7 +5,7 @@ import { Errors } from "src/libraries/Errors.sol";
 
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
-contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
+contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should revert.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -22,7 +22,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it does not exceed depletion timestamp.
         uint40 depletionTime = flow.depletionTimeOf(streamId);
@@ -64,7 +64,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionTime = flow.depletionTimeOf(streamId);
@@ -107,7 +107,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionTime = flow.depletionTimeOf(streamId);
@@ -137,7 +137,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             streamId: streamId,
             recipient: users.recipient,
             sender: users.sender,
-            newAmountOwed: DEPOSIT_AMOUNT,
+            newAmountOwed: flow.getBalance(streamId),
             writenoffDebt: debtToWriteOff
         });
 
@@ -160,6 +160,9 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.streamDebtOf(streamId), 0, "debt");
 
         // Assert that amount owed is the stream balance.
-        assertEq(flow.amountOwedOf(streamId), DEPOSIT_AMOUNT, "amount owed");
+        assertEq(flow.amountOwedOf(streamId), flow.getBalance(streamId), "amount owed");
+
+        // Due to the precision loss, assert that the new amount owed is slightly less than the deposited amount.
+        assertApproxLeAbs(flow.amountOwedOf(streamId), depositedAmount, 0.5e18);
     }
 }

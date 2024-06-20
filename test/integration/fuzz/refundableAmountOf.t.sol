@@ -10,12 +10,14 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// - Multiple paused streams, each with different asset decimals and rps.
     /// - Multiple points in time prior to depletion period.
     function testFuzz_PreDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
 
         // Pause the stream.
         flow.pause(streamId);
+
+        uint128 previousStreamBalance = flow.getBalance(streamId);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         timeJump = boundUint40(timeJump, getBlockTimestamp(), depletionPeriod);
@@ -23,10 +25,12 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        // Assert that the refundable amount equals the amount deposited.
+        // Assert that the refundable amount equals the stream balance before the time warp.
         uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
-        uint128 expectedRefundableAmount = TRANSFER_AMOUNT;
-        assertEq(actualRefundableAmount, expectedRefundableAmount);
+        assertEq(actualRefundableAmount, previousStreamBalance);
+
+        // Due to the precision loss, assert that the refundable amount is slightly less than the deposited amount.
+        assertApproxLeAbs(actualRefundableAmount, depositedAmount, 0.5e18);
     }
 
     /// @dev It should return the refundable amount equal to the deposited amount minus streamed amount.
@@ -43,7 +47,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         givenNotNull
         givenNotPaused
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint128 ratePerSecond = flow.getRatePerSecond(streamId);
 
@@ -54,10 +58,11 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        // Assert that the refundable amount equals the amount deposited minus streamed.
+        // Due to the precision loss, assert that the refundable amount is slightly less than the deposited amount minus
+        // streamed amount.
         uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
-        uint128 expectedRefundableAmount = TRANSFER_AMOUNT - ratePerSecond * (timeJump - MAY_1_2024);
-        assertEq(actualRefundableAmount, expectedRefundableAmount);
+        uint128 expectedRefundableAmount = depositedAmount - ratePerSecond * (timeJump - MAY_1_2024);
+        assertApproxLeAbs(actualRefundableAmount, expectedRefundableAmount, 0.5e18);
     }
 
     /// @dev It should return the zero value for refundable amount.
@@ -66,7 +71,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
     /// - Multiple streams, each with different asset decimals and rps.
     /// - Multiple points in time post depletion period.
     function testFuzz_PostDepletion(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);

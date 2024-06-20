@@ -10,7 +10,7 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple paused streams, each with different rate per second and decimals.
     /// - Multiple points in time, both pre-depletion and post-depletion.
     function testFuzz_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
@@ -48,7 +48,7 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         uint40 depletionTime = flow.depletionTimeOf(streamId);
 
@@ -64,10 +64,12 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 actualStreamDebt = flow.streamDebtOf(streamId);
         uint128 expectedStreamDebt;
         if (warpTimestamp > depletionTime) {
-            expectedStreamDebt = flow.amountOwedOf(streamId) - DEPOSIT_AMOUNT;
+            expectedStreamDebt = flow.amountOwedOf(streamId) - depositedAmount;
         } else {
             expectedStreamDebt = 0;
         }
-        assertEq(actualStreamDebt, expectedStreamDebt, "stream debt");
+
+        // Due to the precision loss, assert that the stream debt is slightly greater than the expected value.
+        assertApproxGeAbs(actualStreamDebt, expectedStreamDebt, 0.5e18);
     }
 }

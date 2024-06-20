@@ -27,7 +27,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Only allow non zero refund amounts.
         vm.assume(refundAmount > 0);
 
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
@@ -61,7 +61,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId, decimals) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
         // Bound the time jump to provide a realistic time frame and not exceeding depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
