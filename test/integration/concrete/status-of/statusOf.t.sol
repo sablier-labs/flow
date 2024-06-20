@@ -17,11 +17,21 @@ contract StatusOf_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    modifier givenInactive() {
+    modifier givenActive() {
         _;
     }
 
-    function test_GivenStreamDoesHaveDebt() external givenNotNull givenInactive {
+    function test_GivenInactiveAndNoDebt() external givenNotNull {
+        flow.pause(defaultStreamId);
+
+        // it should return PAUSED_SOLVENT
+        uint8 actualStatus = uint8(flow.statusOf(defaultStreamId));
+        uint8 expectedStatus = uint8(Flow.Status.PAUSED_SOLVENT);
+        assertEq(actualStatus, expectedStatus);
+    }
+
+    function test_GivenInactiveAndDebt() external givenNotNull {
+        // it should return PAUSED_INSOLVENT
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + 1 });
         flow.pause(defaultStreamId);
 
@@ -31,32 +41,20 @@ contract StatusOf_Integration_Concrete_Test is Integration_Test {
         assertEq(actualStatus, expectedStatus);
     }
 
-    function test_GivenStreamDoesNotHaveDebt() external givenNotNull givenInactive {
-        flow.pause(defaultStreamId);
-
-        // it should return PAUSED_SOLVENT
+    function test_GivenActiveAndNoDebt() external view givenNotNull {
+        // it should return STREAMING_SOLVENT
         uint8 actualStatus = uint8(flow.statusOf(defaultStreamId));
-        uint8 expectedStatus = uint8(Flow.Status.PAUSED_SOLVENT);
+        uint8 expectedStatus = uint8(Flow.Status.STREAMING_SOLVENT);
         assertEq(actualStatus, expectedStatus);
     }
 
-    modifier givenActive() {
-        _;
-    }
-
-    function test_GivenStreamHasDebt() external givenNotNull givenActive {
+    function test_GivenActiveAndDebt() external givenNotNull {
+        // it should return STREAMING_INSOLVENT
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + 1 });
 
         // it should return STREAMING_INSOLVENT
         uint8 actualStatus = uint8(flow.statusOf(defaultStreamId));
         uint8 expectedStatus = uint8(Flow.Status.STREAMING_INSOLVENT);
-        assertEq(actualStatus, expectedStatus);
-    }
-
-    function test_GivenStreamHasNoDebt() external view givenNotNull givenActive {
-        // it should return STREAMING_SOLVENT
-        uint8 actualStatus = uint8(flow.statusOf(defaultStreamId));
-        uint8 expectedStatus = uint8(Flow.Status.STREAMING_SOLVENT);
         assertEq(actualStatus, expectedStatus);
     }
 }
