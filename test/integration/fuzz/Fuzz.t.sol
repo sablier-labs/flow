@@ -42,27 +42,29 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     }
 
     /// @dev An internal function to fuzz the stream id and decimals based on whether the stream ID exists or not.
-    /// @param streamId_ The stream ID to fuzz.
-    /// @param decimals_ The decimals to fuzz.
+    /// @param streamId The stream ID to fuzz.
+    /// @param decimals The decimals to fuzz.
     /// @param flag A boolean to determine if the default amount should be deposited to the stream.
-    /// @return streamId The fuzzed stream ID of either a stream picked from the fixture or a new stream.
-    /// @return decimals The fuzzed decimals.
-    /// @return amount The fuzzed deposit amount.
+    /// @return uint256 The fuzzed stream ID of either a stream picked from the fixture or a new stream.
+    /// @return uint8 The fuzzed decimals.
+    /// @return uint128 The fuzzed deposit amount.
     function useFuzzedStreamOrCreate(
-        uint256 streamId_,
-        uint8 decimals_,
+        uint256 streamId,
+        uint8 decimals,
         bool flag
     )
         internal
-        returns (uint256 streamId, uint8 decimals, uint128 amount)
+        returns (uint256, uint8, uint128)
     {
         // Check if stream id is picked from the fixtures.
-        if (!flow.isStream(streamId_)) {
+        if (!flow.isStream(streamId)) {
             // If not, create a new stream.
-            decimals = boundUint8(decimals_, 0, 18);
+            decimals = boundUint8(decimals, 0, 18);
 
             // Create stream.
             streamId = _createAssetAndStream(decimals);
+
+            uint128 amount;
 
             if (flag) {
                 // Hash the next stream ID and the decimal to generate a seed.
@@ -74,15 +76,13 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
                 // Deposit into the stream.
                 depositAmount(streamId, getTransferAmount(amount, decimals));
             }
-        } else {
-            // If yes, get the asset and decimals.
-            streamId = streamId_;
-            amount = DEPOSIT_AMOUNT;
-            asset = flow.getAsset(streamId);
-            decimals = flow.getAssetDecimals(streamId);
+
+            return (streamId, decimals, amount);
         }
 
-        return (streamId, decimals, amount);
+        asset = flow.getAsset(streamId);
+
+        return (streamId, flow.getAssetDecimals(streamId), DEPOSIT_AMOUNT);
     }
 
     /// @dev Helper function to create an asset with the `decimals` and then a stream using the newly created asset.
