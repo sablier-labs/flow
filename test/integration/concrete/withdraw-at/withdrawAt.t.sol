@@ -261,6 +261,8 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // It should perform the ERC20 transfer.
         expectCallToTransfer({ asset: asset, to: to, amount: transferAmount });
 
+        uint256 assetBalanceBefore = asset.balanceOf(address(flow));
+
         flow.withdrawAt({ streamId: streamId, to: to, time: WITHDRAW_TIME });
 
         // It should update lastTimeUpdate.
@@ -276,5 +278,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = depositedAmount - expectedWithdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+
+        // It should reduce the asset balance of stream.
+        uint256 actualAssetBalance = asset.balanceOf(address(flow));
+        uint256 expectedAssetBalance = assetBalanceBefore - transferAmount;
+        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }
