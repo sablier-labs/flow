@@ -67,7 +67,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
-    /// - Multiple non-zero values for withdrawTo address.
+    /// - Multiple non-zero values for to address.
     /// - Multiple streams to withdraw from, each with different asset decimals and rps.
     /// - Multiple values for withdraw time in the range (lastTimeUpdate, currentTime). It could also be before or after
     /// depletion time.
@@ -88,26 +88,12 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
-        // Bound the time jump to provide a realistic time frame.
-        timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
-
-        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
-
-        // Simulate the passage of time.
-        vm.warp({ newTimestamp: warpTimestamp });
-
-        // Bound the withdraw time between the allowed range.
-        withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
-
-        // Prank caller as either recipient or operator.
         resetPrank({ msgSender: users.recipient });
-        if (uint160(to) % 2 == 0) {
-            flow.approve({ to: users.operator, tokenId: streamId });
-            resetPrank({ msgSender: users.operator });
-        }
+        flow.approve({ to: users.operator, tokenId: streamId });
+        resetPrank({ msgSender: users.operator });
 
         // Withdraw the assets.
-        _test_WithdrawAt(to, streamId, withdrawTime, decimals);
+        _test_WithdrawAt(to, streamId, timeJump, withdrawTime, decimals);
     }
 
     /// @dev Checklist:
@@ -137,6 +123,20 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
+        // Withdraw the assets.
+        _test_WithdrawAt(users.recipient, streamId, timeJump, withdrawTime, decimals);
+    }
+
+    // Shared private function.
+    function _test_WithdrawAt(
+        address to,
+        uint256 streamId,
+        uint40 timeJump,
+        uint40 withdrawTime,
+        uint8 decimals
+    )
+        private
+    {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
@@ -148,12 +148,6 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the withdraw time between the allowed range.
         withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
-        // Withdraw the assets.
-        _test_WithdrawAt(users.recipient, streamId, withdrawTime, decimals);
-    }
-
-    // Shared private function.
-    function _test_WithdrawAt(address withdrawTo, uint256 streamId, uint40 withdrawTime, uint8 decimals) private {
         uint128 amountOwed = flow.amountOwedOf(streamId);
         uint256 assetbalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
@@ -166,20 +160,16 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({
-            from: address(flow),
-            to: withdrawTo,
-            value: getTransferAmount(expectedWithdrawAmount, decimals)
-        });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: getTransferAmount(expectedWithdrawAmount, decimals) });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({ streamId: streamId, to: withdrawTo, withdrawnAmount: expectedWithdrawAmount });
+        emit WithdrawFromFlowStream({ streamId: streamId, to: to, withdrawnAmount: expectedWithdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the assets.
-        flow.withdrawAt(streamId, withdrawTo, withdrawTime);
+        flow.withdrawAt(streamId, to, withdrawTime);
 
         // It should update lastTimeUpdate.
         assertEq(flow.getLastTimeUpdate(streamId), withdrawTime, "last time update");
