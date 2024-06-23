@@ -10,13 +10,6 @@ abstract contract Assertions is PRBMathAssertions {
                                      ASSERTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// Compares two `uint128` values. Expects `left` value to be greater than or equal to the `right` value. Expects
-    /// difference to be less than or equal to `maxDelta`.
-    function assertApproxGeAbs(uint128 left, uint128 right, uint128 maxDelta) internal pure {
-        assertApproxEqAbs(left, right, maxDelta);
-        assertGe(left, right);
-    }
-
     /// Compares two `uint128` values. Expects `left` value to be less than or equal to the `right` value. Expects
     /// difference to be less than or equal to `maxDelta`.
     function assertApproxLeAbs(uint128 left, uint128 right, uint128 maxDelta) internal pure {
