@@ -162,8 +162,6 @@ flowchart LR
 
 ## Amount Calculations
 
----
-
 ### Recent Amount
 
 **Notes:** `now` refers to `block.timestamp`.
