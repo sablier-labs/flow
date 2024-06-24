@@ -31,16 +31,16 @@ stateDiagram-v2
 
     state Inactive {
         # direction BT
-        PausedInsolvent
         PauseSolvent
-        PauseSolvent --> PausedInsolvent : deposit || void
+        PausedInsolvent
+         PausedInsolvent --> PauseSolvent : deposit || void
     }
 
-    StreamingSolvent --> PausedInsolvent : pause
-    PausedInsolvent --> StreamingSolvent : restart
-    StreamingInsolvent --> PauseSolvent : pause
-    StreamingInsolvent --> PausedInsolvent : void
-    PauseSolvent --> StreamingInsolvent : restart
+    StreamingSolvent --> PauseSolvent : pause
+    StreamingInsolvent --> PausedInsolvent : pause
+    StreamingInsolvent --> PauseSolvent : void
+    PauseSolvent --> StreamingSolvent : restart
+    PausedInsolvent --> StreamingInsolvent : restart
 
     NULL --> StreamingSolvent : create
 
