@@ -2,17 +2,17 @@
 
 ### Types
 
-| Type   | Statuses                              | Description                                                   |
-| :----- | :------------------------------------ | :------------------------------------------------------------ |
-| Active | Streaming Insolvent, StreamingSolvent | The amount owed to the recipient is increasing over time.     |
-| Paused | PauseSolvent, PausedInsolvent         | The amount owed to the recipient is not increasing over time. |
+| Type   | Statuses                                   | Description                                                   |
+| :----- | :----------------------------------------- | :------------------------------------------------------------ |
+| Active | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT` | The amount owed to the recipient is increasing over time.     |
+| Paused | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`       | The amount owed to the recipient is not increasing over time. |
 
-| Status              | Description                          |
-| ------------------- | ------------------------------------ |
-| Streaming Solvent   | Active stream when there is no debt. |
-| Streaming Insolvent | Active stream when there is debt.    |
-| Paused Solvent      | Paused stream when there is debt.    |
-| Paused Insolvent    | Paused stream when there is no debt. |
+| Status                | Description                          |
+| --------------------- | ------------------------------------ |
+| `STREAMING_SOLVENT`   | Active stream when there is no debt. |
+| `STREAMING_INSOLVENT` | Active stream when there is debt.    |
+| `PAUSED_SOLVENT`      | Paused stream when there is no debt. |
+| `PAUSED_INSOLVENT`    | Paused stream when there is debt.    |
 
 ### Statuses diagram
 

@@ -97,7 +97,7 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
-        // See that the stream has, or has not, debt.
+        // See whether the stream has debt.
         bool hasDebt = _streamDebtOf(streamId) > 0;
 
         if (_streams[streamId].isPaused) {
