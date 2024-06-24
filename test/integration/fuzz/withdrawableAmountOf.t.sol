@@ -4,7 +4,7 @@ pragma solidity >=0.8.22;
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
-    /// @dev It should return 0.
+    /// @dev It should return the expected value.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple paused streams, each with different asset decimals and rps.
