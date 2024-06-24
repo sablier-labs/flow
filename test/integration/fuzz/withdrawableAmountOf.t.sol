@@ -83,7 +83,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         uint128 expectedWithdrawbleAmount = flow.getBalance(streamId);
         assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
 
-        // Due to the precision loss, assert that the withdrawble amount is slightly less than the deposited amount.
-        assertApproxLeAbs(actualWithdrawbleAmount, depositedAmount, MAX_DELTA);
+        // Assert that the withdrawble amount is same as the deposited amount.
+        assertEq(actualWithdrawbleAmount, depositedAmount);
     }
 }

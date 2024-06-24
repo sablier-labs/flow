@@ -70,7 +70,7 @@ contract StreamDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             expectedStreamDebt = 0;
         }
 
-        // Due to the precision loss, assert that the stream debt is slightly greater than the expected value.
+        // Assert that the stream debt is same as the expected value.
         assertEq(actualStreamDebt, expectedStreamDebt);
     }
 }

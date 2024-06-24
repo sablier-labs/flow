@@ -39,7 +39,4 @@ abstract contract Constants {
     // Streaming amounts
     uint128 internal constant ONE_MONTH_STREAMED_AMOUNT = 2592e18; // 86.4 * 30
     uint128 internal constant ONE_MONTH_REFUNDABLE_AMOUNT = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
-
-    // Utilities
-    uint128 internal constant MAX_DELTA = 0.5e18;
 }
