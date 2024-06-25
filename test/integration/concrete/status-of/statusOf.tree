@@ -2,11 +2,11 @@ StatusOf_Integration_Concrete_Test
 ├── given null
 │   └── it should revert
 └── given not null
-    ├── given inactive and no debt
+    ├── given paused and no debt
     │   └── it should return PAUSED_SOLVENT
-    ├── given inactive and debt
+    ├── given paused and debt
     │   └── it should return PAUSED_INSOLVENT
-    ├── given active and no debt
+    ├── given streaming and no debt
     │   └── it should return STREAMING_SOLVENT
-    └── given active and debt
+    └── given streaming and debt
         └── it should return STREAMING_INSOLVENT

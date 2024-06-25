@@ -2,17 +2,17 @@
 
 ### Types
 
-| Type   | Statuses                                   | Description                                                   |
-| :----- | :----------------------------------------- | :------------------------------------------------------------ |
-| Active | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT` | The amount owed to the recipient is increasing over time.     |
-| Paused | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`       | The amount owed to the recipient is not increasing over time. |
+| Type      | Statuses                                   | Description                                                   |
+| :-------- | :----------------------------------------- | :------------------------------------------------------------ |
+| Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT` | The amount owed to the recipient is increasing over time.     |
+| Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`       | The amount owed to the recipient is not increasing over time. |
 
-| Status                | Description                          |
-| --------------------- | ------------------------------------ |
-| `STREAMING_SOLVENT`   | Active stream when there is no debt. |
-| `STREAMING_INSOLVENT` | Active stream when there is debt.    |
-| `PAUSED_SOLVENT`      | Paused stream when there is no debt. |
-| `PAUSED_INSOLVENT`    | Paused stream when there is debt.    |
+| Status                | Description                             |
+| --------------------- | --------------------------------------- |
+| `STREAMING_SOLVENT`   | Streaming stream when there is no debt. |
+| `STREAMING_INSOLVENT` | Streaming stream when there is debt.    |
+| `PAUSED_SOLVENT`      | Paused stream when there is no debt.    |
+| `PAUSED_INSOLVENT`    | Paused stream when there is debt.       |
 
 ### Statuses diagram
 
@@ -23,41 +23,40 @@ time.
 stateDiagram-v2
     direction LR
 
-    state Active {
-        StreamingSolvent
-        StreamingInsolvent --> StreamingSolvent : deposit
-        StreamingSolvent --> StreamingInsolvent : time
+    state Streaming {
+        STREAMING_SOLVENT
+        STREAMING_INSOLVENT --> STREAMING_SOLVENT : deposit
+        STREAMING_SOLVENT --> STREAMING_INSOLVENT : time
     }
 
-    state Inactive {
+    state Paused {
         # direction BT
-        PauseSolvent
-        PausedInsolvent
-         PausedInsolvent --> PauseSolvent : deposit || void
+        PAUSED_SOLVENT
+        PAUSED_INSOLVENT
+         PAUSED_INSOLVENT --> PAUSED_SOLVENT : deposit || void
     }
 
-    StreamingSolvent --> PauseSolvent : pause
-    StreamingInsolvent --> PausedInsolvent : pause
-    StreamingInsolvent --> PauseSolvent : void
-    PauseSolvent --> StreamingSolvent : restart
-    PausedInsolvent --> StreamingInsolvent : restart
+    STREAMING_SOLVENT --> PAUSED_SOLVENT : pause
+    STREAMING_INSOLVENT --> PAUSED_INSOLVENT : pause
+    STREAMING_INSOLVENT --> PAUSED_SOLVENT : void
+    PAUSED_SOLVENT --> STREAMING_SOLVENT : restart
+    PAUSED_INSOLVENT --> STREAMING_INSOLVENT : restart
 
-    NULL --> StreamingSolvent : create
+    NULL --> STREAMING_SOLVENT : create
 
     NULL:::grey
-    Active:::lightGreen
-    Inactive:::lightYellow
-    StreamingSolvent:::intenseGreen
-    StreamingInsolvent:::intenseGreen
-    PausedInsolvent:::intenseYellow
-    PauseSolvent:::intenseYellow
+    Streaming:::lightGreen
+    Paused:::lightYellow
+    STREAMING_SOLVENT:::intenseGreen
+    STREAMING_INSOLVENT:::intenseGreen
+    PAUSED_INSOLVENT:::intenseYellow
+    PAUSED_SOLVENT:::intenseYellow
 
     classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
     classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
     classDef intenseGreen fill:#32cd32,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
     classDef lightYellow fill:#ffff99,color:#000,font-weight:bold;
     classDef intenseYellow fill:#ffd700,color:#000,font-weight:bold;
-
 ```
 
 ### Function calls
@@ -72,8 +71,8 @@ stateDiagram-v2
 flowchart LR
     subgraph Statuses
         NULL((NULL)):::grey
-        ACV((ACTIVE)):::green
-        INACV((INACTIVE)):::yellow
+        STR((STREAMING)):::green
+        PSED((PAUSED)):::yellow
     end
 
 
@@ -96,23 +95,23 @@ flowchart LR
     classDef black fill:#000000,stroke:#333,stroke-width:2px;
 
     CR -- "update rps\nupdate ltu" --> NULL
-    ADJRPS -- "update ra (+rca)\nupdate rps\nupdate ltu" -->  ACV
+    ADJRPS -- "update ra (+rca)\nupdate rps\nupdate ltu" -->  STR
 
     DP -- "update bal (+)" --> BOTH
 
     RFD -- "update bal (-)" --> BOTH
 
-    VD -- "update ra (bal)\nupdate rps (0)" --> BOTH
-
     WTD -- "update ra (-) \nupdate ltu\nupdate bal (-)" --> BOTH
 
-    PS -- "update ra (+rca)\nupdate rps (0)" --> ACV
+    VD -- "update ra (bal)\nupdate rps (0)" --> BOTH
 
-    BOTH --> ACV & INACV
+    PS -- "update ra (+rca)\nupdate rps (0)" --> STR
 
-    RST -- "update rps \nupdate ltu" --> INACV
+    BOTH --> STR & PSED
 
-    linkStyle 2,3,5 stroke:#ff0000,stroke-width:2px
+    RST -- "update rps \nupdate ltu" --> PSED
+
+    linkStyle 2,3,4 stroke:#ff0000,stroke-width:2px
 ```
 
 ## Access Control
@@ -176,8 +175,8 @@ res_01([0 ]):::green1
 res_rca(["rps*(now - ltu)"]):::green1
 
 rca --> di0
-di0 -- "active" --> di1
-di0 -- "inactive" --> res_00
+di0 -- "streaming" --> di1
+di0 -- "paused" --> res_00
 di1 -- "now < ltu" --> res_01
 di1 -- "now >= ltu" --> res_rca
 
@@ -209,8 +208,8 @@ flowchart TD
     di0 -- "bal > 0" --> di1
     di1 -- "debt > 0" --> res_bal
     di1 -- "debt = 0" --> di2
-    di2 -- "inactive" --> res_ra
-    di2 -- "active" --> res_sum
+    di2 -- "paused" --> res_ra
+    di2 -- "streaming" --> res_sum
 
     classDef blue0 fill:#DAE8FC,stroke:#333,stroke-width:2px;
     classDef blue1 fill:#1BA1E2,stroke:#333,stroke-width:2px;
