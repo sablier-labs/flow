@@ -188,8 +188,8 @@ classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
 
 **Notes:** Debt greater than zero means:
 
-1. `ra > bal`
-2. `ra + rca > bal`
+1. `ra > bal` when the status is `PAUSED`
+2. `ra + rca > bal` when the status is `STREAMING`
 
 ```mermaid
 flowchart TD
