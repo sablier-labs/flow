@@ -135,22 +135,12 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Void the stream.
         flow.void(streamId);
 
-        // Assert that the stream is paused.
+        // Assert the checklist.
         assertTrue(flow.isPaused(streamId), "paused");
-
-        // Assert that the rate per second is 0.
         assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
-
-        // Assert that recent amount is 0.
         assertEq(flow.recentAmountOf(streamId), 0, "recent amount");
-
-        // Assert that debt is 0.
         assertEq(flow.streamDebtOf(streamId), 0, "debt");
-
-        // Assert that amount owed is the stream balance.
         assertEq(flow.amountOwedOf(streamId), flow.getBalance(streamId), "amount owed");
-
-        // Assert that the new amount owed is same as the deposited amount.
         assertEq(flow.amountOwedOf(streamId), depositedAmount);
     }
 }

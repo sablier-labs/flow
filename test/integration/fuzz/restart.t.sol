@@ -33,8 +33,10 @@ contract Restart_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
+        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
+
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        vm.warp({ newTimestamp: warpTimestamp });
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(flow) });
@@ -55,6 +57,6 @@ contract Restart_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should update lastTimeUpdate.
         uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        assertEq(actualLastTimeUpdate, getBlockTimestamp(), "lastTimeUpdate");
+        assertEq(actualLastTimeUpdate, warpTimestamp, "lastTimeUpdate");
     }
 }
