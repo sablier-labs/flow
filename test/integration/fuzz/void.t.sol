@@ -31,12 +31,8 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        // Prank caller as either recipient or operator.
-        resetPrank({ msgSender: users.recipient });
-        if (timeJump % 2 == 0) {
-            flow.approve({ to: users.operator, tokenId: streamId });
-            resetPrank({ msgSender: users.operator });
-        }
+        // Prank to either recipient or operator.
+        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
 
         // Expect the relevant error.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_DebtZero.selector, streamId));
@@ -76,12 +72,8 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Pause the stream.
         flow.pause(streamId);
 
-        // Prank caller as either recipient or operator.
-        resetPrank({ msgSender: users.recipient });
-        if (timeJump % 2 == 0) {
-            flow.approve({ to: users.operator, tokenId: streamId });
-            resetPrank({ msgSender: users.operator });
-        }
+        // Prank to either recipient or operator.
+        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
 
         // Void the stream.
         _test_Void(streamId);
@@ -116,12 +108,8 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        // Prank caller as either recipient or operator.
-        resetPrank({ msgSender: users.recipient });
-        if (timeJump % 2 == 0) {
-            flow.approve({ to: users.operator, tokenId: streamId });
-            resetPrank({ msgSender: users.operator });
-        }
+        // Prank to either recipient or operator.
+        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
 
         // Void the stream.
         _test_Void(streamId);

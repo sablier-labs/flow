@@ -38,7 +38,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 expectedStreamBalance = flow.getBalance(streamId);
         uint256 expectedAssetBalance = asset.balanceOf(address(flow));
 
-        // Withdraw the assets.
+        // Prank the caller and withdraw the assets.
+        resetPrank(caller);
         flow.withdrawMax(streamId, users.recipient);
 
         // Assert that all states are unchanged except for lastTimeUpdate.
@@ -85,12 +86,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Prank caller as either recipient or operator.
-        resetPrank({ msgSender: users.recipient });
-        if (uint160(withdrawTo) % 2 == 0) {
-            flow.approve({ to: users.operator, tokenId: streamId });
-            resetPrank({ msgSender: users.operator });
-        }
+        // Prank to either recipient or operator.
+        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
 
         // Withdraw the assets.
         _test_WithdrawMax(withdrawTo, streamId, decimals);
@@ -126,7 +123,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Withdraw the assets.
+        // Prank the caller and withdraw the assets.
+        resetPrank(caller);
         _test_WithdrawMax(users.recipient, streamId, decimals);
     }
 

@@ -30,16 +30,9 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         _setupStreamsWithAllDecimals();
     }
 
-    function _setupStreamsWithAllDecimals() private {
-        for (uint8 decimal; decimal < 19; ++decimal) {
-            // Create asset, create stream and deposit.
-            uint256 streamId = _createAssetAndStream(decimal);
-
-            depositDefaultAmount(streamId);
-
-            fixtureStreamId[decimal] = streamId;
-        }
-    }
+    /*//////////////////////////////////////////////////////////////////////////
+                                      HELPERS
+    //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev An internal function to fuzz the stream id and decimals based on whether the stream ID exists or not.
     /// @param streamId The stream ID to fuzz.
@@ -91,6 +84,18 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         return (streamId, flow.getAssetDecimals(streamId), DEPOSIT_AMOUNT);
     }
 
+    /// @dev Helper function to return the address of either recipient or operator depending on the value of `timeJump`.
+    /// This function is used to prank the caller in {withdrawAt}, {withdrawMax} and {void} calls.
+    function useRecipientOrOperator(uint256 streamId, uint40 timeJump) internal returns (address) {
+        if (timeJump % 2 != 0) {
+            return users.recipient;
+        } else {
+            resetPrank({ msgSender: users.recipient });
+            flow.approve({ to: users.operator, tokenId: streamId });
+            return users.operator;
+        }
+    }
+
     /// @dev Helper function to create an asset with the `decimals` and then a stream using the newly created asset.
     function _createAssetAndStream(uint8 decimals) private returns (uint256 streamId) {
         asset = createAsset(decimals);
@@ -103,5 +108,16 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
         // Create stream.
         streamId = createDefaultStream(ratePerSecond, asset);
+    }
+
+    function _setupStreamsWithAllDecimals() private {
+        for (uint8 decimal; decimal < 19; ++decimal) {
+            // Create asset, create stream and deposit.
+            uint256 streamId = _createAssetAndStream(decimal);
+
+            depositDefaultAmount(streamId);
+
+            fixtureStreamId[decimal] = streamId;
+        }
     }
 }

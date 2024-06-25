@@ -44,7 +44,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 expectedStreamBalance = flow.getBalance(streamId);
         uint256 expectedAssetBalance = asset.balanceOf(address(flow));
 
-        // Withdraw the assets.
+        // Change prank to caller and withdraw the assets.
+        resetPrank(caller);
         flow.withdrawAt(streamId, users.recipient, withdrawTime);
 
         // Assert that all states are unchanged except for lastTimeUpdate.
@@ -88,9 +89,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
-        resetPrank({ msgSender: users.recipient });
-        flow.approve({ to: users.operator, tokenId: streamId });
-        resetPrank({ msgSender: users.operator });
+        // Prank to either recipient or operator.
+        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
 
         // Withdraw the assets.
         _test_WithdrawAt(to, streamId, timeJump, withdrawTime, decimals);
@@ -123,7 +123,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
 
-        // Withdraw the assets.
+        // Prank the caller and withdraw the assets.
+        resetPrank(caller);
         _test_WithdrawAt(users.recipient, streamId, timeJump, withdrawTime, decimals);
     }
 
