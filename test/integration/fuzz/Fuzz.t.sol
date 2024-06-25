@@ -37,18 +37,10 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     /// @dev An internal function to fuzz the stream id and decimals based on whether the stream ID exists or not.
     /// @param streamId The stream ID to fuzz.
     /// @param decimals The decimals to fuzz.
-    /// @param flag A boolean to determine if the default amount should be deposited to the stream.
     /// @return uint256 The fuzzed stream ID of either a stream picked from the fixture or a new stream.
     /// @return uint8 The fuzzed decimals.
     /// @return uint128 The fuzzed deposit amount.
-    function useFuzzedStreamOrCreate(
-        uint256 streamId,
-        uint8 decimals,
-        bool flag
-    )
-        internal
-        returns (uint256, uint8, uint128)
-    {
+    function useFuzzedStreamOrCreate(uint256 streamId, uint8 decimals) internal returns (uint256, uint8, uint128) {
         // Check if stream id is picked from the fixtures.
         if (!flow.isStream(streamId)) {
             // If not, create a new stream.
@@ -59,22 +51,20 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
             uint128 amount;
 
-            if (flag) {
-                // Hash the next stream ID and the decimal to generate a seed.
-                uint128 amountSeed = uint128(uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals, flag))));
+            // Hash the next stream ID and the decimal to generate a seed.
+            uint128 amountSeed = uint128(uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals))));
 
-                // Bound the amount between a realistic range.
-                amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
+            // Bound the amount between a realistic range.
+            amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
 
-                // Calculate the transfer amount.
-                uint128 transferAmount = getTransferAmount(amount, decimals);
+            // Calculate the transfer amount.
+            uint128 transferAmount = getTransferAmount(amount, decimals);
 
-                // Deposit into the stream.
-                depositAmount(streamId, transferAmount);
+            // Deposit into the stream.
+            depositAmount(streamId, transferAmount);
 
-                // Get the normalized amount to return.
-                amount = getNormalizedAmount(transferAmount, decimals);
-            }
+            // Get the normalized amount to return.
+            amount = getNormalizedAmount(transferAmount, decimals);
 
             return (streamId, decimals, amount);
         }

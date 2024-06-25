@@ -10,7 +10,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
     /// - Multiple paused streams, each with different asset decimals and rps.
     /// - Multiple points in time prior to depletion period.
     function testFuzz_PreDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
 
@@ -47,7 +47,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         givenNotNull
         givenNotPaused
     {
-        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
 
@@ -69,7 +69,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
     /// - Multiple streams, each with different asset decimals and rps.
     /// - Multiple points in time post depletion period.
     function testFuzz_PostDepletion(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);

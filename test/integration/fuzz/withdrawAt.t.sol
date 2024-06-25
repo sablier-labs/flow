@@ -20,7 +20,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0));
 
-        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Pause the stream.
         flow.pause(streamId);
@@ -87,7 +87,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(to != address(0) && to != address(flow));
 
-        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Prank to either recipient or operator.
         resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
@@ -121,7 +121,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0));
 
-        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, true);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Prank the caller and withdraw the assets.
         resetPrank(caller);

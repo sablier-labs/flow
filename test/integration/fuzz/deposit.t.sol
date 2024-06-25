@@ -29,7 +29,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0) && caller != address(flow));
 
-        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals, false);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the transfer amount to avoid overflow.
         transferAmount = boundTransferAmount(transferAmount, decimals);
