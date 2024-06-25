@@ -8,7 +8,7 @@ import { Integration_Test } from "../Integration.t.sol";
 
 abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     IERC20 internal asset;
-    uint128 depositedAmount;
+    uint128 internal depositedAmount;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      FIXTURES
@@ -49,13 +49,11 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
             // Create stream.
             streamId = _createAssetAndStream(decimals);
 
-            uint128 amount;
-
             // Hash the next stream ID and the decimal to generate a seed.
             uint128 amountSeed = uint128(uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals))));
 
             // Bound the amount between a realistic range.
-            amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
+            uint128 amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
 
             // Calculate the transfer amount.
             uint128 transferAmount = getTransferAmount(amount, decimals);
