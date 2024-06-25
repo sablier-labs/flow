@@ -13,8 +13,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
     /// - Multiple non-zero values for transfer amount.
-    /// - Multiple streams to deposit into, each with different asset decimals and rps. Some of them would have amount
-    /// deposited previously and some of them would be fresh.
+    /// - Multiple streams to deposit into, each with different asset decimals and rps.
     /// - Multiple points in time.
     function testFuzz_Deposit(
         address caller,
