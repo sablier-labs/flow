@@ -13,6 +13,11 @@ import { Constants } from "./Constants.sol";
 abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     using SafeCastLib for uint256;
 
+    /// @dev Bounds an address.
+    function boundAddress(uint256 x) internal pure returns (address) {
+        return address(uint160(_bound((x), 1, type(uint160).max)));
+    }
+
     /// @dev Bound transfer amount to avoid overflow.
     function boundTransferAmount(uint128 amount, uint8 decimals) internal pure returns (uint128 transferAmount) {
         uint128 maxDeposit = UINT128_MAX / uint128(10 ** (18 - decimals));

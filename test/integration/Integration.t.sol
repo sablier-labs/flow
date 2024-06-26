@@ -25,8 +25,13 @@ abstract contract Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
 
-        defaultBroker = broker();
+        // Label the assets.
+        vm.label(address(assetWithoutDecimals), "AWD");
+        vm.label(address(dai), "DAI");
+        vm.label(address(usdc), "USDC");
+        vm.label(address(usdt), "USDT");
 
+        defaultBroker = broker();
         defaultStreamId = createDefaultStream();
 
         // Simulate one month of streaming.

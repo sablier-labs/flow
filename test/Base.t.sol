@@ -48,13 +48,14 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
             flow = deployOptimizedSablierFlow();
         }
 
+        // Label the flow contract.
+        vm.label(address(flow), "Flow");
+
         users.broker = createUser("broker");
         users.eve = createUser("eve");
         users.operator = createUser("operator");
         users.recipient = createUser("recipient");
         users.sender = createUser("sender");
-
-        labelContracts();
 
         resetPrank(users.sender);
 
@@ -100,14 +101,6 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
                 "out-optimized/SablierFlow.sol/SablierFlow.json", abi.encode(users.admin, address(nftDescriptor))
             )
         );
-    }
-
-    function labelContracts() internal {
-        vm.label(address(assetWithoutDecimals), "AWD");
-        vm.label(address(dai), "DAI");
-        vm.label(address(flow), "Flow");
-        vm.label(address(usdc), "USDC");
-        vm.label(address(usdt), "USDT");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
