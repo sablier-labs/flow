@@ -188,8 +188,8 @@ them inexpensive to store.
 
 9. if $debt = 0$ and $isPaused = false \implies wa = ra + rca$
 
-10. if $rps \gt 0$, $ltu = constant$ and no withdraw is made $\implies$ $recentAmount$ should always increase with time
-    and $remainingAmount$ should remain constant.
+10. if $rps \gt 0$, $ltu = const$ and no withdraw is made
+    $\implies \frac{d(recentAmount)}{dt} > 0, \frac{d(remainingAmount)}{dt} = 0$.
 
 11. $bal = rfa + wa$
 
