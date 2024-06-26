@@ -151,7 +151,7 @@ contract FlowHandler is BaseHandler {
     }
 
     /// @dev A function that does nothing but warp the time into the future.
-    function pastime(uint256 timeJumpSeed) external instrument("pastime") adjustTimestamp(timeJumpSeed) { }
+    function passTime(uint256 timeJumpSeed) external instrument("passTime") adjustTimestamp(timeJumpSeed) { }
 
     function refund(
         uint256 timeJumpSeed,
