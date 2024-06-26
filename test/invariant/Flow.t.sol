@@ -202,6 +202,32 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
+    /// @dev If rps > 0, `lastTimeUpdate` does not change and no withdraw is made, `recentAmount` should always increase
+    /// and `remainingAmount` should remain constant. This is also equivalent to saying that amount owed should always
+    /// be increasing.
+    function invariant_RecentAmountIncreaseAndRemainingAmountConstant() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (
+                flow.getRatePerSecond(streamId) != 0
+                    && flowHandler.previousLastTimeUpdateOf(streamId) == flow.getLastTimeUpdate(streamId)
+                    && flowHandler.calls("withdrawAt") == 0
+            ) {
+                assertGt(
+                    flow.recentAmountOf(streamId),
+                    flowHandler.previousRecentAmountOf(streamId),
+                    "Invariant violation: recent amount should be monotonically increasing"
+                );
+                assertEq(
+                    flow.getRemainingAmount(streamId),
+                    flowHandler.previousRemainingAmountOf(streamId),
+                    "Invariant violation: remaining amount should be constant"
+                );
+            }
+        }
+    }
+
     /// @dev The stream balance should be equal to the sum of the withdrawable amount and the refundable amount.
     function invariant_StreamBalanceEqWithdrawableAmountPlusRefundableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();

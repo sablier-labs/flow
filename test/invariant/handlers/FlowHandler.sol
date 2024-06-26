@@ -19,8 +19,9 @@ contract FlowHandler is BaseHandler {
 
     /// @dev Debt, remaining and recent amount mapped to each stream id.
     mapping(uint256 streamId => uint128 amount) public previousDebtOf;
-    mapping(uint256 streamId => uint128 amount) public lastRecentAmountOf;
-    mapping(uint256 streamId => uint128 amount) public lastRemainingAmountOf;
+    mapping(uint256 streamId => uint40 time) public previousLastTimeUpdateOf;
+    mapping(uint256 streamId => uint128 amount) public previousRecentAmountOf;
+    mapping(uint256 streamId => uint128 amount) public previousRemainingAmountOf;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
@@ -32,11 +33,12 @@ contract FlowHandler is BaseHandler {
                                      MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Updates the states of Flow stream.
+    /// @dev Updates the states of handler right before calling each Flow function.
     modifier updateFlowStates() {
         previousDebtOf[currentStreamId] = flow.streamDebtOf(currentStreamId);
-        lastRemainingAmountOf[currentStreamId] = flow.getRemainingAmount(currentStreamId);
-        lastRecentAmountOf[currentStreamId] = flow.recentAmountOf(currentStreamId);
+        previousLastTimeUpdateOf[currentStreamId] = flow.getLastTimeUpdate(currentStreamId);
+        previousRecentAmountOf[currentStreamId] = flow.recentAmountOf(currentStreamId);
+        previousRemainingAmountOf[currentStreamId] = flow.getRemainingAmount(currentStreamId);
         _;
     }
 
@@ -75,10 +77,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("adjustRatePerSecond")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Only non paused streams can have their rate per second adjusted.
         vm.assume(!flow.isPaused(currentStreamId));
@@ -101,10 +103,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("pause")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Paused streams cannot be paused again.
         vm.assume(!flow.isPaused(currentStreamId));
@@ -120,10 +122,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("deposit")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Calculate the upper bound, based on the asset decimals, for the transfer amount.
         uint128 upperBound = getTransferAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
@@ -148,6 +150,9 @@ contract FlowHandler is BaseHandler {
         flowStore.updateStreamDepositedAmountsSum(currentStreamId, normalizedAmount);
     }
 
+    /// @dev A function that does nothing but warp the time into the future.
+    function pastime(uint256 timeJumpSeed) external instrument("pastime") adjustTimestamp(timeJumpSeed) { }
+
     function refund(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
@@ -155,10 +160,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("refund")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         uint128 refundableAmount = flow.refundableAmountOf(currentStreamId);
 
@@ -182,10 +187,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("restart")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Only paused streams can be restarted.
         vm.assume(flow.isPaused(currentStreamId));
@@ -203,10 +208,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("void")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Check if the debt is not zero.
         vm.assume(flow.streamDebtOf(currentStreamId) > 0);
@@ -223,10 +228,10 @@ contract FlowHandler is BaseHandler {
     )
         external
         instrument("withdrawAt")
-        adjustTimestamp(timeJumpSeed)
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
         updateFlowStates
+        adjustTimestamp(timeJumpSeed)
     {
         // The protocol doesn't allow the withdrawal address to be the zero address.
         vm.assume(to != address(0));
