@@ -13,22 +13,22 @@ abstract contract Fork_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev A typical 18-decimal ERC-20 asset with a normal total supply.
-    IERC20 internal dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IERC20 private constant DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     /// @dev An ERC-20 asset with 2 decimals.
-    IERC20 internal eurs = IERC20(0xdB25f211AB05b1c97D595516F45794528a807ad8);
+    IERC20 private constant EURS = IERC20(0xdB25f211AB05b1c97D595516F45794528a807ad8);
 
     /// @dev An ERC-20 asset with a large total supply.
-    IERC20 internal shiba = IERC20(0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE);
+    IERC20 private constant SHIBA = IERC20(0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE);
 
     /// @dev An ERC-20 asset with 6 decimals.
-    IERC20 internal usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    IERC20 private constant USDC = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
     /// @dev An ERC-20 asset that suffers from the missing return value bug.
-    IERC20 internal usdt = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    IERC20 private constant USDT = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     /// @dev The list of assets to test.
-    IERC20[5] internal assets = [dai, eurs, shiba, usdc, usdt];
+    IERC20[5] internal assets = [DAI, EURS, SHIBA, USDC, USDT];
 
     IERC20 internal asset;
 
@@ -38,7 +38,7 @@ abstract contract Fork_Test is Base_Test {
 
     /// @dev Modifier to run the test for each asset.
     modifier runForkTest() {
-        for (uint256 i = 0; i < assets.length - 1; ++i) {
+        for (uint256 i = 0; i < assets.length; ++i) {
             asset = assets[i];
             _;
         }
@@ -75,7 +75,7 @@ abstract contract Fork_Test is Base_Test {
         vm.assume(sender != address(flow) && recipient != address(flow));
 
         // Avoid users blacklisted by USDC or USDT.
-        if (asset == usdc || asset == usdt) {
+        if (asset == USDC || asset == USDT) {
             assumeNoBlacklisted(address(asset), sender);
             assumeNoBlacklisted(address(asset), recipient);
         }
