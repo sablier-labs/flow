@@ -26,10 +26,10 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    ERC20Mock internal assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
-    ERC20Mock internal dai = createAsset("Dai stablecoin", "DAI", 18);
-    ERC20Mock internal usdc = createAsset("USD Coin", "USDC", 6);
-    ERC20MissingReturn internal usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
+    ERC20Mock internal assetWithoutDecimals;
+    ERC20Mock internal dai;
+    ERC20Mock internal usdc;
+    ERC20MissingReturn internal usdt;
 
     SablierFlow internal flow;
     SablierFlowNFTDescriptor internal nftDescriptor;
@@ -51,6 +51,8 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         // Label the flow contract.
         vm.label(address(flow), "Flow");
 
+        deployAssets();
+
         users.broker = createUser("broker");
         users.eve = createUser("eve");
         users.operator = createUser("operator");
@@ -58,9 +60,6 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         users.sender = createUser("sender");
 
         resetPrank(users.sender);
-
-        // Warp to May 1, 2024 at 00:00 GMT to provide a more realistic testing environment.
-        vm.warp({ newTimestamp: MAY_1_2024 });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -80,6 +79,7 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
     function createUser(string memory name) internal returns (address payable) {
         address payable user = payable(makeAddr(name));
         vm.deal({ account: user, newBalance: 100 ether });
+        deal({ token: address(assetWithoutDecimals), to: user, give: 1_000_000 });
         deal({ token: address(dai), to: user, give: 1_000_000e18 });
         deal({ token: address(usdc), to: user, give: 1_000_000e6 });
         deal({ token: address(usdt), to: user, give: 1_000_000e18 });
@@ -88,6 +88,14 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         usdc.approve({ spender: address(flow), value: UINT256_MAX });
         usdt.approve({ spender: address(flow), value: UINT256_MAX });
         return user;
+    }
+
+    function deployAssets() internal {
+        // Deploy the assets.
+        assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
+        dai = createAsset("Dai stablecoin", "DAI", 18);
+        usdc = createAsset("USD Coin", "USDC", 6);
+        usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
     }
 
     /// @dev Deploys {SablierFlow} from an optimized source compiled with `--via-ir`.

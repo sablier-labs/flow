@@ -25,6 +25,9 @@ abstract contract Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
 
+        // Warp to May 1, 2024 at 00:00 GMT to provide a more realistic testing environment.
+        vm.warp({ newTimestamp: MAY_1_2024 });
+
         // Label the assets.
         vm.label(address(assetWithoutDecimals), "AWD");
         vm.label(address(dai), "DAI");
