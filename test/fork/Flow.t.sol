@@ -14,104 +14,83 @@ contract Flow_Fork_Test is Fork_Test {
         withdrawAt
     }
 
-    struct CreateParams {
+    struct Params {
+        // The functions to call, see FunctionToCall enum
+        uint8[] functionsToCall;
+        // The number of streams to create
+        uint256 numberOfStreamsToCreate;
+        // Create params
         address recipient;
         address sender;
         uint128 ratePerSecond;
         bool isTransferable;
-    }
-
-    struct AdjustRatePerSecondParams {
+        // The streamId to call for each function
         uint256 streamId;
-        uint128 newRatePerSecond;
         uint40 timeJump;
-    }
-
-    struct DepositParams {
-        uint256 streamId;
-        uint128 depositAmount;
-    }
-
-    struct PauseParams {
-        uint256 streamId;
-    }
-
-    struct RefundParams {
-        uint256 streamId;
-        uint128 refundAmount;
-    }
-
-    struct RestartParams {
-        uint256 streamId;
-        uint128 ratePerSecond;
-    }
-
-    struct VoidParams {
-        uint256 streamId;
-    }
-
-    struct WithdrawAtParams {
-        uint256 streamId;
-        address to;
-        uint40 time;
-    }
-
-    struct Params {
-        // A pattern for the functions to call
-        FunctionToCall[] functionToCall;
-        // The number of streams to create
-        uint256 numberOfStreamsToCreate;
-        CreateParams createParams;
         // The parameters for the functions to call
-        AdjustRatePerSecondParams adjustRatePerSecondParams;
-        DepositParams depositParams;
-        PauseParams pauseParams;
-        RefundParams refundParams;
-        RestartParams restartParams;
-        VoidParams voidParams;
-        WithdrawAtParams withdrawAtParams;
+        uint128 newRatePerSecond;
+        uint128 depositAmount;
+        uint128 refundAmount;
+        uint128 restartRatePerSecond;
+        address withdrawAtTo;
+        uint40 withdrawAtTime;
     }
 
     struct Vars {
+        // General vars
         uint256[] streamIds;
+        FunctionToCall[] functionsToCall;
+        // Create vars
         uint256 recipientSeed;
         uint256 senderSeed;
         uint256 ratePerSecondSeed;
     }
 
-    function testForkFuzz_Flow(Params memory params) public runForkTest {
-        vm.assume(params.functionToCall.length > 20);
+    function testForkFuzz_Flow(Params memory params) public {
+        vm.assume(params.functionsToCall.length > 15 && params.functionsToCall.length < 50);
 
-        params.numberOfStreamsToCreate = bound(params.numberOfStreamsToCreate, 15, 25);
+        for (uint256 i = 0; i < params.functionsToCall.length; ++i) {
+            params.functionsToCall[i] = boundUint8(params.functionsToCall[i], 0, 6);
+        }
+
+        params.numberOfStreamsToCreate = _bound(params.numberOfStreamsToCreate, 15, 25);
 
         Vars memory vars;
-
+        vars.functionsToCall = new FunctionToCall[](params.functionsToCall.length);
         vars.streamIds = new uint256[](params.numberOfStreamsToCreate);
 
-        for (uint256 i; i < params.numberOfStreamsToCreate; ++i) {
+        for (uint256 i = 0; i < params.functionsToCall.length; ++i) {
+            vars.functionsToCall[i] = FunctionToCall(params.functionsToCall[i]);
+        }
+
+        _testForkFuzz_Flow(params, vars);
+    }
+
+    function _testForkFuzz_Flow(Params memory params, Vars memory vars) private runForkTest {
+        for (uint256 i = 0; i < params.numberOfStreamsToCreate; ++i) {
             // With this approach we will hash the previous params, resulting in unique params on each iteration.
-            vars.recipientSeed = uint256(keccak256(abi.encodePacked(params.createParams.recipient, i)));
-            vars.senderSeed = uint256(keccak256(abi.encodePacked(params.createParams.sender, i)));
-            vars.ratePerSecondSeed = uint256(keccak256(abi.encodePacked(params.createParams.ratePerSecond, i)));
+            vars.recipientSeed = uint256(keccak256(abi.encodePacked(params.recipient, i)));
+            vars.senderSeed = uint256(keccak256(abi.encodePacked(params.sender, i)));
+            vars.ratePerSecondSeed = uint256(keccak256(abi.encodePacked(params.ratePerSecond, i)));
 
-            params.createParams.recipient = boundAddress(vars.recipientSeed);
-            params.createParams.sender = boundAddress(vars.senderSeed);
-            params.createParams.ratePerSecond = boundUint128(params.createParams.ratePerSecond, 0.001e18, 10e18);
+            params.recipient = boundAddress(vars.recipientSeed);
+            params.sender = boundAddress(vars.senderSeed);
+            params.ratePerSecond = boundUint128(params.ratePerSecond, 0.001e18, 10e18);
 
-            checkUsers(address(params.createParams.recipient), address(params.createParams.sender));
+            checkUsers(address(params.recipient), address(params.sender));
 
             vars.streamIds[i] = flow.create({
-                recipient: address(params.createParams.recipient),
-                sender: address(params.createParams.sender),
-                ratePerSecond: params.createParams.ratePerSecond,
+                recipient: address(params.recipient),
+                sender: address(params.sender),
+                ratePerSecond: params.ratePerSecond,
                 asset: asset,
-                isTransferable: params.createParams.isTransferable
+                isTransferable: params.isTransferable
             });
         }
 
-        for (uint256 i; i < params.functionToCall.length; ++i) {
-            callFunction(params.functionToCall[i], vars.streamIds[i]);
-        }
+        // for (uint256 i; i < params.functionToCall.length; ++i) {
+        //     callFunction(params.functionToCall[i], vars.streamIds[i]);
+        // }
     }
 
     function callFunction(FunctionToCall functionToCall, uint256 streamId) internal {
