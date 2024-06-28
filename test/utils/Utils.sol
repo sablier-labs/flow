@@ -15,7 +15,7 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
 
     /// @dev Bounds an address.
     function boundAddress(uint256 x) internal pure returns (address) {
-        return address(uint160(_bound((x), 1, type(uint160).max)));
+        return address(uint160(_bound((x), 1, type(uint160).max - 3)));
     }
 
     /// @dev Bound transfer amount to avoid overflow.

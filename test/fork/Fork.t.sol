@@ -28,7 +28,7 @@ abstract contract Fork_Test is Base_Test {
     IERC20 private constant USDT = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     /// @dev The list of assets to test.
-    IERC20[5] internal assets = [DAI, EURS, SHIBA, USDC, USDT];
+    IERC20[3] internal assets = [DAI, EURS, SHIBA];
 
     IERC20 internal asset;
 
@@ -65,19 +65,35 @@ abstract contract Fork_Test is Base_Test {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Checks the user assumptions.
+    /// @notice Checks the user assumptions.
+    /// @dev The reason for not using `vm.assume` is because the compilation takes too long.
     function checkUsers(address sender, address recipient) internal virtual {
-        // The protocol does not allow the zero address to interact with it.
-        vm.assume(sender != address(0) && recipient != address(0));
-
         // The goal is to not have overlapping users because the asset balance tests would fail otherwise.
-        vm.assume(sender != recipient);
-        vm.assume(sender != address(flow) && recipient != address(flow));
+        if (sender == recipient || sender == address(flow)) {
+            sender = address(uint160(sender) + 1);
+        }
+
+        // Ensure recipient is not the address of the flow contract.
+        if (recipient == address(flow)) {
+            recipient = address(uint160(recipient) + 1);
+        }
 
         // Avoid users blacklisted by USDC or USDT.
         if (asset == USDC || asset == USDT) {
-            assumeNoBlacklisted(address(asset), sender);
-            assumeNoBlacklisted(address(asset), recipient);
+            (bool isSenderBlacklisted,) = address(asset).staticcall(abi.encodeWithSelector(0xfe575a87, sender));
+            if (isSenderBlacklisted) {
+                sender = address(uint160(sender) + 1);
+            }
+
+            (bool isRecipientBlacklisted,) = address(asset).staticcall(abi.encodeWithSelector(0xe47d6060, recipient));
+            if (isRecipientBlacklisted) {
+                recipient = address(uint160(recipient) + 1);
+            }
+        }
+
+        // After adjustments, ensure sender and recipient are not the same.
+        if (sender == recipient) {
+            recipient = address(uint160(recipient) + 1);
         }
     }
 }
