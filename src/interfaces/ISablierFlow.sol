@@ -178,6 +178,7 @@ interface ISablierFlow is
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
+    ///
     /// @return streamId The ID of the newly created stream.
     function create(
         address recipient,
@@ -203,6 +204,7 @@ interface ISablierFlow is
     /// @param asset The contract address of the ERC-20 asset used for streaming.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @param transferAmount The transfer amount, denoted in units of the asset's decimals.
+    ///
     /// @return streamId The ID of the newly created stream.
     function createAndDeposit(
         address recipient,
@@ -232,6 +234,7 @@ interface ISablierFlow is
     /// @param totalTransferAmount The total transfer amount, including the stream transfer amount and broker fee
     /// amount, denoted in units of the asset's decimals.
     /// @param broker The broker's address and fee.
+    ///
     /// @return streamId The ID of the newly created stream.
     function createAndDepositViaBroker(
         address recipient,
