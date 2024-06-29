@@ -134,11 +134,14 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
 
         // It should perform the ERC20 transfer.
         expectCallToTransfer({ asset: asset, to: users.sender, amount: transferAmount });
-        flow.refund({ streamId: streamId, amount: REFUND_AMOUNT });
+        uint128 actualTransferAmount = flow.refund({ streamId: streamId, amount: REFUND_AMOUNT });
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+
+        // Assert that the returned value equals the transfer value.
+        assertEq(actualTransferAmount, transferAmount);
     }
 }

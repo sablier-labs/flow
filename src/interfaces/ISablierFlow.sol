@@ -316,7 +316,9 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to refund from.
     /// @param amount The amount to refund, denoted in 18 decimals.
-    function refund(uint256 streamId, uint128 amount) external;
+    ///
+    /// @return transferAmount The amount transferred to the sender, denoted in asset's decimals.
+    function refund(uint256 streamId, uint128 amount) external returns (uint128 transferAmount);
 
     /// @notice Refunds the provided amount of assets from the stream to the sender's address.
     ///
@@ -327,7 +329,9 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to refund from and then pause.
     /// @param amount The amount to refund, denoted in 18 decimals.
-    function refundAndPause(uint256 streamId, uint128 amount) external;
+    ///
+    /// @return transferAmount The amount transferred to the sender, denoted in asset's decimals.
+    function refundAndPause(uint256 streamId, uint128 amount) external returns (uint128 transferAmount);
 
     /// @notice Restarts the stream with the provided rate per second.
     ///
@@ -390,7 +394,9 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
     /// @param time The Unix timestamp to calculate the recent streamed amount since last time update.
-    function withdrawAt(uint256 streamId, address to, uint40 time) external;
+    ///
+    /// @return transferAmount The amount transferred to the recipient, denoted in asset's decimals.
+    function withdrawAt(uint256 streamId, address to, uint40 time) external returns (uint128 transferAmount);
 
     /// @notice Withdraws the maximum withdrawable amount from the stream to the provided address `to`.
     ///
@@ -401,5 +407,7 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
-    function withdrawMax(uint256 streamId, address to) external;
+    ///
+    /// @return transferAmount The amount transferred to the recipient, denoted in asset's decimals.
+    function withdrawMax(uint256 streamId, address to) external returns (uint128 transferAmount);
 }
