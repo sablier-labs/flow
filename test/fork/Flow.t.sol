@@ -23,14 +23,14 @@ contract Flow_Fork_Test is Fork_Test {
         uint8[] functionsToCall;
         // The number of streams to create
         uint256 numberOfStreamsToCreate;
+        // The time jump to use for each stream
+        uint256 warpTimestamp;
         // Create params
         address recipient;
         address sender;
         uint128 ratePerSecond;
         bool isTransferable;
         // The streamId to call for each function
-        uint256 streamId;
-        uint40 timeJump;
         // The parameters for the functions to call
         uint128 newRatePerSecond;
         uint128 depositAmount;
@@ -44,10 +44,14 @@ contract Flow_Fork_Test is Fork_Test {
         // General vars
         uint256[] streamIds;
         FunctionToCall[] functionsToCall;
+        uint256 warpTimestampSeed;
         // Create vars
         uint256 recipientSeed;
         uint256 senderSeed;
         uint256 ratePerSecondSeed;
+        // Functions to call vars
+        uint256 streamIdSeed;
+        uint256 streamId;
     }
 
     function testForkFuzz_Flow(Params memory params) public {
@@ -72,14 +76,26 @@ contract Flow_Fork_Test is Fork_Test {
     }
 
     function _testForkFuzz_Flow(Params memory params, Vars memory vars) private runForkTest {
+        uint256 beforeCreateStreamId = flow.nextStreamId();
+        uint256 beforeCreateTimestamp = getBlockTimestamp();
+
         for (uint256 i = 0; i < params.numberOfStreamsToCreate; ++i) {
             // With this approach we will hash the previous params, resulting in unique params on each iteration.
+            vars.warpTimestampSeed = uint256(keccak256(abi.encodePacked(params.warpTimestamp, i)));
+
             vars.recipientSeed = uint256(keccak256(abi.encodePacked(params.recipient, i)));
             vars.senderSeed = uint256(keccak256(abi.encodePacked(params.sender, i)));
             vars.ratePerSecondSeed = uint256(keccak256(abi.encodePacked(params.ratePerSecond, i)));
 
+            // This is useful to create streams at different moments in time.
+            params.warpTimestamp =
+                _bound(vars.warpTimestampSeed, beforeCreateTimestamp, beforeCreateTimestamp + 40 days);
+
+            // Make sure that the addresses fit within `uint160`.
             params.recipient = boundAddress(vars.recipientSeed);
             params.sender = boundAddress(vars.senderSeed);
+
+            // Bound the rps between a realistic range.
             params.ratePerSecond = boundUint128(params.ratePerSecond, 0.001e18, 10e18);
 
             checkUsers(params.recipient, params.sender);
@@ -87,10 +103,19 @@ contract Flow_Fork_Test is Fork_Test {
             _test_Create(params.recipient, params.sender, params.ratePerSecond, params.isTransferable);
         }
 
-        // for (uint256 i; i < params.functionToCall.length; ++i) {
-        //     callFunction(params.functionToCall[i], vars.streamIds[i]);
-        // }
+        uint256 afterCreateStreamId = flow.nextStreamId();
+
+        for (uint256 i = beforeCreateStreamId; i < afterCreateStreamId; ++i) {
+            vars.streamIdSeed = uint256(keccak256(abi.encodePacked(beforeCreateStreamId, afterCreateStreamId, i)));
+            vars.streamId = _bound(vars.streamIdSeed, beforeCreateStreamId, afterCreateStreamId - 1);
+
+            // params.callFunction(vars.functionsToCall[i], vars.streamIds[i]);
+        }
     }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                       CREATE
+    //////////////////////////////////////////////////////////////////////////*/
 
     function _test_Create(address recipient, address sender, uint128 ratePerSecond, bool isTransferable) private {
         uint256 expectedStreamId = flow.nextStreamId();
@@ -145,6 +170,53 @@ contract Flow_Fork_Test is Fork_Test {
         address actualNFTOwner = flow.ownerOf({ tokenId: actualStreamId });
         address expectedNFTOwner = recipient;
         assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                               ADJUST-RATE-PER-SECOND
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function _test_AdjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) private {
+        // Make sure the requirements are respected.
+        if (flow.isPaused(streamId)) {
+            uint128 ratePerSecond = RATE_PER_SECOND == newRatePerSecond ? RATE_PER_SECOND + 1 : RATE_PER_SECOND;
+            flow.restart(streamId, ratePerSecond);
+        }
+
+        resetPrank({ msgSender: flow.getSender(streamId) });
+
+        uint128 beforeRemainingAmount = flow.getRemainingAmount(streamId);
+        uint128 amountOwed = flow.amountOwedOf(streamId);
+        uint128 recentAmountOwed = flow.recentAmountOf(streamId);
+
+        // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
+        vm.expectEmit({ emitter: address(flow) });
+        emit AdjustFlowStream({
+            streamId: streamId,
+            amountOwed: amountOwed,
+            newRatePerSecond: newRatePerSecond,
+            oldRatePerSecond: flow.getRatePerSecond(streamId)
+        });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        flow.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });
+
+        // It should update remaining amount.
+        uint128 actualRemainingAmount = flow.getRemainingAmount(streamId);
+        uint128 expectedRemainingAmount = recentAmountOwed + beforeRemainingAmount;
+        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
+
+        // It should set the new rate per second
+        uint128 actualRatePerSecond = flow.getRatePerSecond(streamId);
+        uint128 expectedRatePerSecond = newRatePerSecond;
+        assertEq(actualRatePerSecond, expectedRatePerSecond, "rate per second");
+
+        // It should update lastTimeUpdate
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        uint128 expectedLastTimeUpdate = getBlockTimestamp();
+        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
     }
 
     function callFunction(FunctionToCall functionToCall, uint256 streamId) internal {
