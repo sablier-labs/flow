@@ -66,7 +66,7 @@ abstract contract Fork_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Checks the user assumptions.
-    /// @dev The reason for not using `vm.assume` is because the compilation takes too long.
+    /// @dev The reason for not using `vm.assume` is because the compilation takes longer.
     function checkUsers(address sender, address recipient) internal virtual {
         // The goal is to not have overlapping users because the asset balance tests would fail otherwise.
         if (sender == recipient || sender == address(flow)) {
