@@ -33,10 +33,8 @@ contract Flow_Fork_Test is Fork_Test {
         bool isTransferable;
         // The streamId to call for each function
         // The parameters for the functions to call
-        uint128 newRatePerSecond;
         uint128 transferAmount;
         uint128 refundAmount;
-        uint128 restartRatePerSecond;
         address withdrawAtTo;
         uint40 withdrawAtTime;
     }
@@ -92,10 +90,9 @@ contract Flow_Fork_Test is Fork_Test {
             _testFunctionsToCall(
                 functionsToCall[i],
                 streamId,
-                params.newRatePerSecond,
+                params.ratePerSecond,
                 params.transferAmount,
                 params.refundAmount,
-                params.restartRatePerSecond,
                 params.withdrawAtTo,
                 params.withdrawAtTime
             );
@@ -105,31 +102,29 @@ contract Flow_Fork_Test is Fork_Test {
     function _testFunctionsToCall(
         FunctionToCall functionToCall,
         uint256 streamId,
-        uint128 newRatePerSecond,
+        uint128 ratePerSecond,
         uint128 transferAmount,
         uint128 refundAmount,
-        uint128 restartRatePerSecond,
         address withdrawAtTo,
         uint40 withdrawAtTime
     )
         internal
     {
         if (functionToCall == FunctionToCall.adjustRatePerSecond) {
-            _test_AdjustRatePerSecond(streamId, newRatePerSecond);
+            _test_AdjustRatePerSecond(streamId, ratePerSecond);
         } else if (functionToCall == FunctionToCall.deposit) {
             _test_Deposit(streamId, transferAmount);
         } else if (functionToCall == FunctionToCall.pause) {
             _test_Pause(streamId);
         } else if (functionToCall == FunctionToCall.refund) {
             _test_Refund(streamId, transferAmount, refundAmount);
+        } else if (functionToCall == FunctionToCall.restart) {
+            _test_Restart(streamId, ratePerSecond);
+        } else if (functionToCall == FunctionToCall.void) {
+            _test_Void(streamId);
+            // } else if (functionToCall == FunctionToCall.withdrawAt) {
+            //     _test_WithdrawAt(streamId, withdrawAtTo, withdrawAtTime);
         }
-        //  else if (functionToCall == FunctionToCall.restart) {
-        //     uint128 rps;
-        //     flow.restart(streamId, rps);
-        // } else if (functionToCall == FunctionToCall.void) {
-        //     flow.void(streamId);
-        // } else if (functionToCall == FunctionToCall.withdrawAt) {
-        //     flow.withdrawAt(streamId, address(this), uint40(block.timestamp));
     }
 
     /// @notice Simulate passage of time.
@@ -137,6 +132,57 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 timeJumpSeed = uint256(keccak256(abi.encodePacked(getBlockTimestamp(), timeJump)));
         timeJump = _bound(timeJumpSeed, 0, 10 days);
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                               ADJUST-RATE-PER-SECOND
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function _test_AdjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) private {
+        uint256 newRatePerSecondSeed = uint256(keccak256(abi.encodePacked(newRatePerSecond, streamId)));
+        newRatePerSecond = boundRatePerSecond(uint128(newRatePerSecondSeed));
+
+        // Make sure the requirements are respected.
+        resetPrank({ msgSender: flow.getSender(streamId) });
+        if (flow.isPaused(streamId)) {
+            flow.restart(streamId, RATE_PER_SECOND);
+        }
+        if (newRatePerSecond == flow.getRatePerSecond(streamId)) {
+            newRatePerSecond += 1;
+        }
+
+        uint128 beforeRemainingAmount = flow.getRemainingAmount(streamId);
+        uint128 amountOwed = flow.amountOwedOf(streamId);
+        uint128 recentAmountOwed = flow.recentAmountOf(streamId);
+
+        // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
+        vm.expectEmit({ emitter: address(flow) });
+        emit AdjustFlowStream({
+            streamId: streamId,
+            amountOwed: amountOwed,
+            newRatePerSecond: newRatePerSecond,
+            oldRatePerSecond: flow.getRatePerSecond(streamId)
+        });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        flow.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });
+
+        // It should update remaining amount.
+        uint128 actualRemainingAmount = flow.getRemainingAmount(streamId);
+        uint128 expectedRemainingAmount = recentAmountOwed + beforeRemainingAmount;
+        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
+
+        // It should set the new rate per second
+        uint128 actualRatePerSecond = flow.getRatePerSecond(streamId);
+        uint128 expectedRatePerSecond = newRatePerSecond;
+        assertEq(actualRatePerSecond, expectedRatePerSecond, "rate per second");
+
+        // It should update lastTimeUpdate
+        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        uint128 expectedLastTimeUpdate = getBlockTimestamp();
+        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -195,57 +241,6 @@ contract Flow_Fork_Test is Fork_Test {
         address actualNFTOwner = flow.ownerOf({ tokenId: actualStreamId });
         address expectedNFTOwner = recipient;
         assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                               ADJUST-RATE-PER-SECOND
-    //////////////////////////////////////////////////////////////////////////*/
-
-    function _test_AdjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) private {
-        newRatePerSecond = uint128(uint256(keccak256(abi.encodePacked(newRatePerSecond, streamId))));
-        newRatePerSecond = boundRatePerSecond(newRatePerSecond);
-
-        // Make sure the requirements are respected.
-        resetPrank({ msgSender: flow.getSender(streamId) });
-        if (flow.isPaused(streamId)) {
-            flow.restart(streamId, RATE_PER_SECOND);
-        }
-        if (newRatePerSecond == flow.getRatePerSecond(streamId)) {
-            newRatePerSecond += 1;
-        }
-
-        uint128 beforeRemainingAmount = flow.getRemainingAmount(streamId);
-        uint128 amountOwed = flow.amountOwedOf(streamId);
-        uint128 recentAmountOwed = flow.recentAmountOf(streamId);
-
-        // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
-        vm.expectEmit({ emitter: address(flow) });
-        emit AdjustFlowStream({
-            streamId: streamId,
-            amountOwed: amountOwed,
-            newRatePerSecond: newRatePerSecond,
-            oldRatePerSecond: flow.getRatePerSecond(streamId)
-        });
-
-        vm.expectEmit({ emitter: address(flow) });
-        emit MetadataUpdate({ _tokenId: streamId });
-
-        flow.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });
-
-        // It should update remaining amount.
-        uint128 actualRemainingAmount = flow.getRemainingAmount(streamId);
-        uint128 expectedRemainingAmount = recentAmountOwed + beforeRemainingAmount;
-        assertEq(actualRemainingAmount, expectedRemainingAmount, "remaining amount");
-
-        // It should set the new rate per second
-        uint128 actualRatePerSecond = flow.getRatePerSecond(streamId);
-        uint128 expectedRatePerSecond = newRatePerSecond;
-        assertEq(actualRatePerSecond, expectedRatePerSecond, "rate per second");
-
-        // It should update lastTimeUpdate
-        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        uint128 expectedLastTimeUpdate = getBlockTimestamp();
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -378,5 +373,105 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 actualStreamBalance = flow.getBalance(streamId);
         uint256 expectedStreamBalance = prevStreamBalance - refundAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                      RESTART
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function _test_Restart(uint256 streamId, uint128 ratePerSecond) private {
+        // Make sure the requirements are respected.
+        address sender = flow.getSender(streamId);
+        resetPrank({ msgSender: sender });
+        if (!flow.isPaused(streamId)) {
+            flow.pause(streamId);
+        }
+
+        uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(ratePerSecond, streamId)));
+        ratePerSecond = boundRatePerSecond(uint128(ratePerSecondSeed));
+
+        // It should emit 1 {RestartFlowStream}, 1 {MetadataUpdate} event.
+        vm.expectEmit({ emitter: address(flow) });
+        emit RestartFlowStream({ streamId: streamId, sender: sender, ratePerSecond: ratePerSecond });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        flow.restart({ streamId: streamId, ratePerSecond: ratePerSecond });
+
+        // It should restart the stream.
+        assertFalse(flow.isPaused(streamId));
+
+        // It should update rate per second.
+        uint128 actualRatePerSecond = flow.getRatePerSecond(streamId);
+        assertEq(actualRatePerSecond, ratePerSecond, "ratePerSecond");
+
+        // It should update lastTimeUpdate.
+        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
+        assertEq(actualLastTimeUpdate, getBlockTimestamp(), "lastTimeUpdate");
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                        VOID
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function _test_Void(uint256 streamId) private {
+        // Make sure the requirements are respected.
+        address recipient = flow.getRecipient(streamId);
+        address sender = flow.getSender(streamId);
+        uint128 streamDebt = flow.streamDebtOf(streamId);
+
+        if (streamDebt == 0) {
+            uint128 refundableAmount = flow.refundableAmountOf(streamId);
+            uint128 withdrawableAmount = flow.withdrawableAmountOf(streamId);
+
+            resetPrank({ msgSender: sender });
+
+            // In case of a big depletion time, we better refund and withdraw all the funds, and then warp for one
+            // second. Warping too much in the future would affect the other tests.
+            if (refundableAmount > 0) {
+                // Refund and withdraw all the funds.
+                flow.refund(streamId, refundableAmount);
+            }
+            if (flow.isPaused(streamId)) {
+                flow.restart(streamId, RATE_PER_SECOND);
+            }
+
+            if (withdrawableAmount > 0) {
+                resetPrank({ msgSender: recipient });
+                flow.withdrawMax(streamId, flow.getRecipient(streamId));
+            }
+
+            vm.warp({ newTimestamp: getBlockTimestamp() + 100 seconds });
+            streamDebt = flow.streamDebtOf(streamId);
+        }
+
+        resetPrank({ msgSender: recipient });
+
+        uint128 beforeVoidBalance = flow.getBalance(streamId);
+
+        // It should emit 1 {VoidFlowStream}, 1 {MetadataUpdate} events.
+        vm.expectEmit({ emitter: address(flow) });
+        emit VoidFlowStream({
+            streamId: streamId,
+            recipient: flow.getRecipient(streamId),
+            sender: sender,
+            newAmountOwed: beforeVoidBalance,
+            writenoffDebt: streamDebt
+        });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        flow.void(streamId);
+
+        // It should set the rate per second to zero.
+        assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
+
+        // It should pause the stream.
+        assertTrue(flow.isPaused(streamId), "paused");
+
+        // It should update the amount owed to stream balance.
+        assertEq(flow.amountOwedOf(streamId), beforeVoidBalance, "amount owed");
     }
 }
