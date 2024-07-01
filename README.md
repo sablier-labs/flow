@@ -48,6 +48,21 @@ The `lastTimeUpdate` value, set to `block.timestamp` when the stream is created,
 over time. The recipient can withdraw the streamed amount at any point. If there are insufficient funds in the stream,
 the recipient can only withdraw the available balance.
 
+## Abbreviations
+
+| Full Name          | Abbreviation |
+| ------------------ | ------------ |
+| amount owed        | ao           |
+| balance            | bal          |
+| block.timestamp    | now          |
+| debt               | debt         |
+| lastTimeUpdate     | ltu          |
+| ratePerSecond      | rps          |
+| recentAmount       | rca          |
+| refundableAmount   | rfa          |
+| remainingAmount    | ra           |
+| withdrawableAmount | wa           |
+
 ## Core Components
 
 ### 1. Recent amount
@@ -91,21 +106,6 @@ The refundable amount (rfa) is the amount that the sender can refund from the st
 stream balance and the amount owed
 
 $`rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 \end{cases}`$
-
-## Abbreviations
-
-| Full Name          | Abbreviation |
-| ------------------ | ------------ |
-| amount owed        | ao           |
-| balance            | bal          |
-| block.timestamp    | now          |
-| debt               | debt         |
-| lastTimeUpdate     | ltu          |
-| ratePerSecond      | rps          |
-| recentAmount       | rca          |
-| refundableAmount   | rfa          |
-| remainingAmount    | ra           |
-| withdrawableAmount | wa           |
 
 ## Precision Issues
 
@@ -170,25 +170,25 @@ them inexpensive to store.
 
 ## Invariants
 
-1. For any stream, $ltu \le now$
+1. If $rps \gt 0$, and no withdraw is made $\implies \frac{d(ao)}{dt} \ge 0$.
 
-2. For a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
+2. For any stream, $ltu \le now$
 
-3. For any stream, if $debt > 0 \implies wa = bal$
+3. For a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
 
-4. if $rps \gt 0$ and no deposits are made $\implies$ debt should never decrease
+4. For any stream, if $debt > 0 \implies wa = bal$
 
-5. For any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
+5. if $rps \gt 0$ and no deposits are made $\implies \frac{d(debt)}{dt} \ge 0$.
 
-6. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
+6. For any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
-7. next stream id = current stream id + 1
+7. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
 
-8. if $debt = 0$ and $isPaused = true \implies wa = ra$
+8. next stream id = current stream id + 1
 
-9. if $debt = 0$ and $isPaused = false \implies wa = ra + rca$
+9. if $debt = 0$ and $isPaused = true \implies wa = ra$
 
-10. if $rps \gt 0$, $ltu = const$ and no withdraw is made $\implies \frac{d(rca)}{dt} > 0, \frac{d(ra)}{dt} = 0$.
+10. if $debt = 0$ and $isPaused = false \implies wa = ra + rca$
 
 11. $bal = rfa + wa$
 

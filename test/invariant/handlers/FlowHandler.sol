@@ -19,6 +19,7 @@ contract FlowHandler is BaseHandler {
 
     /// @dev Debt, remaining and recent amount mapped to each stream id.
     mapping(uint256 streamId => uint128 amount) public previousDebtOf;
+    mapping(uint256 streamId => uint128 amount) public previousAmountOwedOf;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
@@ -33,6 +34,7 @@ contract FlowHandler is BaseHandler {
     /// @dev Updates the states of handler right before calling each Flow function.
     modifier updateFlowHandlerStates() {
         previousDebtOf[currentStreamId] = flow.streamDebtOf(currentStreamId);
+        previousAmountOwedOf[currentStreamId] = flow.amountOwedOf(currentStreamId);
         _;
     }
 

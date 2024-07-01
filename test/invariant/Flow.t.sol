@@ -59,6 +59,21 @@ contract Flow_Invariant_Test is Base_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @dev If rps > 0, no withdraw is made, amount owed (i.e. streamed amount) should never decrease.
+    function invariant_AmountOwedAlwaysIncrease() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (flow.getRatePerSecond(streamId) != 0 && flowHandler.calls("withdrawAt") == 0) {
+                assertGe(
+                    flow.amountOwedOf(streamId),
+                    flowHandler.previousAmountOwedOf(streamId),
+                    "Invariant violation: amount owed should be monotonically increasing"
+                );
+            }
+        }
+    }
+
     /// @dev For any stream, `lastTimeUpdate` should never exceed the current block timestamp.
     function invariant_BlockTimestampGeLastTimeUpdate() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
@@ -197,32 +212,6 @@ contract Flow_Invariant_Test is Base_Test {
                     flow.withdrawableAmountOf(streamId),
                     flow.recentAmountOf(streamId) + flow.getRemainingAmount(streamId),
                     "Invariant violation: withdrawable amount != recent amount + remaining amount"
-                );
-            }
-        }
-    }
-
-    /// @dev If rps > 0, `lastTimeUpdate` does not change and no withdraw is made, `recentAmount` should always increase
-    /// and `remainingAmount` should remain constant. This is also equivalent to saying that amount owed should always
-    /// be increasing.
-    function invariant_RecentAmountIncreaseAndRemainingAmountConstant() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            if (
-                flow.getRatePerSecond(streamId) != 0
-                    && flowHandler.previousLastTimeUpdateOf(streamId) == flow.getLastTimeUpdate(streamId)
-                    && flowHandler.calls("withdrawAt") == 0
-            ) {
-                assertGt(
-                    flow.recentAmountOf(streamId),
-                    flowHandler.previousRecentAmountOf(streamId),
-                    "Invariant violation: recent amount should be monotonically increasing"
-                );
-                assertEq(
-                    flow.getRemainingAmount(streamId),
-                    flowHandler.previousRemainingAmountOf(streamId),
-                    "Invariant violation: remaining amount should be constant"
                 );
             }
         }
