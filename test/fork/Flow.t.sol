@@ -31,11 +31,9 @@ contract Flow_Fork_Test is Fork_Test {
         address sender;
         uint128 ratePerSecond;
         bool isTransferable;
-        // The streamId to call for each function
         // The parameters for the functions to call
         uint128 transferAmount;
         uint128 refundAmount;
-        address withdrawAtTo;
         uint40 withdrawAtTime;
     }
 
@@ -83,9 +81,8 @@ contract Flow_Fork_Test is Fork_Test {
         for (uint256 i = 0; i < functionsToCall.length; ++i) {
             _passTime(params.timeJump);
 
-            uint256 streamId = flow.nextStreamId();
-            uint256 streamIdSeed = uint256(keccak256(abi.encodePacked(streamId, i)));
-            streamId = _bound(streamIdSeed, beforeCreateStreamId, afterCreateStreamId - 2);
+            uint256 streamIdSeed = uint256(keccak256(abi.encodePacked(beforeCreateStreamId, afterCreateStreamId, i)));
+            uint256 streamId = _bound(streamIdSeed, beforeCreateStreamId, afterCreateStreamId - 2);
 
             _testFunctionsToCall(
                 functionsToCall[i],
@@ -93,7 +90,6 @@ contract Flow_Fork_Test is Fork_Test {
                 params.ratePerSecond,
                 params.transferAmount,
                 params.refundAmount,
-                params.withdrawAtTo,
                 params.withdrawAtTime
             );
         }
@@ -105,7 +101,6 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 ratePerSecond,
         uint128 transferAmount,
         uint128 refundAmount,
-        address withdrawAtTo,
         uint40 withdrawAtTime
     )
         internal
@@ -122,8 +117,8 @@ contract Flow_Fork_Test is Fork_Test {
             _test_Restart(streamId, ratePerSecond);
         } else if (functionToCall == FunctionToCall.void) {
             _test_Void(streamId);
-            // } else if (functionToCall == FunctionToCall.withdrawAt) {
-            //     _test_WithdrawAt(streamId, withdrawAtTo, withdrawAtTime);
+        } else if (functionToCall == FunctionToCall.withdrawAt) {
+            _test_WithdrawAt(streamId, withdrawAtTime);
         }
     }
 
@@ -473,5 +468,73 @@ contract Flow_Fork_Test is Fork_Test {
 
         // It should update the amount owed to stream balance.
         assertEq(flow.amountOwedOf(streamId), beforeVoidBalance, "amount owed");
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    WITHDRAW-AT
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function _test_WithdrawAt(uint256 streamId, uint40 withdrawTime) private {
+        uint256 withdrawTimeSeed = uint256(keccak256(abi.encodePacked(withdrawTime, streamId)));
+        withdrawTime = boundUint40(uint40(withdrawTimeSeed), flow.getLastTimeUpdate(streamId), getBlockTimestamp());
+
+        uint8 decimals = flow.getAssetDecimals(streamId);
+
+        uint128 streamBalance = flow.getBalance(streamId);
+        if (streamBalance == 0) {
+            address sender = flow.getSender(streamId);
+            resetPrank({ msgSender: sender });
+            uint128 transferAmount = getTransferAmount(flow.streamDebtOf(streamId) + 10e18, decimals);
+            deal({ token: address(asset), to: sender, give: transferAmount });
+            asset.approve(address(flow), transferAmount);
+            flow.deposit({ streamId: streamId, transferAmount: transferAmount });
+            streamBalance = flow.getBalance(streamId);
+        }
+
+        uint128 amountOwed = flow.amountOwedOf(streamId);
+        uint256 assetbalance = asset.balanceOf(address(flow));
+        uint128 expectedWithdrawAmount = flow.getRemainingAmount(streamId)
+            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getLastTimeUpdate(streamId));
+
+        if (streamBalance < expectedWithdrawAmount) {
+            expectedWithdrawAmount = streamBalance;
+        }
+
+        address recipient = flow.getRecipient(streamId);
+
+        // Expect the relevant events to be emitted.
+        vm.expectEmit({ emitter: address(asset) });
+        emit IERC20.Transfer({
+            from: address(flow),
+            to: recipient,
+            value: getTransferAmount(expectedWithdrawAmount, decimals)
+        });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit WithdrawFromFlowStream({ streamId: streamId, to: recipient, withdrawnAmount: expectedWithdrawAmount });
+
+        vm.expectEmit({ emitter: address(flow) });
+        emit MetadataUpdate({ _tokenId: streamId });
+
+        // Withdraw the assets.
+        flow.withdrawAt(streamId, recipient, withdrawTime);
+
+        // It should update lastTimeUpdate.
+        assertEq(flow.getLastTimeUpdate(streamId), withdrawTime, "last time update");
+
+        // It should decrease the full amount owed by withdrawn value.
+        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedAmountOwed = amountOwed - expectedWithdrawAmount;
+        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
+
+        // It should reduce the stream balance by the withdrawn amount.
+        uint128 actualStreamBalance = flow.getBalance(streamId);
+        uint128 expectedStreamBalance = streamBalance - expectedWithdrawAmount;
+        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+
+        // It should reduce the asset balance of stream.
+        uint256 actualAssetBalance = asset.balanceOf(address(flow));
+        uint256 expectedAssetBalance = assetbalance - getTransferAmount(expectedWithdrawAmount, decimals);
+        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }
