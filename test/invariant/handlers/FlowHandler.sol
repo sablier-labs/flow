@@ -19,9 +19,6 @@ contract FlowHandler is BaseHandler {
 
     /// @dev Debt, remaining and recent amount mapped to each stream id.
     mapping(uint256 streamId => uint128 amount) public previousDebtOf;
-    mapping(uint256 streamId => uint40 time) public previousLastTimeUpdateOf;
-    mapping(uint256 streamId => uint128 amount) public previousRecentAmountOf;
-    mapping(uint256 streamId => uint128 amount) public previousRemainingAmountOf;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
@@ -36,9 +33,6 @@ contract FlowHandler is BaseHandler {
     /// @dev Updates the states of handler right before calling each Flow function.
     modifier updateFlowHandlerStates() {
         previousDebtOf[currentStreamId] = flow.streamDebtOf(currentStreamId);
-        previousLastTimeUpdateOf[currentStreamId] = flow.getLastTimeUpdate(currentStreamId);
-        previousRecentAmountOf[currentStreamId] = flow.recentAmountOf(currentStreamId);
-        previousRemainingAmountOf[currentStreamId] = flow.getRemainingAmount(currentStreamId);
         _;
     }
 
@@ -79,8 +73,8 @@ contract FlowHandler is BaseHandler {
         instrument("adjustRatePerSecond")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Only non paused streams can have their rate per second adjusted.
         vm.assume(!flow.isPaused(currentStreamId));
@@ -105,8 +99,8 @@ contract FlowHandler is BaseHandler {
         instrument("pause")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Paused streams cannot be paused again.
         vm.assume(!flow.isPaused(currentStreamId));
@@ -124,8 +118,8 @@ contract FlowHandler is BaseHandler {
         instrument("deposit")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Calculate the upper bound, based on the asset decimals, for the transfer amount.
         uint128 upperBound = getTransferAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
@@ -162,8 +156,8 @@ contract FlowHandler is BaseHandler {
         instrument("refund")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         uint128 refundableAmount = flow.refundableAmountOf(currentStreamId);
 
@@ -189,8 +183,8 @@ contract FlowHandler is BaseHandler {
         instrument("restart")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Only paused streams can be restarted.
         vm.assume(flow.isPaused(currentStreamId));
@@ -210,8 +204,8 @@ contract FlowHandler is BaseHandler {
         instrument("void")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         // Check if the debt is not zero.
         vm.assume(flow.streamDebtOf(currentStreamId) > 0);
@@ -230,8 +224,8 @@ contract FlowHandler is BaseHandler {
         instrument("withdrawAt")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
-        adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
+        adjustTimestamp(timeJumpSeed)
     {
         // The protocol doesn't allow the withdrawal address to be the zero address.
         vm.assume(to != address(0));
