@@ -38,7 +38,10 @@ contract Flow_Fork_Test is Fork_Test {
     }
 
     function testForkFuzz_Flow(Params memory params) public {
-        vm.assume(params.functionsToCall.length > 15 && params.functionsToCall.length < 50);
+        // The goal is to have a sufficient number of streams created and that the functions to be called on those
+        // streams are within a reasonable range.
+        params.numberOfStreamsToCreate = _bound(params.numberOfStreamsToCreate, 10, 20);
+        vm.assume(params.functionsToCall.length > 25 && params.functionsToCall.length < 50);
 
         // Convert the uint8[] to FunctionToCall[].
         FunctionToCall[] memory functionsToCall = new FunctionToCall[](params.functionsToCall.length);
@@ -47,11 +50,10 @@ contract Flow_Fork_Test is Fork_Test {
             functionsToCall[i] = FunctionToCall(params.functionsToCall[i]);
         }
 
-        params.numberOfStreamsToCreate = _bound(params.numberOfStreamsToCreate, 15, 25);
-
         _testForkFuzz_Flow(params, functionsToCall);
     }
 
+    /// @dev A separate function to test the flow so that `runForkTest`.
     function _testForkFuzz_Flow(Params memory params, FunctionToCall[] memory functionsToCall) private runForkTest {
         uint256 beforeCreateStreamId = flow.nextStreamId();
 
@@ -84,7 +86,7 @@ contract Flow_Fork_Test is Fork_Test {
             uint256 streamIdSeed = uint256(keccak256(abi.encodePacked(beforeCreateStreamId, afterCreateStreamId, i)));
             uint256 streamId = _bound(streamIdSeed, beforeCreateStreamId, afterCreateStreamId - 2);
 
-            _testFunctionsToCall(
+            _test_FunctionsToCall(
                 functionsToCall[i],
                 streamId,
                 params.ratePerSecond,
@@ -95,7 +97,8 @@ contract Flow_Fork_Test is Fork_Test {
         }
     }
 
-    function _testFunctionsToCall(
+    /// @dev Helper function to test the functions to call fuzzed.
+    function _test_FunctionsToCall(
         FunctionToCall functionToCall,
         uint256 streamId,
         uint128 ratePerSecond,
@@ -112,7 +115,7 @@ contract Flow_Fork_Test is Fork_Test {
         } else if (functionToCall == FunctionToCall.pause) {
             _test_Pause(streamId);
         } else if (functionToCall == FunctionToCall.refund) {
-            _test_Refund(streamId, transferAmount, refundAmount);
+            _test_Refund(streamId, refundAmount);
         } else if (functionToCall == FunctionToCall.restart) {
             _test_Restart(streamId, ratePerSecond);
         } else if (functionToCall == FunctionToCall.void) {
@@ -323,20 +326,17 @@ contract Flow_Fork_Test is Fork_Test {
                                        REFUND
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _test_Refund(uint256 streamId, uint128 refundAmount, uint128 depositTransferAmount) private {
+    function _test_Refund(uint256 streamId, uint128 refundAmount) private {
         // Make sure the requirements are respected.
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
 
         uint8 assetDecimals = flow.getAssetDecimals(streamId);
 
-        // If the refundable amount less than 10, we need to deposit some funds first.
-        if (flow.refundableAmountOf(streamId) <= 10) {
-            uint128 transferAmountSeed = uint128(uint256(keccak256(abi.encodePacked(depositTransferAmount, streamId))));
-            depositTransferAmount = boundTransferAmount(transferAmountSeed, flow.getBalance(streamId), assetDecimals);
-            deal({ token: address(asset), to: sender, give: depositTransferAmount });
-            asset.approve(address(flow), depositTransferAmount);
-            flow.deposit(streamId, depositTransferAmount);
+        // If the refundable amount less than 1, we need to deposit some funds first.
+        if (flow.refundableAmountOf(streamId) <= 1) {
+            uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.streamDebtOf(streamId), assetDecimals);
+            depositOnStream(streamId, transferAmount);
         }
 
         // Bound the refund amount to avoid error.
@@ -417,24 +417,20 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 streamDebt = flow.streamDebtOf(streamId);
 
         if (streamDebt == 0) {
-            uint128 refundableAmount = flow.refundableAmountOf(streamId);
-            uint128 withdrawableAmount = flow.withdrawableAmountOf(streamId);
-
             resetPrank({ msgSender: sender });
-
-            // In case of a big depletion time, we better refund and withdraw all the funds, and then warp for one
-            // second. Warping too much in the future would affect the other tests.
-            if (refundableAmount > 0) {
-                // Refund and withdraw all the funds.
-                flow.refund(streamId, refundableAmount);
-            }
             if (flow.isPaused(streamId)) {
                 flow.restart(streamId, RATE_PER_SECOND);
             }
 
-            if (withdrawableAmount > 0) {
-                resetPrank({ msgSender: recipient });
-                flow.withdrawMax(streamId, flow.getRecipient(streamId));
+            // In case of a big depletion time, we better refund and withdraw all the funds, and then warp for one
+            // second. Warping too much in the future would affect the other tests.
+            uint128 refundableAmount = flow.refundableAmountOf(streamId);
+            if (refundableAmount > 0) {
+                // Refund and withdraw all the funds.
+                flow.refund(streamId, refundableAmount);
+            }
+            if (flow.withdrawableAmountOf(streamId) > 0) {
+                flow.withdrawMax(streamId, recipient);
             }
 
             vm.warp({ newTimestamp: getBlockTimestamp() + 100 seconds });
@@ -449,7 +445,7 @@ contract Flow_Fork_Test is Fork_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit VoidFlowStream({
             streamId: streamId,
-            recipient: flow.getRecipient(streamId),
+            recipient: recipient,
             sender: sender,
             newAmountOwed: beforeVoidBalance,
             writenoffDebt: streamDebt
@@ -478,16 +474,12 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 withdrawTimeSeed = uint256(keccak256(abi.encodePacked(withdrawTime, streamId)));
         withdrawTime = boundUint40(uint40(withdrawTimeSeed), flow.getLastTimeUpdate(streamId), getBlockTimestamp());
 
-        uint8 decimals = flow.getAssetDecimals(streamId);
+        uint8 assetDecimals = flow.getAssetDecimals(streamId);
 
         uint128 streamBalance = flow.getBalance(streamId);
         if (streamBalance == 0) {
-            address sender = flow.getSender(streamId);
-            resetPrank({ msgSender: sender });
-            uint128 transferAmount = getTransferAmount(flow.streamDebtOf(streamId) + 10e18, decimals);
-            deal({ token: address(asset), to: sender, give: transferAmount });
-            asset.approve(address(flow), transferAmount);
-            flow.deposit({ streamId: streamId, transferAmount: transferAmount });
+            uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.streamDebtOf(streamId), assetDecimals);
+            depositOnStream(streamId, transferAmount);
             streamBalance = flow.getBalance(streamId);
         }
 
@@ -507,7 +499,7 @@ contract Flow_Fork_Test is Fork_Test {
         emit IERC20.Transfer({
             from: address(flow),
             to: recipient,
-            value: getTransferAmount(expectedWithdrawAmount, decimals)
+            value: getTransferAmount(expectedWithdrawAmount, assetDecimals)
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -534,7 +526,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // It should reduce the asset balance of stream.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetbalance - getTransferAmount(expectedWithdrawAmount, decimals);
+        uint256 expectedAssetBalance = assetbalance - getTransferAmount(expectedWithdrawAmount, assetDecimals);
         assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }
