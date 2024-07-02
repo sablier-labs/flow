@@ -28,7 +28,7 @@ abstract contract Fork_Test is Base_Test {
     IERC20 private constant USDT = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     /// @dev The list of assets to test.
-    IERC20[3] internal assets = [DAI, EURS, SHIBA];
+    IERC20[5] internal assets = [DAI, EURS, SHIBA, USDC, USDT];
 
     IERC20 internal asset;
 
@@ -49,7 +49,7 @@ abstract contract Fork_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual override {
-        // Fork Ethereum Mainnet at a specific block number. The block number is foor the `MAY_1_2024` date.
+        // Fork Ethereum Mainnet at a specific block number. The block number is for the `MAY_1_2024` date.
         vm.createSelectFork({ blockNumber: 19_771_260, urlOrAlias: "mainnet" });
 
         // The base is set up after the fork is selected so that the base test contracts are deployed on the fork.
@@ -80,11 +80,13 @@ abstract contract Fork_Test is Base_Test {
 
         // Avoid users blacklisted by USDC or USDT.
         if (asset == USDC || asset == USDT) {
+            // 4-byte selector for `isBlacklisted(address)`, used by USDC.
             (bool isSenderBlacklisted,) = address(asset).staticcall(abi.encodeWithSelector(0xfe575a87, sender));
             if (isSenderBlacklisted) {
                 sender = address(uint160(sender) + 1);
             }
 
+            // 4-byte selector for `isBlackListed(address)`, used by USDT.
             (bool isRecipientBlacklisted,) = address(asset).staticcall(abi.encodeWithSelector(0xe47d6060, recipient));
             if (isRecipientBlacklisted) {
                 recipient = address(uint160(recipient) + 1);
@@ -102,7 +104,13 @@ abstract contract Fork_Test is Base_Test {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
         deal({ token: address(asset), to: sender, give: transferAmount });
-        asset.approve(address(flow), transferAmount);
+        safeApprove(transferAmount);
         flow.deposit({ streamId: streamId, transferAmount: transferAmount });
+    }
+
+    /// @dev We use a low-level call to ignore reverts because USDT has the missing return value bug.
+    function safeApprove(uint256 amount) internal {
+        (bool success,) = address(asset).call(abi.encodeCall(IERC20.approve, (address(flow), amount)));
+        success;
     }
 }

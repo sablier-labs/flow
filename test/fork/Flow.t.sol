@@ -9,6 +9,7 @@ import { Flow } from "src/types/DataTypes.sol";
 import { Fork_Test } from "./Fork.t.sol";
 
 contract Flow_Fork_Test is Fork_Test {
+    /// @dev An enum to create an unique pattern of calls when fuzzed.
     enum FunctionToCall {
         adjustRatePerSecond,
         deposit,
@@ -37,6 +38,9 @@ contract Flow_Fork_Test is Fork_Test {
         uint40 withdrawAtTime;
     }
 
+    /// @dev This function sets a common set-up for all assets:
+    /// - same number of streams to create
+    /// - same functions to call, in the same order
     function testForkFuzz_Flow(Params memory params) public {
         // The goal is to have a sufficient number of streams created and that the functions to be called on those
         // streams are within a reasonable range.
@@ -53,7 +57,7 @@ contract Flow_Fork_Test is Fork_Test {
         _testForkFuzz_Flow(params, functionsToCall);
     }
 
-    /// @dev A separate function to test the flow so that `runForkTest`.
+    /// @dev A separate function to test the flow so that `runForkTest` can re-enter for each asset.
     function _testForkFuzz_Flow(Params memory params, FunctionToCall[] memory functionsToCall) private runForkTest {
         uint256 beforeCreateStreamId = flow.nextStreamId();
 
@@ -97,7 +101,7 @@ contract Flow_Fork_Test is Fork_Test {
         }
     }
 
-    /// @dev Helper function to test the functions to call fuzzed.
+    /// @dev Helper function to test the function calls fuzzed.
     function _test_FunctionsToCall(
         FunctionToCall functionToCall,
         uint256 streamId,
@@ -106,7 +110,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 refundAmount,
         uint40 withdrawAtTime
     )
-        internal
+        private
     {
         if (functionToCall == FunctionToCall.adjustRatePerSecond) {
             _test_AdjustRatePerSecond(streamId, ratePerSecond);
@@ -258,7 +262,7 @@ contract Flow_Fork_Test is Fork_Test {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
         deal({ token: address(asset), to: sender, give: transferAmount });
-        asset.approve(address(flow), transferAmount);
+        safeApprove(transferAmount);
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });
