@@ -59,21 +59,6 @@ contract Flow_Invariant_Test is Base_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev If rps > 0, no withdraw is made, amount owed (i.e. streamed amount) should never decrease.
-    function invariant_AmountOwedAlwaysIncrease() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            if (flow.getRatePerSecond(streamId) != 0 && flowHandler.calls("withdrawAt") == 0) {
-                assertGe(
-                    flow.amountOwedOf(streamId),
-                    flowHandler.previousAmountOwedOf(streamId),
-                    "Invariant violation: amount owed should be monotonically increasing"
-                );
-            }
-        }
-    }
-
     /// @dev For any stream, `lastTimeUpdate` should never exceed the current block timestamp.
     function invariant_BlockTimestampGeLastTimeUpdate() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
@@ -212,6 +197,21 @@ contract Flow_Invariant_Test is Base_Test {
                     flow.withdrawableAmountOf(streamId),
                     flow.recentAmountOf(streamId) + flow.getRemainingAmount(streamId),
                     "Invariant violation: withdrawable amount != recent amount + remaining amount"
+                );
+            }
+        }
+    }
+
+    /// @dev If rps > 0, no withdraw is made, amount owed (i.e. streamed amount) should never decrease.
+    function invariant_RpsGt0_AmountOwedAlwaysIncrease() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (flow.getRatePerSecond(streamId) != 0 && flowHandler.calls("withdrawAt") == 0) {
+                assertGe(
+                    flow.amountOwedOf(streamId),
+                    flowHandler.previousAmountOwedOf(streamId),
+                    "Invariant violation: amount owed should be monotonically increasing"
                 );
             }
         }
