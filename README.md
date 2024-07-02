@@ -170,17 +170,17 @@ them inexpensive to store.
 
 ## Invariants
 
-1. If $rps \gt 0$, and no withdraw is made $\implies \frac{d(ao)}{dt} \ge 0$.
+1. for any stream, $ltu \le now$
 
-2. For any stream, $ltu \le now$
+2. for a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
 
-3. For a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
+3. for any stream, if $debt > 0 \implies wa = bal$
 
-4. For any stream, if $debt > 0 \implies wa = bal$
+4. if $rps \gt 0$ and no deposits are made $\implies \frac{d(debt)}{dt} \ge 0$
 
-5. if $rps \gt 0$ and no deposits are made $\implies \frac{d(debt)}{dt} \ge 0$.
+5. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(ao)}{dt} \ge 0$
 
-6. For any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
+6. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
 7. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
 
