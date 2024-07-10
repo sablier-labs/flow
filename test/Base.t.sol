@@ -65,6 +65,9 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         users.sender = createUser("sender");
 
         resetPrank(users.sender);
+
+        // Warp to May 1, 2024 at 00:00 GMT to provide a more realistic testing environment.
+        vm.warp({ newTimestamp: MAY_1_2024 });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
