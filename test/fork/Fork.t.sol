@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.8.22 <0.9.0;
+pragma solidity >=0.8.22;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Base_Test } from "../Base.t.sol";
 
@@ -27,10 +27,10 @@ abstract contract Fork_Test is Base_Test {
     /// @dev An ERC-20 asset that suffers from the missing return value bug.
     IERC20 private constant USDT = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
+    IERC20 internal asset;
+
     /// @dev The list of assets to test.
     IERC20[5] internal assets = [DAI, EURS, SHIBA, USDC, USDT];
-
-    IERC20 internal asset;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     MODIFIERS
