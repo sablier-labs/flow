@@ -26,10 +26,10 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    ERC20Mock internal assetWithoutDecimals;
-    ERC20Mock internal dai;
-    ERC20Mock internal usdc;
-    ERC20MissingReturn internal usdt;
+    ERC20Mock internal assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
+    ERC20Mock internal dai = createAsset("Dai stablecoin", "DAI", 18);
+    ERC20Mock internal usdc = createAsset("USD Coin", "USDC", 6);
+    ERC20MissingReturn internal usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
 
     SablierFlow internal flow;
     SablierFlowNFTDescriptor internal nftDescriptor;
@@ -51,8 +51,13 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         // Label the flow contract.
         vm.label(address(flow), "Flow");
 
-        deployAssets();
+        // Deploy the assets.
+        assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
+        dai = createAsset("Dai stablecoin", "DAI", 18);
+        usdc = createAsset("USD Coin", "USDC", 6);
+        usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
 
+        // Create the users.
         users.broker = createUser("broker");
         users.eve = createUser("eve");
         users.operator = createUser("operator");
@@ -90,12 +95,12 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         return user;
     }
 
-    function deployAssets() internal {
-        // Deploy the assets.
-        assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
-        dai = createAsset("Dai stablecoin", "DAI", 18);
-        usdc = createAsset("USD Coin", "USDC", 6);
-        usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
+    function labelAssets() internal {
+        // Label the assets.
+        vm.label(address(assetWithoutDecimals), "AWD");
+        vm.label(address(dai), "DAI");
+        vm.label(address(usdc), "USDC");
+        vm.label(address(usdt), "USDT");
     }
 
     /// @dev Deploys {SablierFlow} from an optimized source compiled with `--via-ir`.

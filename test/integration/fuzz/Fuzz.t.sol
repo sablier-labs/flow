@@ -26,6 +26,8 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         // Base setup is used because stream created and time warp by Integration setup are not required.
         Base_Test.setUp();
 
+        labelAssets();
+
         // Warp to May 1, 2024 at 00:00 GMT to provide a more realistic testing environment.
         vm.warp({ newTimestamp: MAY_1_2024 });
 
