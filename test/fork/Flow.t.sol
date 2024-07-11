@@ -54,11 +54,15 @@ contract Flow_Fork_Test is Fork_Test {
             functionsToCall[i] = FunctionToCall(params.functionsToCall[i]);
         }
 
-        _testForkFuzz_Flow(params, functionsToCall);
+        // Run the test for each asset.
+        for (uint256 i = 0; i < assets.length; ++i) {
+            asset = assets[i];
+            _testForkFuzz_Flow(params, functionsToCall);
+        }
     }
 
-    /// @dev A separate function to test the flow so that `runForkTest` can re-enter for each asset.
-    function _testForkFuzz_Flow(Params memory params, FunctionToCall[] memory functionsToCall) private runForkTest {
+    /// @dev A separate function to test the flow so that the loop can re-enter for each asset.
+    function _testForkFuzz_Flow(Params memory params, FunctionToCall[] memory functionsToCall) private {
         uint256 beforeCreateStreamId = flow.nextStreamId();
 
         for (uint256 i = 0; i < params.numberOfStreamsToCreate; ++i) {

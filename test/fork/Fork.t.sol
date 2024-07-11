@@ -33,18 +33,6 @@ abstract contract Fork_Test is Base_Test {
     IERC20[5] internal assets = [DAI, EURS, SHIBA, USDC, USDT];
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    MODIFIERS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @dev Modifier to run the test for each asset.
-    modifier runForkTest() {
-        for (uint256 i = 0; i < assets.length; ++i) {
-            asset = assets[i];
-            _;
-        }
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
     //////////////////////////////////////////////////////////////////////////*/
 
