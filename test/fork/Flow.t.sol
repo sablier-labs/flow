@@ -70,16 +70,16 @@ contract Flow_Fork_Test is Fork_Test {
             uint256 recipientSeed = uint256(keccak256(abi.encodePacked(params.recipient, i)));
             uint256 senderSeed = uint256(keccak256(abi.encodePacked(params.sender, i)));
             uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(params.ratePerSecond, i)));
+            params.isTransferable = !params.isTransferable; // we will have 50/50 transferable or not streams
 
-            // Make sure that the addresses fit within `uint160`.
+            // Make sure that the params respect the requirements.
             params.recipient = boundAddress(recipientSeed);
             params.sender = boundAddress(senderSeed);
             checkUsers(params.recipient, params.sender);
-
             params.ratePerSecond = boundRatePerSecond(uint128(ratePerSecondSeed));
 
             // This is useful to create streams at different moments in time.
-            _passTime(params.timeJump);
+            params.timeJump = _passTime(params.timeJump);
 
             // Run the create test for each stream.
             _test_Create(params.recipient, params.sender, params.ratePerSecond, params.isTransferable);
@@ -89,7 +89,7 @@ contract Flow_Fork_Test is Fork_Test {
         assertEq(beforeCreateStreamId + params.numberOfStreamsToCreate, afterCreateStreamId);
 
         for (uint256 i = 0; i < functionsToCall.length; ++i) {
-            _passTime(params.timeJump);
+            params.timeJump = _passTime(params.timeJump);
 
             uint256 streamIdSeed = uint256(keccak256(abi.encodePacked(beforeCreateStreamId, afterCreateStreamId, i)));
             uint256 streamId = _bound(streamIdSeed, beforeCreateStreamId, afterCreateStreamId - 2);
@@ -134,10 +134,11 @@ contract Flow_Fork_Test is Fork_Test {
     }
 
     /// @notice Simulate passage of time.
-    function _passTime(uint256 timeJump) internal {
+    function _passTime(uint256 timeJump) internal returns (uint256) {
         uint256 timeJumpSeed = uint256(keccak256(abi.encodePacked(getBlockTimestamp(), timeJump)));
         timeJump = _bound(timeJumpSeed, 0, 10 days);
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        return timeJump;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
