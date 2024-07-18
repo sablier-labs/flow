@@ -21,8 +21,6 @@ contract Flow_Fork_Test is Fork_Test {
     }
 
     struct Params {
-        // The functions to call, see FunctionToCall enum
-        uint8[] functionsToCall;
         // The number of streams to create
         uint256 numberOfStreamsToCreate;
         // The time jump to use for each stream
@@ -41,28 +39,23 @@ contract Flow_Fork_Test is Fork_Test {
     /// @dev This function sets a common set-up for all assets:
     /// - same number of streams to create
     /// - same functions to call, in the same order
-    /// @param _params Using calldata here as required by array slicing in solidity
-    function testForkFuzz_Flow(Params calldata _params) public {
-        // Load calldata into memory.
-        Params memory params = _params;
-
-        if (params.functionsToCall.length > 50) {
-            // Limit the number of functions to call if it exceeds 50.
-            params.functionsToCall = _params.functionsToCall[0:50];
-        } else if (params.functionsToCall.length < 3) {
-            // Discard the run if the number of functions to call is less than 3.
-            return;
-        }
-
+    /// @param functionsToCallU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
+    /// able to bound it.
+    function testForkFuzz_Flow(Params memory params, uint8[] calldata functionsToCallU8) public {
         // The goal is to have a sufficient number of streams created and that the functions to be called on those
         // streams are within a reasonable range.
         params.numberOfStreamsToCreate = _bound(params.numberOfStreamsToCreate, 10, 20);
+        vm.assume(functionsToCallU8.length > 25);
 
-        // Convert the uint8[] to FunctionToCall[].
-        FunctionToCall[] memory functionsToCall = new FunctionToCall[](params.functionsToCall.length);
-        for (uint256 i = 0; i < params.functionsToCall.length; ++i) {
-            params.functionsToCall[i] = boundUint8(params.functionsToCall[i], 0, 6);
-            functionsToCall[i] = FunctionToCall(params.functionsToCall[i]);
+        // Limit the number of functions to call if it exceeds 50.
+        if (functionsToCallU8.length > 50) {
+            functionsToCallU8 = functionsToCallU8[0:50];
+        }
+
+        // Bound the `uint8[]` and convert to `FunctionToCall[]`.
+        FunctionToCall[] memory functionsToCall = new FunctionToCall[](functionsToCallU8.length);
+        for (uint256 i = 0; i < functionsToCallU8.length; ++i) {
+            functionsToCall[i] = FunctionToCall(boundUint8(functionsToCallU8[i], 0, 6));
         }
 
         // Run the test for each asset.
