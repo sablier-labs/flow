@@ -32,8 +32,6 @@ contract Flow_Invariant_Test is Base_Test {
         assets.push(usdc);
         assets.push(IERC20(address(usdt)));
 
-        labelAssets();
-
         // Deploy and the FlowStore contract.
         flowStore = new FlowStore();
 

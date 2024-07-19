@@ -26,8 +26,6 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
         // Base setup is used because stream created and time warp by Integration setup are not required.
         Base_Test.setUp();
 
-        labelAssets();
-
         // Create streams with all possible decimals.
         _setupStreamsWithAllDecimals();
     }

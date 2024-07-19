@@ -56,6 +56,7 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         dai = createAsset("Dai stablecoin", "DAI", 18);
         usdc = createAsset("USD Coin", "USDC", 6);
         usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
+        labelAssets();
 
         // Create the users.
         users.broker = createUser("broker");

@@ -25,8 +25,6 @@ abstract contract Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
 
-        labelAssets();
-
         defaultBroker = broker();
         defaultStreamId = createDefaultStream();
 
