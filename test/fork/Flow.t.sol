@@ -21,8 +21,6 @@ contract Flow_Fork_Test is Fork_Test {
     }
 
     struct Params {
-        // The number of streams to create
-        uint256 numberOfStreamsToCreate;
         // The time jump to use for each stream
         uint256 timeJump;
         // Create params
@@ -42,9 +40,7 @@ contract Flow_Fork_Test is Fork_Test {
     /// @param functionsToCallU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
     /// able to bound it.
     function testForkFuzz_Flow(Params memory params, uint8[] calldata functionsToCallU8) public {
-        // The goal is to have a sufficient number of streams created and that the functions to be called on those
-        // streams are within a reasonable range.
-        params.numberOfStreamsToCreate = _bound(params.numberOfStreamsToCreate, 10, 20);
+        // The goal is to have a sufficient number of function calls.
         vm.assume(functionsToCallU8.length > 25);
 
         // Limit the number of functions to call if it exceeds 50.
@@ -68,8 +64,9 @@ contract Flow_Fork_Test is Fork_Test {
     /// @dev A separate function to test the flow so that the loop can re-enter for each asset.
     function _testForkFuzz_Flow(Params memory params, FunctionToCall[] memory functionsToCall) private {
         uint256 beforeCreateStreamId = flow.nextStreamId();
+        uint256 numberOfStreamsToCreate = 20;
 
-        for (uint256 i = 0; i < params.numberOfStreamsToCreate; ++i) {
+        for (uint256 i = 0; i < numberOfStreamsToCreate; ++i) {
             // With this approach we will hash the previous params, resulting in unique params on each iteration.
             uint256 recipientSeed = uint256(keccak256(abi.encodePacked(params.recipient, i)));
             uint256 senderSeed = uint256(keccak256(abi.encodePacked(params.sender, i)));
@@ -90,7 +87,7 @@ contract Flow_Fork_Test is Fork_Test {
         }
 
         uint256 afterCreateStreamId = flow.nextStreamId();
-        assertEq(beforeCreateStreamId + params.numberOfStreamsToCreate, afterCreateStreamId);
+        assertEq(beforeCreateStreamId + numberOfStreamsToCreate, afterCreateStreamId);
 
         for (uint256 i = 0; i < functionsToCall.length; ++i) {
             params.timeJump = _passTime(params.timeJump);
