@@ -53,15 +53,15 @@ abstract contract Fork_Test is Base_Test {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Checks the user assumptions.
+    /// @notice Checks the fuzzed users.
     /// @dev The reason for not using `vm.assume` is because the compilation takes longer.
     function checkUsers(address sender, address recipient) internal virtual {
-        // The goal is to not have overlapping users because the asset balance tests would fail otherwise.
-        if (sender == recipient || sender == address(flow)) {
+        // Ensure that flow is not assigned as the fuzzed sender.
+        if (sender == address(flow)) {
             sender = address(uint160(sender) + 1);
         }
 
-        // Ensure recipient is not the address of the flow contract.
+        // Ensure that flow is not assigned as the fuzzed recipient.
         if (recipient == address(flow)) {
             recipient = address(uint160(recipient) + 1);
         }
@@ -80,11 +80,6 @@ abstract contract Fork_Test is Base_Test {
                 recipient = address(uint160(recipient) + 1);
             }
         }
-
-        // After adjustments, ensure sender and recipient are not the same.
-        if (sender == recipient) {
-            recipient = address(uint160(recipient) + 1);
-        }
     }
 
     /// @dev Helper function to deposit on a stream.
@@ -96,7 +91,7 @@ abstract contract Fork_Test is Base_Test {
         flow.deposit({ streamId: streamId, transferAmount: transferAmount });
     }
 
-    /// @dev We use a low-level call to ignore reverts because USDT has the missing return value bug.
+    /// @dev Use a low-level call to ignore reverts in case of USDT.
     function safeApprove(uint256 amount) internal {
         (bool success,) = address(asset).call(abi.encodeCall(IERC20.approve, (address(flow), amount)));
         success;

@@ -13,11 +13,6 @@ import { Constants } from "./Constants.sol";
 abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     using SafeCastLib for uint256;
 
-    /// @dev Bounds an address.
-    function boundAddress(uint256 x) internal pure returns (address) {
-        return address(uint160(_bound((x), 1, type(uint160).max - 3)));
-    }
-
     /// @dev Bounds the rate per second between a realistic range.
     function boundRatePerSecond(uint128 ratePerSecond) internal pure returns (uint128) {
         return boundUint128(ratePerSecond, 0.00001e18, 10e18);
