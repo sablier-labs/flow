@@ -112,7 +112,7 @@ contract Flow_Fork_Test is Fork_Test {
             streamId = _bound(streamId, initialStreamId, finalStreamId - 1);
 
             // Execute the flow function mentioned in flowFunc[i].
-            _test_FunctionsToCall(
+            _executeFunc(
                 flowFunc[i],
                 streamId,
                 params.ratePerSecond,
@@ -130,7 +130,7 @@ contract Flow_Fork_Test is Fork_Test {
     /// @param transferAmount The transfer amount.
     /// @param refundAmount The refund amount.
     /// @param withdrawAtTime The time to withdraw at.
-    function _test_FunctionsToCall(
+    function _executeFunc(
         FlowFunc flowFunc,
         uint256 streamId,
         uint128 ratePerSecond,
