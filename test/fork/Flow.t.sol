@@ -43,7 +43,7 @@ contract Flow_Fork_Test is Fork_Test {
 
     /// @dev For each asset:
     /// - It creates the equal number of new streams
-    /// - It executes the same sequence of flow functions
+    /// - It executes the same sequence of flow functions for each asset
     /// @param params The fuzzed parameters to use for the tests.
     /// @param flowFuncU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
     /// able to bound it.
