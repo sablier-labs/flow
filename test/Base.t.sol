@@ -51,12 +51,8 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         // Label the flow contract.
         vm.label(address(flow), "Flow");
 
-        // Deploy the assets.
-        assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
-        dai = createAsset("Dai stablecoin", "DAI", 18);
-        usdc = createAsset("USD Coin", "USDC", 6);
-        usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
-        labelAssets();
+        // Create new assets and label them.
+        createAndLabelAssets();
 
         // Create the users.
         users.broker = createUser("broker");
@@ -74,6 +70,21 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
     /*//////////////////////////////////////////////////////////////////////////
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @dev Create new assets and label them.
+    function createAndLabelAssets() internal {
+        // Deploy the assets.
+        assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
+        dai = createAsset("Dai stablecoin", "DAI", 18);
+        usdc = createAsset("USD Coin", "USDC", 6);
+        usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
+
+        // Label the assets.
+        vm.label(address(assetWithoutDecimals), "AWD");
+        vm.label(address(dai), "DAI");
+        vm.label(address(usdc), "USDC");
+        vm.label(address(usdt), "USDT");
+    }
 
     /// @dev Creates a new ERC20 asset with `decimals`.
     function createAsset(uint8 decimals) internal returns (ERC20Mock) {
@@ -97,14 +108,6 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         usdc.approve({ spender: address(flow), value: UINT256_MAX });
         usdt.approve({ spender: address(flow), value: UINT256_MAX });
         return user;
-    }
-
-    function labelAssets() internal {
-        // Label the assets.
-        vm.label(address(assetWithoutDecimals), "AWD");
-        vm.label(address(dai), "DAI");
-        vm.label(address(usdc), "USDC");
-        vm.label(address(usdt), "USDT");
     }
 
     /// @dev Deploys {SablierFlow} from an optimized source compiled with `--via-ir`.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.8.22 <0.9.0;
+pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -9,8 +9,11 @@ import { Flow } from "src/types/DataTypes.sol";
 import { Fork_Test } from "./Fork.t.sol";
 
 contract Flow_Fork_Test is Fork_Test {
-    /// @dev An enum to create an unique pattern of calls when fuzzed.
-    enum FunctionToCall {
+    /// @dev Total number of streams to create for each asset.
+    uint256 internal constant TOTAL_STREAMS = 20;
+
+    /// @dev An enum to represent functions from the Flow contract.
+    enum FlowFunc {
         adjustRatePerSecond,
         deposit,
         pause,
@@ -20,83 +23,97 @@ contract Flow_Fork_Test is Fork_Test {
         withdrawAt
     }
 
+    /// @dev A struct to hold the fuzzed parameters to be used during fork tests.
     struct Params {
-        // The time jump to use for each stream
         uint256 timeJump;
-        // Create params
+        // Create params.
         address recipient;
         address sender;
         uint128 ratePerSecond;
         bool isTransferable;
-        // The parameters for the functions to call
+        // Amounts.
         uint128 transferAmount;
         uint128 refundAmount;
         uint40 withdrawAtTime;
     }
 
-    /// @dev This function sets a common set-up for all assets:
-    /// - same number of streams to create
-    /// - same functions to call, in the same order
-    /// @param functionsToCallU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
+    /*//////////////////////////////////////////////////////////////////////////
+                                    FORK TEST
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @dev For each asset:
+    /// - It creates the equal number of new streams
+    /// - It executes the same sequence of flow functions for each asset
+    /// @param params The fuzzed parameters to use for the tests.
+    /// @param flowFuncU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
     /// able to bound it.
-    function testForkFuzz_Flow(Params memory params, uint8[] calldata functionsToCallU8) public {
-        // The goal is to have a sufficient number of function calls.
-        vm.assume(functionsToCallU8.length > 25);
+    function testForkFuzz_Flow(Params memory params, uint8[] calldata flowFuncU8) public {
+        // Have a sufficient number of functions to call.
+        vm.assume(flowFuncU8.length > 25);
 
         // Limit the number of functions to call if it exceeds 50.
-        if (functionsToCallU8.length > 50) {
-            functionsToCallU8 = functionsToCallU8[0:50];
+        if (flowFuncU8.length > 50) {
+            flowFuncU8 = flowFuncU8[0:50];
         }
 
-        // Bound the `uint8[]` and convert to `FunctionToCall[]`.
-        FunctionToCall[] memory functionsToCall = new FunctionToCall[](functionsToCallU8.length);
-        for (uint256 i = 0; i < functionsToCallU8.length; ++i) {
-            functionsToCall[i] = FunctionToCall(boundUint8(functionsToCallU8[i], 0, 6));
+        // Prepare a sequence of flow functions to execute.
+        FlowFunc[] memory flowFunc = new FlowFunc[](flowFuncU8.length);
+        for (uint256 i = 0; i < flowFuncU8.length; ++i) {
+            flowFunc[i] = FlowFunc(boundUint8(flowFuncU8[i], 0, 6));
         }
 
-        // Run the test for each asset.
+        // Run the tests for each asset.
         for (uint256 i = 0; i < assets.length; ++i) {
             asset = assets[i];
-            _testForkFuzz_Flow(params, functionsToCall);
+            _executeSequence(params, flowFunc);
         }
     }
 
-    /// @dev A separate function to test the flow so that the loop can re-enter for each asset.
-    function _testForkFuzz_Flow(Params memory params, FunctionToCall[] memory functionsToCall) private {
-        uint256 beforeCreateStreamId = flow.nextStreamId();
-        uint256 numberOfStreamsToCreate = 20;
+    /*//////////////////////////////////////////////////////////////////////////
+                                PRIVATE HELPERS
+    //////////////////////////////////////////////////////////////////////////*/
 
-        for (uint256 i = 0; i < numberOfStreamsToCreate; ++i) {
-            // With this approach we will hash the previous params, resulting in unique params on each iteration.
-            uint256 recipientSeed = uint256(keccak256(abi.encodePacked(params.recipient, i)));
-            uint256 senderSeed = uint256(keccak256(abi.encodePacked(params.sender, i)));
-            uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(params.ratePerSecond, i)));
-            params.isTransferable = !params.isTransferable; // we will have 50/50 transferable or not streams
+    /// @dev For a given asset, it creates a number of streams and then execute the sequence of Flow functions.
+    /// @param params The fuzzed parameters to use for the tests.
+    /// @param flowFunc The sequence of Flow functions to execute.
+    function _executeSequence(Params memory params, FlowFunc[] memory flowFunc) private {
+        uint256 initialStreamId = flow.nextStreamId();
 
-            // Make sure that the params respect the requirements.
-            params.recipient = boundAddress(recipientSeed);
-            params.sender = boundAddress(senderSeed);
+        // Create a series of streams at different period of time.
+        for (uint256 i = 0; i < TOTAL_STREAMS; ++i) {
+            // Create unique values by hashing the fuzzed params with index.
+            params.recipient = makeAddr(vm.toString(abi.encodePacked(params.recipient, i)));
+            params.sender = makeAddr(vm.toString(abi.encodePacked(params.sender, i)));
+            params.ratePerSecond =
+                boundRatePerSecond(uint128(uint256(keccak256(abi.encodePacked(params.ratePerSecond, i)))));
+
+            // Make sure that fuzzed users don't overlap with Flow address.
             checkUsers(params.recipient, params.sender);
-            params.ratePerSecond = boundRatePerSecond(uint128(ratePerSecondSeed));
 
-            // This is useful to create streams at different moments in time.
+            // Warp to a different time.
             params.timeJump = _passTime(params.timeJump);
 
-            // Run the create test for each stream.
+            // Create a stream.
             _test_Create(params.recipient, params.sender, params.ratePerSecond, params.isTransferable);
         }
 
-        uint256 afterCreateStreamId = flow.nextStreamId();
-        assertEq(beforeCreateStreamId + numberOfStreamsToCreate, afterCreateStreamId);
+        // Assert that the stream ids have been bumped.
+        uint256 finalStreamId = flow.nextStreamId();
+        assertEq(initialStreamId + TOTAL_STREAMS, finalStreamId);
 
-        for (uint256 i = 0; i < functionsToCall.length; ++i) {
+        // Execute the sequence of flow functions as stored in `flowFunc` variable.
+        for (uint256 i = 0; i < flowFunc.length; ++i) {
+            // Warp to a different time.
             params.timeJump = _passTime(params.timeJump);
 
-            uint256 streamIdSeed = uint256(keccak256(abi.encodePacked(beforeCreateStreamId, afterCreateStreamId, i)));
-            uint256 streamId = _bound(streamIdSeed, beforeCreateStreamId, afterCreateStreamId - 2);
+            // Create a unique value for stream id.
+            uint256 streamId = uint256(keccak256(abi.encodePacked(initialStreamId, finalStreamId, i)));
+            // Bound the stream id to lie within the range of newly created streams.
+            streamId = _bound(streamId, initialStreamId, finalStreamId - 1);
 
-            _test_FunctionsToCall(
-                functionsToCall[i],
+            // Execute the flow function mentioned in flowFunc[i].
+            _executeFunc(
+                flowFunc[i],
                 streamId,
                 params.ratePerSecond,
                 params.transferAmount,
@@ -106,9 +123,15 @@ contract Flow_Fork_Test is Fork_Test {
         }
     }
 
-    /// @dev Helper function to test the function calls fuzzed.
-    function _test_FunctionsToCall(
-        FunctionToCall functionToCall,
+    /// @dev Execute the flow function based on the `flowFunc` value.
+    /// @param flowFunc Defines which function to call from the Flow contract.
+    /// @param streamId The stream id to use.
+    /// @param ratePerSecond The rate per second.
+    /// @param transferAmount The transfer amount.
+    /// @param refundAmount The refund amount.
+    /// @param withdrawAtTime The time to withdraw at.
+    function _executeFunc(
+        FlowFunc flowFunc,
         uint256 streamId,
         uint128 ratePerSecond,
         uint128 transferAmount,
@@ -117,27 +140,31 @@ contract Flow_Fork_Test is Fork_Test {
     )
         private
     {
-        if (functionToCall == FunctionToCall.adjustRatePerSecond) {
+        if (flowFunc == FlowFunc.adjustRatePerSecond) {
             _test_AdjustRatePerSecond(streamId, ratePerSecond);
-        } else if (functionToCall == FunctionToCall.deposit) {
+        } else if (flowFunc == FlowFunc.deposit) {
             _test_Deposit(streamId, transferAmount);
-        } else if (functionToCall == FunctionToCall.pause) {
+        } else if (flowFunc == FlowFunc.pause) {
             _test_Pause(streamId);
-        } else if (functionToCall == FunctionToCall.refund) {
+        } else if (flowFunc == FlowFunc.refund) {
             _test_Refund(streamId, refundAmount);
-        } else if (functionToCall == FunctionToCall.restart) {
+        } else if (flowFunc == FlowFunc.restart) {
             _test_Restart(streamId, ratePerSecond);
-        } else if (functionToCall == FunctionToCall.void) {
+        } else if (flowFunc == FlowFunc.void) {
             _test_Void(streamId);
-        } else if (functionToCall == FunctionToCall.withdrawAt) {
+        } else if (flowFunc == FlowFunc.withdrawAt) {
             _test_WithdrawAt(streamId, withdrawAtTime);
         }
     }
 
     /// @notice Simulate passage of time.
     function _passTime(uint256 timeJump) internal returns (uint256) {
-        uint256 timeJumpSeed = uint256(keccak256(abi.encodePacked(getBlockTimestamp(), timeJump)));
-        timeJump = _bound(timeJumpSeed, 0, 10 days);
+        // Hash the time jump with the current timestamp to create a unique value.
+        timeJump = uint256(keccak256(abi.encodePacked(getBlockTimestamp(), timeJump)));
+
+        // Bound the time jump.
+        timeJump = _bound(timeJump, 0, 10 days);
+
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
         return timeJump;
     }
@@ -147,8 +174,8 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_AdjustRatePerSecond(uint256 streamId, uint128 newRatePerSecond) private {
-        uint256 newRatePerSecondSeed = uint256(keccak256(abi.encodePacked(newRatePerSecond, streamId)));
-        newRatePerSecond = boundRatePerSecond(uint128(newRatePerSecondSeed));
+        // Create unique values by hashing the fuzzed params with index.
+        newRatePerSecond = boundRatePerSecond(uint128(uint256(keccak256(abi.encodePacked(newRatePerSecond, streamId)))));
 
         // Make sure the requirements are respected.
         resetPrank({ msgSender: flow.getSender(streamId) });
@@ -343,7 +370,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         uint8 assetDecimals = flow.getAssetDecimals(streamId);
 
-        // If the refundable amount less than 1, we need to deposit some funds first.
+        // If the refundable amount less than 1, deposit some funds.
         if (flow.refundableAmountOf(streamId) <= 1) {
             uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.streamDebtOf(streamId), assetDecimals);
             depositOnStream(streamId, transferAmount);
@@ -432,8 +459,8 @@ contract Flow_Fork_Test is Fork_Test {
                 flow.restart(streamId, RATE_PER_SECOND);
             }
 
-            // In case of a big depletion time, we better refund and withdraw all the funds, and then warp for one
-            // second. Warping too much in the future would affect the other tests.
+            // In case of a big depletion time, refund and withdraw all the funds, and then warp for one second. Warping
+            // too much in the future would affect the other tests.
             uint128 refundableAmount = flow.refundableAmountOf(streamId);
             if (refundableAmount > 0) {
                 // Refund and withdraw all the funds.
