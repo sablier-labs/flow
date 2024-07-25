@@ -49,7 +49,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             asset: asset,
             sender: sender,
             recipient: recipient,
-            lastTimeUpdate: getBlockTimestamp(),
+            lastUpdatedTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond
         });
 
@@ -66,7 +66,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.getAsset(actualStreamId), asset);
         assertEq(flow.getAssetDecimals(actualStreamId), decimals);
         assertEq(flow.getBalance(actualStreamId), 0);
-        assertEq(flow.getLastTimeUpdate(actualStreamId), getBlockTimestamp());
+        assertEq(flow.getLastUpdatedTime(actualStreamId), getBlockTimestamp());
         assertEq(flow.getRatePerSecond(actualStreamId), ratePerSecond);
         assertEq(flow.getRecipient(actualStreamId), recipient);
         assertEq(flow.getRemainingAmount(actualStreamId), 0);

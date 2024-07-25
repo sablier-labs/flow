@@ -214,10 +214,10 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 expectedRatePerSecond = newRatePerSecond;
         assertEq(actualRatePerSecond, expectedRatePerSecond, "rate per second");
 
-        // It should update lastTimeUpdate
-        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        uint128 expectedLastTimeUpdate = getBlockTimestamp();
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
+        // It should update lastUpdatedTime
+        uint128 actualLastUpdatedTime = flow.getLastUpdatedTime(streamId);
+        uint128 expectedLastUpdatedTime = getBlockTimestamp();
+        assertEq(actualLastUpdatedTime, expectedLastUpdatedTime, "last updated time");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -239,7 +239,7 @@ contract Flow_Fork_Test is Fork_Test {
             asset: asset,
             sender: sender,
             recipient: recipient,
-            lastTimeUpdate: getBlockTimestamp(),
+            lastUpdatedTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond
         });
 
@@ -259,7 +259,7 @@ contract Flow_Fork_Test is Fork_Test {
             isPaused: false,
             isStream: true,
             isTransferable: isTransferable,
-            lastTimeUpdate: getBlockTimestamp(),
+            lastUpdatedTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond,
             remainingAmount: 0,
             sender: sender
@@ -438,9 +438,9 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 actualRatePerSecond = flow.getRatePerSecond(streamId);
         assertEq(actualRatePerSecond, ratePerSecond, "ratePerSecond");
 
-        // It should update lastTimeUpdate.
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        assertEq(actualLastTimeUpdate, getBlockTimestamp(), "lastTimeUpdate");
+        // It should update lastUpdatedTime.
+        uint40 actualLastUpdatedTime = flow.getLastUpdatedTime(streamId);
+        assertEq(actualLastUpdatedTime, getBlockTimestamp(), "lastUpdatedTime");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -509,7 +509,7 @@ contract Flow_Fork_Test is Fork_Test {
 
     function _test_WithdrawAt(uint256 streamId, uint40 withdrawTime) private {
         uint256 withdrawTimeSeed = uint256(keccak256(abi.encodePacked(withdrawTime, streamId)));
-        withdrawTime = boundUint40(uint40(withdrawTimeSeed), flow.getLastTimeUpdate(streamId), getBlockTimestamp());
+        withdrawTime = boundUint40(uint40(withdrawTimeSeed), flow.getLastUpdatedTime(streamId), getBlockTimestamp());
 
         uint8 assetDecimals = flow.getAssetDecimals(streamId);
 
@@ -523,7 +523,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 amountOwed = flow.amountOwedOf(streamId);
         uint256 assetbalance = asset.balanceOf(address(flow));
         uint128 expectedWithdrawAmount = flow.getRemainingAmount(streamId)
-            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getLastTimeUpdate(streamId));
+            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getLastUpdatedTime(streamId));
 
         if (streamBalance < expectedWithdrawAmount) {
             expectedWithdrawAmount = streamBalance;
@@ -548,8 +548,8 @@ contract Flow_Fork_Test is Fork_Test {
         // Withdraw the assets.
         flow.withdrawAt(streamId, recipient, withdrawTime);
 
-        // It should update lastTimeUpdate.
-        assertEq(flow.getLastTimeUpdate(streamId), withdrawTime, "last time update");
+        // It should update lastUpdatedTime.
+        assertEq(flow.getLastUpdatedTime(streamId), withdrawTime, "last updated time");
 
         // It should decrease the full amount owed by withdrawn value.
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);

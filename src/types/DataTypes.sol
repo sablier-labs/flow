@@ -38,11 +38,11 @@ library Flow {
     ///
     /// @dev The fields are arranged like this to save gas via tight variable packing.
     ///
-    /// @param balance The amount of assets that is currently available in the stream, i.e. the sum of deposited amounts
-    /// subtracted by the sum of withdrawn amounts, denoted in 18 decimals.
-    /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
+    /// @param balance The amount of assets that are currently available in the stream, i.e., the sum of
+    /// deposited amounts minus the sum of withdrawn amounts, denoted in 18 decimals.
+    /// @param ratePerSecond The payment rate per second, denoted in 18 decimals.
     /// @param sender The address streaming the assets, with the ability to pause the stream.
-    /// @param lastTimeUpdate The Unix timestamp used for the recent amount calculation.
+    /// @param lastUpdatedTime The Unix timestamp used for the recent amount calculation.
     /// @param isStream Boolean indicating if the struct entity exists.
     /// @param isPaused Boolean indicating if the stream is paused.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
@@ -58,7 +58,7 @@ library Flow {
         uint128 ratePerSecond;
         // slot 1
         address sender;
-        uint40 lastTimeUpdate;
+        uint40 lastUpdatedTime;
         bool isStream;
         bool isPaused;
         bool isTransferable;

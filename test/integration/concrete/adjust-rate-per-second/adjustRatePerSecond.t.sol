@@ -84,9 +84,9 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         uint128 expectedRatePerSecond = RATE_PER_SECOND;
         assertEq(actualRatePerSecond, expectedRatePerSecond, "rate per second");
 
-        uint40 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        uint40 expectedLastTimeUpdate = getBlockTimestamp() - ONE_MONTH;
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
+        uint40 actualLastUpdatedTime = flow.getLastUpdatedTime(defaultStreamId);
+        uint40 expectedLastUpdatedTime = getBlockTimestamp() - ONE_MONTH;
+        assertEq(actualLastUpdatedTime, expectedLastUpdatedTime, "last updated time");
 
         uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
         uint128 expectedRemainingAmount = 0;
@@ -118,9 +118,9 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         expectedRatePerSecond = newRatePerSecond;
         assertEq(actualRatePerSecond, expectedRatePerSecond, "rate per second");
 
-        // It should update lastTimeUpdate
-        actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        expectedLastTimeUpdate = getBlockTimestamp();
-        assertEq(actualLastTimeUpdate, expectedLastTimeUpdate, "last time updated");
+        // It should update lastUpdatedTime
+        actualLastUpdatedTime = flow.getLastUpdatedTime(defaultStreamId);
+        expectedLastUpdatedTime = getBlockTimestamp();
+        assertEq(actualLastUpdatedTime, expectedLastUpdatedTime, "last updated time");
     }
 }

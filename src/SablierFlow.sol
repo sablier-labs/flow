@@ -381,12 +381,12 @@ contract SablierFlow is
         updateMetadata(streamId)
         returns (uint128 transferAmount)
     {
-        // Retrieve the last time update from storage.
-        uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
+        // Retrieve the last updated time from storage.
+        uint40 lastUpdatedTime = _streams[streamId].lastUpdatedTime;
 
-        // Check: the time reference is greater than `lastTimeUpdate`.
-        if (time < lastTimeUpdate) {
-            revert Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime(streamId, lastTimeUpdate, time);
+        // Check: the time reference is greater than `lastUpdatedTime`.
+        if (time < lastUpdatedTime) {
+            revert Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime(streamId, lastUpdatedTime, time);
         }
 
         // Check: the withdrawal time is not in the future.
@@ -431,10 +431,10 @@ contract SablierFlow is
 
     /// @dev Calculates the recent amount streamed since last update. Return 0 if the stream is paused.
     function _recentAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        uint40 lastTimeUpdate = _streams[streamId].lastTimeUpdate;
+        uint40 lastUpdatedTime = _streams[streamId].lastUpdatedTime;
 
-        // If the stream is paused or the time is less than the `lastTimeUpdate`, return zero.
-        if (_streams[streamId].isPaused || time <= lastTimeUpdate) {
+        // If the stream is paused or the time is less than the `lastUpdatedTime`, return zero.
+        if (_streams[streamId].isPaused || time <= lastUpdatedTime) {
             return 0;
         }
 
@@ -443,7 +443,7 @@ contract SablierFlow is
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
             // Calculate time elapsed since the last update.
-            elapsedTime = time - lastTimeUpdate;
+            elapsedTime = time - lastUpdatedTime;
         }
 
         // Calculate the recent amount streamed by multiplying the elapsed time by the rate per second.
@@ -559,7 +559,7 @@ contract SablierFlow is
             isPaused: false,
             isStream: true,
             isTransferable: isTransferable,
-            lastTimeUpdate: uint40(block.timestamp),
+            lastUpdatedTime: uint40(block.timestamp),
             ratePerSecond: ratePerSecond,
             remainingAmount: 0,
             sender: sender
@@ -713,15 +713,15 @@ contract SablierFlow is
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
     }
 
-    /// @dev Update the remaining amount by adding the recent amount streamed since last time update.
+    /// @dev Update the remaining amount by adding the recent amount streamed since the last updated time.
     function _updateRemainingAmount(uint256 streamId) internal {
         // Effect: update the remaining amount.
         _streams[streamId].remainingAmount += _recentAmountOf(streamId, uint40(block.timestamp));
     }
 
-    /// @dev Updates the `lastTimeUpdate` to the specified time.
+    /// @dev Updates the `lastUpdatedTime` to the specified time.
     function _updateTime(uint256 streamId, uint40 time) internal {
-        _streams[streamId].lastTimeUpdate = time;
+        _streams[streamId].lastUpdatedTime = time;
     }
 
     /// @dev Voids a stream with positive debt.

@@ -28,17 +28,17 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_TimeLessThanLastTimeUpdate() external whenNoDelegateCall givenNotNull {
-        // Set the last time update to the current block timestamp.
+    function test_RevertWhen_TimeLessThanLastUpdatedTime() external whenNoDelegateCall givenNotNull {
+        // Set the last updated time to the current block timestamp.
         updateLastTimeToBlockTimestamp(defaultStreamId);
 
-        uint40 lastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
+        uint40 lastUpdatedTime = flow.getLastUpdatedTime(defaultStreamId);
 
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime.selector,
                 defaultStreamId,
-                lastTimeUpdate,
+                lastUpdatedTime,
                 WITHDRAW_TIME
             )
         );
@@ -57,7 +57,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         flow.withdrawAt({ streamId: defaultStreamId, to: users.recipient, time: getBlockTimestamp() + 1 });
     }
 
-    modifier whenTimeBetweenLastTimeUpdateAndCurrentTime() {
+    modifier whenTimeBetweenLastUpdatedTimeAndCurrentTime() {
         _;
     }
 
@@ -65,7 +65,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
     {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawToZeroAddress.selector, defaultStreamId));
         flow.withdrawAt({ streamId: defaultStreamId, to: address(0), time: WITHDRAW_TIME });
@@ -75,7 +75,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
@@ -93,7 +93,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
@@ -111,7 +111,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
@@ -128,7 +128,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
     {
@@ -148,7 +148,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
@@ -187,7 +187,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
@@ -220,7 +220,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenTimeBetweenLastTimeUpdateAndCurrentTime
+        whenTimeBetweenLastUpdatedTimeAndCurrentTime
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
@@ -265,9 +265,9 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         uint128 actualTransferAmount = flow.withdrawAt({ streamId: streamId, to: to, time: WITHDRAW_TIME });
 
-        // It should update lastTimeUpdate.
-        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(streamId);
-        assertEq(actualLastTimeUpdate, WITHDRAW_TIME, "last time update");
+        // It should update lastUpdatedTime.
+        uint128 actualLastUpdatedTime = flow.getLastUpdatedTime(streamId);
+        assertEq(actualLastUpdatedTime, WITHDRAW_TIME, "last updated time");
 
         // It should decrease the full amount owed by withdrawn value.
         uint128 actualFullAmountOwed = flow.amountOwedOf(streamId);

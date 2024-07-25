@@ -235,8 +235,8 @@ contract FlowHandler is BaseHandler {
         // Check if there is anything to withdraw.
         vm.assume(flow.withdrawableAmountOf(currentStreamId) > 0);
 
-        // Bound the time so that it is between last time update and current time.
-        time = uint40(_bound(time, flow.getLastTimeUpdate(currentStreamId), getBlockTimestamp()));
+        // Bound the time so that it is between last updated time and current time.
+        time = uint40(_bound(time, flow.getLastUpdatedTime(currentStreamId), getBlockTimestamp()));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.

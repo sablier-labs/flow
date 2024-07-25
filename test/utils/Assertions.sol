@@ -26,7 +26,7 @@ abstract contract Assertions is PRBMathAssertions {
         assertEq(a.asset, b.asset, "asset");
         assertEq(a.assetDecimals, b.assetDecimals, "assetDecimals");
         assertEq(a.balance, b.balance, "balance");
-        assertEq(a.lastTimeUpdate, b.lastTimeUpdate, "lastTimeUpdate");
+        assertEq(a.lastUpdatedTime, b.lastUpdatedTime, "lastUpdatedTime");
         assertEq(a.isPaused, b.isPaused, "isPaused");
         assertEq(a.isStream, b.isStream, "isStream");
         assertEq(a.isTransferable, b.isTransferable, "isTransferable");

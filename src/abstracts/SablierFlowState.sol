@@ -113,16 +113,16 @@ abstract contract SablierFlowState is
     }
 
     /// @inheritdoc ISablierFlowState
-    function getLastTimeUpdate(
+    function getLastUpdatedTime(
         uint256 streamId
     )
         external
         view
         override
         notNull(streamId)
-        returns (uint40 lastTimeUpdate)
+        returns (uint40 lastUpdatedTime)
     {
-        lastTimeUpdate = _streams[streamId].lastTimeUpdate;
+        lastUpdatedTime = _streams[streamId].lastUpdatedTime;
     }
 
     /// @inheritdoc ISablierFlowState

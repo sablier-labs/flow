@@ -46,7 +46,7 @@ library Errors {
     error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
 
     /// @notice Thrown when trying to withdraw assets with a withdrawal time not greater than or equal to
-    /// `lastTimeUpdate`.
+    /// `lastUpdatedTime`.
     error SablierFlow_LastUpdateNotLessThanWithdrawalTime(uint256 streamId, uint40 lastUpdate, uint40 time);
 
     /// @notice Thrown when the ID references a null stream.

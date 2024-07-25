@@ -5,7 +5,7 @@ AmountOwedOf_Integration_Concrete_Test
     ├── given paused
     │   └── it should return remaining amount
     └── given not paused
-        ├── when current time equals last time update
+        ├── when current time equals last updated time
         │   └── it should return remaining amount
-        └── when current time greater than last time update
+        └── when current time greater than last updated time
             └── it should return the sum of remaining amount and recent amount.

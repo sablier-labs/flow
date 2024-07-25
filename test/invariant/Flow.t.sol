@@ -59,15 +59,15 @@ contract Flow_Invariant_Test is Base_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For any stream, `lastTimeUpdate` should never exceed the current block timestamp.
-    function invariant_BlockTimestampGeLastTimeUpdate() external view {
+    /// @dev For any stream, `lastUpdatedTime` should never exceed the current block timestamp.
+    function invariant_BlockTimestampGeLastUpdatedTime() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             assertGe(
                 getBlockTimestamp(),
-                flow.getLastTimeUpdate(streamId),
-                "Invariant violation: block timestamp < last time update"
+                flow.getLastUpdatedTime(streamId),
+                "Invariant violation: block timestamp < last updated time"
             );
         }
     }

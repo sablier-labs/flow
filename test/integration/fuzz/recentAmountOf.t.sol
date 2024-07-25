@@ -35,7 +35,7 @@ contract RecentAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-paused streams, each with different asset decimals and rps.
-    function testFuzz_EqualLastTimeUpdate(
+    function testFuzz_EqualLastUpdatedTime(
         uint256 streamId,
         uint40 timeJump,
         uint8 decimals
@@ -64,7 +64,7 @@ contract RecentAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-paused streams, each with different asset decimals and rps.
-    /// - Multiple points in time after the value of lastTimeUpdate.
+    /// - Multiple points in time after the value of lastUpdatedTime.
     function testFuzz_RecentAmountOf(
         uint256 streamId,
         uint40 timeJump,

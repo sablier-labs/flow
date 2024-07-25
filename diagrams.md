@@ -95,14 +95,14 @@ flowchart LR
     classDef yellow fill:#ffff99,stroke:#333,stroke-width:2px;
     classDef black fill:#000000,stroke:#333,stroke-width:2px;
 
-    CR -- "update rps\nupdate ltu" --> NULL
-    ADJRPS -- "update ra (+rca)\nupdate rps\nupdate ltu" -->  STR
+    CR -- "update rps\nupdate lut" --> NULL
+    ADJRPS -- "update ra (+rca)\nupdate rps\nupdate lut" -->  STR
 
     DP -- "update bal (+)" --> BOTH
 
     RFD -- "update bal (-)" --> BOTH
 
-    WTD -- "update ra (-) \nupdate ltu\nupdate bal (-)" --> BOTH
+    WTD -- "update ra (-) \nupdate lut\nupdate bal (-)" --> BOTH
 
     VD -- "update ra (bal)\nupdate rps (0)" --> BOTH
 
@@ -110,7 +110,7 @@ flowchart LR
 
     BOTH --> STR & PSED
 
-    RST -- "update rps \nupdate ltu" --> PSED
+    RST -- "update rps \nupdate lut" --> PSED
 
     linkStyle 2,3,4 stroke:#ff0000,stroke-width:2px
 ```
@@ -136,12 +136,12 @@ flowchart LR
     bal([Balance - bal]):::green
     rps([RatePerSecond - rps]):::green
     ra([RemainingAmount - ra]):::green
-    ltu([Last Time Update - ltu]):::green
+    lut([Last Updated Time - lut]):::green
 
     stream --> bal
     stream --> rps
     stream --> ra
-    stream --> ltu
+    stream --> lut
 
     classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
 ```
@@ -173,13 +173,13 @@ di0{ }:::green0
 di1{ }:::green0
 res_00([0 ]):::green1
 res_01([0 ]):::green1
-res_rca(["rps*(now - ltu)"]):::green1
+res_rca(["rps*(now - lut)"]):::green1
 
 rca --> di0
 di0 -- "streaming" --> di1
 di0 -- "paused" --> res_00
-di1 -- "now < ltu" --> res_01
-di1 -- "now >= ltu" --> res_rca
+di1 -- "now < lut" --> res_01
+di1 -- "now >= lut" --> res_rca
 
 classDef green0 fill:#98FB98,stroke:#333,stroke-width:2px;
 classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;

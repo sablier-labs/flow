@@ -15,7 +15,7 @@ struct Stream {
   uint128 balance;
   uint128 ratePerSecond;
   address sender;
-  uint40 lastTimeUpdate;
+  uint40 lastUpdatedTime;
   bool isStream;
   bool isPaused;
   bool isTransferable;
@@ -44,9 +44,9 @@ Streams begin streaming as soon as the transaction is confirmed on the blockchai
 can pause the stream at any time. This stops the streaming of assets but retains the record of the amount owed to the
 recipient up to that point.
 
-The `lastTimeUpdate` value, set to `block.timestamp` when the stream is created, is crucial for tracking the amount owed
-over time. The recipient can withdraw the streamed amount at any point. If there are insufficient funds in the stream,
-the recipient can only withdraw the available balance.
+The `lastUpdatedTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the amount
+owed over time. The recipient can withdraw the streamed amount at any point. If there are insufficient funds in the
+stream, the recipient can only withdraw the available balance.
 
 ## Abbreviations
 
@@ -56,7 +56,7 @@ the recipient can only withdraw the available balance.
 | balance            | bal          |
 | block.timestamp    | now          |
 | debt               | debt         |
-| lastTimeUpdate     | ltu          |
+| lastUpdatedTime    | lut          |
 | ratePerSecond      | rps          |
 | recentAmount       | rca          |
 | refundableAmount   | rfa          |
@@ -68,14 +68,14 @@ the recipient can only withdraw the available balance.
 ### 1. Recent amount
 
 The recent amount (rca) is calculated as the rate per second (rps) multiplied by the delta between the current time and
-`lastTimeUpdate`.
+`lastUpdatedTime`.
 
-$rca = rps \times (now - ltu)$
+$rca = rps \times (now - lut)$
 
 ### 2. Remaining amount
 
-The remaining amount (ra) is the amount that the sender owed to the recipient until the last time update. When
-`lastTimeUpdate` is updated, the remaining amount increases by the recent amount.
+The remaining amount (ra) is the amount that the sender owed to the recipient until the last updated time. When
+`lastUpdatedTime` is updated, the remaining amount increases by the recent amount.
 
 $ra = \sum rca_t$
 
@@ -170,7 +170,7 @@ them inexpensive to store.
 
 ## Invariants
 
-1. for any stream, $ltu \le now$
+1. for any stream, $lut \le now$
 
 2. for a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
 

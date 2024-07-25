@@ -5,7 +5,7 @@ RecentAmountOf_Integration_Concrete_Test
    ├── given paused
    │  └── it should return zero
    └── given not paused
-      ├── when last time update in present
+      ├── when last updated time in present
       │  └── it should return zero
-      └── when last time update in past
+      └── when last updated time in past
          └── it should return the correct recent amount

@@ -42,10 +42,10 @@ interface ISablierFlowState is
     /// @param streamId The stream ID for the query.
     function getBalance(uint256 streamId) external view returns (uint128 balance);
 
-    /// @notice Retrieves the last time update of the stream, which is a Unix timestamp.
+    /// @notice Retrieves the last updated time of the stream, which is a Unix timestamp.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The ID of the stream to make the query for.
-    function getLastTimeUpdate(uint256 streamId) external view returns (uint40 lastTimeUpdate);
+    function getLastUpdatedTime(uint256 streamId) external view returns (uint40 lastUpdatedTime);
 
     /// @notice Retrieves the rate per second of the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.

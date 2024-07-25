@@ -66,9 +66,9 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
         assertEq(actualRemainingAmount, 0, "remaining amount");
 
-        // It should update lastTimeUpdate.
-        uint128 actualLastTimeUpdate = flow.getLastTimeUpdate(defaultStreamId);
-        assertEq(actualLastTimeUpdate, getBlockTimestamp(), "last time update");
+        // It should update lastUpdatedTime.
+        uint128 actualLastUpdatedTime = flow.getLastUpdatedTime(defaultStreamId);
+        assertEq(actualLastUpdatedTime, getBlockTimestamp(), "last updated time");
 
         // Assert that the returned value equals the transfer value.
         assertEq(actualTransferAmount, transferAmount);
