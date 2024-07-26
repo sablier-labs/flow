@@ -125,7 +125,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             streamId: streamId,
             recipient: users.recipient,
             sender: users.sender,
-            newAmountOwed: flow.getBalance(streamId),
+            newTotalDebt: flow.getBalance(streamId),
             writtenOffDebt: debtToWriteOff
         });
 
@@ -140,7 +140,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
         assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
         assertEq(flow.uncoveredDebtOf(streamId), 0, "uncovered debt");
-        assertEq(flow.totalDebtOf(streamId), flow.getBalance(streamId), "amount owed");
+        assertEq(flow.totalDebtOf(streamId), flow.getBalance(streamId), "total debt");
         assertEq(flow.totalDebtOf(streamId), depositedAmount);
     }
 }

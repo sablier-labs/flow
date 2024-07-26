@@ -18,8 +18,8 @@ library Flow {
     /// @notice Enum representing the different statuses of a stream.
     ///
     /// @dev Explanations for the two types of streams:
-    /// 1. Streaming: when the amount owed to the recipient is increasing over time.
-    /// 2. Paused: when the amount owed to the recipient is not increasing over time.
+    /// 1. Streaming: when the total debt is increasing.
+    /// 2. Paused: when the total debt is not increasing.
     ///
     /// @custom:value0 STREAMING_SOLVENT Streaming stream when there is no uncovered debt.
     /// @custom:value1 STREAMING_INSOLVENT Streaming stream when there is uncovered debt.

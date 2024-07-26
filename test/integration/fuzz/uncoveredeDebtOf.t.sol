@@ -33,7 +33,7 @@ contract UncoveredDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     /// @dev Checklist:
     /// - It should return 0 if the current time is less than the depletion time.
-    /// - It should return the difference between amount owed and stream balance if the current time is greater than the
+    /// - It should return the difference between total debt and stream balance if the current time is greater than the
     /// depletion time.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:

@@ -5,7 +5,7 @@ WithdrawableAmountOf_Integration_Concrete_Test
     ├── given balance zero
     │   └── it should return zero
     └── given balance not zero
-        ├── when amount owed exceeds balance
+        ├── when total debt exceeds balance
         │   └── it should return the stream balance
-        └── when amount owed does not exceed balance
+        └── when total debt does not exceed balance
             └── it should return the correct withdraw amount

@@ -34,7 +34,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
 
-        uint128 expectedAmountOwed = flow.totalDebtOf(streamId);
+        uint128 expectedTotalDebt = flow.totalDebtOf(streamId);
         uint128 expectedStreamBalance = flow.getBalance(streamId);
         uint256 expectedAssetBalance = asset.balanceOf(address(flow));
 
@@ -46,8 +46,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
         assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
 
-        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
-        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
+        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         uint128 actualStreamBalance = flow.getBalance(streamId);
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
@@ -57,7 +57,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should withdraw the max withdrawble amount from a stream.
+    /// - It should withdraw the max withdrawable amount from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -130,8 +130,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     // Shared private function.
     function _test_WithdrawMax(address withdrawTo, uint256 streamId, uint8 decimals) private {
-        uint128 amountOwed = flow.totalDebtOf(streamId);
-        uint256 assetbalance = asset.balanceOf(address(flow));
+        uint128 totalDebt = flow.totalDebtOf(streamId);
+        uint256 assetBalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 expectedWithdrawAmount = flow.withdrawableAmountOf(streamId);
 
@@ -155,10 +155,10 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), getBlockTimestamp(), "snapshot time");
 
-        // It should decrease the full amount owed by withdrawn value.
-        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
-        uint128 expectedAmountOwed = amountOwed - expectedWithdrawAmount;
-        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
+        // It should decrease the total debt by the withdrawn value.
+        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        uint128 expectedTotalDebt = totalDebt - expectedWithdrawAmount;
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
@@ -167,7 +167,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should reduce the asset balance of stream.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetbalance - getTransferAmount(expectedWithdrawAmount, decimals);
+        uint256 expectedAssetBalance = assetBalance - getTransferAmount(expectedWithdrawAmount, decimals);
         assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }

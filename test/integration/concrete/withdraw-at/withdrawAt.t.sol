@@ -144,7 +144,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         flow.withdrawAt({ streamId: streamId, to: users.recipient, time: WITHDRAW_TIME });
     }
 
-    function test_WhenAmountOwedExceedsBalance()
+    function test_WhenTotalDebtExceedsBalance()
         external
         whenNoDelegateCall
         givenNotNull
@@ -179,7 +179,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    modifier whenAmountOwedDoesNotExceedBalance() {
+    modifier whenTotalDebtDoesNotExceedBalance() {
         _;
     }
 
@@ -191,7 +191,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
-        whenAmountOwedDoesNotExceedBalance
+        whenTotalDebtDoesNotExceedBalance
     {
         // Go back to the starting point.
         vm.warp({ newTimestamp: MAY_1_2024 });
@@ -207,7 +207,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         // Make recipient the caller for subsequent tests.
         resetPrank({ msgSender: users.recipient });
 
-        // It should withdraw the amount owed.
+        // It should withdraw the total debt.
         _test_Withdraw({
             streamId: streamId,
             to: users.recipient,
@@ -224,9 +224,9 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
-        whenAmountOwedDoesNotExceedBalance
+        whenTotalDebtDoesNotExceedBalance
     {
-        // It should withdraw the amount owed.
+        // It should withdraw the total debt.
         _test_Withdraw({
             streamId: defaultStreamId,
             to: users.recipient,
@@ -246,7 +246,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         IERC20 asset = flow.getAsset(streamId);
         uint8 assetDecimals = flow.getAssetDecimals(streamId);
         uint128 transferAmount = getTransferAmount(expectedWithdrawAmount, assetDecimals);
-        uint128 previousFullAmountOwed = flow.totalDebtOf(defaultStreamId);
+        uint128 previousFullTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(asset) });
@@ -269,10 +269,10 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
         assertEq(actualSnapshotTime, WITHDRAW_TIME, "snapshot time");
 
-        // It should decrease the full amount owed by withdrawn value.
-        uint128 actualFullAmountOwed = flow.totalDebtOf(streamId);
-        uint128 expectedFullAmountOwed = previousFullAmountOwed - expectedWithdrawAmount;
-        assertEq(actualFullAmountOwed, expectedFullAmountOwed, "full amount owed");
+        // It should decrease the total debt by the withdrawn value.
+        uint128 actualFullTotalDebt = flow.totalDebtOf(streamId);
+        uint128 expectedFullTotalDebt = previousFullTotalDebt - expectedWithdrawAmount;
+        assertEq(actualFullTotalDebt, expectedFullTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);

@@ -54,10 +54,10 @@ recipient can only withdraw the available balance.
 | Variable           | Abbreviation |
 | ------------------ | ------------ |
 | totalDebt          | td           |
-| uncoveredDebt      | ud           |
 | ongoingDebt        | od           |
 | snapshotDebt       | sd           |
 | snapshotTime       | st           |
+| uncoveredDebt      | ud           |
 | refundableAmount   | rfa          |
 | withdrawableAmount | wa           |
 | balance            | bal          |
@@ -73,26 +73,26 @@ debt and the ongoing debt.
 
 $ao = sa + oa$
 
-### 2. Uncovered Debt
-
-The uncovered debt (ud) is the difference between the total debt and the actual balance, applicable when the total debt
-exceeds the balance.
-
-$`debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}`$
-
-### 3. Ongoing debt
+### 2. Ongoing debt
 
 The ongoing debt (od) is calculated as the rate per second (rps) multiplied by the delta between the current time and
 `snapshotTime`.
 
 $oa = rps \times (now - lst)$
 
-### 4. Snapshot debt
+### 3. Snapshot debt
 
 The snapshot debt (sd) is the amount that the sender owed the recipient at snapshot time. When `snapshotTime` is
 updated, the snapshot debt increases by the ongoing debt.
 
 $sa = \sum oa_t$
+
+### 4. Uncovered Debt
+
+The uncovered debt (ud) is the difference between the total debt and the actual balance, applicable when the total debt
+exceeds the balance.
+
+$`debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}`$
 
 ### 5. Refundable amount
 
@@ -103,7 +103,7 @@ $`rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 
 
 ### 6. Withdrawable amount
 
-The withdrawable amount (wa) is the amount owed when there is no uncovered debt. If there is uncovered debt, the
+The withdrawable amount (wa) is the total debt when there is no uncovered debt. But if there is uncovered debt, the
 withdrawable amount is capped to the stream balance.
 
 $`wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}`$

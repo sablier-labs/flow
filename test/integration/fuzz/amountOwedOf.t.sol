@@ -21,14 +21,14 @@ contract TotalDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Pause the stream.
         flow.pause(streamId);
 
-        uint128 expectedAmountOwed = flow.totalDebtOf(streamId);
+        uint128 expectedTotalDebt = flow.totalDebtOf(streamId);
 
         // Simulate the passage of time after pause.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Assert that amount owed is zero.
-        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
-        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+        // Assert that total debt is zero.
+        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
     }
 
     /// @dev It should return the streamed balance.
@@ -55,9 +55,9 @@ contract TotalDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: warpTimestamp });
 
-        // Assert that amount owed is zero.
-        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
-        uint128 expectedAmountOwed = flow.getRatePerSecond(streamId) * (warpTimestamp - MAY_1_2024);
-        assertEq(actualAmountOwed, expectedAmountOwed, "amount owed");
+        // Assert that total debt is zero.
+        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        uint128 expectedTotalDebt = flow.getRatePerSecond(streamId) * (warpTimestamp - MAY_1_2024);
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
     }
 }

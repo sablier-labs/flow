@@ -27,7 +27,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         _;
     }
 
-    function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceNotZero {
+    function test_WhenTotalDebtExceedsBalance() external givenNotNull givenBalanceNotZero {
         // Simulate the passage of time until debt becomes uncovered.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
 
@@ -38,7 +38,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(withdrawableAmount, balance, "withdrawable amount");
     }
 
-    function test_WhenAmountOwedDoesNotExceedBalance() external givenNotNull givenBalanceNotZero {
+    function test_WhenTotalDebtDoesNotExceedBalance() external givenNotNull givenBalanceNotZero {
         // It should return the correct withdraw amount.
         uint128 withdrawableAmount = flow.withdrawableAmountOf(defaultStreamId);
         assertEq(withdrawableAmount, ONE_MONTH_STREAMED_AMOUNT, "withdrawable amount");

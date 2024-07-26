@@ -101,7 +101,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit AdjustFlowStream({
             streamId: defaultStreamIds[0],
-            amountOwed: ONE_MONTH_STREAMED_AMOUNT,
+            totalDebt: ONE_MONTH_STREAMED_AMOUNT,
             newRatePerSecond: newRatePerSecond,
             oldRatePerSecond: RATE_PER_SECOND
         });
@@ -113,7 +113,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit AdjustFlowStream({
             streamId: defaultStreamIds[1],
-            amountOwed: ONE_MONTH_STREAMED_AMOUNT,
+            totalDebt: ONE_MONTH_STREAMED_AMOUNT,
             newRatePerSecond: newRatePerSecond,
             oldRatePerSecond: RATE_PER_SECOND
         });
@@ -223,8 +223,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         calls[0] = abi.encodeCall(flow.pause, (defaultStreamIds[0]));
         calls[1] = abi.encodeCall(flow.pause, (defaultStreamIds[1]));
 
-        uint128 previousAmountOwed0 = flow.totalDebtOf(defaultStreamId);
-        uint128 previousAmountOwed1 = flow.totalDebtOf(defaultStreamIds[1]);
+        uint128 previousTotalDebt0 = flow.totalDebtOf(defaultStreamId);
+        uint128 previousTotalDebt1 = flow.totalDebtOf(defaultStreamIds[1]);
 
         // It should emit 2 {PauseFlowStream}, 2 {MetadataUpdate} events.
 
@@ -234,7 +234,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamIds[0],
             recipient: users.recipient,
             sender: users.sender,
-            amountOwed: previousAmountOwed0
+            totalDebt: previousTotalDebt0
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -246,7 +246,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamIds[1],
             recipient: users.recipient,
             sender: users.sender,
-            amountOwed: previousAmountOwed1
+            totalDebt: previousTotalDebt1
         });
 
         vm.expectEmit({ emitter: address(flow) });

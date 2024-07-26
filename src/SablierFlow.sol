@@ -479,7 +479,7 @@ contract SablierFlow is
 
         uint128 totalDebt = _totalDebtOf(streamId, time);
 
-        // If the stream balance is less than or equal to the amount owed, return the stream balance.
+        // If the stream balance is less than or equal to the total debt, return the stream balance.
         if (balance < totalDebt) {
             return balance;
         }
@@ -654,7 +654,7 @@ contract SablierFlow is
             streamId: streamId,
             recipient: _ownerOf(streamId),
             sender: _streams[streamId].sender,
-            amountOwed: _streams[streamId].snapshotDebt
+            totalDebt: _streams[streamId].snapshotDebt
         });
     }
 
@@ -738,10 +738,10 @@ contract SablierFlow is
             revert Errors.SablierFlow_Unauthorized(streamId, msg.sender);
         }
 
-        // The new amount owed will be set to the stream balance.
+        // The new total debt is set to the stream balance.
         uint128 balance = _streams[streamId].balance;
 
-        // Effect: update the amount owed by setting snapshot debt to stream balance.
+        // Effect: update the total debt by setting snapshot debt to the stream balance.
         _streams[streamId].snapshotDebt = balance;
 
         // Effect: set the rate per second to zero.
@@ -776,22 +776,22 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawNoFundsAvailable(streamId);
         }
 
-        uint128 amountOwed = _totalDebtOf(streamId, time);
+        uint128 totalDebt = _totalDebtOf(streamId, time);
         uint128 withdrawAmount;
 
         // Safe to use unchecked because subtraction cannot underflow.
         unchecked {
             // If there is debt, the withdraw amount is the balance, and the snapshot debt is updated so that we
             // don't lose track of the debt.
-            if (amountOwed > balance) {
+            if (totalDebt > balance) {
                 withdrawAmount = balance;
 
                 // Effect: update the snapshot debt.
-                _streams[streamId].snapshotDebt = amountOwed - balance;
+                _streams[streamId].snapshotDebt = totalDebt - balance;
             }
             // Otherwise, recipient can withdraw the full amount, and the snapshot debt must be set to zero.
             else {
-                withdrawAmount = amountOwed;
+                withdrawAmount = totalDebt;
 
                 // Effect: set the snapshot debt to zero.
                 _streams[streamId].snapshotDebt = 0;

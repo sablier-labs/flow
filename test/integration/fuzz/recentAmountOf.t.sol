@@ -87,7 +87,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: warpTimestamp });
 
-        // Assert that amount owed is zero.
+        // Assert that total debt is zero.
         uint128 actualOngoingDebt = flow.ongoingDebtOf(streamId);
         uint128 expectedOngoingDebt = flow.getRatePerSecond(streamId) * (warpTimestamp - MAY_1_2024);
         assertEq(actualOngoingDebt, expectedOngoingDebt, "ongoing debt");

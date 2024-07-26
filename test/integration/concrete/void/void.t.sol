@@ -92,7 +92,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             recipient: users.recipient,
             sender: users.sender,
-            newAmountOwed: streamBalance,
+            newTotalDebt: streamBalance,
             writtenOffDebt: uncoveredDebt
         });
 
@@ -107,7 +107,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         // It should pause the stream.
         assertTrue(flow.isPaused(defaultStreamId), "paused");
 
-        // It should update the amount owed to stream balance.
+        // It should set the total debt to the stream balance.
         assertEq(flow.totalDebtOf(defaultStreamId), streamBalance, "total debt");
     }
 }

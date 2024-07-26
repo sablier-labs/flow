@@ -30,7 +30,7 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(refundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT, "refundable amount");
     }
 
-    function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
+    function test_WhenTotalDebtExceedsBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
         // Simulate the passage of time until debt becomes uncovered.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
 
@@ -39,7 +39,7 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
         assertEq(refundableAmount, 0, "refundable amount");
     }
 
-    function test_WhenAmountOwedDoesNotExceedBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
+    function test_WhenTotalDebtDoesNotExceedBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
         // It should return correct refundable amount.
         uint128 refundableAmount = flow.refundableAmountOf(defaultStreamId);
         assertEq(refundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT, "refundable amount");

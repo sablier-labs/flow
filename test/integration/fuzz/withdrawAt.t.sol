@@ -40,7 +40,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
 
-        uint128 expectedAmountOwed = flow.totalDebtOf(streamId);
+        uint128 expectedTotalDebt = flow.totalDebtOf(streamId);
         uint128 expectedStreamBalance = flow.getBalance(streamId);
         uint256 expectedAssetBalance = asset.balanceOf(address(flow));
 
@@ -52,8 +52,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
         assertEq(actualSnapshotTime, withdrawTime, "snapshot time");
 
-        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
-        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
+        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         uint128 actualStreamBalance = flow.getBalance(streamId);
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
@@ -151,8 +151,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the withdraw time between the allowed range.
         withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
-        uint128 amountOwed = flow.totalDebtOf(streamId);
-        uint256 assetbalance = asset.balanceOf(address(flow));
+        uint128 totalDebt = flow.totalDebtOf(streamId);
+        uint256 assetBalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 expectedWithdrawAmount = flow.getSnapshotDebt(streamId)
             + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
@@ -177,10 +177,10 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
-        // It should decrease the full amount owed by withdrawn value.
-        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
-        uint128 expectedAmountOwed = amountOwed - expectedWithdrawAmount;
-        assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
+        // It should decrease the full total debt by withdrawn value.
+        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        uint128 expectedTotalDebt = totalDebt - expectedWithdrawAmount;
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
@@ -189,7 +189,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should reduce the asset balance of stream.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetbalance - getTransferAmount(expectedWithdrawAmount, decimals);
+        uint256 expectedAssetBalance = assetBalance - getTransferAmount(expectedWithdrawAmount, decimals);
         assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }

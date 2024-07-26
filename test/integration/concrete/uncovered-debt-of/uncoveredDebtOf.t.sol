@@ -16,13 +16,13 @@ contract UncoveredDebtOf_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    function test_WhenAmountOwedDoesNotExceedBalance() external view givenNotNull {
+    function test_WhenTotalDebtDoesNotExceedBalance() external view givenNotNull {
         // It should return zero.
         uint128 actualUncoveredDebt = flow.uncoveredDebtOf(defaultStreamId);
         assertEq(actualUncoveredDebt, 0, "uncovered debt");
     }
 
-    function test_WhenAmountOwedExceedsBalance() external givenNotNull {
+    function test_WhenTotalDebtExceedsBalance() external givenNotNull {
         // Simulate the passage of time to accumulate uncovered debt for one month.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + ONE_MONTH });
 

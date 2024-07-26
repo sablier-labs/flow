@@ -50,9 +50,8 @@ interface ISablierFlow is
     /// @param streamId The ID of the Flow stream.
     /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
-    /// @param amountOwed The amount of assets owed by the sender to the recipient, including debt, denoted in 18
-    /// decimals.
-    event PauseFlowStream(uint256 indexed streamId, address recipient, address sender, uint128 amountOwed);
+    /// @param totalDebt The amount of assets owed by the sender to the recipient, denoted in 18 decimals.
+    event PauseFlowStream(uint256 indexed streamId, address recipient, address sender, uint128 totalDebt);
 
     /// @notice Emitted when assets are refunded from a Flow stream.
     /// @param streamId The ID of the Flow stream.
@@ -70,10 +69,10 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream.
     /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
-    /// @param newAmountOwed The updated amount of assets owed by the sender to the recipient, denoted in 18  decimals.
+    /// @param newTotalDebt The updated amount of assets owed by the sender to the recipient, denoted in 18  decimals.
     /// @param writtenOffDebt The debt amount written-off by the recipient.
     event VoidFlowStream(
-        uint256 indexed streamId, address recipient, address sender, uint128 newAmountOwed, uint128 writtenOffDebt
+        uint256 indexed streamId, address recipient, address sender, uint128 newTotalDebt, uint128 writtenOffDebt
     );
 
     /// @notice Emitted when assets are withdrawn from a Flow stream.
@@ -108,8 +107,8 @@ interface ISablierFlow is
     /// @notice Returns the amount owed by the sender to the recipient, including debt, denoted in 18 decimals.
     /// @dev Reverts if `streamId` refers to a null stream.
     /// @param streamId The stream ID for the query.
-    /// @return amountOwed The amount owed by the sender to the recipient.
-    function totalDebtOf(uint256 streamId) external view returns (uint128 amountOwed);
+    /// @return totalDebt The amount owed by the sender to the recipient.
+    function totalDebtOf(uint256 streamId) external view returns (uint128 totalDebt);
 
     /// @notice Calculates the amount that the sender can refund from stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
@@ -415,11 +414,11 @@ interface ISablierFlow is
     ///
     /// Notes:
     /// - It sets `snapshotTime` to the `time` specified.
-    /// - If stream balance is less than the amount owed at `time`:
+    /// - If stream balance is less than the total debt at `time`:
     ///   - It withdraws the full balance.
-    ///   - It sets the snapshot debt to the amount owed minus the stream balance.
-    /// - If stream balance is greater than the amount owed at `time`:
-    ///   - It withdraws the amount owed at `time`.
+    ///   - It sets the snapshot debt to the total debt minus the stream balance.
+    /// - If stream balance is greater than the total debt at `time`:
+    ///   - It withdraws the total debt at `time`.
     ///   - It sets the snapshot debt to zero.
     ///
     /// Requirements:

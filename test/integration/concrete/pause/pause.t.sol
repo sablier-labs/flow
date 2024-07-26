@@ -69,7 +69,7 @@ contract Pause_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             recipient: users.recipient,
             sender: users.sender,
-            amountOwed: initialTotalDebt
+            totalDebt: initialTotalDebt
         });
 
         vm.expectEmit({ emitter: address(flow) });
