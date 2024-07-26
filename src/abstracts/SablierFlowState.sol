@@ -113,16 +113,8 @@ abstract contract SablierFlowState is
     }
 
     /// @inheritdoc ISablierFlowState
-    function getLastUpdatedTime(
-        uint256 streamId
-    )
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint40 lastUpdatedTime)
-    {
-        lastUpdatedTime = _streams[streamId].lastUpdatedTime;
+    function getSnapshotTime(uint256 streamId) external view override notNull(streamId) returns (uint40 snapshotTime) {
+        snapshotTime = _streams[streamId].snapshotTime;
     }
 
     /// @inheritdoc ISablierFlowState
@@ -144,16 +136,16 @@ abstract contract SablierFlowState is
     }
 
     /// @inheritdoc ISablierFlowState
-    function getRemainingAmount(
+    function getSnapshotAmount(
         uint256 streamId
     )
         external
         view
         override
         notNull(streamId)
-        returns (uint128 remainingAmount)
+        returns (uint128 snapshotAmount)
     {
-        remainingAmount = _streams[streamId].remainingAmount;
+        snapshotAmount = _streams[streamId].snapshotAmount;
     }
 
     /// @inheritdoc ISablierFlowState

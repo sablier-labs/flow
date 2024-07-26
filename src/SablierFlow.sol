@@ -66,7 +66,7 @@ contract SablierFlow is
         }
 
         // Calculate here the amount owed for gas optimization.
-        uint128 amountOwed = _streams[streamId].remainingAmount + _recentAmountOf(streamId, uint40(block.timestamp));
+        uint128 amountOwed = _streams[streamId].snapshotAmount + _ongoingAmountOf(streamId, uint40(block.timestamp));
 
         // If the stream has debt, return zero.
         if (amountOwed >= balance) {
@@ -81,8 +81,14 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function recentAmountOf(uint256 streamId) external view override notNull(streamId) returns (uint128 recentAmount) {
-        recentAmount = _recentAmountOf(streamId, uint40(block.timestamp));
+    function ongoingAmountOf(uint256 streamId)
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 ongoingAmount)
+    {
+        ongoingAmount = _ongoingAmountOf(streamId, uint40(block.timestamp));
     }
 
     /// @inheritdoc ISablierFlow
@@ -381,12 +387,12 @@ contract SablierFlow is
         updateMetadata(streamId)
         returns (uint128 transferAmount)
     {
-        // Retrieve the last updated time from storage.
-        uint40 lastUpdatedTime = _streams[streamId].lastUpdatedTime;
+        // Retrieve the snapshot time from storage.
+        uint40 snapshotTime = _streams[streamId].snapshotTime;
 
-        // Check: the time reference is greater than `lastUpdatedTime`.
-        if (time < lastUpdatedTime) {
-            revert Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime(streamId, lastUpdatedTime, time);
+        // Check: the time reference is greater than `snapshotTime`.
+        if (time < snapshotTime) {
+            revert Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime(streamId, snapshotTime, time);
         }
 
         // Check: the withdrawal time is not in the future.
@@ -419,22 +425,22 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Calculates the amount owed to the recipient at a given time.
-    /// @dev The amount owed is the sum of the stored remaining amount and the recent amount streamed since the last
+    /// @dev The amount owed is the sum of the stored snapshot amount and the ongoing amount streamed since the last
     /// update. This value is independent of the stream's balance.
     function _amountOwedOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        // Calculate the recent amount streamed since last update.
-        uint128 recentAmount = _recentAmountOf(streamId, time);
+        // Calculate the ongoing amount streamed since last update.
+        uint128 ongoingAmount = _ongoingAmountOf(streamId, time);
 
         // Calculate the total amount that is owed to the recipient.
-        return _streams[streamId].remainingAmount + recentAmount;
+        return _streams[streamId].snapshotAmount + ongoingAmount;
     }
 
-    /// @dev Calculates the recent amount streamed since last update. Return 0 if the stream is paused.
-    function _recentAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        uint40 lastUpdatedTime = _streams[streamId].lastUpdatedTime;
+    /// @dev Calculates the ongoing amount streamed since last update. Return 0 if the stream is paused.
+    function _ongoingAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+        uint40 snapshotTime = _streams[streamId].snapshotTime;
 
-        // If the stream is paused or the time is less than the `lastUpdatedTime`, return zero.
-        if (_streams[streamId].isPaused || time <= lastUpdatedTime) {
+        // If the stream is paused or the time is less than the `snapshotTime`, return zero.
+        if (_streams[streamId].isPaused || time <= snapshotTime) {
             return 0;
         }
 
@@ -443,10 +449,10 @@ contract SablierFlow is
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
             // Calculate time elapsed since the last update.
-            elapsedTime = time - lastUpdatedTime;
+            elapsedTime = time - snapshotTime;
         }
 
-        // Calculate the recent amount streamed by multiplying the elapsed time by the rate per second.
+        // Calculate the ongoing amount streamed by multiplying the elapsed time by the rate per second.
         return elapsedTime * _streams[streamId].ratePerSecond;
     }
 
@@ -505,8 +511,8 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        // Effect: update the remaining amount.
-        _updateRemainingAmount(streamId);
+        // Effect: update the snapshot amount.
+        _updateSnapshotAmount(streamId);
 
         // Effect: set the new rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
@@ -516,7 +522,7 @@ contract SablierFlow is
 
         // Log the adjustment.
         emit ISablierFlow.AdjustFlowStream(
-            streamId, _streams[streamId].remainingAmount, newRatePerSecond, oldRatePerSecond
+            streamId, _streams[streamId].snapshotAmount, newRatePerSecond, oldRatePerSecond
         );
     }
 
@@ -559,9 +565,9 @@ contract SablierFlow is
             isPaused: false,
             isStream: true,
             isTransferable: isTransferable,
-            lastUpdatedTime: uint40(block.timestamp),
+            snapshotTime: uint40(block.timestamp),
             ratePerSecond: ratePerSecond,
-            remainingAmount: 0,
+            snapshotAmount: 0,
             sender: sender
         });
 
@@ -640,8 +646,8 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
-        // Effect: update the remaining amount.
-        _updateRemainingAmount(streamId);
+        // Effect: update the snapshot amount.
+        _updateSnapshotAmount(streamId);
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
@@ -654,7 +660,7 @@ contract SablierFlow is
             streamId: streamId,
             recipient: _ownerOf(streamId),
             sender: _streams[streamId].sender,
-            amountOwed: _streams[streamId].remainingAmount
+            amountOwed: _streams[streamId].snapshotAmount
         });
     }
 
@@ -713,15 +719,15 @@ contract SablierFlow is
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
     }
 
-    /// @dev Update the remaining amount by adding the recent amount streamed since the last updated time.
-    function _updateRemainingAmount(uint256 streamId) internal {
-        // Effect: update the remaining amount.
-        _streams[streamId].remainingAmount += _recentAmountOf(streamId, uint40(block.timestamp));
+    /// @dev Update the snapshot amount by adding the ongoing amount streamed since the snapshot time.
+    function _updateSnapshotAmount(uint256 streamId) internal {
+        // Effect: update the snapshot amount.
+        _streams[streamId].snapshotAmount += _ongoingAmountOf(streamId, uint40(block.timestamp));
     }
 
-    /// @dev Updates the `lastUpdatedTime` to the specified time.
+    /// @dev Updates the `snapshotTime` to the specified time.
     function _updateTime(uint256 streamId, uint40 time) internal {
-        _streams[streamId].lastUpdatedTime = time;
+        _streams[streamId].snapshotTime = time;
     }
 
     /// @dev Voids a stream with positive debt.
@@ -741,13 +747,13 @@ contract SablierFlow is
         // The new amount owed will be set to the stream balance.
         uint128 balance = _streams[streamId].balance;
 
-        // Effect: update the amount owed by setting remaining amount to stream balance.
-        _streams[streamId].remainingAmount = balance;
+        // Effect: update the amount owed by setting snapshot amount to stream balance.
+        _streams[streamId].snapshotAmount = balance;
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
 
-        // Effect: set the stream as paused. This also sets the recent amount to zero.
+        // Effect: set the stream as paused. This also sets the ongoing amount to zero.
         _streams[streamId].isPaused = true;
 
         // Log the void.
@@ -781,20 +787,20 @@ contract SablierFlow is
 
         // Safe to use unchecked because subtraction cannot underflow.
         unchecked {
-            // If there is debt, the withdraw amount is the balance, and the remaining amount is updated so that we
+            // If there is debt, the withdraw amount is the balance, and the snapshot amount is updated so that we
             // don't lose track of the debt.
             if (amountOwed > balance) {
                 withdrawAmount = balance;
 
-                // Effect: update the remaining amount.
-                _streams[streamId].remainingAmount = amountOwed - balance;
+                // Effect: update the snapshot amount.
+                _streams[streamId].snapshotAmount = amountOwed - balance;
             }
-            // Otherwise, recipient can withdraw the full amount, and the remaining amount must be set to zero.
+            // Otherwise, recipient can withdraw the full amount, and the snapshot amount must be set to zero.
             else {
                 withdrawAmount = amountOwed;
 
-                // Effect: set the remaining amount to zero.
-                _streams[streamId].remainingAmount = 0;
+                // Effect: set the snapshot amount to zero.
+                _streams[streamId].snapshotAmount = 0;
             }
         }
 

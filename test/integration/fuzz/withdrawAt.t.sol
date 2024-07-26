@@ -48,9 +48,9 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         resetPrank(caller);
         flow.withdrawAt(streamId, users.recipient, withdrawTime);
 
-        // Assert that all states are unchanged except for lastUpdatedTime.
-        uint128 actualLastUpdatedTime = flow.getLastUpdatedTime(streamId);
-        assertEq(actualLastUpdatedTime, withdrawTime, "last updated time");
+        // Assert that all states are unchanged except for snapshotTime.
+        uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
+        assertEq(actualSnapshotTime, withdrawTime, "snapshot time");
 
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);
         assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
@@ -70,7 +70,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Only two values for caller (stream owner and approved operator).
     /// - Multiple non-zero values for to address.
     /// - Multiple streams to withdraw from, each with different asset decimals and rps.
-    /// - Multiple values for withdraw time in the range (lastUpdatedTime, currentTime). It could also be before or
+    /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or
     /// after
     /// depletion time.
     /// - Multiple points in time.
@@ -104,7 +104,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
     /// - Multiple streams to withdraw from, each with different asset decimals and rps.
-    /// - Multiple values for withdraw time in the range (lastUpdatedTime, currentTime). It could also be before or
+    /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or
     /// after
     /// depletion time.
     /// - Multiple points in time.
@@ -154,8 +154,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 amountOwed = flow.amountOwedOf(streamId);
         uint256 assetbalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
-        uint128 expectedWithdrawAmount = flow.getRemainingAmount(streamId)
-            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getLastUpdatedTime(streamId));
+        uint128 expectedWithdrawAmount = flow.getSnapshotAmount(streamId)
+            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
 
         if (streamBalance < expectedWithdrawAmount) {
             expectedWithdrawAmount = streamBalance;
@@ -174,8 +174,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Withdraw the assets.
         flow.withdrawAt(streamId, to, withdrawTime);
 
-        // It should update lastUpdatedTime.
-        assertEq(flow.getLastUpdatedTime(streamId), withdrawTime, "last updated time");
+        // It should update snapshot time.
+        assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
         // It should decrease the full amount owed by withdrawn value.
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);

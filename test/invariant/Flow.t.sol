@@ -59,15 +59,15 @@ contract Flow_Invariant_Test is Base_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For any stream, `lastUpdatedTime` should never exceed the current block timestamp.
-    function invariant_BlockTimestampGeLastUpdatedTime() external view {
+    /// @dev For any stream, `snapshotTime` should never exceed the current block timestamp.
+    function invariant_BlockTimestampGeSnapshotTime() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             assertGe(
                 getBlockTimestamp(),
-                flow.getLastUpdatedTime(streamId),
-                "Invariant violation: block timestamp < last updated time"
+                flow.getSnapshotTime(streamId),
+                "Invariant violation: block timestamp < snapshot time"
             );
         }
     }
@@ -171,32 +171,32 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev If there is no debt and the stream is paused, the withdrawable amount should always be equal to the
-    /// remaining amount.
-    function invariant_NoDebt_StreamedPaused_WithdrawableAmountEqRemainingAmount() external view {
+    /// snapshot amount.
+    function invariant_NoDebt_StreamedPaused_WithdrawableAmountEqSnapshotAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             if (flow.isPaused(streamId) && flow.streamDebtOf(streamId) == 0) {
                 assertEq(
                     flow.withdrawableAmountOf(streamId),
-                    flow.getRemainingAmount(streamId),
-                    "Invariant violation: paused stream withdrawable amount != remaining amount"
+                    flow.getSnapshotAmount(streamId),
+                    "Invariant violation: paused stream withdrawable amount != snapshot amount"
                 );
             }
         }
     }
 
     /// @dev If there is no debt and the stream is not paused, the withdrawable amount should always be equal to the
-    /// sum of remaining amount and recent amount.
-    function invariant_NoDebt_WithdrawableAmountEqRecentAmountPlusRemainingAmount() external view {
+    /// sum of snapshot amount and ongoing amount.
+    function invariant_NoDebt_WithdrawableAmountEqOngoingAmountPlusSnapshotAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             if (!flow.isPaused(streamId) && flow.streamDebtOf(streamId) == 0) {
                 assertEq(
                     flow.withdrawableAmountOf(streamId),
-                    flow.recentAmountOf(streamId) + flow.getRemainingAmount(streamId),
-                    "Invariant violation: withdrawable amount != recent amount + remaining amount"
+                    flow.ongoingAmountOf(streamId) + flow.getSnapshotAmount(streamId),
+                    "Invariant violation: withdrawable amount != ongoing amount + snapshot amount"
                 );
             }
         }

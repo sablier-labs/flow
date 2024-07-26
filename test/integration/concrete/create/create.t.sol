@@ -119,7 +119,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            lastUpdatedTime: getBlockTimestamp(),
+            snapshotTime: getBlockTimestamp(),
             ratePerSecond: RATE_PER_SECOND
         });
 

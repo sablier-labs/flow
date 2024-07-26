@@ -63,12 +63,12 @@ abstract contract Integration_Test is Base_Test {
             asset: dai,
             assetDecimals: 18,
             balance: 0,
-            lastUpdatedTime: getBlockTimestamp(),
+            snapshotTime: getBlockTimestamp(),
             isPaused: false,
             isStream: true,
             isTransferable: IS_TRANFERABLE,
             ratePerSecond: RATE_PER_SECOND,
-            remainingAmount: 0,
+            snapshotAmount: 0,
             sender: users.sender
         });
     }
@@ -102,12 +102,12 @@ abstract contract Integration_Test is Base_Test {
         depositAmount(defaultStreamId, TRANSFER_AMOUNT);
     }
 
-    /// @dev Update the `lastUpdatedTime` of a stream to the current block timestamp.
+    /// @dev Update the `snapshotTime` of a stream to the current block timestamp.
     function updateLastTimeToBlockTimestamp(uint256 streamId) internal {
         resetPrank(users.sender);
         uint128 ratePerSecond = flow.getRatePerSecond(streamId);
 
-        // Updates the last updated time via `adjustRatePerSecond`.
+        // Updates the snapshot time via `adjustRatePerSecond`.
         flow.adjustRatePerSecond(streamId, 1);
 
         // Restores the rate per second.

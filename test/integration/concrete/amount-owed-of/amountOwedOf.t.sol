@@ -12,32 +12,32 @@ contract AmountOwedOf_Integration_Concrete_Test is Integration_Test {
     function test_GivenPaused() external givenNotNull {
         flow.pause(defaultStreamId);
 
-        uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
+        uint128 snapshotAmount = flow.getSnapshotAmount(defaultStreamId);
 
-        // It should return remaining amount
+        // It should return snapshot amount
         uint128 amountOwed = flow.amountOwedOf(defaultStreamId);
-        assertEq(amountOwed, remainingAmount, "amount owed");
+        assertEq(amountOwed, snapshotAmount, "amount owed");
     }
 
-    function test_WhenCurrentTimeEqualsLastUpdatedTime() external givenNotNull givenNotPaused {
-        // Set the last updated time to the current time by changing rate per second.
+    function test_WhenCurrentTimeEqualsSnapshotTime() external givenNotNull givenNotPaused {
+        // Set the snapshot time to the current time by changing rate per second.
         flow.adjustRatePerSecond(defaultStreamId, RATE_PER_SECOND * 2);
 
-        // Fetch updated remaining amount
-        uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
+        // Fetch updated snapshot amount
+        uint128 snapshotAmount = flow.getSnapshotAmount(defaultStreamId);
 
-        // It should return remaining amount
+        // It should return snapshot amount
         uint128 amountOwed = flow.amountOwedOf(defaultStreamId);
-        assertEq(amountOwed, remainingAmount, "amount owed");
+        assertEq(amountOwed, snapshotAmount, "amount owed");
     }
 
-    function test_WhenCurrentTimeGreaterThanLastUpdatedTime() external view givenNotNull givenNotPaused {
-        // Fetch updated remaining amount
-        uint128 remainingAmount = flow.getRemainingAmount(defaultStreamId);
-        uint128 recentAmount = flow.recentAmountOf(defaultStreamId);
+    function test_WhenCurrentTimeGreaterThanSnapshotTime() external view givenNotNull givenNotPaused {
+        // Fetch updated snapshot amount
+        uint128 snapshotAmount = flow.getSnapshotAmount(defaultStreamId);
+        uint128 ongoingAmount = flow.ongoingAmountOf(defaultStreamId);
 
-        // It should return the sum of remaining amount and recent amount.
+        // It should return the sum of snapshot amount and ongoing amount.
         uint128 amountOwed = flow.amountOwedOf(defaultStreamId);
-        assertEq(amountOwed, remainingAmount + recentAmount, "amount owed");
+        assertEq(amountOwed, snapshotAmount + ongoingAmount, "amount owed");
     }
 }

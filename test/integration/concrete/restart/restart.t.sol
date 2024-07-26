@@ -70,8 +70,8 @@ contract Restart_Integration_Concrete_Test is Integration_Test {
         uint128 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, RATE_PER_SECOND, "ratePerSecond");
 
-        // It should update lastUpdatedTime.
-        uint40 actualLastUpdatedTime = flow.getLastUpdatedTime(defaultStreamId);
-        assertEq(actualLastUpdatedTime, getBlockTimestamp(), "lastUpdatedTime");
+        // It should update snapshot time.
+        uint40 actualSnapshotTime = flow.getSnapshotTime(defaultStreamId);
+        assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshotTime");
     }
 }

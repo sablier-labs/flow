@@ -42,9 +42,9 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         resetPrank(caller);
         flow.withdrawMax(streamId, users.recipient);
 
-        // Assert that all states are unchanged except for lastUpdatedTime.
-        uint128 actualLastUpdatedTime = flow.getLastUpdatedTime(streamId);
-        assertEq(actualLastUpdatedTime, getBlockTimestamp(), "last updated time");
+        // Assert that all states are unchanged except for snapshotTime.
+        uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
+        assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
 
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);
         assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
@@ -152,8 +152,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Withdraw the assets.
         flow.withdrawMax(streamId, withdrawTo);
 
-        // It should update lastUpdatedTime.
-        assertEq(flow.getLastUpdatedTime(streamId), getBlockTimestamp(), "last updated time");
+        // It should update snapshot time.
+        assertEq(flow.getSnapshotTime(streamId), getBlockTimestamp(), "snapshot time");
 
         // It should decrease the full amount owed by withdrawn value.
         uint128 actualAmountOwed = flow.amountOwedOf(streamId);

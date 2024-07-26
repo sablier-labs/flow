@@ -135,13 +135,13 @@ flowchart LR
     stream[(Stream Internal State)]:::green
     bal([Balance - bal]):::green
     rps([RatePerSecond - rps]):::green
-    ra([RemainingAmount - ra]):::green
-    lut([Last Updated Time - lut]):::green
+    ra([SnapshotAmount - ra]):::green
+    lst([Last Snapshot Time - lst]):::green
 
     stream --> bal
     stream --> rps
     stream --> ra
-    stream --> lut
+    stream --> lst
 
     classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
 ```
@@ -162,24 +162,24 @@ flowchart LR
 
 ## Amount Calculations
 
-### Recent Amount
+### Ongoing Amount
 
 **Notes:** `now` refers to `block.timestamp`.
 
 ```mermaid
 flowchart TD
-rca([Recent Amount - ra]):::green1
+rca([Ongoing Amount - oa]):::green1
 di0{ }:::green0
 di1{ }:::green0
 res_00([0 ]):::green1
 res_01([0 ]):::green1
-res_rca(["rps*(now - lut)"]):::green1
+res_rca(["rps*(now - st)"]):::green1
 
 rca --> di0
 di0 -- "streaming" --> di1
 di0 -- "paused" --> res_00
-di1 -- "now < lut" --> res_01
-di1 -- "now >= lut" --> res_rca
+di1 -- "now < st" --> res_01
+di1 -- "now >= st" --> res_rca
 
 classDef green0 fill:#98FB98,stroke:#333,stroke-width:2px;
 classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
@@ -189,8 +189,8 @@ classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
 
 **Notes:** Debt greater than zero means:
 
-1. `ra > bal` when the status is `PAUSED`
-2. `ra + rca > bal` when the status is `STREAMING`
+1. `sa > bal` when the status is `PAUSED`
+2. `sa + oa > bal` when the status is `STREAMING`
 
 ```mermaid
 flowchart TD
@@ -200,8 +200,8 @@ flowchart TD
     wa([Withdrawable Amount - wa]):::blue0
     res_0([0 ]):::blue1
     res_bal([bal]):::blue1
-    res_ra([ra]):::blue1
-    res_sum([rca + ra]):::blue1
+    res_ra([sa]):::blue1
+    res_sum([oa + sa]):::blue1
 
 
     wa --> di0
@@ -236,12 +236,12 @@ flowchart TD
 flowchart TD
     di0{ }:::red1
     sd([Stream Debt - sd]):::red0
-    res_sd(["rca + ra - bal"]):::red1
+    res_sd(["oa + sa - bal"]):::red1
     res_zero([0]):::red1
 
     sd --> di0
-    di0 -- "bal < rca + ra" --> res_sd
-    di0 -- "bal >= rca + ra" --> res_zero
+    di0 -- "bal < oa + sa" --> res_sd
+    di0 -- "bal >= oa + sa" --> res_zero
 
     classDef red0 fill:#EA6B66,stroke:#333,stroke-width:2px;
     classDef red1 fill:#FFCCCC,stroke:#333,stroke-width:2px;

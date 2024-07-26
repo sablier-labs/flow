@@ -62,13 +62,13 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         uint128 expectedStreamBalance = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should set the remaining amount to zero.
-        uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        assertEq(actualRemainingAmount, 0, "remaining amount");
+        // It should set the snapshot amount to zero.
+        uint128 actualSnapshotAmount = flow.getSnapshotAmount(defaultStreamId);
+        assertEq(actualSnapshotAmount, 0, "snapshot amount");
 
-        // It should update lastUpdatedTime.
-        uint128 actualLastUpdatedTime = flow.getLastUpdatedTime(defaultStreamId);
-        assertEq(actualLastUpdatedTime, getBlockTimestamp(), "last updated time");
+        // It should update snapshot time.
+        uint128 actualSnapshotTime = flow.getSnapshotTime(defaultStreamId);
+        assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
 
         // Assert that the returned value equals the transfer value.
         assertEq(actualTransferAmount, transferAmount);

@@ -18,6 +18,6 @@ RefundAndPause_Integration_Concrete_Test
                 ├── it should perform the ERC20 transfer
                 ├── it should pause the stream
                 ├── it should set rate per second to 0
-                ├── it should update the remaining amount
+                ├── it should update the snapshot amount
                 ├── it should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
                 └── it should return the transfer amount

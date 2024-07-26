@@ -2,7 +2,8 @@
 
 This repository contains the smart contracts for Sablier Flow. Streams created with Sablier Flow have no end time and
 require no upfront deposit. This is ideal for regular payments such as salaries and subscriptions, where an end time is
-not specified. For vesting or airdrops, refer to [our Lockup protocol](https://github.com/sablier-labs/v2-core/).
+not specified. For vesting or airdrops, refer to the [Sablier Lockup](https://github.com/sablier-labs/v2-core/)
+protocol.
 
 ## Motivation
 
@@ -15,13 +16,13 @@ struct Stream {
   uint128 balance;
   uint128 ratePerSecond;
   address sender;
-  uint40 lastUpdatedTime;
+  uint40 snapshotTime;
   bool isStream;
   bool isPaused;
   bool isTransferable;
   IERC20 asset;
   uint8 assetDecimals;
-  uint128 remainingAmount;
+  uint128 snapshotAmount;
 }
 ```
 
@@ -34,7 +35,7 @@ struct Stream {
 - Streams without sufficient balance will accumulate debt until paused or sufficiently funded.
 - Senders can pause and restart streams without losing track of debt and the amount owed to the recipient.
 
-## How It Works
+## How it Works
 
 When a stream is created, no deposit is required, so the initial stream balance can be zero. The sender can deposit any
 amount into the stream at any time. To improve experience for some users, a `createAndDeposit` function has been
@@ -44,9 +45,9 @@ Streams begin streaming as soon as the transaction is confirmed on the blockchai
 can pause the stream at any time. This stops the streaming of assets but retains the record of the amount owed to the
 recipient up to that point.
 
-The `lastUpdatedTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the amount
-owed over time. The recipient can withdraw the streamed amount at any point. If there are insufficient funds in the
-stream, the recipient can only withdraw the available balance.
+The `snapshotTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the amount owed
+over time. The recipient can withdraw the streamed amount at any point. If there are insufficient funds in the stream,
+the recipient can only withdraw the available balance.
 
 ## Abbreviations
 
@@ -56,35 +57,35 @@ stream, the recipient can only withdraw the available balance.
 | balance            | bal          |
 | block.timestamp    | now          |
 | debt               | debt         |
-| lastUpdatedTime    | lut          |
+| ongoingAmount      | oa           |
 | ratePerSecond      | rps          |
-| recentAmount       | rca          |
 | refundableAmount   | rfa          |
-| remainingAmount    | ra           |
+| snapshotAmount     | sa           |
+| snapshotTime       | st           |
 | withdrawableAmount | wa           |
 
 ## Core Components
 
-### 1. Recent amount
+### 1. Ongoing amount
 
-The recent amount (rca) is calculated as the rate per second (rps) multiplied by the delta between the current time and
-`lastUpdatedTime`.
+The ongoing amount (oa) is calculated as the rate per second (rps) multiplied by the delta between the current time and
+`snapshotTime`.
 
-$rca = rps \times (now - lut)$
+$oa = rps \times (now - lst)$
 
-### 2. Remaining amount
+### 2. Snapshot amount
 
-The remaining amount (ra) is the amount that the sender owed to the recipient until the last updated time. When
-`lastUpdatedTime` is updated, the remaining amount increases by the recent amount.
+The snapshot amount (sa) is the amount that the sender owed to the recipient at snapshot time. When `snapshotTime` is
+updated, the snapshot amount increases by the ongoing amount.
 
-$ra = \sum rca_t$
+$sa = \sum oa_t$
 
 ### 3. Amount Owed
 
-The amount owed (ao) is the total amount the sender owes to the recipient. It is calculated as the sum of the remaining
-amount and the recent amount.
+The amount owed (ao) is the total amount the sender owes to the recipient. It is calculated as the sum of the snapshot
+amount and the ongoing amount.
 
-$ao = ra + rca$
+$ao = sa + oa$
 
 ### 4. Debt
 
@@ -118,11 +119,11 @@ $rps = 0.000115740740740740740740...$ (infinite decimals)
 
 But since USDC only has 6 decimals, the _rps_ would be limited to $0.000115$, leading to
 $0.000115 \times \text{seconds in one day} = 9.936000$ USDC streamed in one day. This results in a shortfall of
-$0.064000$ USDC per day, which is problematic
+$0.064000$ USDC per day, which is problematic.
 
 ### Solution
 
-In the contracts, we normalize all internal amounts (e.g. `rps`, `bal`, `ra`, `ao`) to 18 decimals. While this doesn't
+In the contracts, we normalize all internal amounts (e.g. `rps`, `bal`, `sa`, `ao`) to 18 decimals. While this doesn't
 completely solve the issue, it significantly minimizes it.
 
 Using the same example (streaming 10 USDC per day), if _rps_ has 18 decimals, the end-of-day result would be:
@@ -142,10 +143,10 @@ $0.000115740740740740 \times (\text{seconds in one day} + 1 second) = 10.0001157
 
 Currently, it's not possible to address this precision problem entirely.
 
-### Technical Implementaion
+### Technical Implementation
 
-We use 18 fixed-point numbers for all internal amounts and calculation functions to avoid the overload of conversion to
-actual `ERC20` balances. The only time we perform these conversions is during external calls to `ERC20`'s
+We use 18-decimal fixed-point numbers for all internal amounts and calculation functions to avoid the overload of
+conversion to actual `ERC20` balances. The only time we perform these conversions is during external calls to `ERC20`'s
 `transfer`/`transferFrom` (i.e. deposit, withdraw and refund operations). When performing these actions, we adjust the
 calculated amount (withdrawable or refundable) based on the asset's decimals:
 
@@ -160,17 +161,17 @@ Withdraw and Refund:
 - if the asset has 18 decimals, the transfer amount is the same as the internal amount
 - if the asset has fewer decimals, the transfer amount is decreased by the difference between 18 and asset decimals
 
-Asset decimal is retrieved directly from the ERC20 contract. We store the asset decimals to avoid making an external
+Asset decimal is retrieved directly from the ERC-20 contract. We store the asset decimals to avoid making an external
 call to get the decimals of the asset each time a deposit or withdraw is made. Decimals are stored as `uint8`, making
 them inexpensive to store.
 
 ### Limitations
 
-- ERC20 tokens with decimals higher than 18 are not supported.
+- ERC-20 tokens with decimals higher than 18 are not supported.
 
 ## Invariants
 
-1. for any stream, $lut \le now$
+1. for any stream, $lst \le now$
 
 2. for a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
 
@@ -186,9 +187,9 @@ them inexpensive to store.
 
 8. next stream id = current stream id + 1
 
-9. if $debt = 0$ and $isPaused = true \implies wa = ra$
+9. if $debt = 0$ and $isPaused = true \implies wa = sa$
 
-10. if $debt = 0$ and $isPaused = false \implies wa = ra + rca$
+10. if $debt = 0$ and $isPaused = false \implies wa = sa + oa$
 
 11. $bal = rfa + wa$
 

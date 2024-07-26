@@ -41,7 +41,7 @@ abstract contract Events {
         IERC20 indexed asset,
         address indexed sender,
         address recipient,
-        uint40 lastUpdatedTime,
+        uint40 snapshotTime,
         uint128 ratePerSecond
     );
 

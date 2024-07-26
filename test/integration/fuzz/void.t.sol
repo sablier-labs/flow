@@ -44,7 +44,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should pause the stream.
     /// - It should set rate per second to 0.
-    /// - It should make recent amount to 0, debt to 0 and amount owed to the stream balance.
+    /// - It should make ongoing amount to 0, debt to 0 and amount owed to the stream balance.
     /// - It should emit the following events: {MetadataUpdate}, {VoidFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -82,7 +82,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should pause the stream.
     /// - It should set rate per second to 0.
-    /// - It should make recent amount to 0, debt to 0 and amount owed to the stream balance.
+    /// - It should make ongoing amount to 0, debt to 0 and amount owed to the stream balance.
     /// - It should emit the following events: {MetadataUpdate}, {VoidFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -138,7 +138,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Assert the checklist.
         assertTrue(flow.isPaused(streamId), "paused");
         assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
-        assertEq(flow.recentAmountOf(streamId), 0, "recent amount");
+        assertEq(flow.ongoingAmountOf(streamId), 0, "ongoing amount");
         assertEq(flow.streamDebtOf(streamId), 0, "debt");
         assertEq(flow.amountOwedOf(streamId), flow.getBalance(streamId), "amount owed");
         assertEq(flow.amountOwedOf(streamId), depositedAmount);

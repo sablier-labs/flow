@@ -84,8 +84,8 @@ contract Pause_Integration_Concrete_Test is Integration_Test {
         uint256 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, 0, "rate per second");
 
-        // It should update the remaining amount.
-        uint128 actualRemainingAmount = flow.getRemainingAmount(defaultStreamId);
-        assertEq(actualRemainingAmount, previousAmountOwed, "remaining amount");
+        // It should update the snapshot amount.
+        uint128 actualSnapshotAmount = flow.getSnapshotAmount(defaultStreamId);
+        assertEq(actualSnapshotAmount, previousAmountOwed, "snapshot amount");
     }
 }

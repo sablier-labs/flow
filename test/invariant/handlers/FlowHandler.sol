@@ -17,7 +17,7 @@ contract FlowHandler is BaseHandler {
     address internal currentSender;
     uint256 internal currentStreamId;
 
-    /// @dev Debt, remaining and recent amount mapped to each stream id.
+    /// @dev Debt, snapshot, and ongoing amount mapped to each stream ID.
     mapping(uint256 streamId => uint128 amount) public previousDebtOf;
     mapping(uint256 streamId => uint128 amount) public previousAmountOwedOf;
 
@@ -235,8 +235,8 @@ contract FlowHandler is BaseHandler {
         // Check if there is anything to withdraw.
         vm.assume(flow.withdrawableAmountOf(currentStreamId) > 0);
 
-        // Bound the time so that it is between last updated time and current time.
-        time = uint40(_bound(time, flow.getLastUpdatedTime(currentStreamId), getBlockTimestamp()));
+        // Bound the time so that it is between snapshot time and current time.
+        time = uint40(_bound(time, flow.getSnapshotTime(currentStreamId), getBlockTimestamp()));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.
