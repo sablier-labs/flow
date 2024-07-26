@@ -17,9 +17,11 @@ contract FlowHandler is BaseHandler {
     address internal currentSender;
     uint256 internal currentStreamId;
 
-    /// @dev Debt, snapshot, and ongoing amount mapped to each stream ID.
-    mapping(uint256 streamId => uint128 amount) public previousDebtOf;
-    mapping(uint256 streamId => uint128 amount) public previousAmountOwedOf;
+    /// @dev Uncovered debts mapped by stream IDs.
+    mapping(uint256 streamId => uint128 amount) public previousUncoveredDebtOf;
+
+    /// @dev Total debts mapped by stream IDs.
+    mapping(uint256 streamId => uint128 amount) public previousTotalDebtOf;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
@@ -33,8 +35,8 @@ contract FlowHandler is BaseHandler {
 
     /// @dev Updates the states of handler right before calling each Flow function.
     modifier updateFlowHandlerStates() {
-        previousDebtOf[currentStreamId] = flow.streamDebtOf(currentStreamId);
-        previousAmountOwedOf[currentStreamId] = flow.amountOwedOf(currentStreamId);
+        previousUncoveredDebtOf[currentStreamId] = flow.uncoveredDebtOf(currentStreamId);
+        previousTotalDebtOf[currentStreamId] = flow.totalDebtOf(currentStreamId);
         _;
     }
 
@@ -209,8 +211,8 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
-        // Check if the debt is not zero.
-        vm.assume(flow.streamDebtOf(currentStreamId) > 0);
+        // Check if the uncovered debt is greater than zero.
+        vm.assume(flow.uncoveredDebtOf(currentStreamId) > 0);
 
         // Void the stream.
         flow.void(currentStreamId);

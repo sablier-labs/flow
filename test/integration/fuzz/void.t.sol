@@ -35,7 +35,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
 
         // Expect the relevant error.
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_DebtZero.selector, streamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_UncoveredDebtZero.selector, streamId));
 
         // Void the stream.
         flow.void(streamId);
@@ -44,7 +44,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should pause the stream.
     /// - It should set rate per second to 0.
-    /// - It should make ongoing amount to 0, debt to 0 and amount owed to the stream balance.
+    /// - It should set ongoing debt to 0, uncovered debt to 0, and total debt to the stream balance.
     /// - It should emit the following events: {MetadataUpdate}, {VoidFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -82,7 +82,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should pause the stream.
     /// - It should set rate per second to 0.
-    /// - It should make ongoing amount to 0, debt to 0 and amount owed to the stream balance.
+    /// - It should set ongoing debt to 0, uncovered debt to 0, and total debt to the stream balance.
     /// - It should emit the following events: {MetadataUpdate}, {VoidFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -117,7 +117,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     // Shared private function.
     function _test_Void(uint256 streamId) private {
-        uint128 debtToWriteOff = flow.streamDebtOf(streamId);
+        uint128 debtToWriteOff = flow.uncoveredDebtOf(streamId);
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(flow) });
@@ -126,7 +126,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             recipient: users.recipient,
             sender: users.sender,
             newAmountOwed: flow.getBalance(streamId),
-            writenoffDebt: debtToWriteOff
+            writtenOffDebt: debtToWriteOff
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -138,9 +138,9 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Assert the checklist.
         assertTrue(flow.isPaused(streamId), "paused");
         assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
-        assertEq(flow.ongoingAmountOf(streamId), 0, "ongoing amount");
-        assertEq(flow.streamDebtOf(streamId), 0, "debt");
-        assertEq(flow.amountOwedOf(streamId), flow.getBalance(streamId), "amount owed");
-        assertEq(flow.amountOwedOf(streamId), depositedAmount);
+        assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
+        assertEq(flow.uncoveredDebtOf(streamId), 0, "uncovered debt");
+        assertEq(flow.totalDebtOf(streamId), flow.getBalance(streamId), "amount owed");
+        assertEq(flow.totalDebtOf(streamId), depositedAmount);
     }
 }

@@ -22,7 +22,7 @@ struct Stream {
   bool isTransferable;
   IERC20 asset;
   uint8 assetDecimals;
-  uint128 snapshotAmount;
+  uint128 snapshotDebt;
 }
 ```
 
@@ -33,7 +33,7 @@ struct Stream {
 - Anyone can deposit into a stream, allowing others to fund your streams.
 - No limit on deposits; any amount can be deposited or refunded if not yet streamed to recipients.
 - Streams without sufficient balance will accumulate debt until paused or sufficiently funded.
-- Senders can pause and restart streams without losing track of debt and the amount owed to the recipient.
+- Senders can pause and restart streams without losing track of previously accrued debt.
 
 ## How it Works
 
@@ -42,71 +42,71 @@ amount into the stream at any time. To improve experience for some users, a `cre
 implemented to allow both create and deposit operations in a single transaction.
 
 Streams begin streaming as soon as the transaction is confirmed on the blockchain. They have no end date, but the sender
-can pause the stream at any time. This stops the streaming of assets but retains the record of the amount owed to the
-recipient up to that point.
+can pause the stream at any time. This stops the streaming of assets but retains the record of the accrued debt up to
+that point.
 
-The `snapshotTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the amount owed
-over time. The recipient can withdraw the streamed amount at any point. If there are insufficient funds in the stream,
-the recipient can only withdraw the available balance.
+The `snapshotTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the debt over
+time. The recipient can withdraw the streamed amount at any point. However, if there aren't sufficient funds, the
+recipient can only withdraw the available balance.
 
 ## Abbreviations
 
-| Full Name          | Abbreviation |
+| Variable           | Abbreviation |
 | ------------------ | ------------ |
-| amount owed        | ao           |
+| totalDebt          | td           |
+| uncoveredDebt      | ud           |
+| ongoingDebt        | od           |
+| snapshotDebt       | sd           |
+| snapshotTime       | st           |
+| refundableAmount   | rfa          |
+| withdrawableAmount | wa           |
 | balance            | bal          |
 | block.timestamp    | now          |
-| debt               | debt         |
-| ongoingAmount      | oa           |
 | ratePerSecond      | rps          |
-| refundableAmount   | rfa          |
-| snapshotAmount     | sa           |
-| snapshotTime       | st           |
-| withdrawableAmount | wa           |
 
 ## Core Components
 
-### 1. Ongoing amount
+### 1. Total Debt
 
-The ongoing amount (oa) is calculated as the rate per second (rps) multiplied by the delta between the current time and
+The total debt (td) is the total amount the sender owes to the recipient. It is calculated as the sum of the snapshot
+debt and the ongoing debt.
+
+$ao = sa + oa$
+
+### 2. Uncovered Debt
+
+The uncovered debt (ud) is the difference between the total debt and the actual balance, applicable when the total debt
+exceeds the balance.
+
+$`debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}`$
+
+### 3. Ongoing debt
+
+The ongoing debt (od) is calculated as the rate per second (rps) multiplied by the delta between the current time and
 `snapshotTime`.
 
 $oa = rps \times (now - lst)$
 
-### 2. Snapshot amount
+### 4. Snapshot debt
 
-The snapshot amount (sa) is the amount that the sender owed to the recipient at snapshot time. When `snapshotTime` is
-updated, the snapshot amount increases by the ongoing amount.
+The snapshot debt (sd) is the amount that the sender owed the recipient at snapshot time. When `snapshotTime` is
+updated, the snapshot debt increases by the ongoing debt.
 
 $sa = \sum oa_t$
 
-### 3. Amount Owed
+### 5. Refundable amount
 
-The amount owed (ao) is the total amount the sender owes to the recipient. It is calculated as the sum of the snapshot
-amount and the ongoing amount.
-
-$ao = sa + oa$
-
-### 4. Debt
-
-The debt is the difference between the amount owed and the actual balance, applicable when the amount owed exceeds the
-balance.
-
-$`debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}`$
-
-### 5. Withdrawable amount
-
-The withdrawable amount (wa) is the amount owed when there is no debt. If there is debt, the withdrawable amount is the
-stream balance
-
-$`wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}`$
-
-### 6. Refundable amount
-
-The refundable amount (rfa) is the amount that the sender can refund from the stream. It is the difference between the
-stream balance and the amount owed
+The refundable amount (rfa) is the amount that the sender can be refunded. It is the difference between the stream
+balance and the total debt.
 
 $`rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 \end{cases}`$
+
+### 6. Withdrawable amount
+
+The withdrawable amount (wa) is the amount owed when there is no uncovered debt. If there is uncovered debt, the
+withdrawable amount is capped to the stream balance.
+
+$`wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}`$
 
 ## Precision Issues
 

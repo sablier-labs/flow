@@ -37,7 +37,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: timeJump });
 
         // Expect the relevant error.
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_Overrefund.selector, streamId, refundAmount, 0));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_RefundOverflow.selector, streamId, refundAmount, 0));
 
         // Request the refund.
         flow.refund(streamId, refundAmount);

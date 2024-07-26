@@ -9,7 +9,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
-        // Advance the time past the solvency period so that there is debt.
+        // Advance the time past the solvency period so that there is uncovered debt.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + 1 days });
     }
 
@@ -51,9 +51,9 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenCallerSender() external whenNoDelegateCall givenNotNull givenNotPaused {
-        uint128 transferAmount = flow.streamDebtOf(defaultStreamId);
+        uint128 transferAmount = flow.uncoveredDebtOf(defaultStreamId);
         uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 previousAmountOwed = flow.amountOwedOf(defaultStreamId);
+        uint128 previousAmountOwed = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
         vm.expectEmit({ emitter: address(dai) });
@@ -94,8 +94,8 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
         uint256 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, 0, "rate per second");
 
-        // It should update the snapshot amount
-        uint128 actualSnapshotAmount = flow.getSnapshotAmount(defaultStreamId);
-        assertEq(actualSnapshotAmount, previousAmountOwed, "snapshot amount");
+        // It should update the snapshot debt
+        uint128 actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
+        assertEq(actualSnapshotDebt, previousAmountOwed, "snapshot debt");
     }
 }

@@ -246,7 +246,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         IERC20 asset = flow.getAsset(streamId);
         uint8 assetDecimals = flow.getAssetDecimals(streamId);
         uint128 transferAmount = getTransferAmount(expectedWithdrawAmount, assetDecimals);
-        uint128 previousFullAmountOwed = flow.amountOwedOf(defaultStreamId);
+        uint128 previousFullAmountOwed = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(asset) });
@@ -270,7 +270,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         assertEq(actualSnapshotTime, WITHDRAW_TIME, "snapshot time");
 
         // It should decrease the full amount owed by withdrawn value.
-        uint128 actualFullAmountOwed = flow.amountOwedOf(streamId);
+        uint128 actualFullAmountOwed = flow.totalDebtOf(streamId);
         uint128 expectedFullAmountOwed = previousFullAmountOwed - expectedWithdrawAmount;
         assertEq(actualFullAmountOwed, expectedFullAmountOwed, "full amount owed");
 

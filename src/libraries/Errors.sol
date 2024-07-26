@@ -4,7 +4,7 @@ pragma solidity >=0.8.22;
 import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 /// @title Errors
-/// @notice Library with custom erros used across the Flow contract.
+/// @notice Library with custom errors used across the Flow contract.
 library Errors {
     /*//////////////////////////////////////////////////////////////////////////
                                       GENERICS
@@ -20,13 +20,6 @@ library Errors {
     error DelegateCall();
 
     /*//////////////////////////////////////////////////////////////////////////
-                                 SABLIER-FLOW-STATE
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
-    error SablierFlowState_NotTransferable(uint256 streamId);
-
-    /*//////////////////////////////////////////////////////////////////////////
                                     SABLIER-FLOW
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -35,9 +28,6 @@ library Errors {
 
     /// @notice Thrown when trying to create a stream with a broker recipient address as zero.
     error SablierFlow_BrokerAddressZero();
-
-    /// @notice Thrown when voiding a stream with zero debt.
-    error SablierFlow_DebtZero(uint256 streamId);
 
     /// @notice Thrown when trying to create a stream with an asset with no decimals.
     error SablierFlow_InvalidAssetDecimals(address asset);
@@ -52,9 +42,6 @@ library Errors {
     /// @notice Thrown when the ID references a null stream.
     error SablierFlow_Null(uint256 streamId);
 
-    /// @notice Thrown when trying to refund an amount greater than the refundable amount.
-    error SablierFlow_Overrefund(uint256 streamId, uint128 refundAmount, uint128 refundableAmount);
-
     /// @notice Thrown when trying to change the rate per second with the same rate per second.
     error SablierFlow_RatePerSecondNotDifferent(uint256 streamId, uint128 ratePerSecond);
 
@@ -63,6 +50,9 @@ library Errors {
 
     /// @notice Thrown when trying to refund zero assets from a stream.
     error SablierFlow_RefundAmountZero(uint256 streamId);
+
+    /// @notice Thrown when trying to refund an amount greater than the refundable amount.
+    error SablierFlow_RefundOverflow(uint256 streamId, uint128 refundAmount, uint128 refundableAmount);
 
     /// @notice Thrown when trying to create a stream with the sender as the zero address.
     error SablierFlow_SenderZeroAddress();
@@ -75,6 +65,9 @@ library Errors {
 
     /// @notice Thrown when trying to create a stream with a zero transfer amount.
     error SablierFlow_TransferAmountZero(uint256 streamId);
+
+    /// @notice Thrown when voiding a stream with zero uncovered debt.
+    error SablierFlow_UncoveredDebtZero(uint256 streamId);
 
     /// @notice Thrown when `msg.sender` lacks authorization to perform an action.
     error SablierFlow_Unauthorized(uint256 streamId, address caller);
@@ -90,4 +83,11 @@ library Errors {
 
     /// @notice Thrown when trying to withdraw to the zero address.
     error SablierFlow_WithdrawToZeroAddress(uint256 streamId);
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                 SABLIER-FLOW-STATE
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
+    error SablierFlowState_NotTransferable(uint256 streamId);
 }

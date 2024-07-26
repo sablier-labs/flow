@@ -5,9 +5,9 @@ Void_Integration_Concrete_Test
     ├── given null
     │   └── it should revert
     └── given not null
-        ├── given stream has no debt
+        ├── given stream has no uncovered debt
         │   └── it should revert
-        └── given stream has debt
+        └── given stream has uncovered debt
             ├── when caller not recipient
             │   ├── when caller sender
             │   │   └── it should revert

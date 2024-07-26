@@ -223,8 +223,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         calls[0] = abi.encodeCall(flow.pause, (defaultStreamIds[0]));
         calls[1] = abi.encodeCall(flow.pause, (defaultStreamIds[1]));
 
-        uint128 previousAmountOwed0 = flow.amountOwedOf(defaultStreamId);
-        uint128 previousAmountOwed1 = flow.amountOwedOf(defaultStreamIds[1]);
+        uint128 previousAmountOwed0 = flow.totalDebtOf(defaultStreamId);
+        uint128 previousAmountOwed1 = flow.totalDebtOf(defaultStreamIds[1]);
 
         // It should emit 2 {PauseFlowStream}, 2 {MetadataUpdate} events.
 

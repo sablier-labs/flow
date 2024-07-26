@@ -43,11 +43,6 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlow
-    function amountOwedOf(uint256 streamId) external view override notNull(streamId) returns (uint128 amountOwed) {
-        amountOwed = _amountOwedOf(streamId, uint40(block.timestamp));
-    }
-
-    /// @inheritdoc ISablierFlow
     function depletionTimeOf(
         uint256 streamId
     )
@@ -65,30 +60,24 @@ contract SablierFlow is
             return 0;
         }
 
-        // Calculate here the amount owed for gas optimization.
-        uint128 amountOwed = _streams[streamId].snapshotAmount + _ongoingAmountOf(streamId, uint40(block.timestamp));
+        // Calculate here the total debt for gas efficiency.
+        uint128 totalDebt = _streams[streamId].snapshotDebt + _ongoingDebtOf(streamId, uint40(block.timestamp));
 
         // If the stream has debt, return zero.
-        if (amountOwed >= balance) {
+        if (totalDebt >= balance) {
             return 0;
         }
 
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
-            uint128 solvencyPeriod = (balance - amountOwed) / _streams[streamId].ratePerSecond;
+            uint128 solvencyPeriod = (balance - totalDebt) / _streams[streamId].ratePerSecond;
             depletionTime = uint40(block.timestamp + solvencyPeriod);
         }
     }
 
     /// @inheritdoc ISablierFlow
-    function ongoingAmountOf(uint256 streamId)
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 ongoingAmount)
-    {
-        ongoingAmount = _ongoingAmountOf(streamId, uint40(block.timestamp));
+    function ongoingDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 ongoingDebt) {
+        ongoingDebt = _ongoingDebtOf(streamId, uint40(block.timestamp));
     }
 
     /// @inheritdoc ISablierFlow
@@ -107,7 +96,7 @@ contract SablierFlow is
     /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
         // See whether the stream has debt.
-        bool hasDebt = _streamDebtOf(streamId) > 0;
+        bool hasDebt = _uncoveredDebtOf(streamId) > 0;
 
         if (_streams[streamId].isPaused) {
             // If the stream is paused and has debt, return PAUSED_INSOLVENT.
@@ -129,8 +118,13 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function streamDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
-        debt = _streamDebtOf(streamId);
+    function totalDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 totalDebt) {
+        totalDebt = _totalDebtOf(streamId, uint40(block.timestamp));
+    }
+
+    /// @inheritdoc ISablierFlow
+    function uncoveredDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
+        debt = _uncoveredDebtOf(streamId);
     }
 
     /// @inheritdoc ISablierFlow
@@ -424,19 +418,8 @@ contract SablierFlow is
                             INTERNAL CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Calculates the amount owed to the recipient at a given time.
-    /// @dev The amount owed is the sum of the stored snapshot amount and the ongoing amount streamed since the last
-    /// update. This value is independent of the stream's balance.
-    function _amountOwedOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        // Calculate the ongoing amount streamed since last update.
-        uint128 ongoingAmount = _ongoingAmountOf(streamId, time);
-
-        // Calculate the total amount that is owed to the recipient.
-        return _streams[streamId].snapshotAmount + ongoingAmount;
-    }
-
-    /// @dev Calculates the ongoing amount streamed since last update. Return 0 if the stream is paused.
-    function _ongoingAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+    /// @dev Calculates the ongoing debt accrued since last update. Return 0 if the stream is paused.
+    function _ongoingDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint40 snapshotTime = _streams[streamId].snapshotTime;
 
         // If the stream is paused or the time is less than the `snapshotTime`, return zero.
@@ -452,7 +435,7 @@ contract SablierFlow is
             elapsedTime = time - snapshotTime;
         }
 
-        // Calculate the ongoing amount streamed by multiplying the elapsed time by the rate per second.
+        // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
         return elapsedTime * _streams[streamId].ratePerSecond;
     }
 
@@ -461,14 +444,25 @@ contract SablierFlow is
         return _streams[streamId].balance - _withdrawableAmountOf(streamId, time);
     }
 
+    /// @notice Calculates the total debt at the provided time.
+    /// @dev The total debt is the sum of the snapshot debt and the ongoing debt. This value is independent of the
+    /// stream's balance.
+    function _totalDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+        // Calculate the ongoing debt streamed since last update.
+        uint128 ongoingDebt = _ongoingDebtOf(streamId, time);
+
+        // Calculate the total debt.
+        return _streams[streamId].snapshotDebt + ongoingDebt;
+    }
+
     /// @dev Calculates the stream debt.
-    function _streamDebtOf(uint256 streamId) internal view returns (uint128 debt) {
+    function _uncoveredDebtOf(uint256 streamId) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 
-        uint128 amountOwed = _amountOwedOf(streamId, uint40(block.timestamp));
+        uint128 totalDebt = _totalDebtOf(streamId, uint40(block.timestamp));
 
-        if (balance < amountOwed) {
-            debt = amountOwed - balance;
+        if (balance < totalDebt) {
+            return totalDebt - balance;
         } else {
             return 0;
         }
@@ -483,14 +477,14 @@ contract SablierFlow is
             return 0;
         }
 
-        uint128 amountOwed = _amountOwedOf(streamId, time);
+        uint128 totalDebt = _totalDebtOf(streamId, time);
 
         // If the stream balance is less than or equal to the amount owed, return the stream balance.
-        if (balance < amountOwed) {
+        if (balance < totalDebt) {
             return balance;
         }
 
-        return amountOwed;
+        return totalDebt;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -511,8 +505,8 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        // Effect: update the snapshot amount.
-        _updateSnapshotAmount(streamId);
+        // Effect: update the snapshot debt.
+        _updateSnapshotDebt(streamId);
 
         // Effect: set the new rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
@@ -522,7 +516,7 @@ contract SablierFlow is
 
         // Log the adjustment.
         emit ISablierFlow.AdjustFlowStream(
-            streamId, _streams[streamId].snapshotAmount, newRatePerSecond, oldRatePerSecond
+            streamId, _streams[streamId].snapshotDebt, newRatePerSecond, oldRatePerSecond
         );
     }
 
@@ -565,10 +559,10 @@ contract SablierFlow is
             isPaused: false,
             isStream: true,
             isTransferable: isTransferable,
-            snapshotTime: uint40(block.timestamp),
             ratePerSecond: ratePerSecond,
-            snapshotAmount: 0,
-            sender: sender
+            sender: sender,
+            snapshotDebt: 0,
+            snapshotTime: uint40(block.timestamp)
         });
 
         // Using unchecked arithmetic because this calculation can never realistically overflow.
@@ -646,8 +640,8 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
-        // Effect: update the snapshot amount.
-        _updateSnapshotAmount(streamId);
+        // Effect: update the snapshot debt.
+        _updateSnapshotDebt(streamId);
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
@@ -660,7 +654,7 @@ contract SablierFlow is
             streamId: streamId,
             recipient: _ownerOf(streamId),
             sender: _streams[streamId].sender,
-            amountOwed: _streams[streamId].snapshotAmount
+            amountOwed: _streams[streamId].snapshotDebt
         });
     }
 
@@ -676,7 +670,7 @@ contract SablierFlow is
 
         // Check: the refund amount is not greater than the refundable amount.
         if (amount > refundableAmount) {
-            revert Errors.SablierFlow_Overrefund(streamId, amount, refundableAmount);
+            revert Errors.SablierFlow_RefundOverflow(streamId, amount, refundableAmount);
         }
 
         // Although the refundable amount should never exceed the balance, this condition is checked
@@ -719,10 +713,10 @@ contract SablierFlow is
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
     }
 
-    /// @dev Update the snapshot amount by adding the ongoing amount streamed since the snapshot time.
-    function _updateSnapshotAmount(uint256 streamId) internal {
-        // Effect: update the snapshot amount.
-        _streams[streamId].snapshotAmount += _ongoingAmountOf(streamId, uint40(block.timestamp));
+    /// @dev Update the snapshot debt by adding the ongoing debt streamed since the snapshot time.
+    function _updateSnapshotDebt(uint256 streamId) internal {
+        // Effect: update the snapshot debt.
+        _streams[streamId].snapshotDebt += _ongoingDebtOf(streamId, uint40(block.timestamp));
     }
 
     /// @dev Updates the `snapshotTime` to the specified time.
@@ -732,11 +726,11 @@ contract SablierFlow is
 
     /// @dev Voids a stream with positive debt.
     function _void(uint256 streamId) internal {
-        uint128 debtToWriteOff = _streamDebtOf(streamId);
+        uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
 
         // Check: the stream has debt.
         if (debtToWriteOff == 0) {
-            revert Errors.SablierFlow_DebtZero(streamId);
+            revert Errors.SablierFlow_UncoveredDebtZero(streamId);
         }
 
         // Check: if `msg.sender` is either the stream's recipient or an approved third party.
@@ -747,13 +741,13 @@ contract SablierFlow is
         // The new amount owed will be set to the stream balance.
         uint128 balance = _streams[streamId].balance;
 
-        // Effect: update the amount owed by setting snapshot amount to stream balance.
-        _streams[streamId].snapshotAmount = balance;
+        // Effect: update the amount owed by setting snapshot debt to stream balance.
+        _streams[streamId].snapshotDebt = balance;
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = 0;
 
-        // Effect: set the stream as paused. This also sets the ongoing amount to zero.
+        // Effect: set the stream as paused. This also sets the ongoing debt to zero.
         _streams[streamId].isPaused = true;
 
         // Log the void.
@@ -782,25 +776,25 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawNoFundsAvailable(streamId);
         }
 
-        uint128 amountOwed = _amountOwedOf(streamId, time);
+        uint128 amountOwed = _totalDebtOf(streamId, time);
         uint128 withdrawAmount;
 
         // Safe to use unchecked because subtraction cannot underflow.
         unchecked {
-            // If there is debt, the withdraw amount is the balance, and the snapshot amount is updated so that we
+            // If there is debt, the withdraw amount is the balance, and the snapshot debt is updated so that we
             // don't lose track of the debt.
             if (amountOwed > balance) {
                 withdrawAmount = balance;
 
-                // Effect: update the snapshot amount.
-                _streams[streamId].snapshotAmount = amountOwed - balance;
+                // Effect: update the snapshot debt.
+                _streams[streamId].snapshotDebt = amountOwed - balance;
             }
-            // Otherwise, recipient can withdraw the full amount, and the snapshot amount must be set to zero.
+            // Otherwise, recipient can withdraw the full amount, and the snapshot debt must be set to zero.
             else {
                 withdrawAmount = amountOwed;
 
-                // Effect: set the snapshot amount to zero.
-                _streams[streamId].snapshotAmount = 0;
+                // Effect: set the snapshot debt to zero.
+                _streams[streamId].snapshotDebt = 0;
             }
         }
 

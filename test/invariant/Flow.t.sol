@@ -102,12 +102,12 @@ contract Flow_Invariant_Test is Base_Test {
         );
     }
 
-    /// @dev For any stream, if debt > 0, then the withdrawable amount should equal the stream balance.
+    /// @dev For any stream, if uncovered debt > 0, then the withdrawable amount should equal the stream balance.
     function invariant_Debt_WithdrawableAmountEqBalance() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            if (flow.streamDebtOf(streamId) > 0) {
+            if (flow.uncoveredDebtOf(streamId) > 0) {
                 assertEq(
                     flow.withdrawableAmountOf(streamId),
                     flow.getBalance(streamId),
@@ -117,15 +117,15 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev If rps > 0, and no additional deposits are made, then the debt should never decrease.
+    /// @dev If rps > 0, and no additional deposits are made, then the uncovered debt should never decrease.
     function invariant_DebtGt0_RpsGt0_DebtIncrease() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             if (flow.getRatePerSecond(streamId) > 0 && flowHandler.calls("deposit") == 0) {
                 assertGe(
-                    flow.streamDebtOf(streamId),
-                    flowHandler.previousDebtOf(streamId),
+                    flow.uncoveredDebtOf(streamId),
+                    flowHandler.previousUncoveredDebtOf(streamId),
                     "Invariant violation: debt should never decrease"
                 );
             }
@@ -170,48 +170,49 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev If there is no debt and the stream is paused, the withdrawable amount should always be equal to the
-    /// snapshot amount.
+    /// @dev If there is no uncovered debt and the stream is paused, the withdrawable amount should always be equal to
+    /// the
+    /// snapshot debt.
     function invariant_NoDebt_StreamedPaused_WithdrawableAmountEqSnapshotAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            if (flow.isPaused(streamId) && flow.streamDebtOf(streamId) == 0) {
+            if (flow.isPaused(streamId) && flow.uncoveredDebtOf(streamId) == 0) {
                 assertEq(
                     flow.withdrawableAmountOf(streamId),
-                    flow.getSnapshotAmount(streamId),
-                    "Invariant violation: paused stream withdrawable amount != snapshot amount"
+                    flow.getSnapshotDebt(streamId),
+                    "Invariant violation: paused stream withdrawable amount != snapshot debt"
                 );
             }
         }
     }
 
-    /// @dev If there is no debt and the stream is not paused, the withdrawable amount should always be equal to the
-    /// sum of snapshot amount and ongoing amount.
-    function invariant_NoDebt_WithdrawableAmountEqOngoingAmountPlusSnapshotAmount() external view {
+    /// @dev If there is no uncovered debt and the stream is not paused, the withdrawable amount should always be equal
+    /// to the sum of snapshot debt and ongoing debt.
+    function invariant_NoDebt_WithdrawableAmountEqOngoingDebtPlusSnapshotAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            if (!flow.isPaused(streamId) && flow.streamDebtOf(streamId) == 0) {
+            if (!flow.isPaused(streamId) && flow.uncoveredDebtOf(streamId) == 0) {
                 assertEq(
                     flow.withdrawableAmountOf(streamId),
-                    flow.ongoingAmountOf(streamId) + flow.getSnapshotAmount(streamId),
-                    "Invariant violation: withdrawable amount != ongoing amount + snapshot amount"
+                    flow.ongoingDebtOf(streamId) + flow.getSnapshotDebt(streamId),
+                    "Invariant violation: withdrawable amount != ongoing debt + snapshot debt"
                 );
             }
         }
     }
 
-    /// @dev If rps > 0, no withdraw is made, amount owed (i.e. streamed amount) should never decrease.
-    function invariant_RpsGt0_AmountOwedAlwaysIncrease() external view {
+    /// @dev If rps > 0, no withdraw is made, the total debt should always increase.
+    function invariant_RpsGt0_TotalDebtAlwaysIncreases() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             if (flow.getRatePerSecond(streamId) != 0 && flowHandler.calls("withdrawAt") == 0) {
                 assertGe(
-                    flow.amountOwedOf(streamId),
-                    flowHandler.previousAmountOwedOf(streamId),
-                    "Invariant violation: amount owed should be monotonically increasing"
+                    flow.totalDebtOf(streamId),
+                    flowHandler.previousTotalDebtOf(streamId),
+                    "Invariant violation: total debt should be monotonically increasing"
                 );
             }
         }

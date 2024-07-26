@@ -3,9 +3,9 @@ pragma solidity >=0.8.22;
 
 import { Integration_Test } from "../../Integration.t.sol";
 
-contract OngoingAmountOf_Integration_Concrete_Test is Integration_Test {
+contract OngoingDebtOf_Integration_Concrete_Test is Integration_Test {
     function test_RevertGiven_Null() external {
-        bytes memory callData = abi.encodeCall(flow.ongoingAmountOf, nullStreamId);
+        bytes memory callData = abi.encodeCall(flow.ongoingDebtOf, nullStreamId);
         expectRevert_Null(callData);
     }
 
@@ -13,8 +13,8 @@ contract OngoingAmountOf_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         // It should return zero.
-        uint128 ongoingAmount = flow.ongoingAmountOf(defaultStreamId);
-        assertEq(ongoingAmount, 0, "ongoing amount");
+        uint128 ongoingDebt = flow.ongoingDebtOf(defaultStreamId);
+        assertEq(ongoingDebt, 0, "ongoing debt");
     }
 
     function test_WhenSnapshotTimeInPresent() external givenNotNull givenNotPaused {
@@ -22,13 +22,13 @@ contract OngoingAmountOf_Integration_Concrete_Test is Integration_Test {
         updateLastTimeToBlockTimestamp(defaultStreamId);
 
         // It should return zero.
-        uint128 ongoingAmount = flow.ongoingAmountOf(defaultStreamId);
-        assertEq(ongoingAmount, 0, "ongoing amount");
+        uint128 ongoingDebt = flow.ongoingDebtOf(defaultStreamId);
+        assertEq(ongoingDebt, 0, "ongoing debt");
     }
 
     function test_WhenSnapshotTimeInPast() external view givenNotNull givenNotPaused {
-        // It should return the correct ongoing amount.
-        uint128 ongoingAmount = flow.ongoingAmountOf(defaultStreamId);
-        assertEq(ongoingAmount, ONE_MONTH_STREAMED_AMOUNT, "ongoing amount");
+        // It should return the correct ongoing debt.
+        uint128 ongoingDebt = flow.ongoingDebtOf(defaultStreamId);
+        assertEq(ongoingDebt, ONE_MONTH_STREAMED_AMOUNT, "ongoing debt");
     }
 }

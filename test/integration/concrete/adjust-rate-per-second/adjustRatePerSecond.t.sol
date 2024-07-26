@@ -88,9 +88,9 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         uint40 expectedSnapshotTime = getBlockTimestamp() - ONE_MONTH;
         assertEq(actualSnapshotTime, expectedSnapshotTime, "snapshot time");
 
-        uint128 actualSnapshotAmount = flow.getSnapshotAmount(defaultStreamId);
-        uint128 expectedSnapshotAmount = 0;
-        assertEq(actualSnapshotAmount, expectedSnapshotAmount, "snapshot amount");
+        uint128 actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
+        uint128 expectedSnapshotDebt = 0;
+        assertEq(actualSnapshotDebt, expectedSnapshotDebt, "snapshot debt");
 
         uint128 newRatePerSecond = RATE_PER_SECOND / 2;
 
@@ -108,10 +108,10 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
 
         flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: newRatePerSecond });
 
-        // It should update snapshot amount.
-        actualSnapshotAmount = flow.getSnapshotAmount(defaultStreamId);
-        expectedSnapshotAmount = ONE_MONTH_STREAMED_AMOUNT;
-        assertEq(actualSnapshotAmount, expectedSnapshotAmount, "snapshot amount");
+        // It should update snapshot debt.
+        actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
+        expectedSnapshotDebt = ONE_MONTH_STREAMED_AMOUNT;
+        assertEq(actualSnapshotDebt, expectedSnapshotDebt, "snapshot debt");
 
         // It should set the new rate per second
         actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);

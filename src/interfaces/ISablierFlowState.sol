@@ -42,11 +42,6 @@ interface ISablierFlowState is
     /// @param streamId The stream ID for the query.
     function getBalance(uint256 streamId) external view returns (uint128 balance);
 
-    /// @notice Retrieves the snapshot time of the stream, which is a Unix timestamp.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The ID of the stream to make the query for.
-    function getSnapshotTime(uint256 streamId) external view returns (uint40 snapshotTime);
-
     /// @notice Retrieves the rate per second of the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The ID of the stream to make the query for.
@@ -57,15 +52,20 @@ interface ISablierFlowState is
     /// @param streamId The stream ID for the query.
     function getRecipient(uint256 streamId) external view returns (address recipient);
 
-    /// @notice Retrieves the snapshot amount of the stream, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The stream ID for the query.
-    function getSnapshotAmount(uint256 streamId) external view returns (uint128 snapshotAmount);
-
     /// @notice Retrieves the stream's sender.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function getSender(uint256 streamId) external view returns (address sender);
+
+    /// @notice Retrieves the snapshot debt of the stream, denoted in 18 decimals.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    function getSnapshotDebt(uint256 streamId) external view returns (uint128 snapshotDebt);
+
+    /// @notice Retrieves the snapshot time of the stream, which is a Unix timestamp.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The ID of the stream to make the query for.
+    function getSnapshotTime(uint256 streamId) external view returns (uint40 snapshotTime);
 
     /// @notice Retrieves the stream entity.
     /// @dev Reverts if `streamId` references a null stream.

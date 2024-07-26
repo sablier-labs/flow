@@ -28,7 +28,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenAmountOwedExceedsBalance() external givenNotNull givenBalanceNotZero {
-        // Simulate the passage of time until debt begins.
+        // Simulate the passage of time until debt becomes uncovered.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
 
         uint128 balance = flow.getBalance(defaultStreamId);

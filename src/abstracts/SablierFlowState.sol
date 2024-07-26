@@ -136,16 +136,16 @@ abstract contract SablierFlowState is
     }
 
     /// @inheritdoc ISablierFlowState
-    function getSnapshotAmount(
+    function getSnapshotDebt(
         uint256 streamId
     )
         external
         view
         override
         notNull(streamId)
-        returns (uint128 snapshotAmount)
+        returns (uint128 snapshotDebt)
     {
-        snapshotAmount = _streams[streamId].snapshotAmount;
+        snapshotDebt = _streams[streamId].snapshotDebt;
     }
 
     /// @inheritdoc ISablierFlowState

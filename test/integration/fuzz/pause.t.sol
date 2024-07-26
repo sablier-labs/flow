@@ -70,7 +70,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             streamId: streamId,
             recipient: users.recipient,
             sender: users.sender,
-            amountOwed: flow.amountOwedOf(streamId)
+            amountOwed: flow.totalDebtOf(streamId)
         });
 
         vm.expectEmit({ emitter: address(flow) });

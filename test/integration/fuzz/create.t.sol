@@ -69,7 +69,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.getSnapshotTime(actualStreamId), getBlockTimestamp());
         assertEq(flow.getRatePerSecond(actualStreamId), ratePerSecond);
         assertEq(flow.getRecipient(actualStreamId), recipient);
-        assertEq(flow.getSnapshotAmount(actualStreamId), 0);
+        assertEq(flow.getSnapshotDebt(actualStreamId), 0);
         assertEq(flow.getSender(actualStreamId), sender);
         assertEq(flow.isPaused(actualStreamId), false);
         assertEq(flow.isStream(actualStreamId), true);

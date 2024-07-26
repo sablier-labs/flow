@@ -49,7 +49,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
     {
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierFlow_Overrefund.selector,
+                Errors.SablierFlow_RefundOverflow.selector,
                 defaultStreamId,
                 DEPOSIT_AMOUNT,
                 DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT

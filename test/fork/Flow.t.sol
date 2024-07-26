@@ -186,15 +186,15 @@ contract Flow_Fork_Test is Fork_Test {
             newRatePerSecond += 1;
         }
 
-        uint128 beforeSnapshotAmount = flow.getSnapshotAmount(streamId);
-        uint128 amountOwed = flow.amountOwedOf(streamId);
-        uint128 ongoingAmountOwed = flow.ongoingAmountOf(streamId);
+        uint128 beforeSnapshotAmount = flow.getSnapshotDebt(streamId);
+        uint128 totalDebt = flow.totalDebtOf(streamId);
+        uint128 ongoingDebt = flow.ongoingDebtOf(streamId);
 
         // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
         emit AdjustFlowStream({
             streamId: streamId,
-            amountOwed: amountOwed,
+            amountOwed: totalDebt,
             newRatePerSecond: newRatePerSecond,
             oldRatePerSecond: flow.getRatePerSecond(streamId)
         });
@@ -204,10 +204,10 @@ contract Flow_Fork_Test is Fork_Test {
 
         flow.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });
 
-        // It should update snapshot amount.
-        uint128 actualSnapshotAmount = flow.getSnapshotAmount(streamId);
-        uint128 expectedSnapshotAmount = ongoingAmountOwed + beforeSnapshotAmount;
-        assertEq(actualSnapshotAmount, expectedSnapshotAmount, "snapshot amount");
+        // It should update snapshot debt.
+        uint128 actualSnapshotDebt = flow.getSnapshotDebt(streamId);
+        uint128 expectedSnapshotDebt = ongoingDebt + beforeSnapshotAmount;
+        assertEq(actualSnapshotDebt, expectedSnapshotDebt, "snapshot debt");
 
         // It should set the new rate per second
         uint128 actualRatePerSecond = flow.getRatePerSecond(streamId);
@@ -261,7 +261,7 @@ contract Flow_Fork_Test is Fork_Test {
             isTransferable: isTransferable,
             snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond,
-            snapshotAmount: 0,
+            snapshotDebt: 0,
             sender: sender
         });
 
@@ -343,7 +343,7 @@ contract Flow_Fork_Test is Fork_Test {
             streamId: streamId,
             recipient: flow.getRecipient(streamId),
             sender: flow.getSender(streamId),
-            amountOwed: flow.amountOwedOf(streamId)
+            amountOwed: flow.totalDebtOf(streamId)
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -372,7 +372,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // If the refundable amount less than 1, deposit some funds.
         if (flow.refundableAmountOf(streamId) <= 1) {
-            uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.streamDebtOf(streamId), assetDecimals);
+            uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
             depositOnStream(streamId, transferAmount);
         }
 
@@ -451,7 +451,7 @@ contract Flow_Fork_Test is Fork_Test {
         // Make sure the requirements are respected.
         address recipient = flow.getRecipient(streamId);
         address sender = flow.getSender(streamId);
-        uint128 streamDebt = flow.streamDebtOf(streamId);
+        uint128 streamDebt = flow.uncoveredDebtOf(streamId);
 
         if (streamDebt == 0) {
             resetPrank({ msgSender: sender });
@@ -471,7 +471,7 @@ contract Flow_Fork_Test is Fork_Test {
             }
 
             vm.warp({ newTimestamp: getBlockTimestamp() + 100 seconds });
-            streamDebt = flow.streamDebtOf(streamId);
+            streamDebt = flow.uncoveredDebtOf(streamId);
         }
 
         resetPrank({ msgSender: recipient });
@@ -485,7 +485,7 @@ contract Flow_Fork_Test is Fork_Test {
             recipient: recipient,
             sender: sender,
             newAmountOwed: beforeVoidBalance,
-            writenoffDebt: streamDebt
+            writtenOffDebt: streamDebt
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -500,7 +500,7 @@ contract Flow_Fork_Test is Fork_Test {
         assertTrue(flow.isPaused(streamId), "paused");
 
         // It should update the amount owed to stream balance.
-        assertEq(flow.amountOwedOf(streamId), beforeVoidBalance, "amount owed");
+        assertEq(flow.totalDebtOf(streamId), beforeVoidBalance, "amount owed");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -515,14 +515,14 @@ contract Flow_Fork_Test is Fork_Test {
 
         uint128 streamBalance = flow.getBalance(streamId);
         if (streamBalance == 0) {
-            uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.streamDebtOf(streamId), assetDecimals);
+            uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
             depositOnStream(streamId, transferAmount);
             streamBalance = flow.getBalance(streamId);
         }
 
-        uint128 amountOwed = flow.amountOwedOf(streamId);
+        uint128 amountOwed = flow.totalDebtOf(streamId);
         uint256 assetbalance = asset.balanceOf(address(flow));
-        uint128 expectedWithdrawAmount = flow.getSnapshotAmount(streamId)
+        uint128 expectedWithdrawAmount = flow.getSnapshotDebt(streamId)
             + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
 
         if (streamBalance < expectedWithdrawAmount) {
@@ -552,7 +552,7 @@ contract Flow_Fork_Test is Fork_Test {
         assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
         // It should decrease the full amount owed by withdrawn value.
-        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
         uint128 expectedAmountOwed = amountOwed - expectedWithdrawAmount;
         assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
 

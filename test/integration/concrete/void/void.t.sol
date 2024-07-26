@@ -26,13 +26,13 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    function test_RevertGiven_StreamHasNoDebt() external whenNoDelegateCall givenNotNull {
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_DebtZero.selector, defaultStreamId));
+    function test_RevertGiven_StreamHasNoUncoveredDebt() external whenNoDelegateCall givenNotNull {
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_UncoveredDebtZero.selector, defaultStreamId));
         flow.void(defaultStreamId);
     }
 
-    modifier givenStreamHasDebt() {
-        // Simulate the passage of time to accumulate debt for one month.
+    modifier givenStreamHasUncoveredDebt() {
+        // Simulate the passage of time to accumulate uncovered debt for one month.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + ONE_MONTH });
 
         _;
@@ -42,7 +42,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        givenStreamHasDebt
+        givenStreamHasUncoveredDebt
         whenCallerNotRecipient
     {
         bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
@@ -53,7 +53,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        givenStreamHasDebt
+        givenStreamHasUncoveredDebt
         whenCallerNotRecipient
     {
         bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
@@ -64,7 +64,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        givenStreamHasDebt
+        givenStreamHasUncoveredDebt
         whenCallerNotRecipient
     {
         // Approve the operator to handle the stream.
@@ -77,14 +77,14 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         _test_Void();
     }
 
-    function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasDebt {
+    function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasUncoveredDebt {
         // It should void the stream.
         _test_Void();
     }
 
     function _test_Void() private {
         uint128 streamBalance = flow.getBalance(defaultStreamId);
-        uint128 debt = flow.streamDebtOf(defaultStreamId);
+        uint128 uncoveredDebt = flow.uncoveredDebtOf(defaultStreamId);
 
         // It should emit 1 {VoidFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
@@ -93,7 +93,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             sender: users.sender,
             newAmountOwed: streamBalance,
-            writenoffDebt: debt
+            writtenOffDebt: uncoveredDebt
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -108,6 +108,6 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         assertTrue(flow.isPaused(defaultStreamId), "paused");
 
         // It should update the amount owed to stream balance.
-        assertEq(flow.amountOwedOf(defaultStreamId), streamBalance, "amount owed");
+        assertEq(flow.totalDebtOf(defaultStreamId), streamBalance, "total debt");
     }
 }

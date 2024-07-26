@@ -34,7 +34,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(asset) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
 
-        uint128 expectedAmountOwed = flow.amountOwedOf(streamId);
+        uint128 expectedAmountOwed = flow.totalDebtOf(streamId);
         uint128 expectedStreamBalance = flow.getBalance(streamId);
         uint256 expectedAssetBalance = asset.balanceOf(address(flow));
 
@@ -46,7 +46,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
         assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
 
-        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
         assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
 
         uint128 actualStreamBalance = flow.getBalance(streamId);
@@ -130,7 +130,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     // Shared private function.
     function _test_WithdrawMax(address withdrawTo, uint256 streamId, uint8 decimals) private {
-        uint128 amountOwed = flow.amountOwedOf(streamId);
+        uint128 amountOwed = flow.totalDebtOf(streamId);
         uint256 assetbalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 expectedWithdrawAmount = flow.withdrawableAmountOf(streamId);
@@ -156,7 +156,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.getSnapshotTime(streamId), getBlockTimestamp(), "snapshot time");
 
         // It should decrease the full amount owed by withdrawn value.
-        uint128 actualAmountOwed = flow.amountOwedOf(streamId);
+        uint128 actualAmountOwed = flow.totalDebtOf(streamId);
         uint128 expectedAmountOwed = amountOwed - expectedWithdrawAmount;
         assertEq(actualAmountOwed, expectedAmountOwed, "full amount owed");
 

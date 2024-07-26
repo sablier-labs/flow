@@ -1,4 +1,4 @@
-OngoingAmountOf_Integration_Concrete_Test
+OngoingDebtOf_Integration_Concrete_Test
 ├── given null
 │  └── it should revert
 └── given not null
@@ -8,4 +8,4 @@ OngoingAmountOf_Integration_Concrete_Test
       ├── when snapshot time in present
       │  └── it should return zero
       └── when snapshot time in past
-         └── it should return the correct ongoing amount
+         └── it should return the correct ongoing debt

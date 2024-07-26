@@ -2,17 +2,17 @@
 
 ### Types
 
-| Type      | Statuses                                   | Description                                                   |
-| :-------- | :----------------------------------------- | :------------------------------------------------------------ |
-| Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT` | The amount owed to the recipient is increasing over time.     |
-| Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`       | The amount owed to the recipient is not increasing over time. |
+| Type      | Statuses                                   | Description           |
+| :-------- | :----------------------------------------- | :-------------------- |
+| Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT` | Debt is accruing.     |
+| Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`       | Debt is not accruing. |
 
-| Status                | Description                             |
-| --------------------- | --------------------------------------- |
-| `STREAMING_SOLVENT`   | Streaming stream when there is no debt. |
-| `STREAMING_INSOLVENT` | Streaming stream when there is debt.    |
-| `PAUSED_SOLVENT`      | Paused stream when there is no debt.    |
-| `PAUSED_INSOLVENT`    | Paused stream when there is debt.       |
+| Status                | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt. |
+| `STREAMING_INSOLVENT` | Streaming stream when there is no uncovered debt. |
+| `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.    |
+| `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.       |
 
 ### Statuses diagram
 
@@ -162,13 +162,13 @@ flowchart LR
 
 ## Amount Calculations
 
-### Ongoing Amount
+### Ongoing Debt
 
 **Notes:** `now` refers to `block.timestamp`.
 
 ```mermaid
 flowchart TD
-rca([Ongoing Amount - oa]):::green1
+rca([Ongoing Debt - od]):::green1
 di0{ }:::green0
 di1{ }:::green0
 res_00([0 ]):::green1
@@ -207,8 +207,8 @@ flowchart TD
     wa --> di0
     di0 -- "bal = 0" --> res_0
     di0 -- "bal > 0" --> di1
-    di1 -- "debt > 0" --> res_bal
-    di1 -- "debt = 0" --> di2
+    di1 -- "ud > 0" --> res_bal
+    di1 -- "ud = 0" --> di2
     di2 -- "paused" --> res_ra
     di2 -- "streaming" --> res_sum
 

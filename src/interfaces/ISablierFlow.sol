@@ -17,12 +17,11 @@ interface ISablierFlow is
 
     /// @notice Emitted when the sender changes the rate per second.
     /// @param streamId The ID of the stream.
-    /// @param amountOwed The amount of assets owed by the sender to the recipient, including debt, denoted in 18
-    /// decimals.
+    /// @param totalDebt The amount of assets owed by the sender to the recipient, denoted in 18 decimals.
     /// @param newRatePerSecond The newly changed rate per second, denoted in 18 decimals.
     /// @param oldRatePerSecond The rate per second to change, denoted in 18 decimals.
     event AdjustFlowStream(
-        uint256 indexed streamId, uint128 amountOwed, uint128 newRatePerSecond, uint128 oldRatePerSecond
+        uint256 indexed streamId, uint128 totalDebt, uint128 newRatePerSecond, uint128 oldRatePerSecond
     );
 
     /// @notice Emitted when a Flow stream is created.
@@ -30,7 +29,7 @@ interface ISablierFlow is
     /// @param asset The contract address of the ERC-20 asset to stream.
     /// @param sender The address from which to stream the assets, which has the ability to adjust and pause the stream.
     /// @param recipient The address toward which to stream the assets.
-    /// @param snapshotTime The Unix timestamp for the ongoing amount calculation.
+    /// @param snapshotTime The Unix timestamp for the ongoing debt calculation.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
     event CreateFlowStream(
         uint256 indexed streamId,
@@ -72,9 +71,9 @@ interface ISablierFlow is
     /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
     /// @param newAmountOwed The updated amount of assets owed by the sender to the recipient, denoted in 18  decimals.
-    /// @param writenoffDebt The debt amount written-off by the recipient.
+    /// @param writtenOffDebt The debt amount written-off by the recipient.
     event VoidFlowStream(
-        uint256 indexed streamId, address recipient, address sender, uint128 newAmountOwed, uint128 writenoffDebt
+        uint256 indexed streamId, address recipient, address sender, uint128 newAmountOwed, uint128 writtenOffDebt
     );
 
     /// @notice Emitted when assets are withdrawn from a Flow stream.
@@ -86,12 +85,6 @@ interface ISablierFlow is
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Returns the amount owed by the sender to the recipient, including debt, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` refers to a null stream.
-    /// @param streamId The stream ID for the query.
-    /// @return amountOwed The amount owed by the sender to the recipient.
-    function amountOwedOf(uint256 streamId) external view returns (uint128 amountOwed);
 
     /// @notice Returns the timestamp at which the stream depletes its balance and starts to accumulate debt.
     /// @dev Reverts if `streamId` refers to a paused or a null stream.
@@ -105,12 +98,18 @@ interface ISablierFlow is
     /// @return depletionTime The UNIX timestamp.
     function depletionTimeOf(uint256 streamId) external view returns (uint40 depletionTime);
 
-    /// @notice Calculates the ongoing amount streamed to the recipient from the snapshot time until the current
+    /// @notice Calculates the ongoing debt streamed to the recipient from the snapshot time until the current
     /// timestamp, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
-    /// @return ongoingAmount The ongoing amount from the snapshot time until the current timestamp.
-    function ongoingAmountOf(uint256 streamId) external view returns (uint128 ongoingAmount);
+    /// @return ongoingDebt The ongoing debt from the snapshot time until the current timestamp.
+    function ongoingDebtOf(uint256 streamId) external view returns (uint128 ongoingDebt);
+
+    /// @notice Returns the amount owed by the sender to the recipient, including debt, denoted in 18 decimals.
+    /// @dev Reverts if `streamId` refers to a null stream.
+    /// @param streamId The stream ID for the query.
+    /// @return amountOwed The amount owed by the sender to the recipient.
+    function totalDebtOf(uint256 streamId) external view returns (uint128 amountOwed);
 
     /// @notice Calculates the amount that the sender can refund from stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
@@ -128,7 +127,7 @@ interface ISablierFlow is
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     /// @return debt The amount that the sender owes on the stream.
-    function streamDebtOf(uint256 streamId) external view returns (uint128 debt);
+    function uncoveredDebtOf(uint256 streamId) external view returns (uint128 debt);
 
     /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
@@ -146,7 +145,7 @@ interface ISablierFlow is
     ///
     /// Notes:
     /// - It updates `snapshotTime` to the current block timestamp.
-    /// - It updates the snapshot amount by adding up ongoing amount.
+    /// - It updates the snapshot debt by adding up ongoing debt.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -311,7 +310,7 @@ interface ISablierFlow is
     ///
     /// Notes:
     /// - It does not update `snapshotTime` to the current block timestamp.
-    /// - It updates the snapshot amount by adding up ongoing amount.
+    /// - It updates the snapshot debt by adding up ongoing debt.
     /// - It sets rate per second to zero.
     ///
     /// Requirements:
@@ -394,7 +393,7 @@ interface ISablierFlow is
     /// @dev Emits a {VoidFlowStream} event.
     ///
     /// Notes:
-    /// - It sets the snapshot amount to stream balance so that the stream debt becomes zero.
+    /// - It sets the snapshot debt to stream balance so that the stream debt becomes zero.
     /// - It sets rate per second to zero.
     ///
     /// Requirements:
@@ -409,7 +408,7 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external;
 
-    /// @notice Withdraws the amount of assets calculated based on time reference and the snapshot amount, from the
+    /// @notice Withdraws the amount of assets calculated based on time reference and the snapshot debt, from the
     /// stream to the provided `to` address.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
@@ -418,10 +417,10 @@ interface ISablierFlow is
     /// - It sets `snapshotTime` to the `time` specified.
     /// - If stream balance is less than the amount owed at `time`:
     ///   - It withdraws the full balance.
-    ///   - It sets the snapshot amount to the amount owed minus the stream balance.
+    ///   - It sets the snapshot debt to the amount owed minus the stream balance.
     /// - If stream balance is greater than the amount owed at `time`:
     ///   - It withdraws the amount owed at `time`.
-    ///   - It sets the snapshot amount to zero.
+    ///   - It sets the snapshot debt to zero.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -433,7 +432,7 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
-    /// @param time The Unix timestamp to calculate the ongoing amount since the snapshot time.
+    /// @param time The Unix timestamp to calculate the ongoing debt since the snapshot time.
     ///
     /// @return transferAmount The amount transferred to the recipient, denoted in asset's decimals.
     function withdrawAt(uint256 streamId, address to, uint40 time) external returns (uint128 transferAmount);

@@ -17,14 +17,14 @@ struct Broker {
 library Flow {
     /// @notice Enum representing the different statuses of a stream.
     ///
-    /// @dev There are two types of streams:
+    /// @dev Explanations for the two types of streams:
     /// 1. Streaming: when the amount owed to the recipient is increasing over time.
     /// 2. Paused: when the amount owed to the recipient is not increasing over time.
     ///
-    /// @custom:value0 STREAMING_SOLVENT Streaming stream when there is no debt.
-    /// @custom:value1 STREAMING_INSOLVENT Streaming stream when there is debt.
-    /// @custom:value2 PAUSED_SOLVENT Paused stream when there is no debt.
-    /// @custom:value3 PAUSED_INSOLVENT Paused stream when there is debt.
+    /// @custom:value0 STREAMING_SOLVENT Streaming stream when there is no uncovered debt.
+    /// @custom:value1 STREAMING_INSOLVENT Streaming stream when there is uncovered debt.
+    /// @custom:value2 PAUSED_SOLVENT Paused stream when there is no uncovered debt.
+    /// @custom:value3 PAUSED_INSOLVENT Paused stream when there is uncovered debt.
     enum Status {
         // Streaming
         STREAMING_SOLVENT,
@@ -42,17 +42,14 @@ library Flow {
     /// deposited amounts minus the sum of withdrawn amounts, denoted in 18 decimals.
     /// @param ratePerSecond The payment rate per second, denoted in 18 decimals.
     /// @param sender The address streaming the assets, with the ability to pause the stream.
-    /// @param snapshotTime The Unix timestamp used for the ongoing amount calculation.
+    /// @param snapshotTime The Unix timestamp used for the ongoing debt calculation.
     /// @param isStream Boolean indicating if the struct entity exists.
     /// @param isPaused Boolean indicating if the stream is paused.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @param asset The contract address of the ERC-20 asset to stream.
     /// @param assetDecimals The decimals of the ERC-20 asset to stream.
-    /// @param snapshotAmount The amount of assets that the sender owes to the recipient at snapshot time, denoted in 18
-    /// decimals. This, along with the ongoing amount, can be used to calculate the total amount owed to the recipient
-    /// at any given point in time. In case of debt, this amount is subtracted by the balance when a withdrawal happens,
-    /// otherwise, it is set to zero. This amount is increased when the stream is paused or the `ratePerSecond` is
-    /// adjusted.
+    /// @param snapshotDebt The amount of assets that the sender owed to the recipient at snapshot time, denoted in 18
+    /// decimals. This, along with the ongoing debt, can be used to calculate the total debt at any given point in time.
     struct Stream {
         // slot 0
         uint128 balance;
@@ -67,6 +64,6 @@ library Flow {
         IERC20 asset;
         uint8 assetDecimals;
         // slot 3
-        uint128 snapshotAmount;
+        uint128 snapshotDebt;
     }
 }

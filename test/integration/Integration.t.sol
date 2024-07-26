@@ -68,7 +68,7 @@ abstract contract Integration_Test is Base_Test {
             isStream: true,
             isTransferable: IS_TRANFERABLE,
             ratePerSecond: RATE_PER_SECOND,
-            snapshotAmount: 0,
+            snapshotDebt: 0,
             sender: users.sender
         });
     }
