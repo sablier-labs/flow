@@ -18,19 +18,19 @@ interface ISablierFlow is
     /// @notice Emitted when the sender changes the rate per second.
     /// @param streamId The ID of the stream.
     /// @param totalDebt The amount of assets owed by the sender to the recipient, denoted in 18 decimals.
-    /// @param newRatePerSecond The newly changed rate per second, denoted in 18 decimals.
-    /// @param oldRatePerSecond The rate per second to change, denoted in 18 decimals.
+    /// @param oldRatePerSecond The old rate per second, denoted in 18 decimals.
+    /// @param newRatePerSecond The new rate per second, denoted in 18 decimals.
     event AdjustFlowStream(
-        uint256 indexed streamId, uint128 totalDebt, uint128 newRatePerSecond, uint128 oldRatePerSecond
+        uint256 indexed streamId, uint128 totalDebt, uint128 oldRatePerSecond, uint128 newRatePerSecond
     );
 
     /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
     /// @param asset The contract address of the ERC-20 asset to stream.
     /// @param sender The address from which to stream the assets, which has the ability to adjust and pause the stream.
-    /// @param recipient The address toward which to stream the assets.
+    /// @param recipient The address receiving the assets, as well as the NFT owner.
     /// @param snapshotTime The Unix timestamp for the ongoing debt calculation.
-    /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
+    /// @param ratePerSecond The amount of assets by which the debt is increasing every second, denoted in 18 decimals.
     event CreateFlowStream(
         uint256 indexed streamId,
         IERC20 indexed asset,
@@ -42,37 +42,43 @@ interface ISablierFlow is
 
     /// @notice Emitted when a Flow stream is funded.
     /// @param streamId The ID of the Flow stream.
-    /// @param funder The address which funded the stream.
+    /// @param funder The address that made the deposit.
     /// @param depositAmount The amount of assets deposited into the stream, denoted in 18 decimals.
     event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
 
     /// @notice Emitted when a Flow stream is paused.
     /// @param streamId The ID of the Flow stream.
-    /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
+    /// @param recipient The address of the stream's recipient.
     /// @param totalDebt The amount of assets owed by the sender to the recipient, denoted in 18 decimals.
-    event PauseFlowStream(uint256 indexed streamId, address recipient, address sender, uint128 totalDebt);
+    event PauseFlowStream(
+        uint256 indexed streamId, address indexed sender, address indexed recipient, uint128 totalDebt
+    );
 
-    /// @notice Emitted when assets are refunded from a Flow stream.
+    /// @notice Emitted when the sender is refunded assets from the stream.
     /// @param streamId The ID of the Flow stream.
     /// @param sender The address of the stream's sender.
     /// @param refundAmount The amount of assets refunded to the sender, denoted in 18 decimals.
     event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
 
-    /// @notice Emitted when a Flow stream is re-started.
+    /// @notice Emitted when a Flow stream is restarted.
     /// @param streamId The ID of the Flow stream.
     /// @param sender The address of the stream's sender.
     /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
-    event RestartFlowStream(uint256 indexed streamId, address sender, uint128 ratePerSecond);
+    event RestartFlowStream(uint256 indexed streamId, address indexed sender, uint128 ratePerSecond);
 
     /// @notice Emitted when a Flow stream is voided by the recipient.
     /// @param streamId The ID of the stream.
-    /// @param recipient The address of the stream's recipient.
     /// @param sender The address of the stream's sender.
-    /// @param newTotalDebt The updated amount of assets owed by the sender to the recipient, denoted in 18  decimals.
-    /// @param writtenOffDebt The debt amount written-off by the recipient.
+    /// @param recipient The address of the stream's recipient.
+    /// @param newTotalDebt The new total debt, denoted in 18  decimals.
+    /// @param writtenOffDebt The amount of debt written off by the recipient.
     event VoidFlowStream(
-        uint256 indexed streamId, address recipient, address sender, uint128 newTotalDebt, uint128 writtenOffDebt
+        uint256 indexed streamId,
+        address indexed sender,
+        address indexed recipient,
+        uint128 newTotalDebt,
+        uint128 writtenOffDebt
     );
 
     /// @notice Emitted when assets are withdrawn from a Flow stream.
@@ -85,30 +91,18 @@ interface ISablierFlow is
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Returns the timestamp at which the stream depletes its balance and starts to accumulate debt.
+    /// @notice Returns the timestamp at which the stream will deplete its balance and start to accumulate uncovered
+    /// debt. If there already is uncovered debt, it returns zero.
     /// @dev Reverts if `streamId` refers to a paused or a null stream.
-    ///
-    /// Notes:
-    /// - If the stream has no debt, it returns the timestamp when the debt begins based on current balance and
-    /// rate per second.
-    /// - If the stream has debt, it returns 0.
-    ///
     /// @param streamId The stream ID for the query.
     /// @return depletionTime The UNIX timestamp.
     function depletionTimeOf(uint256 streamId) external view returns (uint40 depletionTime);
 
-    /// @notice Calculates the ongoing debt streamed to the recipient from the snapshot time until the current
-    /// timestamp, denoted in 18 decimals.
+    /// @notice Calculates the ongoing debt since the snapshot time until the current time, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     /// @return ongoingDebt The ongoing debt from the snapshot time until the current timestamp.
     function ongoingDebtOf(uint256 streamId) external view returns (uint128 ongoingDebt);
-
-    /// @notice Returns the amount owed by the sender to the recipient, including debt, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` refers to a null stream.
-    /// @param streamId The stream ID for the query.
-    /// @return totalDebt The amount owed by the sender to the recipient.
-    function totalDebtOf(uint256 streamId) external view returns (uint128 totalDebt);
 
     /// @notice Calculates the amount that the sender can refund from stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
@@ -120,6 +114,12 @@ interface ISablierFlow is
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function statusOf(uint256 streamId) external view returns (Flow.Status status);
+
+    /// @notice Returns the amount owed by the sender to the recipient, including debt, denoted in 18 decimals.
+    /// @dev Reverts if `streamId` refers to a null stream.
+    /// @param streamId The stream ID for the query.
+    /// @return totalDebt The amount owed by the sender to the recipient, denoted in 18 decimals.
+    function totalDebtOf(uint256 streamId) external view returns (uint128 totalDebt);
 
     /// @notice Calculates the amount that the sender owes on the stream, i.e. if more assets have been streamed than
     /// its balance, denoted in 18 decimals. If there is no debt, it will return zero.
@@ -140,7 +140,7 @@ interface ISablierFlow is
 
     /// @notice Changes the stream's rate per second.
     ///
-    /// @dev Emits a {Transfer} and {AdjustFlowStream} event.
+    /// @dev Emits a {Transfer} and a {AdjustFlowStream} event.
     ///
     /// Notes:
     /// - It updates `snapshotTime` to the current block timestamp.

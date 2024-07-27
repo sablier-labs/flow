@@ -33,7 +33,7 @@ abstract contract Events {
     //////////////////////////////////////////////////////////////////////////*/
 
     event AdjustFlowStream(
-        uint256 indexed streamId, uint128 totalDebt, uint128 newRatePerSecond, uint128 oldRatePerSecond
+        uint256 indexed streamId, uint128 totalDebt, uint128 oldRatePerSecond, uint128 newRatePerSecond
     );
 
     event CreateFlowStream(
@@ -47,14 +47,20 @@ abstract contract Events {
 
     event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
 
-    event PauseFlowStream(uint256 indexed streamId, address recipient, address sender, uint128 totalDebt);
+    event PauseFlowStream(
+        uint256 indexed streamId, address indexed sender, address indexed recipient, uint128 totalDebt
+    );
 
     event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
 
-    event RestartFlowStream(uint256 indexed streamId, address sender, uint128 ratePerSecond);
+    event RestartFlowStream(uint256 indexed streamId, address indexed sender, uint128 ratePerSecond);
 
     event VoidFlowStream(
-        uint256 indexed streamId, address recipient, address sender, uint128 newTotalDebt, uint128 writtenOffDebt
+        uint256 indexed streamId,
+        address indexed sender,
+        address indexed recipient,
+        uint128 newTotalDebt,
+        uint128 writtenOffDebt
     );
 
     event WithdrawFromFlowStream(uint256 indexed streamId, address indexed to, uint128 withdrawnAmount);

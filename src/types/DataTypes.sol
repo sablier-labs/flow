@@ -38,13 +38,13 @@ library Flow {
     ///
     /// @dev The fields are arranged like this to save gas via tight variable packing.
     ///
-    /// @param balance The amount of assets that are currently available in the stream, i.e., the sum of
-    /// deposited amounts minus the sum of withdrawn amounts, denoted in 18 decimals.
+    /// @param balance The amount of assets that are currently available in the stream, denoted in 18 decimals.
+    /// This is the sum of deposited amounts minus the sum of withdrawn amounts.
     /// @param ratePerSecond The payment rate per second, denoted in 18 decimals.
     /// @param sender The address streaming the assets, with the ability to pause the stream.
     /// @param snapshotTime The Unix timestamp used for the ongoing debt calculation.
-    /// @param isStream Boolean indicating if the struct entity exists.
     /// @param isPaused Boolean indicating if the stream is paused.
+    /// @param isStream Boolean indicating if the struct entity exists.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @param asset The contract address of the ERC-20 asset to stream.
     /// @param assetDecimals The decimals of the ERC-20 asset to stream.
@@ -57,8 +57,8 @@ library Flow {
         // slot 1
         address sender;
         uint40 snapshotTime;
-        bool isStream;
         bool isPaused;
+        bool isStream;
         bool isTransferable;
         // slot 2
         IERC20 asset;

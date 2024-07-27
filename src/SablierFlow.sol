@@ -515,9 +515,12 @@ contract SablierFlow is
         _updateTime(streamId, uint40(block.timestamp));
 
         // Log the adjustment.
-        emit ISablierFlow.AdjustFlowStream(
-            streamId, _streams[streamId].snapshotDebt, newRatePerSecond, oldRatePerSecond
-        );
+        emit ISablierFlow.AdjustFlowStream({
+            streamId: streamId,
+            totalDebt: _streams[streamId].snapshotDebt,
+            oldRatePerSecond: oldRatePerSecond,
+            newRatePerSecond: newRatePerSecond
+        });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -548,7 +551,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_InvalidAssetDecimals(address(asset));
         }
 
-        // Load the stream id.
+        // Load the stream ID.
         streamId = nextStreamId;
 
         // Effect: create the stream.
@@ -567,7 +570,7 @@ contract SablierFlow is
 
         // Using unchecked arithmetic because this calculation can never realistically overflow.
         unchecked {
-            // Effect: bump the next stream id.
+            // Effect: bump the next stream ID.
             nextStreamId = streamId + 1;
         }
 
@@ -575,7 +578,14 @@ contract SablierFlow is
         _mint({ to: recipient, tokenId: streamId });
 
         // Log the newly created stream.
-        emit ISablierFlow.CreateFlowStream(streamId, asset, sender, recipient, uint40(block.timestamp), ratePerSecond);
+        emit ISablierFlow.CreateFlowStream({
+            streamId: streamId,
+            asset: asset,
+            sender: sender,
+            recipient: recipient,
+            snapshotTime: uint40(block.timestamp),
+            ratePerSecond: ratePerSecond
+        });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.

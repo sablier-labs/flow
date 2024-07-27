@@ -102,8 +102,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit AdjustFlowStream({
             streamId: defaultStreamIds[0],
             totalDebt: ONE_MONTH_STREAMED_AMOUNT,
-            newRatePerSecond: newRatePerSecond,
-            oldRatePerSecond: RATE_PER_SECOND
+            oldRatePerSecond: RATE_PER_SECOND,
+            newRatePerSecond: newRatePerSecond
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -114,8 +114,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit AdjustFlowStream({
             streamId: defaultStreamIds[1],
             totalDebt: ONE_MONTH_STREAMED_AMOUNT,
-            newRatePerSecond: newRatePerSecond,
-            oldRatePerSecond: RATE_PER_SECOND
+            oldRatePerSecond: RATE_PER_SECOND,
+            newRatePerSecond: newRatePerSecond
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -244,8 +244,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit PauseFlowStream({
             streamId: defaultStreamIds[1],
-            recipient: users.recipient,
             sender: users.sender,
+            recipient: users.recipient,
             totalDebt: previousTotalDebt1
         });
 

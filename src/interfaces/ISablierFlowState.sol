@@ -26,6 +26,11 @@ interface ISablierFlowState is
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Retrieves the maximum broker fee that can be charged by the broker, denoted as a fixed-point number
+    /// where 1e18 is 100%.
+    /// @dev This value is hard coded as a constant.
+    function MAX_BROKER_FEE() external view returns (UD60x18 fee);
+
     /// @notice Retrieves the asset of the stream.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The ID of the stream to make the query for.
@@ -82,13 +87,8 @@ interface ISablierFlowState is
     /// @param streamId The stream ID for the query.
     function isStream(uint256 streamId) external view returns (bool result);
 
-    /// @notice Retrieves the maximum broker fee that can be charged by the broker, denoted as a fixed-point number
-    /// where 1e18 is 100%.
-    /// @dev This value is hard coded as a constant.
-    function MAX_BROKER_FEE() external view returns (UD60x18 fee);
-
     /// @notice Counter for stream ids.
-    /// @return The next stream id.
+    /// @return The next stream ID.
     function nextStreamId() external view returns (uint256);
 
     /// @notice Contract that generates the non-fungible token URI.

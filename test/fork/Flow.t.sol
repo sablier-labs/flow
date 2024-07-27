@@ -195,8 +195,8 @@ contract Flow_Fork_Test is Fork_Test {
         emit AdjustFlowStream({
             streamId: streamId,
             totalDebt: totalDebt,
-            newRatePerSecond: newRatePerSecond,
-            oldRatePerSecond: flow.getRatePerSecond(streamId)
+            oldRatePerSecond: flow.getRatePerSecond(streamId),
+            newRatePerSecond: newRatePerSecond
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -341,8 +341,8 @@ contract Flow_Fork_Test is Fork_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit PauseFlowStream({
             streamId: streamId,
-            recipient: flow.getRecipient(streamId),
             sender: flow.getSender(streamId),
+            recipient: flow.getRecipient(streamId),
             totalDebt: flow.totalDebtOf(streamId)
         });
 
