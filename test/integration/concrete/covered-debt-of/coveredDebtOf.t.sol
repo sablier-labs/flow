@@ -3,9 +3,9 @@ pragma solidity >=0.8.22;
 
 import { Integration_Test } from "../../Integration.t.sol";
 
-contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
+contract CoveredDebtOf_Integration_Concrete_Test is Integration_Test {
     function test_RevertGiven_Null() external {
-        bytes memory callData = abi.encodeCall(flow.withdrawableAmountOf, nullStreamId);
+        bytes memory callData = abi.encodeCall(flow.coveredDebtOf, nullStreamId);
         expectRevert_Null(callData);
     }
 
@@ -14,8 +14,8 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         uint256 streamId = createDefaultStream(dai);
 
         // It should return zero.
-        uint128 withdrawableAmount = flow.withdrawableAmountOf(streamId);
-        assertEq(withdrawableAmount, 0, "withdrawable amount");
+        uint128 coveredDebt = flow.coveredDebtOf(streamId);
+        assertEq(coveredDebt, 0, "covered debt");
     }
 
     modifier givenBalanceNotZero() override {
@@ -34,13 +34,13 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         uint128 balance = flow.getBalance(defaultStreamId);
 
         // It should return the stream balance.
-        uint128 withdrawableAmount = flow.withdrawableAmountOf(defaultStreamId);
-        assertEq(withdrawableAmount, balance, "withdrawable amount");
+        uint128 coveredDebt = flow.coveredDebtOf(defaultStreamId);
+        assertEq(coveredDebt, balance, "covered debt");
     }
 
     function test_WhenTotalDebtDoesNotExceedBalance() external givenNotNull givenBalanceNotZero {
         // It should return the correct withdraw amount.
-        uint128 withdrawableAmount = flow.withdrawableAmountOf(defaultStreamId);
-        assertEq(withdrawableAmount, ONE_MONTH_STREAMED_AMOUNT, "withdrawable amount");
+        uint128 coveredDebt = flow.coveredDebtOf(defaultStreamId);
+        assertEq(coveredDebt, ONE_MONTH_STREAMED_AMOUNT, "covered debt");
     }
 }

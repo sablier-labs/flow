@@ -91,6 +91,12 @@ interface ISablierFlow is
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in 18 decimals.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    /// @return coveredDebt The amount that the recipient can withdraw.
+    function coveredDebtOf(uint256 streamId) external view returns (uint128 coveredDebt);
+
     /// @notice Returns the timestamp at which the stream will deplete its balance and start to accumulate uncovered
     /// debt. If there already is uncovered debt, it returns zero.
     /// @dev Reverts if `streamId` refers to a paused or a null stream.
@@ -127,12 +133,6 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     /// @return debt The amount that the sender owes on the stream.
     function uncoveredDebtOf(uint256 streamId) external view returns (uint128 debt);
-
-    /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The stream ID for the query.
-    /// @return withdrawableAmount The amount that the recipient can withdraw.
-    function withdrawableAmountOf(uint256 streamId) external view returns (uint128 withdrawableAmount);
 
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
@@ -436,7 +436,7 @@ interface ISablierFlow is
     /// @return transferAmount The amount transferred to the recipient, denoted in asset's decimals.
     function withdrawAt(uint256 streamId, address to, uint40 time) external returns (uint128 transferAmount);
 
-    /// @notice Withdraws the maximum withdrawable amount from the stream to the provided address `to`.
+    /// @notice Withdraws the covered debt from the stream to the provided address `to`.
     ///
     /// @dev Emits a {Transfer}, {WithdrawFromFlowStream} event.
     ///

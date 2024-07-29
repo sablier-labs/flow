@@ -451,9 +451,9 @@ contract Flow_Fork_Test is Fork_Test {
         // Make sure the requirements are respected.
         address recipient = flow.getRecipient(streamId);
         address sender = flow.getSender(streamId);
-        uint128 streamDebt = flow.uncoveredDebtOf(streamId);
+        uint128 uncoveredDebt = flow.uncoveredDebtOf(streamId);
 
-        if (streamDebt == 0) {
+        if (uncoveredDebt == 0) {
             resetPrank({ msgSender: sender });
             if (flow.isPaused(streamId)) {
                 flow.restart(streamId, RATE_PER_SECOND);
@@ -466,12 +466,12 @@ contract Flow_Fork_Test is Fork_Test {
                 // Refund and withdraw all the funds.
                 flow.refund(streamId, refundableAmount);
             }
-            if (flow.withdrawableAmountOf(streamId) > 0) {
+            if (flow.coveredDebtOf(streamId) > 0) {
                 flow.withdrawMax(streamId, recipient);
             }
 
             vm.warp({ newTimestamp: getBlockTimestamp() + 100 seconds });
-            streamDebt = flow.uncoveredDebtOf(streamId);
+            uncoveredDebt = flow.uncoveredDebtOf(streamId);
         }
 
         resetPrank({ msgSender: recipient });
@@ -485,7 +485,7 @@ contract Flow_Fork_Test is Fork_Test {
             recipient: recipient,
             sender: sender,
             newTotalDebt: beforeVoidBalance,
-            writtenOffDebt: streamDebt
+            writtenOffDebt: uncoveredDebt
         });
 
         vm.expectEmit({ emitter: address(flow) });

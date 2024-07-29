@@ -235,7 +235,7 @@ contract FlowHandler is BaseHandler {
         vm.assume(to != address(0));
 
         // Check if there is anything to withdraw.
-        vm.assume(flow.withdrawableAmountOf(currentStreamId) > 0);
+        vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
 
         // Bound the time so that it is between snapshot time and current time.
         time = uint40(_bound(time, flow.getSnapshotTime(currentStreamId), getBlockTimestamp()));

@@ -86,7 +86,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         uint128 streamBalance = flow.getBalance(defaultStreamId);
         uint128 uncoveredDebt = flow.uncoveredDebtOf(defaultStreamId);
 
-        // It should emit 1 {VoidFlowStream}, 1 {MetadataUpdate} events.
+        // It should emit 1 {VoidFlowStream} and 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
         emit VoidFlowStream({
             streamId: defaultStreamId,

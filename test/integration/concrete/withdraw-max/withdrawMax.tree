@@ -10,12 +10,12 @@ WithdrawMax_Integration_Concrete_Test
       │  ├── it should set the snapshot debt to zero
       │  ├── it should update the stream balance
       │  ├── it should perform the ERC20 transfer
-      │  ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
+      │  ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events
       │  └── it should return the transfer amount
       └── given not paused
          ├── it should update snapshot time
-         ├── it should decrease the snapshot debt by the withdrawable amount
+         ├── it should decrease the snapshot debt by the covered debt
          ├── it should update the stream balance
          ├── it should perform the ERC20 transfer
-         ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
+         ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events
          └── it should return the transfer amount

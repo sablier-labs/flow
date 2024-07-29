@@ -20,7 +20,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        uint128 expectedWithdrawbleAmount = flow.withdrawableAmountOf(streamId);
+        uint128 expectedWithdrawbleAmount = flow.coveredDebtOf(streamId);
 
         // Pause the stream.
         flow.pause(streamId);
@@ -29,7 +29,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
         // Assert that the withdrawble amount equals 0.
-        uint128 actualWithdrawbleAmount = flow.withdrawableAmountOf(streamId);
+        uint128 actualWithdrawbleAmount = flow.coveredDebtOf(streamId);
         assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
     }
 
@@ -58,7 +58,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         vm.warp({ newTimestamp: timeJump });
 
         // Assert that the withdrawble amount equals the streamed amount.
-        uint128 actualWithdrawbleAmount = flow.withdrawableAmountOf(streamId);
+        uint128 actualWithdrawbleAmount = flow.coveredDebtOf(streamId);
         uint128 expectedWithdrawbleAmount = flow.getRatePerSecond(streamId) * (timeJump - MAY_1_2024);
         assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
     }
@@ -79,7 +79,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         vm.warp({ newTimestamp: timeJump });
 
         // Assert that the withdrawble amount equals the stream balance.
-        uint128 actualWithdrawbleAmount = flow.withdrawableAmountOf(streamId);
+        uint128 actualWithdrawbleAmount = flow.coveredDebtOf(streamId);
         uint128 expectedWithdrawbleAmount = flow.getBalance(streamId);
         assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
 

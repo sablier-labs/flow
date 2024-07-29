@@ -43,6 +43,11 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlow
+    function coveredDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 coveredDebt) {
+        coveredDebt = _coveredDebtOf({ streamId: streamId, time: uint40(block.timestamp) });
+    }
+
+    /// @inheritdoc ISablierFlow
     function depletionTimeOf(
         uint256 streamId
     )
@@ -125,19 +130,6 @@ contract SablierFlow is
     /// @inheritdoc ISablierFlow
     function uncoveredDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
         debt = _uncoveredDebtOf(streamId);
-    }
-
-    /// @inheritdoc ISablierFlow
-    function withdrawableAmountOf(
-        uint256 streamId
-    )
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 withdrawableAmount)
-    {
-        withdrawableAmount = _withdrawableAmountOf(streamId, uint40(block.timestamp));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -441,7 +433,7 @@ contract SablierFlow is
 
     /// @dev Calculates the refundable amount.
     function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        return _streams[streamId].balance - _withdrawableAmountOf(streamId, time);
+        return _streams[streamId].balance - _coveredDebtOf(streamId, time);
     }
 
     /// @notice Calculates the total debt at the provided time.
@@ -469,7 +461,7 @@ contract SablierFlow is
     }
 
     /// @dev Calculates the amount available to withdraw at provided time. The return value considers stream balance.
-    function _withdrawableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+    function _coveredDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 
         // If the balance is zero, return zero.
@@ -761,9 +753,13 @@ contract SablierFlow is
         _streams[streamId].isPaused = true;
 
         // Log the void.
-        emit ISablierFlow.VoidFlowStream(
-            streamId, _ownerOf(streamId), _streams[streamId].sender, balance, debtToWriteOff
-        );
+        emit ISablierFlow.VoidFlowStream({
+            streamId: streamId,
+            sender: _streams[streamId].sender,
+            recipient: _ownerOf(streamId),
+            newTotalDebt: balance,
+            writtenOffDebt: debtToWriteOff
+        });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.

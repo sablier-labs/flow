@@ -17,8 +17,8 @@ struct Stream {
   uint128 ratePerSecond;
   address sender;
   uint40 snapshotTime;
-  bool isStream;
   bool isPaused;
+  bool isStream;
   bool isTransferable;
   IERC20 asset;
   uint8 assetDecimals;
@@ -51,18 +51,18 @@ recipient can only withdraw the available balance.
 
 ## Abbreviations
 
-| Variable           | Abbreviation |
-| ------------------ | ------------ |
-| totalDebt          | td           |
-| ongoingDebt        | od           |
-| snapshotDebt       | sd           |
-| snapshotTime       | st           |
-| uncoveredDebt      | ud           |
-| refundableAmount   | rfa          |
-| withdrawableAmount | wa           |
-| balance            | bal          |
-| block.timestamp    | now          |
-| ratePerSecond      | rps          |
+| Variable         | Abbreviation |
+| ---------------- | ------------ |
+| totalDebt        | td           |
+| ongoingDebt      | od           |
+| snapshotDebt     | sd           |
+| snapshotTime     | st           |
+| uncoveredDebt    | ud           |
+| refundableAmount | rfa          |
+| coveredDebt      | cd           |
+| balance          | bal          |
+| block.timestamp  | now          |
+| ratePerSecond    | rps          |
 
 ## Core Components
 
@@ -71,42 +71,42 @@ recipient can only withdraw the available balance.
 The total debt (td) is the total amount the sender owes to the recipient. It is calculated as the sum of the snapshot
 debt and the ongoing debt.
 
-$ao = sa + oa$
+$td = sd + od$
 
 ### 2. Ongoing debt
 
 The ongoing debt (od) is calculated as the rate per second (rps) multiplied by the delta between the current time and
 `snapshotTime`.
 
-$oa = rps \times (now - lst)$
+$od = rps \times (now - lst)$
 
 ### 3. Snapshot debt
 
 The snapshot debt (sd) is the amount that the sender owed the recipient at snapshot time. When `snapshotTime` is
 updated, the snapshot debt increases by the ongoing debt.
 
-$sa = \sum oa_t$
+$sd = \sum od_t$
 
 ### 4. Uncovered Debt
 
 The uncovered debt (ud) is the difference between the total debt and the actual balance, applicable when the total debt
 exceeds the balance.
 
-$`debt = \begin{cases} ao - bal & \text{if } ao \gt bal \\ 0 & \text{if } ao \le bal \end{cases}`$
+$`ud = \begin{cases} td - bal & \text{if } td \gt bal \\ 0 & \text{if } td \le bal \end{cases}`$
 
 ### 5. Refundable amount
 
 The refundable amount (rfa) is the amount that the sender can be refunded. It is the difference between the stream
 balance and the total debt.
 
-$`rfa = \begin{cases} bal - ao & \text{if } debt = 0 \\ 0 & \text{if } debt > 0 \end{cases}`$
+$`rfa = \begin{cases} bal - td & \text{if } ud = 0 \\ 0 & \text{if } ud > 0 \end{cases}`$
 
-### 6. Withdrawable amount
+### 6. Covered Debt
 
-The withdrawable amount (wa) is the total debt when there is no uncovered debt. But if there is uncovered debt, the
-withdrawable amount is capped to the stream balance.
+The covered debt (cd) is the total debt when there is no uncovered debt. But if there is uncovered debt, the covered
+debt is capped to the stream balance.
 
-$`wa = \begin{cases} ao & \text{if } debt = 0 \\ bal & \text{if } debt \gt 0 \end{cases}`$
+$`cd = \begin{cases} td & \text{if } ud = 0 \\ bal & \text{if } ud \gt 0 \end{cases}`$
 
 ## Precision Issues
 
@@ -123,7 +123,7 @@ $0.064000$ USDC per day, which is problematic.
 
 ### Solution
 
-In the contracts, we normalize all internal amounts (e.g. `rps`, `bal`, `sa`, `ao`) to 18 decimals. While this doesn't
+In the contracts, we normalize all internal amounts (e.g. `rps`, `bal`, `sd`, `td`) to 18 decimals. While this doesn't
 completely solve the issue, it significantly minimizes it.
 
 Using the same example (streaming 10 USDC per day), if _rps_ has 18 decimals, the end-of-day result would be:
@@ -148,7 +148,7 @@ Currently, it's not possible to address this precision problem entirely.
 We use 18-decimal fixed-point numbers for all internal amounts and calculation functions to avoid the overload of
 conversion to actual `ERC20` balances. The only time we perform these conversions is during external calls to `ERC20`'s
 `transfer`/`transferFrom` (i.e. deposit, withdraw and refund operations). When performing these actions, we adjust the
-calculated amount (withdrawable or refundable) based on the asset's decimals:
+calculated amount (e.g. refundable amount) based on the asset's decimals:
 
 Deposit:
 
@@ -175,11 +175,11 @@ them inexpensive to store.
 
 2. for a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
 
-3. for any stream, if $debt > 0 \implies wa = bal$
+3. for any stream, if $ud > 0 \implies cd = bal$
 
-4. if $rps \gt 0$ and no deposits are made $\implies \frac{d(debt)}{dt} \ge 0$
+4. if $rps \gt 0$ and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
 
-5. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(ao)}{dt} \ge 0$
+5. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
 
 6. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
@@ -187,10 +187,10 @@ them inexpensive to store.
 
 8. next stream id = current stream id + 1
 
-9. if $debt = 0$ and $isPaused = true \implies wa = sa$
+9. if $ud = 0$ and $isPaused = true \implies cd = sa$
 
-10. if $debt = 0$ and $isPaused = false \implies wa = sa + oa$
+10. if $ud = 0$ and $isPaused = false \implies cd = sa + oa$
 
-11. $bal = rfa + wa$
+11. $bal = rfa + cd$
 
 12. if $isPaused = true \implies rps = 0$

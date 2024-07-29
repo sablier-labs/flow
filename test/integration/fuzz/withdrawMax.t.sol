@@ -57,7 +57,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should withdraw the max withdrawable amount from a stream.
+    /// - It should withdraw the max covered debt from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -133,7 +133,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 totalDebt = flow.totalDebtOf(streamId);
         uint256 assetBalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
-        uint128 expectedWithdrawAmount = flow.withdrawableAmountOf(streamId);
+        uint128 expectedWithdrawAmount = flow.coveredDebtOf(streamId);
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });

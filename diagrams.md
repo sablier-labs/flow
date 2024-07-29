@@ -185,9 +185,9 @@ classDef green0 fill:#98FB98,stroke:#333,stroke-width:2px;
 classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
 ```
 
-### Withdrawable Amount
+### Covered debt
 
-**Notes:** Debt greater than zero means:
+**Notes:** Uncovered debt greater than zero means:
 
 1. `sa > bal` when the status is `PAUSED`
 2. `sa + oa > bal` when the status is `STREAMING`
@@ -197,14 +197,14 @@ flowchart TD
     di0{ }:::blue0
     di1{ }:::blue0
     di2{ }:::blue0
-    wa([Withdrawable Amount - wa]):::blue0
+    cd([Covered Debt - cd]):::blue0
     res_0([0 ]):::blue1
     res_bal([bal]):::blue1
     res_ra([sa]):::blue1
     res_sum([oa + sa]):::blue1
 
 
-    wa --> di0
+    cd --> di0
     di0 -- "bal = 0" --> res_0
     di0 -- "bal > 0" --> di1
     di1 -- "ud > 0" --> res_bal
@@ -222,7 +222,7 @@ flowchart TD
 ```mermaid
     flowchart TD
     rfa([Refundable Amount - rfa]):::orange0
-    res_rfa([bal - wa]):::orange1
+    res_rfa([bal - cd]):::orange1
     rfa --> res_rfa
 
     classDef orange0 fill:#FFA500,stroke:#333,stroke-width:2px;
