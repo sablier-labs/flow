@@ -54,7 +54,7 @@ abstract contract Integration_Test is Base_Test {
             recipient: users.recipient,
             ratePerSecond: ratePerSecond,
             asset: asset_,
-            isTransferable: IS_TRANFERABLE
+            isTransferable: IS_TRANSFERABLE
         });
     }
 
@@ -66,7 +66,7 @@ abstract contract Integration_Test is Base_Test {
             snapshotTime: getBlockTimestamp(),
             isPaused: false,
             isStream: true,
-            isTransferable: IS_TRANFERABLE,
+            isTransferable: IS_TRANSFERABLE,
             ratePerSecond: RATE_PER_SECOND,
             snapshotDebt: 0,
             sender: users.sender

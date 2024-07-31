@@ -45,7 +45,9 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         emit WithdrawFromFlowStream({
             streamId: defaultStreamId,
             to: users.recipient,
-            withdrawnAmount: ONE_MONTH_STREAMED_AMOUNT
+            asset: IERC20(address(dai)),
+            caller: users.sender,
+            amount: ONE_MONTH_STREAMED_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });

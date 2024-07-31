@@ -47,7 +47,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: IERC20(address(usdt)),
-            isTransferable: IS_TRANFERABLE
+            isTransferable: IS_TRANSFERABLE
         });
 
         address noAllowanceAddress = address(0xBEEF);
@@ -136,8 +136,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
-        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANFERABLE));
-        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANFERABLE));
+        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE));
+        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE));
 
         // It should emit events: 2 {MetadataUpdate}, 2 {CreateFlowStream}
 
@@ -151,7 +151,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            snapshotTime: getBlockTimestamp(),
             ratePerSecond: RATE_PER_SECOND
         });
 
@@ -165,7 +164,6 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            snapshotTime: getBlockTimestamp(),
             ratePerSecond: RATE_PER_SECOND
         });
 
@@ -353,7 +351,9 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit WithdrawFromFlowStream({
             streamId: defaultStreamIds[0],
             to: users.recipient,
-            withdrawnAmount: WITHDRAW_AMOUNT
+            asset: IERC20(address(dai)),
+            caller: users.sender,
+            amount: WITHDRAW_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -367,7 +367,9 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit WithdrawFromFlowStream({
             streamId: defaultStreamIds[1],
             to: users.recipient,
-            withdrawnAmount: WITHDRAW_AMOUNT
+            asset: IERC20(address(dai)),
+            caller: users.sender,
+            amount: WITHDRAW_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });

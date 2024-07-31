@@ -87,14 +87,15 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
         // Prank to either recipient or operator.
-        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
+        address caller = useRecipientOrOperator(streamId, timeJump);
+        resetPrank({ msgSender: caller });
 
         // Withdraw the assets.
-        _test_WithdrawMax(withdrawTo, streamId, decimals);
+        _test_WithdrawMax(caller, withdrawTo, streamId, decimals);
     }
 
     /// @dev Checklist:
-    /// - It should withdraw the max withdrawble amount from a stream.
+    /// - It should withdraw the max withdrawable amount from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -125,11 +126,11 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Prank the caller and withdraw the assets.
         resetPrank(caller);
-        _test_WithdrawMax(users.recipient, streamId, decimals);
+        _test_WithdrawMax(caller, users.recipient, streamId, decimals);
     }
 
     // Shared private function.
-    function _test_WithdrawMax(address withdrawTo, uint256 streamId, uint8 decimals) private {
+    function _test_WithdrawMax(address caller, address withdrawTo, uint256 streamId, uint8 decimals) private {
         uint128 totalDebt = flow.totalDebtOf(streamId);
         uint256 assetBalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
@@ -144,7 +145,13 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({ streamId: streamId, to: withdrawTo, withdrawnAmount: expectedWithdrawAmount });
+        emit WithdrawFromFlowStream({
+            streamId: streamId,
+            to: withdrawTo,
+            asset: asset,
+            caller: caller,
+            amount: expectedWithdrawAmount
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

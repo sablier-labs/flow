@@ -49,7 +49,6 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             asset: asset,
             sender: sender,
             recipient: recipient,
-            snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond
         });
 

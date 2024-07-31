@@ -15,39 +15,33 @@ interface ISablierFlow is
                                        EVENTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Emitted when the sender changes the rate per second.
+    /// @notice Emitted when the payment rate per second is updated by the sender.
     /// @param streamId The ID of the stream.
-    /// @param totalDebt The amount of assets owed by the sender to the recipient, denoted in 18 decimals.
-    /// @param oldRatePerSecond The old rate per second, denoted in 18 decimals.
-    /// @param newRatePerSecond The new rate per second, denoted in 18 decimals.
+    /// @param totalDebt The total debt at the time of the update, denoted in 18 decimals.
+    /// @param oldRatePerSecond The old payment rate per second, denoted in 18 decimals.
+    /// @param newRatePerSecond The new payment rate per second, denoted in 18 decimals.
     event AdjustFlowStream(
         uint256 indexed streamId, uint128 totalDebt, uint128 oldRatePerSecond, uint128 newRatePerSecond
     );
 
     /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
-    /// @param asset The contract address of the ERC-20 asset to stream.
-    /// @param sender The address from which to stream the assets, which has the ability to adjust and pause the stream.
-    /// @param recipient The address receiving the assets, as well as the NFT owner.
-    /// @param snapshotTime The Unix timestamp for the ongoing debt calculation.
-    /// @param ratePerSecond The amount of assets by which the debt is increasing every second, denoted in 18 decimals.
+    /// @param asset The contract address of the ERC-20 asset that will be streamed.
+    /// @param sender The address that will stream the assets, which is able to adjust and pause the stream.
+    /// @param recipient The address that will receive the assets, as well as the NFT owner.
+    /// @param ratePerSecond The amount by which the debt is increasing every second, denoted in 18 decimals.
     event CreateFlowStream(
-        uint256 indexed streamId,
-        IERC20 indexed asset,
-        address indexed sender,
-        address recipient,
-        uint40 snapshotTime,
-        uint128 ratePerSecond
+        uint256 indexed streamId, IERC20 indexed asset, address indexed sender, address recipient, uint128 ratePerSecond
     );
 
-    /// @notice Emitted when a Flow stream is funded.
-    /// @param streamId The ID of the Flow stream.
+    /// @notice Emitted when a stream is funded.
+    /// @param streamId The ID of the stream.
     /// @param funder The address that made the deposit.
     /// @param depositAmount The amount of assets deposited into the stream, denoted in 18 decimals.
     event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
 
-    /// @notice Emitted when a Flow stream is paused.
-    /// @param streamId The ID of the Flow stream.
+    /// @notice Emitted when a stream is paused by the sender.
+    /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
     /// @param totalDebt The amount of assets owed by the sender to the recipient, denoted in 18 decimals.
@@ -55,37 +49,43 @@ interface ISablierFlow is
         uint256 indexed streamId, address indexed sender, address indexed recipient, uint128 totalDebt
     );
 
-    /// @notice Emitted when the sender is refunded assets from the stream.
-    /// @param streamId The ID of the Flow stream.
+    /// @notice Emitted when a sender is refunded from a stream.
+    /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param refundAmount The amount of assets refunded to the sender, denoted in 18 decimals.
     event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
 
-    /// @notice Emitted when a Flow stream is restarted.
-    /// @param streamId The ID of the Flow stream.
+    /// @notice Emitted when a stream is restarted by the sender.
+    /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
-    /// @param ratePerSecond The amount of assets that is increasing by every second, denoted in 18 decimals.
+    /// @param ratePerSecond The amount by which the debt is increasing every second, denoted in 18 decimals.
     event RestartFlowStream(uint256 indexed streamId, address indexed sender, uint128 ratePerSecond);
 
-    /// @notice Emitted when a Flow stream is voided by the recipient.
+    /// @notice Emitted when a stream is voided by a recipient or an approved operator.
     /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
-    /// @param newTotalDebt The new total debt, denoted in 18  decimals.
+    /// @param caller The address that performed the void, which can be the recipient or an approved operator.
+    /// @param newTotalDebt The new total debt, denoted in 18 decimals.
     /// @param writtenOffDebt The amount of debt written off by the recipient.
     event VoidFlowStream(
         uint256 indexed streamId,
         address indexed sender,
         address indexed recipient,
+        address caller,
         uint128 newTotalDebt,
         uint128 writtenOffDebt
     );
 
-    /// @notice Emitted when assets are withdrawn from a Flow stream.
-    /// @param streamId The ID of the Flow stream.
-    /// @param to The address that has received the withdrawn assets.
-    /// @param withdrawnAmount The amount of assets withdrawn, denoted in 18 decimals.
-    event WithdrawFromFlowStream(uint256 indexed streamId, address indexed to, uint128 withdrawnAmount);
+    /// @notice Emitted when assets are withdrawn from a stream by a recipient or an approved operator.
+    /// @param streamId The ID of the stream.
+    /// @param to The address that received the withdrawn assets.
+    /// @param asset The contract address of the ERC-20 asset that was withdrawn.
+    /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
+    /// @param amount The amount withdrawn, denoted in 18 decimals.
+    event WithdrawFromFlowStream(
+        uint256 indexed streamId, address indexed to, IERC20 indexed asset, address caller, uint128 amount
+    );
 
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
@@ -94,7 +94,7 @@ interface ISablierFlow is
     /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
-    /// @return coveredDebt The amount that the recipient can withdraw.
+    /// @return coveredDebt The amount of debt that is covered by the stream balance.
     function coveredDebtOf(uint256 streamId) external view returns (uint128 coveredDebt);
 
     /// @notice Returns the timestamp at which the stream will deplete its balance and start to accumulate uncovered
@@ -407,8 +407,8 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external;
 
-    /// @notice Withdraws the amount of assets calculated based on time reference and the snapshot debt, from the
-    /// stream to the provided `to` address.
+    /// @notice Withdraws to the provided `to` address the amount calculated based on the time reference and the
+    /// snapshot debt.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///

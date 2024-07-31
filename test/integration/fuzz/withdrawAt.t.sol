@@ -91,10 +91,11 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Prank to either recipient or operator.
-        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
+        address caller = useRecipientOrOperator(streamId, timeJump);
+        resetPrank({ msgSender: caller });
 
         // Withdraw the assets.
-        _test_WithdrawAt(to, streamId, timeJump, withdrawTime, decimals);
+        _test_WithdrawAt(caller, to, streamId, timeJump, withdrawTime, decimals);
     }
 
     /// @dev Checklist:
@@ -127,11 +128,12 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Prank the caller and withdraw the assets.
         resetPrank(caller);
-        _test_WithdrawAt(users.recipient, streamId, timeJump, withdrawTime, decimals);
+        _test_WithdrawAt(caller, users.recipient, streamId, timeJump, withdrawTime, decimals);
     }
 
     // Shared private function.
     function _test_WithdrawAt(
+        address caller,
         address to,
         uint256 streamId,
         uint40 timeJump,
@@ -166,7 +168,13 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({ from: address(flow), to: to, value: getTransferAmount(expectedWithdrawAmount, decimals) });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({ streamId: streamId, to: to, withdrawnAmount: expectedWithdrawAmount });
+        emit WithdrawFromFlowStream({
+            streamId: streamId,
+            to: to,
+            asset: asset,
+            caller: caller,
+            amount: expectedWithdrawAmount
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

@@ -73,10 +73,11 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         flow.pause(streamId);
 
         // Prank to either recipient or operator.
-        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
+        address caller = useRecipientOrOperator(streamId, timeJump);
+        resetPrank({ msgSender: caller });
 
         // Void the stream.
-        _test_Void(streamId);
+        _test_Void(caller, streamId);
     }
 
     /// @dev Checklist:
@@ -109,14 +110,15 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: timeJump });
 
         // Prank to either recipient or operator.
-        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
+        address caller = useRecipientOrOperator(streamId, timeJump);
+        resetPrank({ msgSender: caller });
 
         // Void the stream.
-        _test_Void(streamId);
+        _test_Void(caller, streamId);
     }
 
     // Shared private function.
-    function _test_Void(uint256 streamId) private {
+    function _test_Void(address caller, uint256 streamId) private {
         uint128 debtToWriteOff = flow.uncoveredDebtOf(streamId);
 
         // Expect the relevant events to be emitted.
@@ -125,6 +127,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             streamId: streamId,
             recipient: users.recipient,
             sender: users.sender,
+            caller: caller,
             newTotalDebt: flow.getBalance(streamId),
             writtenOffDebt: debtToWriteOff
         });

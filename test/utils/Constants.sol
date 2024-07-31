@@ -33,7 +33,7 @@ abstract contract Constants {
     uint40 internal constant WITHDRAW_TIME = MAY_1_2024 + 2_500_000;
 
     // Transferability and rate
-    bool internal constant IS_TRANFERABLE = true;
+    bool internal constant IS_TRANSFERABLE = true;
     uint128 internal constant RATE_PER_SECOND = 0.001e18; // 86.4 daily
 
     // Streaming amounts

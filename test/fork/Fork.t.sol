@@ -45,7 +45,7 @@ abstract contract Fork_Test is Base_Test {
 
         // Label the assets.
         for (uint256 i = 0; i < assets.length; ++i) {
-            vm.label(address(assets[i]), IERC20Metadata(address(assets[i])).symbol());
+            vm.label({ account: address(assets[i]), newLabel: IERC20Metadata(address(assets[i])).symbol() });
         }
     }
 

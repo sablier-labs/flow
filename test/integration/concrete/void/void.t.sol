@@ -74,15 +74,15 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.operator });
 
         // It should void the stream.
-        _test_Void();
+        _test_Void(users.operator);
     }
 
     function test_WhenCallerRecipient() external whenNoDelegateCall givenNotNull givenStreamHasUncoveredDebt {
         // It should void the stream.
-        _test_Void();
+        _test_Void(users.recipient);
     }
 
-    function _test_Void() private {
+    function _test_Void(address caller) private {
         uint128 streamBalance = flow.getBalance(defaultStreamId);
         uint128 uncoveredDebt = flow.uncoveredDebtOf(defaultStreamId);
 
@@ -92,6 +92,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             recipient: users.recipient,
             sender: users.sender,
+            caller: caller,
             newTotalDebt: streamBalance,
             writtenOffDebt: uncoveredDebt
         });

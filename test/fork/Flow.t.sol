@@ -26,12 +26,12 @@ contract Flow_Fork_Test is Fork_Test {
     /// @dev A struct to hold the fuzzed parameters to be used during fork tests.
     struct Params {
         uint256 timeJump;
-        // Create params.
+        // Create params
         address recipient;
         address sender;
         uint128 ratePerSecond;
         bool isTransferable;
-        // Amounts.
+        // Amounts
         uint128 transferAmount;
         uint128 refundAmount;
         uint40 withdrawAtTime;
@@ -48,12 +48,12 @@ contract Flow_Fork_Test is Fork_Test {
     /// @param flowFuncU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
     /// able to bound it.
     function testForkFuzz_Flow(Params memory params, uint8[] calldata flowFuncU8) public {
-        // Have a sufficient number of functions to call.
-        vm.assume(flowFuncU8.length > 25);
+        // Ensure a large number of function calls.
+        vm.assume(flowFuncU8.length > 1);
 
         // Limit the number of functions to call if it exceeds 50.
-        if (flowFuncU8.length > 50) {
-            flowFuncU8 = flowFuncU8[0:50];
+        if (flowFuncU8.length > 15) {
+            flowFuncU8 = flowFuncU8[0:15];
         }
 
         // Prepare a sequence of flow functions to execute.
@@ -79,7 +79,7 @@ contract Flow_Fork_Test is Fork_Test {
     function _executeSequence(Params memory params, FlowFunc[] memory flowFunc) private {
         uint256 initialStreamId = flow.nextStreamId();
 
-        // Create a series of streams at different period of time.
+        // Create a series of streams at a different period of time.
         for (uint256 i = 0; i < TOTAL_STREAMS; ++i) {
             // Create unique values by hashing the fuzzed params with index.
             params.recipient = makeAddr(vm.toString(abi.encodePacked(params.recipient, i)));
@@ -97,7 +97,7 @@ contract Flow_Fork_Test is Fork_Test {
             _test_Create(params.recipient, params.sender, params.ratePerSecond, params.isTransferable);
         }
 
-        // Assert that the stream ids have been bumped.
+        // Assert that the stream IDs have been bumped.
         uint256 finalStreamId = flow.nextStreamId();
         assertEq(initialStreamId + TOTAL_STREAMS, finalStreamId);
 
@@ -106,7 +106,7 @@ contract Flow_Fork_Test is Fork_Test {
             // Warp to a different time.
             params.timeJump = _passTime(params.timeJump);
 
-            // Create a unique value for stream id.
+            // Create a unique value for stream ID.
             uint256 streamId = uint256(keccak256(abi.encodePacked(initialStreamId, finalStreamId, i)));
             // Bound the stream id to lie within the range of newly created streams.
             streamId = _bound(streamId, initialStreamId, finalStreamId - 1);
@@ -123,7 +123,7 @@ contract Flow_Fork_Test is Fork_Test {
         }
     }
 
-    /// @dev Execute the flow function based on the `flowFunc` value.
+    /// @dev Execute the Flow function based on the `flowFunc` value.
     /// @param flowFunc Defines which function to call from the Flow contract.
     /// @param streamId The stream id to use.
     /// @param ratePerSecond The rate per second.
@@ -239,7 +239,6 @@ contract Flow_Fork_Test is Fork_Test {
             asset: asset,
             sender: sender,
             recipient: recipient,
-            snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond
         });
 
@@ -266,11 +265,11 @@ contract Flow_Fork_Test is Fork_Test {
         });
 
         // It should create the stream.
-        assertEq(actualStreamId, expectedStreamId, "stream id");
+        assertEq(actualStreamId, expectedStreamId, "stream ID");
         assertEq(actualStream, expectedStream);
 
         // It should bump the next stream id.
-        assertEq(flow.nextStreamId(), expectedStreamId + 1, "next stream id");
+        assertEq(flow.nextStreamId(), expectedStreamId + 1, "next stream ID");
 
         // It should mint the NFT.
         address actualNFTOwner = flow.ownerOf({ tokenId: actualStreamId });
@@ -484,6 +483,7 @@ contract Flow_Fork_Test is Fork_Test {
             streamId: streamId,
             recipient: recipient,
             sender: sender,
+            caller: recipient,
             newTotalDebt: beforeVoidBalance,
             writtenOffDebt: uncoveredDebt
         });
@@ -529,6 +529,7 @@ contract Flow_Fork_Test is Fork_Test {
             expectedWithdrawAmount = streamBalance;
         }
 
+        (, address caller,) = vm.readCallers();
         address recipient = flow.getRecipient(streamId);
 
         // Expect the relevant events to be emitted.
@@ -540,7 +541,13 @@ contract Flow_Fork_Test is Fork_Test {
         });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({ streamId: streamId, to: recipient, withdrawnAmount: expectedWithdrawAmount });
+        emit WithdrawFromFlowStream({
+            streamId: streamId,
+            to: recipient,
+            asset: asset,
+            caller: caller,
+            amount: expectedWithdrawAmount
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

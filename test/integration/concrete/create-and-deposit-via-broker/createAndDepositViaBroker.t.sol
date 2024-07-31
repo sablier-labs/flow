@@ -16,7 +16,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
                 users.recipient,
                 RATE_PER_SECOND,
                 dai,
-                IS_TRANFERABLE,
+                IS_TRANSFERABLE,
                 TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
                 defaultBroker
             )
@@ -38,7 +38,6 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            snapshotTime: getBlockTimestamp(),
             ratePerSecond: RATE_PER_SECOND
         });
 
@@ -61,7 +60,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: IS_TRANFERABLE,
+            isTransferable: IS_TRANSFERABLE,
             totalTransferAmount: TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
             broker: defaultBroker
         });
