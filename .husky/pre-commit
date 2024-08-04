@@ -1,1 +1,2 @@
-bun run lint:fix && bun run prettier:write && git add .
+#!/bin/sh
+bun run lint-staged
