@@ -15,7 +15,6 @@
     "no-empty-blocks": "off",
     "not-rely-on-time": "off",
     "one-contract-per-file": "off",
-    "quotes": ["warn", "double"],
     "var-name-mixedcase": "off"
   }
 }
