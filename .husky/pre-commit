@@ -1,0 +1,1 @@
+bun run lint:fix && bun run prettier:write && git add .
