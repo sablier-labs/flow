@@ -60,7 +60,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: IS_TRANSFERABLE,
+            transferable: IS_TRANSFERABLE,
             totalTransferAmount: TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
             broker: defaultBroker
         });

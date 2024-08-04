@@ -2,6 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { Batch } from "./abstracts/Batch.sol";
@@ -159,15 +160,15 @@ contract SablierFlow is
         address recipient,
         uint128 ratePerSecond,
         IERC20 asset,
-        bool isTransferable
+        bool transferable
     )
         external
         override
         noDelegateCall
         returns (uint256 streamId)
     {
-        // Checks, Effects and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, asset, isTransferable);
+        // Checks, Effects, and Interactions: create the stream.
+        streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
     }
 
     /// @inheritdoc ISablierFlow
@@ -176,7 +177,7 @@ contract SablierFlow is
         address recipient,
         uint128 ratePerSecond,
         IERC20 asset,
-        bool isTransferable,
+        bool transferable,
         uint128 transferAmount
     )
         external
@@ -184,10 +185,10 @@ contract SablierFlow is
         noDelegateCall
         returns (uint256 streamId)
     {
-        // Checks, Effects and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, asset, isTransferable);
+        // Checks, Effects, and Interactions: create the stream.
+        streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
 
-        // Checks, Effects and Interactions: deposit on stream.
+        // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, transferAmount);
     }
 
@@ -197,7 +198,7 @@ contract SablierFlow is
         address recipient,
         uint128 ratePerSecond,
         IERC20 asset,
-        bool isTransferable,
+        bool transferable,
         uint128 totalTransferAmount,
         Broker calldata broker
     )
@@ -206,10 +207,10 @@ contract SablierFlow is
         noDelegateCall
         returns (uint256 streamId)
     {
-        // Checks, Effects and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, asset, isTransferable);
+        // Checks, Effects, and Interactions: create the stream.
+        streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
 
-        // Checks, Effects and Interactions: deposit into stream through {depositViaBroker}.
+        // Checks, Effects, and Interactions: deposit into stream through {depositViaBroker}.
         _depositViaBroker(streamId, totalTransferAmount, broker);
     }
 
@@ -224,7 +225,7 @@ contract SablierFlow is
         notNull(streamId)
         updateMetadata(streamId)
     {
-        // Checks, Effects and Interactions: deposit on stream.
+        // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, transferAmount);
     }
 
@@ -241,10 +242,10 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
-        // Checks, Effects and Interactions: deposit on stream.
+        // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, transferAmount);
 
-        // Checks, Effects and Interactions: pause the stream.
+        // Checks, Effects, and Interactions: pause the stream.
         _pause(streamId);
     }
 
@@ -260,7 +261,7 @@ contract SablierFlow is
         notNull(streamId)
         updateMetadata(streamId)
     {
-        // Checks, Effects and Interactions: deposit on stream through broker.
+        // Checks, Effects, and Interactions: deposit on stream through broker.
         _depositViaBroker(streamId, totalTransferAmount, broker);
     }
 
@@ -276,7 +277,7 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
-        // Checks, Effects and Interactions: pause the stream.
+        // Checks, Effects, and Interactions: pause the stream.
         _pause(streamId);
     }
 
@@ -293,7 +294,7 @@ contract SablierFlow is
         updateMetadata(streamId)
         returns (uint128 transferAmount)
     {
-        // Checks, Effects and Interactions: make the refund.
+        // Checks, Effects, and Interactions: make the refund.
         transferAmount = _refund(streamId, amount);
     }
 
@@ -311,10 +312,10 @@ contract SablierFlow is
         updateMetadata(streamId)
         returns (uint128 transferAmount)
     {
-        // Checks, Effects and Interactions: make the refund.
+        // Checks, Effects, and Interactions: make the refund.
         transferAmount = _refund(streamId, amount);
 
-        // Checks, Effects and Interactions: pause the stream.
+        // Checks, Effects, and Interactions: pause the stream.
         _pause(streamId);
     }
 
@@ -330,7 +331,7 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
-        // Checks, Effects and Interactions: restart the stream.
+        // Checks, Effects, and Interactions: restart the stream.
         _restart(streamId, ratePerSecond);
     }
 
@@ -338,7 +339,7 @@ contract SablierFlow is
     function restartAndDeposit(
         uint256 streamId,
         uint128 ratePerSecond,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         external
         override
@@ -347,16 +348,16 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
-        // Checks, Effects and Interactions: restart the stream.
+        // Checks, Effects, and Interactions: restart the stream.
         _restart(streamId, ratePerSecond);
 
-        // Checks, Effects and Interactions: deposit on stream.
-        _deposit(streamId, transferAmount);
+        // Checks, Effects, and Interactions: deposit on stream.
+        _deposit(streamId, depositAmount);
     }
 
     /// @inheritdoc ISablierFlow
     function void(uint256 streamId) external override noDelegateCall notNull(streamId) updateMetadata(streamId) {
-        // Checks, Effects and Interactions: void the stream.
+        // Checks, Effects, and Interactions: void the stream.
         _void(streamId);
     }
 
@@ -386,7 +387,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawalTimeInTheFuture(streamId, time, block.timestamp);
         }
 
-        // Checks, Effects and Interactions: make the withdrawal.
+        // Checks, Effects, and Interactions: make the withdrawal.
         transferAmount = _withdrawAt(streamId, to, time);
     }
 
@@ -402,7 +403,7 @@ contract SablierFlow is
         updateMetadata(streamId)
         returns (uint128 transferAmount)
     {
-        // Checks, Effects and Interactions: make the withdrawal.
+        // Checks, Effects, and Interactions: make the withdrawal.
         transferAmount = _withdrawAt(streamId, to, uint40(block.timestamp));
     }
 
@@ -492,7 +493,7 @@ contract SablierFlow is
 
         uint128 oldRatePerSecond = _streams[streamId].ratePerSecond;
 
-        // Check: the new rate per second is not equal to the actual rate per second.
+        // Check: the new rate per second is different from the current rate per second.
         if (newRatePerSecond == oldRatePerSecond) {
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
@@ -521,7 +522,7 @@ contract SablierFlow is
         address recipient,
         uint128 ratePerSecond,
         IERC20 asset,
-        bool isTransferable
+        bool transferable
     )
         internal
         returns (uint256 streamId)
@@ -536,7 +537,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondZero();
         }
 
-        uint8 assetDecimals = Helpers.safeAssetDecimals(address(asset));
+        uint8 assetDecimals = IERC20Metadata(address(asset)).decimals();
 
         // Check: the asset decimals are not greater than 18.
         if (assetDecimals > 18) {
@@ -553,7 +554,7 @@ contract SablierFlow is
             balance: 0,
             isPaused: false,
             isStream: true,
-            isTransferable: isTransferable,
+            isTransferable: transferable,
             ratePerSecond: ratePerSecond,
             sender: sender,
             snapshotDebt: 0,
@@ -590,13 +591,13 @@ contract SablierFlow is
         IERC20 asset = _streams[streamId].asset;
 
         // Calculate the normalized amount.
-        uint128 normalizedAmount = Helpers.calculateNormalizedAmount(transferAmount, _streams[streamId].assetDecimals);
+        uint128 normalizedAmount = Helpers.normalizeAmount(transferAmount, _streams[streamId].assetDecimals);
 
         // Effect: update the stream balance.
         _streams[streamId].balance += normalizedAmount;
 
         // Interaction: transfer the amount.
-        asset.safeTransferFrom(msg.sender, address(this), transferAmount);
+        asset.safeTransferFrom({ from: msg.sender, to: address(this), value: transferAmount });
 
         // Log the deposit.
         emit ISablierFlow.DepositFlowStream(streamId, msg.sender, normalizedAmount);
@@ -608,11 +609,11 @@ contract SablierFlow is
         (uint128 brokerFeeAmount, uint128 transferAmount) =
             Helpers.checkAndCalculateBrokerFee(totalTransferAmount, broker, MAX_BROKER_FEE);
 
-        // Checks, Effects and Interactions: deposit on stream.
+        // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, transferAmount);
 
         // Interaction: transfer the broker's amount.
-        _streams[streamId].asset.safeTransferFrom(msg.sender, broker.account, brokerFeeAmount);
+        _streams[streamId].asset.safeTransferFrom({ from: msg.sender, to: broker.account, value: brokerFeeAmount });
     }
 
     /// @dev Helper function to calculate the transfer amount and perform the ERC-20 transfer.
@@ -763,7 +764,7 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _withdrawAt(uint256 streamId, address to, uint40 time) internal returns (uint128 transferAmount) {
+    function _withdrawAt(uint256 streamId, address to, uint40 time) internal returns (uint128 withdrawAmount) {
         // Check: the withdrawal address is not zero.
         if (to == address(0)) {
             revert Errors.SablierFlow_WithdrawToZeroAddress(streamId);
@@ -783,21 +784,21 @@ contract SablierFlow is
         }
 
         uint128 totalDebt = _totalDebtOf(streamId, time);
-        uint128 withdrawAmount;
+        uint128 normalizedWithdrawAmount;
 
         // Safe to use unchecked because subtraction cannot underflow.
         unchecked {
             // If there is debt, the withdraw amount is the balance, and the snapshot debt is updated so that we
             // don't lose track of the debt.
             if (totalDebt > balance) {
-                withdrawAmount = balance;
+                normalizedWithdrawAmount = balance;
 
                 // Effect: update the snapshot debt.
                 _streams[streamId].snapshotDebt = totalDebt - balance;
             }
             // Otherwise, recipient can withdraw the full amount, and the snapshot debt must be set to zero.
             else {
-                withdrawAmount = totalDebt;
+                normalizedWithdrawAmount = totalDebt;
 
                 // Effect: set the snapshot debt to zero.
                 _streams[streamId].snapshotDebt = 0;
@@ -808,7 +809,7 @@ contract SablierFlow is
         _updateSnapshotTime(streamId, time);
 
         // Effect and Interaction: update the balance and perform the ERC-20 transfer to the recipient.
-        transferAmount = _extractFromStream(streamId, to, withdrawAmount);
+        withdrawAmount = _extractFromStream(streamId, to, normalizedWithdrawAmount);
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({
@@ -816,7 +817,7 @@ contract SablierFlow is
             to: to,
             asset: _streams[streamId].asset,
             caller: msg.sender,
-            amount: withdrawAmount
+            withdrawAmount: withdrawAmount
         });
     }
 }

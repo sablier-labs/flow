@@ -58,7 +58,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             recipient: recipient,
             ratePerSecond: ratePerSecond,
             asset: asset,
-            isTransferable: isTransferable
+            transferable: isTransferable
         });
 
         // Assert stream's initial states. This is the only place testing for state's getter functions.

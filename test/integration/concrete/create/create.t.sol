@@ -35,7 +35,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: 0,
             asset: dai,
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
     }
 
@@ -52,7 +52,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: IERC20(invalidAsset),
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
     }
 
@@ -74,7 +74,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: assetWith24Decimals,
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
     }
 
@@ -92,7 +92,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: address(0),
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
     }
 
@@ -128,7 +128,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);

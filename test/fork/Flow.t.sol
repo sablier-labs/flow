@@ -247,7 +247,7 @@ contract Flow_Fork_Test is Fork_Test {
             sender: sender,
             ratePerSecond: ratePerSecond,
             asset: asset,
-            isTransferable: isTransferable
+            transferable: isTransferable
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);

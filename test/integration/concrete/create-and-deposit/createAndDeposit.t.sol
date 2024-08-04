@@ -47,7 +47,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: IS_TRANSFERABLE,
+            transferable: IS_TRANSFERABLE,
             transferAmount: TRANSFER_AMOUNT
         });
 

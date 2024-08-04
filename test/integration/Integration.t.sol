@@ -54,7 +54,7 @@ abstract contract Integration_Test is Base_Test {
             recipient: users.recipient,
             ratePerSecond: ratePerSecond,
             asset: asset_,
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
     }
 

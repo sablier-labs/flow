@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.8.22;
 
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ud, UD60x18 } from "@prb/math/src/UD60x18.sol";
 
@@ -17,7 +16,7 @@ library Helpers {
     /// @dev Changes the transfer amount based on the asset's decimal difference from 18:
     /// - if the asset has 18 decimals, the transfer amount is returned.
     /// - if the asset has fewer decimals, the amount is increased.
-    function calculateNormalizedAmount(
+    function normalizeAmount(
         uint128 transferAmount,
         uint8 assetDecimals
     )
@@ -95,16 +94,5 @@ library Helpers {
         uint128 transferAmount = totalTransferAmount - brokerFeeAmount;
 
         return (brokerFeeAmount, transferAmount);
-    }
-
-    /// @notice Retrieves the asset's decimals safely, reverts with a custom error if an error occurs.
-    /// @dev Performs a low-level call to handle assets decimals that are implemented as a number less than 256.
-    function safeAssetDecimals(address asset) internal view returns (uint8) {
-        (bool success, bytes memory returnData) = asset.staticcall(abi.encodeCall(IERC20Metadata.decimals, ()));
-        if (success && returnData.length == 32) {
-            return abi.decode(returnData, (uint8));
-        } else {
-            revert Errors.SablierFlow_InvalidAssetDecimals(asset);
-        }
     }
 }

@@ -20,7 +20,7 @@ contract TransferFrom_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: false
+            transferable: false
         });
 
         vm.expectRevert(

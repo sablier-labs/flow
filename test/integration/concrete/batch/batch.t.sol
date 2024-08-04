@@ -47,7 +47,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: IERC20(address(usdt)),
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
 
         address noAllowanceAddress = address(0xBEEF);
