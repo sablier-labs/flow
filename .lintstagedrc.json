@@ -1,7 +1,0 @@
-{
-  "*.json": "prettier --write",
-  "*.md": "prettier --write",
-  "*.svg": "prettier --write",
-  "*.yml": "prettier --write",
-  "*.sol": ["bun solhint --fix --noPrompt", "forge fmt"]
-}
