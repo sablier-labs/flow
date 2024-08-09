@@ -26,11 +26,11 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         vm.warp({ newTimestamp: timeJump });
 
         // Assert that the refundable amount equals the stream balance before the time warp.
-        uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
-        assertEq(actualRefundableAmount, previousStreamBalance);
+        uint128 actualNormalizedRefundableAmount = flow.normalizedRefundableAmountOf(streamId);
+        assertEq(actualNormalizedRefundableAmount, previousStreamBalance);
 
         // Assert that the refundable amount is same as the deposited amount.
-        assertEq(actualRefundableAmount, depositedAmount);
+        assertEq(actualNormalizedRefundableAmount, depositedAmount);
     }
 
     /// @dev It should return the refundable amount equal to the deposited amount minus streamed amount.
@@ -59,9 +59,9 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         vm.warp({ newTimestamp: timeJump });
 
         // Assert that the refundable amount same as the deposited amount minus streamed amount.
-        uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
-        uint128 expectedRefundableAmount = depositedAmount - ratePerSecond * (timeJump - MAY_1_2024);
-        assertEq(actualRefundableAmount, expectedRefundableAmount);
+        uint128 actualNormalizedRefundableAmount = flow.normalizedRefundableAmountOf(streamId);
+        uint128 expectedNormalizedRefundableAmount = depositedAmount - ratePerSecond * (timeJump - MAY_1_2024);
+        assertEq(actualNormalizedRefundableAmount, expectedNormalizedRefundableAmount);
     }
 
     /// @dev It should return the zero value for refundable amount.
@@ -80,8 +80,8 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         vm.warp({ newTimestamp: timeJump });
 
         // Assert that the refundable amount is zero.
-        uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
-        uint128 expectedRefundableAmount = 0;
-        assertEq(actualRefundableAmount, expectedRefundableAmount);
+        uint128 actualNormalizedRefundableAmount = flow.normalizedRefundableAmountOf(streamId);
+        uint128 expectedNormalizedRefundableAmount = 0;
+        assertEq(actualNormalizedRefundableAmount, expectedNormalizedRefundableAmount);
     }
 }

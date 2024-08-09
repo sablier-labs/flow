@@ -54,7 +54,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        uint128 transferAmount = getTransferAmount(ONE_MONTH_STREAMED_AMOUNT, 18);
+        uint128 transferAmount = getDenormalizedAmount(ONE_MONTH_STREAMED_AMOUNT, 18);
         expectCallToTransfer({ asset: dai, to: users.recipient, amount: transferAmount });
 
         uint128 actualTransferAmount = flow.withdrawMax(defaultStreamId, users.recipient);

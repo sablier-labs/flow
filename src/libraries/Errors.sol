@@ -52,7 +52,9 @@ library Errors {
     error SablierFlow_RefundAmountZero(uint256 streamId);
 
     /// @notice Thrown when trying to refund an amount greater than the refundable amount.
-    error SablierFlow_RefundOverflow(uint256 streamId, uint128 refundAmount, uint128 refundableAmount);
+    error SablierFlow_RefundOverflow(
+        uint256 streamId, uint128 normalizedRefundAmount, uint128 normalizedRefundableAmount
+    );
 
     /// @notice Thrown when trying to create a stream with the sender as the zero address.
     error SablierFlow_SenderZeroAddress();

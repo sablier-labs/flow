@@ -91,7 +91,7 @@ contract Flow_Invariant_Test is Base_Test {
 
             if (flow.getAsset(streamId) == asset) {
                 streamBalancesSumNormalized +=
-                    getTransferAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
+                    getDenormalizedAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
             }
         }
 
@@ -219,14 +219,14 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev The stream balance should be equal to the sum of the covered debt and the refundable amount.
-    function invariant_StreamBalanceEqCoveredDebtPlusRefundableAmount() external view {
+    function invariant_StreamBalanceEqCoveredDebtPlusNormalizedRefundableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             assertEq(
                 flow.getBalance(streamId),
-                flow.coveredDebtOf(streamId) + flow.refundableAmountOf(streamId),
-                "Invariant violation: stream balance != covered debt + refundable amount"
+                flow.coveredDebtOf(streamId) + flow.normalizedRefundableAmountOf(streamId),
+                "Invariant violation: stream balance != covered debt + normalized refundable amount"
             );
         }
     }

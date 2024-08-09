@@ -58,7 +58,7 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
             uint128 amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
 
             // Calculate the transfer amount.
-            uint128 transferAmount = getTransferAmount(amount, decimals);
+            uint128 transferAmount = getDenormalizedAmount(amount, decimals);
 
             // Deposit into the stream.
             depositAmount(streamId, transferAmount);

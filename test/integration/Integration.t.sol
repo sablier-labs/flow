@@ -78,24 +78,24 @@ abstract contract Integration_Test is Base_Test {
         stream.balance = DEPOSIT_AMOUNT;
     }
 
-    function depositAmount(uint256 streamId, uint128 transferAmount) internal {
+    function depositAmount(uint256 streamId, uint128 depositAmount_) internal {
         IERC20 asset = flow.getAsset(streamId);
 
-        deal({ token: address(asset), to: users.sender, give: transferAmount });
-        asset.approve(address(flow), transferAmount);
+        deal({ token: address(asset), to: users.sender, give: depositAmount_ });
+        asset.approve(address(flow), depositAmount_);
 
-        flow.deposit(streamId, transferAmount);
+        flow.deposit(streamId, depositAmount_);
     }
 
     function depositDefaultAmount(uint256 streamId) internal {
         IERC20 asset = flow.getAsset(streamId);
         uint8 decimals = flow.getAssetDecimals(streamId);
-        uint128 transferAmount = getDefaultTransferAmount(decimals);
+        uint128 depositAmount_ = getDefaultDepositAmount(decimals);
 
-        deal({ token: address(asset), to: users.sender, give: transferAmount });
-        asset.approve(address(flow), transferAmount);
+        deal({ token: address(asset), to: users.sender, give: depositAmount_ });
+        asset.approve(address(flow), depositAmount_);
 
-        flow.deposit(streamId, transferAmount);
+        flow.deposit(streamId, depositAmount_);
     }
 
     function depositToDefaultStream() internal {

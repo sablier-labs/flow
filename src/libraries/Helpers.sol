@@ -12,69 +12,16 @@ import { Errors } from "./Errors.sol";
 library Helpers {
     using SafeCast for uint256;
 
-    /// @notice Calculates the normalized amount using the asset's decimals.
-    /// @dev Changes the transfer amount based on the asset's decimal difference from 18:
-    /// - if the asset has 18 decimals, the transfer amount is returned.
-    /// - if the asset has fewer decimals, the amount is increased.
-    function normalizeAmount(
-        uint128 transferAmount,
-        uint8 assetDecimals
-    )
-        internal
-        pure
-        returns (uint128 normalizedAmount)
-    {
-        // Return the transfer amount if asset's decimals is 18.
-        if (assetDecimals == 18) {
-            return transferAmount;
-        }
-
-        uint8 normalizingFactor;
-
-        // Safe to use unchecked because the subtraction cannot overflow.
-        unchecked {
-            normalizingFactor = 18 - assetDecimals;
-        }
-
-        normalizedAmount = (transferAmount * (10 ** normalizingFactor)).toUint128();
-    }
-
-    /// @notice Calculates the transfer amount based on the asset's decimals.
-    /// @dev Changes the amount based on the asset's decimal difference from 18:
-    /// - if the asset has 18 decimals, the amount is returned.
-    /// - if the asset has fewer decimals, the amount is reduced.
-    function calculateTransferAmount(
-        uint128 amount,
-        uint8 assetDecimals
-    )
-        internal
-        pure
-        returns (uint128 transferAmount)
-    {
-        // Return the original amount if asset's decimals is 18.
-        if (assetDecimals == 18) {
-            return amount;
-        }
-
-        uint8 normalizingFactor;
-
-        // Safe to use unchecked because the subtraction and division cannot overflow.
-        unchecked {
-            normalizingFactor = 18 - assetDecimals;
-            transferAmount = (amount / (10 ** normalizingFactor)).toUint128();
-        }
-    }
-
-    /// @dev Checks the `Broker` parameter, and then calculates the broker fee amount and the transfer amount from the
-    /// total transfer amount.
+    /// @dev Checks the `Broker` parameter, and then calculates the broker fee amount and the deposit amount from the
+    /// total amount.
     function checkAndCalculateBrokerFee(
-        uint128 totalTransferAmount,
+        uint128 totalAmount,
         Broker memory broker,
         UD60x18 maxBrokerFee
     )
         internal
         pure
-        returns (uint128, uint128)
+        returns (uint128 brokerFeeAmount, uint128 depositAmount)
     {
         // Check: the broker's fee is not greater than `MAX_BROKER_FEE`.
         if (broker.fee.gt(maxBrokerFee)) {
@@ -88,11 +35,43 @@ library Helpers {
 
         // Calculate the broker fee amount that is going to be transfer to the `broker.account`.
         // The cast to uint128 is safe because the maximum fee is hard coded.
-        uint128 brokerFeeAmount = ud(totalTransferAmount).mul(broker.fee).intoUint256().toUint128();
+        brokerFeeAmount = ud(totalAmount).mul(broker.fee).intoUint256().toUint128();
 
         // Calculate the transfer amount to the Flow contract.
-        uint128 transferAmount = totalTransferAmount - brokerFeeAmount;
+        depositAmount = totalAmount - brokerFeeAmount;
+    }
 
-        return (brokerFeeAmount, transferAmount);
+    /// @notice Denormalizes the provided amount to be denoted in the asset's decimals.
+    /// @dev The following logic is used to denormalize the amount:
+    /// - If the asset has exactly 18 decimals, the amount is returned as is.
+    /// - if the asset has fewer than 18 decimals, the amount is divided by $10^(18 - assetDecimals)$.
+    function denormalizeAmount(uint128 normalizedAmount, uint8 assetDecimals) internal pure returns (uint128 amount) {
+        // Return the original amount if asset's decimals is 18.
+        if (assetDecimals == 18) {
+            return normalizedAmount;
+        }
+
+        // Safe to use unchecked because the subtraction and division cannot overflow.
+        unchecked {
+            uint8 factor = 18 - assetDecimals;
+            amount = (normalizedAmount / (10 ** factor)).toUint128();
+        }
+    }
+    /// @notice Normalizes the provided amount to be denoted in 18 decimals.
+    /// @dev The following logic is used to normalize the amount:
+    /// - If the asset has exactly 18 decimals, the amount is returned as is.
+    /// - if the asset has fewer than 18 decimals, the amount is multiplied by $10^(18 - assetDecimals)$.
+
+    function normalizeAmount(uint128 amount, uint8 assetDecimals) internal pure returns (uint128 normalizedAmount) {
+        // Return the transfer amount if asset's decimals is 18.
+        if (assetDecimals == 18) {
+            return amount;
+        }
+
+        // Safe to use unchecked because the subtraction cannot overflow.
+        unchecked {
+            uint8 factor = 18 - assetDecimals;
+            normalizedAmount = (amount * (10 ** factor)).toUint128();
+        }
     }
 }

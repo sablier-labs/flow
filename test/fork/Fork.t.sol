@@ -83,12 +83,12 @@ abstract contract Fork_Test is Base_Test {
     }
 
     /// @dev Helper function to deposit on a stream.
-    function depositOnStream(uint256 streamId, uint128 transferAmount) internal {
+    function depositOnStream(uint256 streamId, uint128 depositAmount) internal {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
-        deal({ token: address(asset), to: sender, give: transferAmount });
-        safeApprove(transferAmount);
-        flow.deposit({ streamId: streamId, transferAmount: transferAmount });
+        deal({ token: address(asset), to: sender, give: depositAmount });
+        safeApprove(depositAmount);
+        flow.deposit({ streamId: streamId, depositAmount: depositAmount });
     }
 
     /// @dev Use a low-level call to ignore reverts in case of USDT.

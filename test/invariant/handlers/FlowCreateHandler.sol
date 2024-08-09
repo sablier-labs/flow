@@ -104,7 +104,7 @@ contract FlowCreateHandler is BaseHandler {
         uint8 decimals = IERC20Metadata(address(currentAsset)).decimals();
 
         // Calculate the upper bound, based on the asset decimals, for the transfer amount.
-        uint128 upperBound = getTransferAmount(1_000_000e18, decimals);
+        uint128 upperBound = getDenormalizedAmount(1_000_000e18, decimals);
 
         // Bound the stream parameters.
         params.ratePerSecond = boundRatePerSecond(params.ratePerSecond);

@@ -126,7 +126,7 @@ contract FlowHandler is BaseHandler {
         updateFlowHandlerStates
     {
         // Calculate the upper bound, based on the asset decimals, for the transfer amount.
-        uint128 upperBound = getTransferAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
+        uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
 
         // Bound the transfer amount.
         transferAmount = uint128(_bound(transferAmount, 100, upperBound));
@@ -154,7 +154,7 @@ contract FlowHandler is BaseHandler {
     function refund(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
-        uint128 refundAmount
+        uint128 normalizedRefundAmount
     )
         external
         instrument("refund")
@@ -163,19 +163,19 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
-        uint128 refundableAmount = flow.refundableAmountOf(currentStreamId);
+        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(currentStreamId);
 
-        // The protocol doesn't allow zero refund amount.
-        vm.assume(refundableAmount > 0);
+        // The protocol doesn't allow zero refund amounts.
+        vm.assume(normalizedRefundableAmount > 0);
 
-        // Bound the refund amount so that it does not exceed the `refundableAmount`.
-        refundAmount = uint128(_bound(refundAmount, 1, refundableAmount));
+        // Bound the refund amount so that it does not exceed the `normalizedRefundableAmount`.
+        normalizedRefundAmount = uint128(_bound(normalizedRefundAmount, 1, normalizedRefundableAmount));
 
         // Refund from stream.
-        flow.refund(currentStreamId, refundAmount);
+        flow.refund(currentStreamId, normalizedRefundAmount);
 
         // Update the refunded amount.
-        flowStore.updateStreamRefundedAmountsSum(currentStreamId, refundAmount);
+        flowStore.updateStreamRefundedAmountsSum(currentStreamId, normalizedRefundAmount);
     }
 
     function restart(

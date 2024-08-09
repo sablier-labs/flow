@@ -141,7 +141,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({
             from: address(flow),
             to: withdrawTo,
-            value: getTransferAmount(expectedWithdrawAmount, decimals)
+            value: getDenormalizedAmount(expectedWithdrawAmount, decimals)
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -174,7 +174,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should reduce the asset balance of stream.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetBalance - getTransferAmount(expectedWithdrawAmount, decimals);
+        uint256 expectedAssetBalance = assetBalance - getDenormalizedAmount(expectedWithdrawAmount, decimals);
         assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }

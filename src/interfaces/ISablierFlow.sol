@@ -107,10 +107,18 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     function ongoingDebtOf(uint256 streamId) external view returns (uint128 ongoingDebt);
 
-    /// @notice Returns the amount that the sender can be refunded from the stream, denoted in 18 decimals.
+    /// @notice Returns the normalized amount that the sender can be refunded from the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
-    function refundableAmountOf(uint256 streamId) external view returns (uint128 refundableAmount);
+    // function refundableAmountOf(uint256 streamId) external view returns (uint128 refundableAmount);
+
+    /// @notice Returns the normalized amount that the sender can be refunded from the stream, denoted in 18 decimals.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    function normalizedRefundableAmountOf(uint256 streamId)
+        external
+        view
+        returns (uint128 normalizedRefundableAmount);
 
     /// @notice Returns the stream's status.
     /// @dev Reverts if `streamId` references a null stream.
@@ -193,7 +201,7 @@ interface ISablierFlow is
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
-    /// @param transferAmount The transfer amount, denoted in units of the asset's decimals.
+    /// @param depositAmount The deposit amount, denoted in units of the asset's decimals.
     ///
     /// @return streamId The ID of the newly created stream.
     function createAndDeposit(
@@ -202,7 +210,7 @@ interface ISablierFlow is
         uint128 ratePerSecond,
         IERC20 asset,
         bool transferable,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         external
         returns (uint256 streamId);
@@ -223,8 +231,8 @@ interface ISablierFlow is
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted in 18 decimals.
     /// @param asset The contract address of the ERC-20 asset to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
-    /// @param totalTransferAmount The total transfer amount, including the stream transfer amount and broker fee
-    /// amount, denoted in units of the asset's decimals.
+    /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in units of the asset's
+    /// decimals.
     /// @param broker Struct encapsulating (i) the address of the broker assisting in creating the stream, and (ii) the
     /// percentage fee paid to the broker from `totalTransferAmount`, denoted as a fixed-point number. Both can be set
     /// to zero.
@@ -236,7 +244,7 @@ interface ISablierFlow is
         uint128 ratePerSecond,
         IERC20 asset,
         bool transferable,
-        uint128 totalTransferAmount,
+        uint128 totalAmount,
         Broker calldata broker
     )
         external
@@ -437,6 +445,6 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn assets.
     ///
-    /// @return transferAmount The amount transferred to the recipient, denoted in asset's decimals.
-    function withdrawMax(uint256 streamId, address to) external returns (uint128 transferAmount);
+    /// @return withdrawAmount The amount withdrawn to the recipient, denoted in asset's decimals.
+    function withdrawMax(uint256 streamId, address to) external returns (uint128 withdrawAmount);
 }

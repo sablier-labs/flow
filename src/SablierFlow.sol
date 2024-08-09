@@ -87,16 +87,17 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function refundableAmountOf(
+    function normalizedRefundableAmountOf(
         uint256 streamId
     )
         external
         view
         override
         notNull(streamId)
-        returns (uint128 refundableAmount)
+        returns (uint128 normalizedRefundableAmount)
     {
-        refundableAmount = _refundableAmountOf(streamId, uint40(block.timestamp));
+        normalizedRefundableAmount =
+            _normalizedRefundableAmountOf({ streamId: streamId, time: uint40(block.timestamp) });
     }
 
     /// @inheritdoc ISablierFlow
@@ -178,7 +179,7 @@ contract SablierFlow is
         uint128 ratePerSecond,
         IERC20 asset,
         bool transferable,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         external
         override
@@ -189,7 +190,7 @@ contract SablierFlow is
         streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
 
         // Checks, Effects, and Interactions: deposit on stream.
-        _deposit(streamId, transferAmount);
+        _deposit(streamId, depositAmount);
     }
 
     /// @inheritdoc ISablierFlow
@@ -199,7 +200,7 @@ contract SablierFlow is
         uint128 ratePerSecond,
         IERC20 asset,
         bool transferable,
-        uint128 totalTransferAmount,
+        uint128 totalAmount,
         Broker calldata broker
     )
         external
@@ -211,13 +212,13 @@ contract SablierFlow is
         streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
 
         // Checks, Effects, and Interactions: deposit into stream through {depositViaBroker}.
-        _depositViaBroker(streamId, totalTransferAmount, broker);
+        _depositViaBroker(streamId, totalAmount, broker);
     }
 
     /// @inheritdoc ISablierFlow
     function deposit(
         uint256 streamId,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         external
         override
@@ -226,13 +227,13 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream.
-        _deposit(streamId, transferAmount);
+        _deposit(streamId, depositAmount);
     }
 
     /// @inheritdoc ISablierFlow
     function depositAndPause(
         uint256 streamId,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         external
         override
@@ -243,7 +244,7 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream.
-        _deposit(streamId, transferAmount);
+        _deposit(streamId, depositAmount);
 
         // Checks, Effects, and Interactions: pause the stream.
         _pause(streamId);
@@ -252,7 +253,7 @@ contract SablierFlow is
     /// @inheritdoc ISablierFlow
     function depositViaBroker(
         uint256 streamId,
-        uint128 totalTransferAmount,
+        uint128 totalAmount,
         Broker calldata broker
     )
         external
@@ -262,7 +263,7 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream through broker.
-        _depositViaBroker(streamId, totalTransferAmount, broker);
+        _depositViaBroker(streamId, totalAmount, broker);
     }
 
     /// @inheritdoc ISablierFlow
@@ -284,7 +285,7 @@ contract SablierFlow is
     /// @inheritdoc ISablierFlow
     function refund(
         uint256 streamId,
-        uint128 amount
+        uint128 normalizedRefundAmount
     )
         external
         override
@@ -292,16 +293,16 @@ contract SablierFlow is
         notNull(streamId)
         onlySender(streamId)
         updateMetadata(streamId)
-        returns (uint128 transferAmount)
+        returns (uint128 refundAmount)
     {
         // Checks, Effects, and Interactions: make the refund.
-        transferAmount = _refund(streamId, amount);
+        refundAmount = _refund(streamId, normalizedRefundAmount);
     }
 
     /// @inheritdoc ISablierFlow
     function refundAndPause(
         uint256 streamId,
-        uint128 amount
+        uint128 normalizedRefundAmount
     )
         external
         override
@@ -310,10 +311,10 @@ contract SablierFlow is
         notPaused(streamId)
         onlySender(streamId)
         updateMetadata(streamId)
-        returns (uint128 transferAmount)
+        returns (uint128 refundAmount)
     {
         // Checks, Effects, and Interactions: make the refund.
-        transferAmount = _refund(streamId, amount);
+        refundAmount = _refund(streamId, normalizedRefundAmount);
 
         // Checks, Effects, and Interactions: pause the stream.
         _pause(streamId);
@@ -372,7 +373,7 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
-        returns (uint128 transferAmount)
+        returns (uint128 withdrawAmount)
     {
         // Retrieve the snapshot time from storage.
         uint40 snapshotTime = _streams[streamId].snapshotTime;
@@ -388,7 +389,7 @@ contract SablierFlow is
         }
 
         // Checks, Effects, and Interactions: make the withdrawal.
-        transferAmount = _withdrawAt(streamId, to, time);
+        withdrawAmount = _withdrawAt(streamId, to, time);
     }
 
     /// @inheritdoc ISablierFlow
@@ -401,10 +402,10 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
-        returns (uint128 transferAmount)
+        returns (uint128 withdrawAmount)
     {
         // Checks, Effects, and Interactions: make the withdrawal.
-        transferAmount = _withdrawAt(streamId, to, uint40(block.timestamp));
+        withdrawAmount = _withdrawAt(streamId, to, uint40(block.timestamp));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -451,8 +452,8 @@ contract SablierFlow is
         return elapsedTime * _streams[streamId].ratePerSecond;
     }
 
-    /// @dev Calculates the refundable amount.
-    function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+    /// @dev Calculates the normalized refundable amount.
+    function _normalizedRefundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         return _streams[streamId].balance - _coveredDebtOf(streamId, time);
     }
 
@@ -581,9 +582,9 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _deposit(uint256 streamId, uint128 transferAmount) internal {
+    function _deposit(uint256 streamId, uint128 depositAmount) internal {
         // Check: the transfer amount is not zero.
-        if (transferAmount == 0) {
+        if (depositAmount == 0) {
             revert Errors.SablierFlow_TransferAmountZero(streamId);
         }
 
@@ -591,53 +592,33 @@ contract SablierFlow is
         IERC20 asset = _streams[streamId].asset;
 
         // Calculate the normalized amount.
-        uint128 normalizedAmount = Helpers.normalizeAmount(transferAmount, _streams[streamId].assetDecimals);
+        uint128 normalizedDepositAmount = Helpers.normalizeAmount(depositAmount, _streams[streamId].assetDecimals);
 
         // Effect: update the stream balance.
-        _streams[streamId].balance += normalizedAmount;
+        _streams[streamId].balance += normalizedDepositAmount;
 
         // Interaction: transfer the amount.
-        asset.safeTransferFrom({ from: msg.sender, to: address(this), value: transferAmount });
+        asset.safeTransferFrom({ from: msg.sender, to: address(this), value: depositAmount });
 
         // Log the deposit.
-        emit ISablierFlow.DepositFlowStream(streamId, msg.sender, normalizedAmount);
+        emit ISablierFlow.DepositFlowStream({
+            streamId: streamId,
+            funder: msg.sender,
+            normalizedDepositAmount: depositAmount
+        });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _depositViaBroker(uint256 streamId, uint128 totalTransferAmount, Broker memory broker) internal {
+    function _depositViaBroker(uint256 streamId, uint128 totalAmount, Broker memory broker) internal {
         // Check: verify the `broker` and calculate the amounts.
-        (uint128 brokerFeeAmount, uint128 transferAmount) =
-            Helpers.checkAndCalculateBrokerFee(totalTransferAmount, broker, MAX_BROKER_FEE);
+        (uint128 brokerFeeAmount, uint128 depositAmount) =
+            Helpers.checkAndCalculateBrokerFee(totalAmount, broker, MAX_BROKER_FEE);
 
         // Checks, Effects, and Interactions: deposit on stream.
-        _deposit(streamId, transferAmount);
+        _deposit(streamId, depositAmount);
 
         // Interaction: transfer the broker's amount.
         _streams[streamId].asset.safeTransferFrom({ from: msg.sender, to: broker.account, value: brokerFeeAmount });
-    }
-
-    /// @dev Helper function to calculate the transfer amount and perform the ERC-20 transfer.
-    ///
-    /// @param streamId The ID of the stream.
-    /// @param to The address to receive amount from the stream.
-    ///
-    /// @return transferAmount The amount transferred out of the stream, denoted in the asset's decimals.
-    function _extractFromStream(
-        uint256 streamId,
-        address to,
-        uint128 amount
-    )
-        internal
-        returns (uint128 transferAmount)
-    {
-        // Calculate the transfer amount.
-        transferAmount = Helpers.calculateTransferAmount(amount, _streams[streamId].assetDecimals);
-
-        // Effect: update the stream balance.
-        _streams[streamId].balance -= amount;
-
-        // Interaction: perform the ERC-20 transfer.
-        _streams[streamId].asset.safeTransfer(to, transferAmount);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -661,33 +642,34 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _refund(uint256 streamId, uint128 amount) internal returns (uint128 transferAmount) {
+    function _refund(uint256 streamId, uint128 normalizedRefundAmount) internal returns (uint128 refundAmount) {
         // Check: the amount is not zero.
-        if (amount == 0) {
+        if (normalizedRefundAmount == 0) {
             revert Errors.SablierFlow_RefundAmountZero(streamId);
         }
 
         // Calculate the refundable amount.
-        uint128 refundableAmount = _refundableAmountOf(streamId, uint40(block.timestamp));
+        uint128 normalizedRefundableAmount =
+            _normalizedRefundableAmountOf({ streamId: streamId, time: uint40(block.timestamp) });
 
         // Check: the refund amount is not greater than the refundable amount.
-        if (amount > refundableAmount) {
-            revert Errors.SablierFlow_RefundOverflow(streamId, amount, refundableAmount);
+        if (normalizedRefundAmount > normalizedRefundableAmount) {
+            revert Errors.SablierFlow_RefundOverflow(streamId, normalizedRefundAmount, normalizedRefundableAmount);
         }
 
         // Although the refundable amount should never exceed the balance, this condition is checked
         // to avoid exploits in case of a bug.
-        if (amount > _streams[streamId].balance) {
-            revert Errors.SablierFlow_InvalidCalculation(streamId, _streams[streamId].balance, amount);
+        if (normalizedRefundAmount > _streams[streamId].balance) {
+            revert Errors.SablierFlow_InvalidCalculation(streamId, _streams[streamId].balance, normalizedRefundAmount);
         }
 
         address sender = _streams[streamId].sender;
 
         // Effect and Interaction: update the balance and perform the ERC-20 transfer to the sender.
-        transferAmount = _extractFromStream(streamId, sender, amount);
+        refundAmount = _updateBalanceAndTransfer(streamId, sender, normalizedRefundAmount);
 
         // Log the refund.
-        emit ISablierFlow.RefundFromFlowStream(streamId, sender, amount);
+        emit ISablierFlow.RefundFromFlowStream(streamId, sender, refundAmount);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -713,6 +695,31 @@ contract SablierFlow is
 
         // Log the restart.
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
+    }
+
+    /// @dev Helper function to update the stream balance and transfer the amount to the provided address.
+    ///
+    /// @param streamId The ID of the stream.
+    /// @param to The address to receive the transfer.
+    /// @param normalizedAmount The normalized amount of assets to transfer, denoted in 18 decimals.
+    ///
+    /// @return denormalizedAmount The amount transferred, denoted in the asset's decimals.
+    function _updateBalanceAndTransfer(
+        uint256 streamId,
+        address to,
+        uint128 normalizedAmount
+    )
+        internal
+        returns (uint128 denormalizedAmount)
+    {
+        // Calculate the transfer amount.
+        denormalizedAmount = Helpers.denormalizeAmount(normalizedAmount, _streams[streamId].assetDecimals);
+
+        // Effect: update the stream balance.
+        _streams[streamId].balance -= normalizedAmount;
+
+        // Interaction: perform the ERC-20 transfer.
+        _streams[streamId].asset.safeTransfer(to, denormalizedAmount);
     }
 
     /// @dev Update the snapshot debt by adding the ongoing debt streamed since the snapshot time.
@@ -809,7 +816,7 @@ contract SablierFlow is
         _updateSnapshotTime(streamId, time);
 
         // Effect and Interaction: update the balance and perform the ERC-20 transfer to the recipient.
-        withdrawAmount = _extractFromStream(streamId, to, normalizedWithdrawAmount);
+        withdrawAmount = _updateBalanceAndTransfer(streamId, to, normalizedWithdrawAmount);
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({

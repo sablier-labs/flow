@@ -53,7 +53,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         address noAllowanceAddress = address(0xBEEF);
         resetPrank({ msgSender: noAllowanceAddress });
 
-        uint128 transferAmount = getTransferAmount(TRANSFER_AMOUNT, 6);
+        uint128 transferAmount = getDenormalizedAmount(TRANSFER_AMOUNT, 6);
 
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](1);
@@ -269,7 +269,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // It should emit 2 {Transfer} and 2 {RefundFromFlowStream} events.
 
-        uint128 transferAmount = getTransferAmount(REFUND_AMOUNT, 18);
+        uint128 transferAmount = getDenormalizedAmount(REFUND_AMOUNT, 18);
 
         // First stream refund
         vm.expectEmit({ emitter: address(dai) });
@@ -339,7 +339,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         calls[0] = abi.encodeCall(flow.withdrawAt, (defaultStreamIds[0], users.recipient, WITHDRAW_TIME));
         calls[1] = abi.encodeCall(flow.withdrawAt, (defaultStreamIds[1], users.recipient, WITHDRAW_TIME));
 
-        uint128 transferAmount = getTransferAmount(WITHDRAW_AMOUNT, 18);
+        uint128 transferAmount = getDenormalizedAmount(WITHDRAW_AMOUNT, 18);
 
         // It should emit 2 {Transfer}, 2 {WithdrawFromFlowStream} and 2 {MetadataUpdated} events.
 

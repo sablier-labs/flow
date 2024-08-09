@@ -52,19 +52,19 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return uint40(block.timestamp);
     }
 
-    /// @dev Calculates the transfer amount using `TRANSFER_VALUE` and `decimals`.
-    function getDefaultTransferAmount(uint8 decimals) internal pure returns (uint128 transferAmount) {
+    /// @dev Calculates the default deposit amount using `TRANSFER_VALUE` and `decimals`.
+    function getDefaultDepositAmount(uint8 decimals) internal pure returns (uint128 depositAmount) {
         return TRANSFER_VALUE * (10 ** decimals).toUint128();
     }
 
-    /// @dev Mirror function for {Helpers.calculateNormalizedAmount}.
-    function getNormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
-        return Helpers.calculateNormalizedAmount(amount, decimals);
+    /// @dev Mirror function for {Helpers.denormalizeAmount}.
+    function getDenormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.denormalizeAmount(amount, decimals);
     }
 
-    /// @dev Mirror function for {Helpers.calculateTransferAmount}.
-    function getTransferAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
-        return Helpers.calculateTransferAmount(amount, decimals);
+    /// @dev Mirror function for {Helpers.normalizeAmount}.
+    function getNormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.normalizeAmount(amount, decimals);
     }
 
     /// @dev Checks if the Foundry profile is "test-optimized".
