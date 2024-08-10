@@ -119,8 +119,8 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         _test_Withdraw({
             streamId: defaultStreamId,
             to: users.eve,
-            depositAmount: DEPOSIT_AMOUNT,
-            normalizedWithdrawAmount: WITHDRAW_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
         });
     }
 
@@ -158,9 +158,9 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         resetPrank({ msgSender: users.sender });
 
-        uint128 chickenfeed = 50e18;
+        uint128 chickenfeed = 50e6;
 
-        // Create a new stream with very less deposit.
+        // Create a new stream with a much smaller deposit.
         uint256 streamId = createDefaultStream();
         depositAmount(streamId, chickenfeed);
 
@@ -175,7 +175,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             streamId: streamId,
             to: users.recipient,
             depositAmount: chickenfeed,
-            normalizedWithdrawAmount: chickenfeed
+            normalizedWithdrawAmount: 50e18
         });
     }
 
@@ -213,7 +213,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             streamId: streamId,
             to: users.recipient,
             depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedWithdrawAmount: WITHDRAW_AMOUNT
+            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
         });
     }
 
@@ -231,8 +231,8 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         _test_Withdraw({
             streamId: defaultStreamId,
             to: users.recipient,
-            depositAmount: DEPOSIT_AMOUNT,
-            normalizedWithdrawAmount: WITHDRAW_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
         });
     }
 

@@ -46,10 +46,11 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit CreateFlowStream({
             streamId: expectedStreamId,
-            asset: asset,
             sender: sender,
             recipient: recipient,
-            ratePerSecond: ratePerSecond
+            ratePerSecond: ratePerSecond,
+            asset: asset,
+            transferable: isTransferable
         });
 
         // Create the stream.

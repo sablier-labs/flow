@@ -37,32 +37,33 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_WithdrawMax() private {
+        uint128 withdrawAmount = getDenormalizedAmount({ amount: ONE_MONTH_STREAMED_AMOUNT, decimals: DECIMALS });
+
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: ONE_MONTH_STREAMED_AMOUNT });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
             streamId: defaultStreamId,
             to: users.recipient,
-            asset: IERC20(address(dai)),
+            asset: IERC20(address(usdc)),
             caller: users.sender,
-            withdrawAmount: ONE_MONTH_STREAMED_AMOUNT,
+            withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: ONE_MONTH_STREAMED_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
-        // It should perform the ERC20 transfer
-        uint128 withdrawAmount = getDenormalizedAmount(ONE_MONTH_STREAMED_AMOUNT, 18);
-        expectCallToTransfer({ asset: dai, to: users.recipient, amount: withdrawAmount });
+        // It should perform the ERC20 transfer.
+        expectCallToTransfer({ asset: usdc, to: users.recipient, amount: withdrawAmount });
 
-        uint128 actualTransferAmount = flow.withdrawMax(defaultStreamId, users.recipient);
+        uint128 actualWithdrawAmount = flow.withdrawMax(defaultStreamId, users.recipient);
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
+        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should set the snapshot debt to zero.
@@ -73,7 +74,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         uint128 actualSnapshotTime = flow.getSnapshotTime(defaultStreamId);
         assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
 
-        // Assert that the returned value equals the transfer value.
-        assertEq(actualTransferAmount, withdrawAmount);
+        // Assert that the withdraw amounts match.
+        assertEq(actualWithdrawAmount, withdrawAmount);
     }
 }

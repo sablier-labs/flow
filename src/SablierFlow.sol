@@ -574,10 +574,11 @@ contract SablierFlow is
         // Log the newly created stream.
         emit ISablierFlow.CreateFlowStream({
             streamId: streamId,
-            asset: asset,
             sender: sender,
             recipient: recipient,
-            ratePerSecond: ratePerSecond
+            ratePerSecond: ratePerSecond,
+            asset: asset,
+            transferable: transferable
         });
     }
 
@@ -585,7 +586,7 @@ contract SablierFlow is
     function _deposit(uint256 streamId, uint128 depositAmount) internal {
         // Check: the transfer amount is not zero.
         if (depositAmount == 0) {
-            revert Errors.SablierFlow_TransferAmountZero(streamId);
+            revert Errors.SablierFlow_DepositAmountZero(streamId);
         }
 
         // Retrieve the ERC-20 asset from storage.

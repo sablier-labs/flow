@@ -239,7 +239,8 @@ contract Flow_Fork_Test is Fork_Test {
             asset: asset,
             sender: sender,
             recipient: recipient,
-            ratePerSecond: ratePerSecond
+            ratePerSecond: ratePerSecond,
+            transferable: isTransferable
         });
 
         uint256 actualStreamId = flow.create({
@@ -377,7 +378,7 @@ contract Flow_Fork_Test is Fork_Test {
         // If the refundable amount less than 1, deposit some funds.
         if (flow.normalizedRefundableAmountOf(streamId) <= 1) {
             uint128 depositAmount =
-                getDenormalizedAmount(DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
+                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
             depositOnStream(streamId, depositAmount);
         }
 
@@ -527,7 +528,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 streamBalance = flow.getBalance(streamId);
         if (streamBalance == 0) {
             uint128 depositAmount =
-                getDenormalizedAmount(DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
+                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
             depositOnStream(streamId, depositAmount);
             streamBalance = flow.getBalance(streamId);
         }

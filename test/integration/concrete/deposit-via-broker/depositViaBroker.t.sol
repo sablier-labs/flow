@@ -11,13 +11,13 @@ import { Integration_Test } from "../../Integration.t.sol";
 contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(flow.depositViaBroker, (defaultStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE, defaultBroker));
+            abi.encodeCall(flow.depositViaBroker, (defaultStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
         bytes memory callData =
-            abi.encodeCall(flow.depositViaBroker, (nullStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE, defaultBroker));
+            abi.encodeCall(flow.depositViaBroker, (nullStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker));
         expectRevert_Null(callData);
     }
 
@@ -26,7 +26,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierFlow_BrokerFeeTooHigh.selector, defaultBroker.fee, MAX_BROKER_FEE)
         );
-        flow.depositViaBroker(defaultStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE, defaultBroker);
+        flow.depositViaBroker(defaultStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker);
     }
 
     function test_RevertWhen_BrokeAddressZero()
@@ -37,7 +37,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
     {
         defaultBroker.account = address(0);
         vm.expectRevert(Errors.SablierFlow_BrokerAddressZero.selector);
-        flow.depositViaBroker(defaultStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE, defaultBroker);
+        flow.depositViaBroker(defaultStreamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker);
     }
 
     function test_RevertWhen_TotalAmountZero()
@@ -47,7 +47,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressNotZero
     {
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_TransferAmountZero.selector, defaultStreamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_DepositAmountZero.selector, defaultStreamId));
         flow.depositViaBroker(defaultStreamId, 0, defaultBroker);
     }
 
@@ -66,21 +66,6 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         );
     }
 
-    function test_GivenAssetDoesNotHave18Decimals()
-        external
-        whenNoDelegateCall
-        givenNotNull
-        whenBrokerFeeNotGreaterThanMaxFee
-        whenBrokerAddressNotZero
-        whenTotalAmountNotZero
-        whenAssetDoesNotMissERC20Return
-    {
-        uint256 streamId = createDefaultStream(IERC20(address(usdc)));
-        _test_DepositViaBroker(
-            streamId, IERC20(address(usdc)), TOTAL_AMOUNT_WITH_BROKER_FEE_6D, DEPOSIT_AMOUNT_6D, BROKER_FEE_AMOUNT_6D, 6
-        );
-    }
-
     function test_GivenAssetHas18Decimals()
         external
         whenNoDelegateCall
@@ -91,7 +76,34 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         whenAssetDoesNotMissERC20Return
     {
         uint256 streamId = createDefaultStream(IERC20(address(dai)));
-        _test_DepositViaBroker(streamId, dai, TOTAL_AMOUNT_WITH_BROKER_FEE, DEPOSIT_AMOUNT, BROKER_FEE_AMOUNT, 18);
+        _test_DepositViaBroker({
+            streamId: streamId,
+            asset: dai,
+            totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_18D,
+            depositAmount: DEPOSIT_AMOUNT_18D,
+            brokerFeeAmount: BROKER_FEE_AMOUNT_18D,
+            assetDecimals: 18
+        });
+    }
+
+    function test_GivenAssetDoesNotHave18Decimals()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenBrokerFeeNotGreaterThanMaxFee
+        whenBrokerAddressNotZero
+        whenTotalAmountNotZero
+        whenAssetDoesNotMissERC20Return
+    {
+        uint256 streamId = createDefaultStream(IERC20(address(usdc)));
+        _test_DepositViaBroker({
+            streamId: streamId,
+            asset: usdc,
+            totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            brokerFeeAmount: BROKER_FEE_AMOUNT_6D,
+            assetDecimals: 6
+        });
     }
 
     function _test_DepositViaBroker(

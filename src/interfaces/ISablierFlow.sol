@@ -30,8 +30,14 @@ interface ISablierFlow is
     /// @param sender The address streaming the assets, which is able to adjust and pause the stream.
     /// @param recipient The address receiving the assets, as well as the NFT owner.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted in 18 decimals.
+    /// @param transferable Boolean indicating whether the stream NFT is transferable or not.
     event CreateFlowStream(
-        uint256 indexed streamId, IERC20 indexed asset, address indexed sender, address recipient, uint128 ratePerSecond
+        uint256 streamId,
+        address indexed sender,
+        address indexed recipient,
+        uint128 ratePerSecond,
+        IERC20 indexed asset,
+        bool transferable
     );
 
     /// @notice Emitted when a stream is funded.

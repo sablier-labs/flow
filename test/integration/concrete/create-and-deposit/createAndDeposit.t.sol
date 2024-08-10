@@ -11,7 +11,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(
             flow.createAndDeposit,
-            (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE, DEPOSIT_AMOUNT)
+            (users.sender, users.recipient, RATE_PER_SECOND, usdc, IS_TRANSFERABLE, DEPOSIT_AMOUNT_6D)
         );
         expectRevert_DelegateCall(callData);
     }
@@ -27,33 +27,34 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit CreateFlowStream({
             streamId: expectedStreamId,
-            asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND
+            ratePerSecond: RATE_PER_SECOND,
+            asset: usdc,
+            transferable: IS_TRANSFERABLE
         });
 
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
             streamId: expectedStreamId,
             funder: users.sender,
-            depositAmount: DEPOSIT_AMOUNT,
-            normalizedDepositAmount: DEPOSIT_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            normalizedDepositAmount: NORMALIZED_DEPOSIT_AMOUNT
         });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT });
+        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         uint256 actualStreamId = flow.createAndDeposit({
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: dai,
+            asset: usdc,
             transferable: IS_TRANSFERABLE,
-            depositAmount: DEPOSIT_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_6D
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);
@@ -72,7 +73,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(expectedStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT;
+        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

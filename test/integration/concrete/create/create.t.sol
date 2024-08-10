@@ -116,10 +116,11 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit CreateFlowStream({
             streamId: expectedStreamId,
-            asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND
+            ratePerSecond: RATE_PER_SECOND,
+            asset: usdc,
+            transferable: IS_TRANSFERABLE
         });
 
         // Create the stream.
@@ -127,7 +128,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: dai,
+            asset: usdc,
             transferable: IS_TRANSFERABLE
         });
 

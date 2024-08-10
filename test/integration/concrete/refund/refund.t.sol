@@ -51,11 +51,11 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
             abi.encodeWithSelector(
                 Errors.SablierFlow_RefundOverflow.selector,
                 defaultStreamId,
-                DEPOSIT_AMOUNT,
-                DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
+                NORMALIZED_DEPOSIT_AMOUNT,
+                NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
             )
         );
-        flow.refund({ streamId: defaultStreamId, normalizedRefundAmount: DEPOSIT_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, normalizedRefundAmount: NORMALIZED_DEPOSIT_AMOUNT });
     }
 
     function test_GivenPaused()
@@ -69,7 +69,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         // It should make the refund.
-        _test_Refund(defaultStreamId, dai, 18);
+        _test_Refund({ streamId: defaultStreamId, asset: usdc, assetDecimals: 6 });
     }
 
     function test_WhenAssetMissesERC20Return()
@@ -98,11 +98,8 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenAssetDoesNotMissERC20Return
     {
-        uint256 streamId = createDefaultStream(IERC20(address(usdc)));
-        depositDefaultAmount(streamId);
-
         // It should make the refund.
-        _test_Refund(streamId, IERC20(address(usdc)), 6);
+        _test_Refund({ streamId: defaultStreamId, asset: IERC20(address(usdc)), assetDecimals: 6 });
     }
 
     function test_GivenAssetHas18Decimals()
@@ -115,22 +112,25 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenAssetDoesNotMissERC20Return
     {
+        uint256 streamId = createDefaultStream(IERC20(address(dai)));
+        depositDefaultAmount(streamId);
+
         // It should make the refund.
-        _test_Refund(defaultStreamId, dai, 18);
+        _test_Refund({ streamId: streamId, asset: dai, assetDecimals: 18 });
     }
 
     function _test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) private {
-        uint128 expectedRefundAmount = getDenormalizedAmount(NORMALIZED_REFUND_AMOUNT, assetDecimals);
+        uint128 refundAmount = getDenormalizedAmount(NORMALIZED_REFUND_AMOUNT, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: expectedRefundAmount });
+        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit RefundFromFlowStream({
             streamId: streamId,
             sender: users.sender,
-            refundAmount: expectedRefundAmount,
+            refundAmount: refundAmount,
             normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT
         });
 
@@ -138,16 +138,16 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransfer({ asset: asset, to: users.sender, amount: expectedRefundAmount });
+        expectCallToTransfer({ asset: asset, to: users.sender, amount: refundAmount });
         uint128 actualRefundAmount =
             flow.refund({ streamId: streamId, normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT });
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - NORMALIZED_REFUND_AMOUNT;
+        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT - NORMALIZED_REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // Assert that the refund amounts equal.
-        assertEq(actualRefundAmount, expectedRefundAmount);
+        assertEq(actualRefundAmount, refundAmount);
     }
 }

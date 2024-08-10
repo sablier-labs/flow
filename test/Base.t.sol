@@ -74,10 +74,10 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
     /// @dev Create new assets and label them.
     function createAndLabelAssets() internal {
         // Deploy the assets.
-        assetWithoutDecimals = createAsset("Asset without decimals", "AWD", 0);
+        assetWithoutDecimals = createAsset("Asset without Decimals", "AWD", 0);
         dai = createAsset("Dai stablecoin", "DAI", 18);
         usdc = createAsset("USD Coin", "USDC", 6);
-        usdt = new ERC20MissingReturn("USDT stablecoin", "USDT", 6);
+        usdt = new ERC20MissingReturn("Tether", "USDT", 6);
 
         // Label the assets.
         vm.label(address(assetWithoutDecimals), "AWD");
@@ -102,7 +102,7 @@ abstract contract Base_Test is Assertions, Events, Modifiers, Test, Utils {
         deal({ token: address(assetWithoutDecimals), to: user, give: 1_000_000 });
         deal({ token: address(dai), to: user, give: 1_000_000e18 });
         deal({ token: address(usdc), to: user, give: 1_000_000e6 });
-        deal({ token: address(usdt), to: user, give: 1_000_000e18 });
+        deal({ token: address(usdt), to: user, give: 1_000_000e6 });
         resetPrank(user);
         dai.approve({ spender: address(flow), value: UINT256_MAX });
         usdc.approve({ spender: address(flow), value: UINT256_MAX });

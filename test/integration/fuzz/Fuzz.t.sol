@@ -71,7 +71,7 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
         asset = flow.getAsset(streamId);
 
-        return (streamId, flow.getAssetDecimals(streamId), DEPOSIT_AMOUNT);
+        return (streamId, flow.getAssetDecimals(streamId), NORMALIZED_DEPOSIT_AMOUNT);
     }
 
     /// @dev Helper function to return the address of either recipient or operator depending on the value of `timeJump`.

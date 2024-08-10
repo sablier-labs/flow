@@ -53,14 +53,14 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         uint128 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: NORMALIZED_REFUND_AMOUNT });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: REFUND_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit RefundFromFlowStream({
             streamId: defaultStreamId,
             sender: users.sender,
-            refundAmount: NORMALIZED_REFUND_AMOUNT,
+            refundAmount: REFUND_AMOUNT_6D,
             normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT
         });
 
@@ -76,19 +76,19 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        expectCallToTransfer({ asset: dai, to: users.sender, amount: NORMALIZED_REFUND_AMOUNT });
+        expectCallToTransfer({ asset: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
 
-        uint128 actualTransferAmount = flow.refundAndPause(defaultStreamId, NORMALIZED_REFUND_AMOUNT);
+        uint128 actualRefundAmount = flow.refundAndPause(defaultStreamId, NORMALIZED_REFUND_AMOUNT);
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - NORMALIZED_REFUND_AMOUNT;
+        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT - NORMALIZED_REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should pause the stream
         assertTrue(flow.isPaused(defaultStreamId), "is paused");
 
-        // It should set rate per second to 0
+        // It should set the rate per second to 0
         uint256 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, 0, "rate per second");
 
@@ -97,6 +97,6 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         assertEq(actualSnapshotDebt, previousTotalDebt, "snapshot debt");
 
         // Assert that the returned value equals the transfer value.
-        assertEq(actualTransferAmount, NORMALIZED_REFUND_AMOUNT);
+        assertEq(actualRefundAmount, REFUND_AMOUNT_6D);
     }
 }

@@ -37,7 +37,12 @@ abstract contract Events {
     );
 
     event CreateFlowStream(
-        uint256 indexed streamId, IERC20 indexed asset, address indexed sender, address recipient, uint128 ratePerSecond
+        uint256 streamId,
+        address indexed sender,
+        address indexed recipient,
+        uint128 ratePerSecond,
+        IERC20 indexed asset,
+        bool transferable
     );
 
     event DepositFlowStream(

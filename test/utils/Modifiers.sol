@@ -74,7 +74,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenTransferAmountNotZero() {
+    modifier whenDepositAmountNotZero() {
         _;
     }
 

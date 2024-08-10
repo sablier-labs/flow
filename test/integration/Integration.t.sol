@@ -41,7 +41,7 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function createDefaultStream() internal returns (uint256) {
-        return createDefaultStream(dai);
+        return createDefaultStream(usdc);
     }
 
     function createDefaultStream(IERC20 asset_) internal returns (uint256) {
@@ -60,8 +60,8 @@ abstract contract Integration_Test is Base_Test {
 
     function defaultStream() internal view returns (Flow.Stream memory) {
         return Flow.Stream({
-            asset: dai,
-            assetDecimals: 18,
+            asset: usdc,
+            assetDecimals: DECIMALS,
             balance: 0,
             snapshotTime: getBlockTimestamp(),
             isPaused: false,
@@ -75,7 +75,7 @@ abstract contract Integration_Test is Base_Test {
 
     function defaultStreamWithDeposit() internal view returns (Flow.Stream memory stream) {
         stream = defaultStream();
-        stream.balance = DEPOSIT_AMOUNT;
+        stream.balance = NORMALIZED_DEPOSIT_AMOUNT;
     }
 
     function depositAmount(uint256 streamId, uint128 depositAmount_) internal {
@@ -99,7 +99,7 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function depositToDefaultStream() internal {
-        depositAmount(defaultStreamId, DEPOSIT_AMOUNT);
+        depositAmount(defaultStreamId, DEPOSIT_AMOUNT_6D);
     }
 
     /// @dev Update the `snapshotTime` of a stream to the current block timestamp.

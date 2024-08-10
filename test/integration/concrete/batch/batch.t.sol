@@ -53,11 +53,9 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         address noAllowanceAddress = address(0xBEEF);
         resetPrank({ msgSender: noAllowanceAddress });
 
-        uint128 depositAmount = getDenormalizedAmount(DEPOSIT_AMOUNT, 6);
-
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](1);
-        calls[0] = abi.encodeCall(flow.deposit, (streamId, depositAmount));
+        calls[0] = abi.encodeCall(flow.deposit, (streamId, DEPOSIT_AMOUNT_6D));
 
         bytes memory expectedRevertData = abi.encodeWithSelector(
             Errors.BatchError.selector, abi.encodeWithSignature("Error(string)", "ERC20: insufficient allowance")
@@ -136,8 +134,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
-        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE));
-        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE));
+        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, IS_TRANSFERABLE));
+        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, IS_TRANSFERABLE));
 
         // It should emit events: 2 {MetadataUpdate}, 2 {CreateFlowStream}
 
@@ -148,10 +146,11 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit CreateFlowStream({
             streamId: expectedStreamIds[0],
-            asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND
+            ratePerSecond: RATE_PER_SECOND,
+            asset: usdc,
+            transferable: IS_TRANSFERABLE
         });
 
         // Second stream to create
@@ -161,10 +160,11 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit CreateFlowStream({
             streamId: expectedStreamIds[1],
-            asset: dai,
             sender: users.sender,
             recipient: users.recipient,
-            ratePerSecond: RATE_PER_SECOND
+            ratePerSecond: RATE_PER_SECOND,
+            asset: usdc,
+            transferable: IS_TRANSFERABLE
         });
 
         // Call the batch function.
@@ -178,44 +178,44 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function test_Batch_DepositMultiple() external {
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
-        calls[0] = abi.encodeCall(flow.deposit, (defaultStreamIds[0], DEPOSIT_AMOUNT));
-        calls[1] = abi.encodeCall(flow.deposit, (defaultStreamIds[1], DEPOSIT_AMOUNT));
+        calls[0] = abi.encodeCall(flow.deposit, (defaultStreamIds[0], DEPOSIT_AMOUNT_6D));
+        calls[1] = abi.encodeCall(flow.deposit, (defaultStreamIds[1], DEPOSIT_AMOUNT_6D));
 
         // It should emit 2 {Transfer}, 2 {DepositFlowStream}, 2 {MetadataUpdate} events.
 
         // First stream to deposit
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
             streamId: defaultStreamIds[0],
             funder: users.sender,
-            depositAmount: DEPOSIT_AMOUNT,
-            normalizedDepositAmount: DEPOSIT_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            normalizedDepositAmount: NORMALIZED_DEPOSIT_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[0] });
 
         // Second stream to deposit
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
             streamId: defaultStreamIds[1],
             funder: users.sender,
-            depositAmount: DEPOSIT_AMOUNT,
-            normalizedDepositAmount: DEPOSIT_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            normalizedDepositAmount: NORMALIZED_DEPOSIT_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
         // It should perform the ERC20 transfers.
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT });
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT });
+        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         // Call the batch function.
         flow.batch(calls);
@@ -279,10 +279,10 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // It should emit 2 {Transfer} and 2 {RefundFromFlowStream} events.
 
-        uint128 refundAmount = getDenormalizedAmount(NORMALIZED_REFUND_AMOUNT, 18);
+        uint128 refundAmount = getDenormalizedAmount({ amount: NORMALIZED_REFUND_AMOUNT, decimals: DECIMALS });
 
         // First stream refund
-        vm.expectEmit({ emitter: address(dai) });
+        vm.expectEmit({ emitter: address(usdc) });
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -294,7 +294,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         });
 
         // Second stream refund
-        vm.expectEmit({ emitter: address(dai) });
+        vm.expectEmit({ emitter: address(usdc) });
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -306,8 +306,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         });
 
         // It should perform the ERC20 transfers.
-        expectCallToTransfer({ asset: dai, to: users.sender, amount: refundAmount });
-        expectCallToTransfer({ asset: dai, to: users.sender, amount: refundAmount });
+        expectCallToTransfer({ asset: usdc, to: users.sender, amount: refundAmount });
+        expectCallToTransfer({ asset: usdc, to: users.sender, amount: refundAmount });
 
         // Call the batch function.
         flow.batch(calls);
@@ -359,47 +359,45 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         calls[0] = abi.encodeCall(flow.withdrawAt, (defaultStreamIds[0], users.recipient, WITHDRAW_TIME));
         calls[1] = abi.encodeCall(flow.withdrawAt, (defaultStreamIds[1], users.recipient, WITHDRAW_TIME));
 
-        uint128 withdrawAmount = getDenormalizedAmount(WITHDRAW_AMOUNT, 18);
-
         // It should emit 2 {Transfer}, 2 {WithdrawFromFlowStream} and 2 {MetadataUpdated} events.
 
         // First stream withdraw
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: withdrawAmount });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: WITHDRAW_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
             streamId: defaultStreamIds[0],
             to: users.recipient,
-            asset: IERC20(address(dai)),
+            asset: IERC20(address(usdc)),
             caller: users.sender,
-            withdrawAmount: withdrawAmount,
-            normalizedWithdrawAmount: WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT_6D,
+            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[0] });
 
         // Second stream withdraw
-        vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: withdrawAmount });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: WITHDRAW_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
             streamId: defaultStreamIds[1],
             to: users.recipient,
-            asset: IERC20(address(dai)),
+            asset: IERC20(address(usdc)),
             caller: users.sender,
-            withdrawAmount: withdrawAmount,
-            normalizedWithdrawAmount: WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT_6D,
+            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
         // It should perform the ERC20 transfers.
-        expectCallToTransfer({ asset: dai, to: users.recipient, amount: withdrawAmount });
-        expectCallToTransfer({ asset: dai, to: users.recipient, amount: withdrawAmount });
+        expectCallToTransfer({ asset: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
+        expectCallToTransfer({ asset: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
 
         // Call the batch function.
         flow.batch(calls);

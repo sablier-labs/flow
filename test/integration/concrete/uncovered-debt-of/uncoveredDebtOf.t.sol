@@ -30,7 +30,7 @@ contract UncoveredDebtOf_Integration_Concrete_Test is Integration_Test {
 
         // It should return non-zero value.
         uint128 actualUncoveredDebt = flow.uncoveredDebtOf(defaultStreamId);
-        uint128 expectedUncoveredDebt = totalStreamed - DEPOSIT_AMOUNT;
+        uint128 expectedUncoveredDebt = totalStreamed - NORMALIZED_DEPOSIT_AMOUNT;
         assertEq(actualUncoveredDebt, expectedUncoveredDebt, "uncovered debt");
     }
 }
