@@ -40,13 +40,17 @@ abstract contract Events {
         uint256 indexed streamId, IERC20 indexed asset, address indexed sender, address recipient, uint128 ratePerSecond
     );
 
-    event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
+    event DepositFlowStream(
+        uint256 indexed streamId, address indexed funder, uint128 depositAmount, uint128 normalizedDepositAmount
+    );
 
     event PauseFlowStream(
         uint256 indexed streamId, address indexed sender, address indexed recipient, uint128 totalDebt
     );
 
-    event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
+    event RefundFromFlowStream(
+        uint256 indexed streamId, address indexed sender, uint128 refundAmount, uint128 normalizedRefundAmount
+    );
 
     event RestartFlowStream(uint256 indexed streamId, address indexed sender, uint128 ratePerSecond);
 
@@ -60,6 +64,11 @@ abstract contract Events {
     );
 
     event WithdrawFromFlowStream(
-        uint256 indexed streamId, address indexed to, IERC20 indexed asset, address caller, uint128 amount
+        uint256 indexed streamId,
+        address indexed to,
+        IERC20 indexed asset,
+        address caller,
+        uint128 withdrawAmount,
+        uint128 normalizedWithdrawAmount
     );
 }

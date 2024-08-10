@@ -116,7 +116,7 @@ contract FlowHandler is BaseHandler {
     function deposit(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         external
         instrument("deposit")
@@ -129,23 +129,23 @@ contract FlowHandler is BaseHandler {
         uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
 
         // Bound the transfer amount.
-        transferAmount = uint128(_bound(transferAmount, 100, upperBound));
+        depositAmount = uint128(_bound(depositAmount, 100, upperBound));
 
         IERC20 asset = flow.getAsset(currentStreamId);
 
         // Mint enough assets to the Sender.
-        deal({ token: address(asset), to: currentSender, give: asset.balanceOf(currentSender) + transferAmount });
+        deal({ token: address(asset), to: currentSender, give: asset.balanceOf(currentSender) + depositAmount });
 
         // Approve {SablierFlow} to spend the assets.
-        asset.approve({ spender: address(flow), value: transferAmount });
+        asset.approve({ spender: address(flow), value: depositAmount });
 
         // Deposit into the stream.
-        flow.deposit({ streamId: currentStreamId, transferAmount: transferAmount });
+        flow.deposit({ streamId: currentStreamId, depositAmount: depositAmount });
 
-        uint128 normalizedAmount = getNormalizedAmount(transferAmount, flow.getAssetDecimals(currentStreamId));
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, flow.getAssetDecimals(currentStreamId));
 
         // Update the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(currentStreamId, normalizedAmount);
+        flowStore.updateStreamDepositedAmountsSum(currentStreamId, normalizedDepositAmount);
     }
 
     /// @dev A function that does nothing but warp the time into the future.

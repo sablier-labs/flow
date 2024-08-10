@@ -16,28 +16,28 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        bytes memory callData = abi.encodeCall(flow.refund, (nullStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refund, (nullStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_Null(callData);
     }
 
     function test_RevertWhen_CallerRecipient() external whenNoDelegateCall givenNotNull whenCallerNotSender {
-        bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_CallerRecipient(callData);
     }
 
     function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull whenCallerNotSender {
-        bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refund, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
     function test_RevertWhen_RefundAmountZero() external whenNoDelegateCall givenNotNull whenCallerSender {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_RefundAmountZero.selector, defaultStreamId));
-        flow.refund({ streamId: defaultStreamId, amount: 0 });
+        flow.refund({ streamId: defaultStreamId, normalizedRefundAmount: 0 });
     }
 
     function test_RevertWhen_OverRefund()
@@ -55,7 +55,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
                 DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
             )
         );
-        flow.refund({ streamId: defaultStreamId, amount: DEPOSIT_AMOUNT });
+        flow.refund({ streamId: defaultStreamId, normalizedRefundAmount: DEPOSIT_AMOUNT });
     }
 
     function test_GivenPaused()
@@ -120,28 +120,34 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) private {
-        uint128 refundAmount = getDenormalizedAmount(REFUND_AMOUNT, assetDecimals);
+        uint128 expectedRefundAmount = getDenormalizedAmount(NORMALIZED_REFUND_AMOUNT, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
+        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: expectedRefundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: streamId, sender: users.sender, refundAmount: REFUND_AMOUNT });
+        emit RefundFromFlowStream({
+            streamId: streamId,
+            sender: users.sender,
+            refundAmount: expectedRefundAmount,
+            normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransfer({ asset: asset, to: users.sender, amount: refundAmount });
-        uint128 actualTransferAmount = flow.refund({ streamId: streamId, amount: REFUND_AMOUNT });
+        expectCallToTransfer({ asset: asset, to: users.sender, amount: expectedRefundAmount });
+        uint128 actualRefundAmount =
+            flow.refund({ streamId: streamId, normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT });
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - NORMALIZED_REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // Assert that the returned value equals the transfer value.
-        assertEq(actualTransferAmount, refundAmount);
+        // Assert that the refund amounts equal.
+        assertEq(actualRefundAmount, expectedRefundAmount);
     }
 }

@@ -156,20 +156,17 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 totalDebt = flow.totalDebtOf(streamId);
         uint256 assetBalance = asset.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
-        uint128 expectedWithdrawAmount = flow.getSnapshotDebt(streamId)
+        uint128 normalizedWithdrawAmount = flow.getSnapshotDebt(streamId)
             + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
 
-        if (streamBalance < expectedWithdrawAmount) {
-            expectedWithdrawAmount = streamBalance;
+        if (streamBalance < normalizedWithdrawAmount) {
+            normalizedWithdrawAmount = streamBalance;
         }
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({
-            from: address(flow),
-            to: to,
-            value: getDenormalizedAmount(expectedWithdrawAmount, decimals)
-        });
+        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, decimals);
+        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
@@ -177,7 +174,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             to: to,
             asset: asset,
             caller: caller,
-            amount: expectedWithdrawAmount
+            withdrawAmount: withdrawAmount,
+            normalizedWithdrawAmount: normalizedWithdrawAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -191,17 +189,17 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should decrease the full total debt by withdrawn value.
         uint128 actualTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedTotalDebt = totalDebt - expectedWithdrawAmount;
+        uint128 expectedTotalDebt = totalDebt - normalizedWithdrawAmount;
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = streamBalance - expectedWithdrawAmount;
+        uint128 expectedStreamBalance = streamBalance - normalizedWithdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should reduce the asset balance of stream.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetBalance - getDenormalizedAmount(expectedWithdrawAmount, decimals);
+        uint256 expectedAssetBalance = assetBalance - withdrawAmount;
         assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
     }
 }

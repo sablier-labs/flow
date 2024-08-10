@@ -86,13 +86,18 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: streamId, sender: users.sender, refundAmount: normalizedRefundAmount });
+        emit RefundFromFlowStream({
+            streamId: streamId,
+            sender: users.sender,
+            refundAmount: refundAmount,
+            normalizedRefundAmount: normalizedRefundAmount
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // Request the refund.
-        flow.refund(streamId, normalizedRefundAmount);
+        flow.refund({ streamId: streamId, normalizedRefundAmount: normalizedRefundAmount });
 
         // Assert that the asset balance of stream has been updated.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));

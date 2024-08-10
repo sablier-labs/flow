@@ -24,7 +24,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
-            isTransferable: IS_TRANSFERABLE
+            transferable: IS_TRANSFERABLE
         });
     }
 
@@ -46,7 +46,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         whenRatePerSecondNotZero
     {
         address invalidAsset = address(8128);
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_InvalidAssetDecimals.selector, invalidAsset));
+        vm.expectRevert(bytes(""));
         flow.create({
             sender: users.sender,
             recipient: users.recipient,

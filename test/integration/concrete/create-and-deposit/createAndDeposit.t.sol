@@ -11,7 +11,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(
             flow.createAndDeposit,
-            (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE, TRANSFER_AMOUNT)
+            (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE, DEPOSIT_AMOUNT)
         );
         expectRevert_DelegateCall(callData);
     }
@@ -34,13 +34,18 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
         });
 
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: TRANSFER_AMOUNT });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: expectedStreamId, funder: users.sender, depositAmount: DEPOSIT_AMOUNT });
+        emit DepositFlowStream({
+            streamId: expectedStreamId,
+            funder: users.sender,
+            depositAmount: DEPOSIT_AMOUNT,
+            normalizedDepositAmount: DEPOSIT_AMOUNT
+        });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: TRANSFER_AMOUNT });
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT });
 
         uint256 actualStreamId = flow.createAndDeposit({
             sender: users.sender,
@@ -48,7 +53,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
             transferable: IS_TRANSFERABLE,
-            transferAmount: TRANSFER_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);

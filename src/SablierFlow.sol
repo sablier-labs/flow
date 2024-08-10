@@ -604,7 +604,8 @@ contract SablierFlow is
         emit ISablierFlow.DepositFlowStream({
             streamId: streamId,
             funder: msg.sender,
-            normalizedDepositAmount: depositAmount
+            depositAmount: depositAmount,
+            normalizedDepositAmount: normalizedDepositAmount
         });
     }
 
@@ -665,11 +666,11 @@ contract SablierFlow is
 
         address sender = _streams[streamId].sender;
 
-        // Effect and Interaction: update the balance and perform the ERC-20 transfer to the sender.
+        // Effect and Interaction: update the stream's balance and perform the ERC-20 transfer to the sender.
         refundAmount = _updateBalanceAndTransfer(streamId, sender, normalizedRefundAmount);
 
         // Log the refund.
-        emit ISablierFlow.RefundFromFlowStream(streamId, sender, refundAmount);
+        emit ISablierFlow.RefundFromFlowStream(streamId, sender, refundAmount, normalizedRefundAmount);
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -824,7 +825,8 @@ contract SablierFlow is
             to: to,
             asset: _streams[streamId].asset,
             caller: msg.sender,
-            withdrawAmount: withdrawAmount
+            withdrawAmount: withdrawAmount,
+            normalizedWithdrawAmount: normalizedWithdrawAmount
         });
     }
 }

@@ -91,7 +91,7 @@ contract FlowCreateHandler is BaseHandler {
 
     function createAndDeposit(
         CreateParams memory params,
-        uint128 transferAmount
+        uint128 depositAmount
     )
         public
         instrument("createAndDeposit")
@@ -108,29 +108,29 @@ contract FlowCreateHandler is BaseHandler {
 
         // Bound the stream parameters.
         params.ratePerSecond = boundRatePerSecond(params.ratePerSecond);
-        transferAmount = uint128(_bound(transferAmount, 100, upperBound));
+        depositAmount = uint128(_bound(depositAmount, 100, upperBound));
 
         // Mint enough assets to the Sender.
         deal({
             token: address(currentAsset),
             to: params.sender,
-            give: currentAsset.balanceOf(params.sender) + transferAmount
+            give: currentAsset.balanceOf(params.sender) + depositAmount
         });
 
         // Approve {SablierFlow} to spend the assets.
-        currentAsset.approve({ spender: address(flow), value: transferAmount });
+        currentAsset.approve({ spender: address(flow), value: depositAmount });
 
         // Create the stream.
         uint256 streamId = flow.createAndDeposit(
-            params.sender, params.recipient, params.ratePerSecond, currentAsset, params.isTransferable, transferAmount
+            params.sender, params.recipient, params.ratePerSecond, currentAsset, params.isTransferable, depositAmount
         );
 
         // Store the stream id.
         flowStore.pushStreamId(streamId, params.sender, params.recipient);
 
-        uint128 normalizedAmount = getNormalizedAmount(transferAmount, decimals);
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, decimals);
 
         // Store the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(streamId, normalizedAmount);
+        flowStore.updateStreamDepositedAmountsSum(streamId, normalizedDepositAmount);
     }
 }

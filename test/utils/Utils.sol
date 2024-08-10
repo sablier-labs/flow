@@ -18,18 +18,18 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return boundUint128(ratePerSecond, 0.00001e18, 10e18);
     }
 
-    /// @dev Bound transfer amount to avoid overflow.
-    function boundTransferAmount(
+    /// @dev Bound deposit amount to avoid overflow.
+    function boundDepositAmount(
         uint128 amount,
         uint128 balance,
         uint8 decimals
     )
         internal
         pure
-        returns (uint128 transferAmount)
+        returns (uint128 depositAmount)
     {
-        uint128 maxDeposit = (UINT128_MAX - balance) / uint128(10 ** (18 - decimals));
-        transferAmount = boundUint128(amount, 1, maxDeposit - 1);
+        uint128 maxDepositAmount = (UINT128_MAX - balance) / uint128(10 ** (18 - decimals));
+        depositAmount = boundUint128(amount, 1, maxDepositAmount - 1);
     }
 
     /// @dev Bounds a `uint128` number.

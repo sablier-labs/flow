@@ -99,7 +99,7 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function depositToDefaultStream() internal {
-        depositAmount(defaultStreamId, TRANSFER_AMOUNT);
+        depositAmount(defaultStreamId, DEPOSIT_AMOUNT);
     }
 
     /// @dev Update the `snapshotTime` of a stream to the current block timestamp.

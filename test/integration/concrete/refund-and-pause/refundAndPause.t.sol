@@ -13,17 +13,17 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        bytes memory callData = abi.encodeCall(flow.refundAndPause, (nullStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refundAndPause, (nullStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_Null(callData);
     }
 
     function test_RevertGiven_Paused() external whenNoDelegateCall givenNotNull {
-        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_Paused(callData);
     }
 
@@ -34,7 +34,7 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenCallerNotSender
     {
-        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_CallerRecipient(callData);
     }
 
@@ -45,7 +45,7 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         givenNotPaused
         whenCallerNotSender
     {
-        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, REFUND_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.refundAndPause, (defaultStreamId, NORMALIZED_REFUND_AMOUNT));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
@@ -54,10 +54,15 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: REFUND_AMOUNT });
+        emit IERC20.Transfer({ from: address(flow), to: users.sender, value: NORMALIZED_REFUND_AMOUNT });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: defaultStreamId, sender: users.sender, refundAmount: REFUND_AMOUNT });
+        emit RefundFromFlowStream({
+            streamId: defaultStreamId,
+            sender: users.sender,
+            refundAmount: NORMALIZED_REFUND_AMOUNT,
+            normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit PauseFlowStream({
@@ -71,13 +76,13 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        expectCallToTransfer({ asset: dai, to: users.sender, amount: REFUND_AMOUNT });
+        expectCallToTransfer({ asset: dai, to: users.sender, amount: NORMALIZED_REFUND_AMOUNT });
 
-        uint128 actualTransferAmount = flow.refundAndPause(defaultStreamId, REFUND_AMOUNT);
+        uint128 actualTransferAmount = flow.refundAndPause(defaultStreamId, NORMALIZED_REFUND_AMOUNT);
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - REFUND_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT - NORMALIZED_REFUND_AMOUNT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should pause the stream
@@ -92,6 +97,6 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         assertEq(actualSnapshotDebt, previousTotalDebt, "snapshot debt");
 
         // Assert that the returned value equals the transfer value.
-        assertEq(actualTransferAmount, REFUND_AMOUNT);
+        assertEq(actualTransferAmount, NORMALIZED_REFUND_AMOUNT);
     }
 }

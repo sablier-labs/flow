@@ -15,49 +15,54 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
+            abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, DEPOSIT_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        bytes memory callData = abi.encodeCall(flow.restartAndDeposit, (nullStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.restartAndDeposit, (nullStreamId, RATE_PER_SECOND, DEPOSIT_AMOUNT));
         expectRevert_Null(callData);
     }
 
     function test_RevertWhen_CallerRecipient() external whenNoDelegateCall givenNotNull whenCallerNotSender {
         bytes memory callData =
-            abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
+            abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, DEPOSIT_AMOUNT));
         expectRevert_CallerRecipient(callData);
     }
 
     function test_RevertWhen_CallerMaliciousThirdParty() external whenNoDelegateCall givenNotNull whenCallerNotSender {
         bytes memory callData =
-            abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, TRANSFER_AMOUNT));
+            abi.encodeCall(flow.restartAndDeposit, (defaultStreamId, RATE_PER_SECOND, DEPOSIT_AMOUNT));
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
     function test_WhenCallerSender() external whenNoDelegateCall givenNotNull {
-        // It should perfor the ERC20 transfer.
+        // It should perform the ERC20 transfer.
         // It should emit 1 {RestartFlowStream}, 1 {Transfer}, 1 {DepositFlowStream} and 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
         emit RestartFlowStream({ streamId: defaultStreamId, sender: users.sender, ratePerSecond: RATE_PER_SECOND });
 
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: TRANSFER_AMOUNT });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: defaultStreamId, funder: users.sender, depositAmount: DEPOSIT_AMOUNT });
+        emit DepositFlowStream({
+            streamId: defaultStreamId,
+            funder: users.sender,
+            depositAmount: DEPOSIT_AMOUNT,
+            normalizedDepositAmount: DEPOSIT_AMOUNT
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: TRANSFER_AMOUNT });
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT });
 
         flow.restartAndDeposit({
             streamId: defaultStreamId,
             ratePerSecond: RATE_PER_SECOND,
-            transferAmount: TRANSFER_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT
         });
 
         // It should restart the stream.

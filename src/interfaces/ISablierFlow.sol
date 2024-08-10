@@ -37,8 +37,12 @@ interface ISablierFlow is
     /// @notice Emitted when a stream is funded.
     /// @param streamId The ID of the stream.
     /// @param funder The address that made the deposit.
-    /// @param normalizedDepositAmount The amount of assets deposited into the stream, denoted in 18 decimals.
-    event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 normalizedDepositAmount);
+    /// @param depositAmount The amount of assets deposited into the stream, denoted in 18 decimals.
+    /// @param normalizedDepositAmount The amount by which the stream balance increased, denoted in the asset's
+    /// decimals.
+    event DepositFlowStream(
+        uint256 indexed streamId, address indexed funder, uint128 depositAmount, uint128 normalizedDepositAmount
+    );
 
     /// @notice Emitted when a stream is paused by the sender.
     /// @param streamId The ID of the stream.
@@ -53,7 +57,11 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param refundAmount The amount of assets refunded to the sender, denoted in 18 decimals.
-    event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
+    /// @param normalizedRefundAmount The amount by which the stream balance decreased, denoted in the asset's
+    /// decimals.
+    event RefundFromFlowStream(
+        uint256 indexed streamId, address indexed sender, uint128 refundAmount, uint128 normalizedRefundAmount
+    );
 
     /// @notice Emitted when a stream is restarted by the sender.
     /// @param streamId The ID of the stream.
@@ -83,8 +91,15 @@ interface ISablierFlow is
     /// @param asset The contract address of the ERC-20 asset that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
     /// @param withdrawAmount The amount withdrawn, denoted in 18 decimals.
+    /// @param normalizedWithdrawAmount The amount by which the debt decreased, denoted in the asset's
+    /// decimals.
     event WithdrawFromFlowStream(
-        uint256 indexed streamId, address indexed to, IERC20 indexed asset, address caller, uint128 withdrawAmount
+        uint256 indexed streamId,
+        address indexed to,
+        IERC20 indexed asset,
+        address caller,
+        uint128 withdrawAmount,
+        uint128 normalizedWithdrawAmount
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -115,7 +130,9 @@ interface ISablierFlow is
     /// @notice Returns the normalized amount that the sender can be refunded from the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
-    function normalizedRefundableAmountOf(uint256 streamId)
+    function normalizedRefundableAmountOf(
+        uint256 streamId
+    )
         external
         view
         returns (uint128 normalizedRefundableAmount);

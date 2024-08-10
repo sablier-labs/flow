@@ -18,7 +18,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     function testFuzz_Deposit(
         address caller,
         uint256 streamId,
-        uint128 transferAmount,
+        uint128 depositAmount,
         uint40 timeJump,
         uint8 decimals
     )
@@ -35,47 +35,52 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 prevStreamBalance = flow.getBalance(streamId);
 
         // Bound the transfer amount to avoid overflow.
-        transferAmount = boundTransferAmount(transferAmount, prevStreamBalance, decimals);
+        depositAmount = boundDepositAmount(depositAmount, prevStreamBalance, decimals);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
         // Change prank to caller and deal some tokens to him.
-        deal({ token: address(asset), to: caller, give: transferAmount });
+        deal({ token: address(asset), to: caller, give: depositAmount });
         resetPrank(caller);
 
         // Approve the flow contract to spend the asset.
-        asset.approve(address(flow), transferAmount);
+        asset.approve(address(flow), depositAmount);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({ from: caller, to: address(flow), value: transferAmount });
+        emit IERC20.Transfer({ from: caller, to: address(flow), value: depositAmount });
 
-        uint128 normalizedAmount = getNormalizedAmount(transferAmount, decimals);
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, decimals);
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: streamId, funder: caller, depositAmount: normalizedAmount });
+        emit DepositFlowStream({
+            streamId: streamId,
+            funder: caller,
+            depositAmount: depositAmount,
+            normalizedDepositAmount: normalizedDepositAmount
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: asset, from: caller, to: address(flow), amount: transferAmount });
+        expectCallToTransferFrom({ asset: asset, from: caller, to: address(flow), amount: depositAmount });
 
         // Make the deposit.
-        flow.deposit(streamId, transferAmount);
+        flow.deposit(streamId, depositAmount);
 
         // Assert that the asset balance of stream has been updated.
         uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = prevAssetBalance + transferAmount;
+        uint256 expectedAssetBalance = prevAssetBalance + depositAmount;
         assertEq(actualAssetBalance, expectedAssetBalance, "asset balanceOf");
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = prevStreamBalance + normalizedAmount;
+        uint256 expectedStreamBalance = prevStreamBalance + normalizedDepositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

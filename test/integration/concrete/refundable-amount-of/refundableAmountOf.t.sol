@@ -5,13 +5,13 @@ import { Integration_Test } from "../../Integration.t.sol";
 
 contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
     function test_RevertGiven_Null() external {
-        bytes memory callData = abi.encodeCall(flow.normalizedRefundableAmount, nullStreamId);
+        bytes memory callData = abi.encodeCall(flow.normalizedRefundableAmountOf, nullStreamId);
         expectRevert_Null(callData);
     }
 
     function test_GivenBalanceZero() external view givenNotNull {
         // It should return zero.
-        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmount(defaultStreamId);
+        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(defaultStreamId);
         assertEq(normalizedRefundableAmount, 0, "normalized refundable amount");
     }
 
@@ -26,7 +26,7 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         // It should return correct refundable amount.
-        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmount(defaultStreamId);
+        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(defaultStreamId);
         assertEq(normalizedRefundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT, "normalized refundable amount");
     }
 
@@ -35,13 +35,13 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
 
         // It should return zero.
-        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmount(defaultStreamId);
+        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(defaultStreamId);
         assertEq(normalizedRefundableAmount, 0, "normalized refundable amount");
     }
 
     function test_WhenTotalDebtDoesNotExceedBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
         // It should return correct refundable amount.
-        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmount(defaultStreamId);
+        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(defaultStreamId);
         assertEq(normalizedRefundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT, "normalized refundable amount");
     }
 }

@@ -17,7 +17,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
                 RATE_PER_SECOND,
                 dai,
                 IS_TRANSFERABLE,
-                TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
+                TOTAL_AMOUNT_WITH_BROKER_FEE,
                 defaultBroker
             )
         );
@@ -27,8 +27,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
     function test_WhenNoDelegateCall() external {
         uint256 expectedStreamId = flow.nextStreamId();
 
-        // It should emit events: 1 {MetadataUpdate}, 1 {CreateFlowStream}, 2 {Transfer}, 1
-        // {DepositFlowStream}
+        // It should emit events: 1 {MetadataUpdate}, 1 {CreateFlowStream}, 2 {Transfer}, 1 {DepositFlowStream}
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: expectedStreamId });
 
@@ -42,16 +41,21 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
         });
 
         vm.expectEmit({ emitter: address(dai) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: TRANSFER_AMOUNT });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: expectedStreamId, funder: users.sender, depositAmount: DEPOSIT_AMOUNT });
+        emit DepositFlowStream({
+            streamId: expectedStreamId,
+            funder: users.sender,
+            depositAmount: DEPOSIT_AMOUNT,
+            normalizedDepositAmount: DEPOSIT_AMOUNT
+        });
 
         vm.expectEmit({ emitter: address(dai) });
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: BROKER_FEE_AMOUNT });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: TRANSFER_AMOUNT });
+        expectCallToTransferFrom({ asset: dai, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT });
 
         expectCallToTransferFrom({ asset: dai, from: users.sender, to: users.broker, amount: BROKER_FEE_AMOUNT });
 
@@ -61,7 +65,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             ratePerSecond: RATE_PER_SECOND,
             asset: dai,
             transferable: IS_TRANSFERABLE,
-            totalTransferAmount: TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE,
+            totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE,
             broker: defaultBroker
         });
 

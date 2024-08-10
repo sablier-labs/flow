@@ -47,15 +47,16 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
             to: users.recipient,
             asset: IERC20(address(dai)),
             caller: users.sender,
-            amount: ONE_MONTH_STREAMED_AMOUNT
+            withdrawAmount: ONE_MONTH_STREAMED_AMOUNT,
+            normalizedWithdrawAmount: ONE_MONTH_STREAMED_AMOUNT
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        uint128 transferAmount = getDenormalizedAmount(ONE_MONTH_STREAMED_AMOUNT, 18);
-        expectCallToTransfer({ asset: dai, to: users.recipient, amount: transferAmount });
+        uint128 withdrawAmount = getDenormalizedAmount(ONE_MONTH_STREAMED_AMOUNT, 18);
+        expectCallToTransfer({ asset: dai, to: users.recipient, amount: withdrawAmount });
 
         uint128 actualTransferAmount = flow.withdrawMax(defaultStreamId, users.recipient);
 
@@ -73,6 +74,6 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
 
         // Assert that the returned value equals the transfer value.
-        assertEq(actualTransferAmount, transferAmount);
+        assertEq(actualTransferAmount, withdrawAmount);
     }
 }

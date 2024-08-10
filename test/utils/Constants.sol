@@ -5,13 +5,12 @@ import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 abstract contract Constants {
     // Amounts
-    uint128 internal constant DEPOSIT_AMOUNT = TRANSFER_AMOUNT;
-    uint128 internal constant REFUND_AMOUNT = 10_000e18;
+    uint128 internal constant DEPOSIT_AMOUNT = 50_000e18;
+    uint128 internal constant DEPOSIT_AMOUNT_6D = 50_000e6;
+    uint128 internal constant NORMALIZED_REFUND_AMOUNT = 10_000e18;
     uint128 internal constant TRANSFER_VALUE = 50_000;
-    uint128 internal constant TRANSFER_AMOUNT = TRANSFER_VALUE * 1e18;
-    uint128 internal constant TRANSFER_AMOUNT_6D = TRANSFER_VALUE * 1e6;
-    uint128 internal constant TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE = TRANSFER_AMOUNT + BROKER_FEE_AMOUNT;
-    uint128 internal constant TOTAL_TRANSFER_AMOUNT_WITH_BROKER_FEE_6D = TRANSFER_AMOUNT_6D + BROKER_FEE_AMOUNT_6D;
+    uint128 internal constant TOTAL_AMOUNT_WITH_BROKER_FEE = DEPOSIT_AMOUNT + BROKER_FEE_AMOUNT;
+    uint128 internal constant TOTAL_AMOUNT_WITH_BROKER_FEE_6D = DEPOSIT_AMOUNT_6D + BROKER_FEE_AMOUNT_6D;
     uint128 internal constant WITHDRAW_AMOUNT = 2500e18;
 
     // Broker

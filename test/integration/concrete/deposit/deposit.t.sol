@@ -9,12 +9,12 @@ import { Integration_Test } from "../../Integration.t.sol";
 
 contract Deposit_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(flow.deposit, (defaultStreamId, TRANSFER_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.deposit, (defaultStreamId, DEPOSIT_AMOUNT));
         expectRevert_DelegateCall(callData);
     }
 
     function test_RevertGiven_Null() external whenNoDelegateCall {
-        bytes memory callData = abi.encodeCall(flow.deposit, (nullStreamId, TRANSFER_AMOUNT));
+        bytes memory callData = abi.encodeCall(flow.deposit, (nullStreamId, DEPOSIT_AMOUNT));
         expectRevert_Null(callData);
     }
 
@@ -27,7 +27,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         uint256 streamId = createDefaultStream(IERC20(address(usdt)));
 
         // It should make the deposit
-        _test_Deposit(streamId, IERC20(address(usdt)), TRANSFER_AMOUNT_6D, 6);
+        _test_Deposit(streamId, IERC20(address(usdt)), DEPOSIT_AMOUNT_6D, 6);
     }
 
     function test_GivenAssetDoesNotHave18Decimals()
@@ -39,7 +39,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
     {
         // It should make the deposit.
         uint256 streamId = createDefaultStream(IERC20(address(usdc)));
-        _test_Deposit(streamId, usdc, TRANSFER_AMOUNT_6D, 6);
+        _test_Deposit(streamId, usdc, DEPOSIT_AMOUNT_6D, 6);
     }
 
     function test_GivenAssetHas18Decimals()
@@ -50,29 +50,34 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         whenAssetDoesNotMissERC20Return
     {
         // It should make the deposit.
-        _test_Deposit(defaultStreamId, dai, TRANSFER_AMOUNT, 18);
+        _test_Deposit(defaultStreamId, dai, DEPOSIT_AMOUNT, 18);
     }
 
-    function _test_Deposit(uint256 streamId, IERC20 asset, uint128 transferAmount, uint8 assetDecimals) private {
-        uint128 normalizedAmount = getNormalizedAmount(transferAmount, assetDecimals);
+    function _test_Deposit(uint256 streamId, IERC20 asset, uint128 depositAmount, uint8 assetDecimals) private {
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, assetDecimals);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(asset) });
-        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: transferAmount });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: streamId, funder: users.sender, depositAmount: normalizedAmount });
+        emit DepositFlowStream({
+            streamId: streamId,
+            funder: users.sender,
+            depositAmount: depositAmount,
+            normalizedDepositAmount: normalizedDepositAmount
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: asset, from: users.sender, to: address(flow), amount: transferAmount });
-        flow.deposit(streamId, transferAmount);
+        expectCallToTransferFrom({ asset: asset, from: users.sender, to: address(flow), amount: depositAmount });
+        flow.deposit({ streamId: streamId, depositAmount: depositAmount });
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = normalizedAmount;
+        uint128 expectedStreamBalance = normalizedDepositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }
