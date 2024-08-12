@@ -11,41 +11,41 @@ WithdrawAt_Integration_Concrete_Test
       │   └── it should revert
       └── when time between snapshot time and current time
           ├── when withdrawal address zero
-          │   └── it should revert
+          │  └── it should revert
           └── when withdrawal address not zero
-              ├── when withdrawal address not owner
-              │   ├── when caller sender
-              │   │   └── it should revert
-              │   ├── when caller unknown
-              │   │   └── it should revert
-              │   └── when caller recipient
-              │       └── it should withdraw
-              └── when withdrawal address owner
-                  ├── given balance zero
-                  │   └── it should revert
-                  └── given balance not zero
-                      ├── when total debt exceeds balance
-                      │   ├── it should withdraw the balance
-                      │   ├── it should update snapshot time
-                      │   ├── it should decrease the total debt by balance
-                      │   ├── it should update the stream balance to 0
-                      │   ├── it should perform the ERC20 transfer
-                      │   ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
-                      │   └── it should return the transfer amount
-                      └── when total debt does not exceed balance
-                          ├── given token does not have 18 decimals
-                          │   ├── it should withdraw the total debt
-                          │   ├── it should update snapshot time
-                          │   ├── it should decrease the total debt by withdrawn value
-                          │   ├── it should reduce the stream balance by the withdrawn amount
-                          │   ├── it should perform the ERC20 transfer
-                          │   └── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
-                          │   └── it should return the transfer amount
-                          └── given token has 18 decimals
-                              ├── it should withdraw the total debt
-                              ├── it should update snapshot time
-                              ├── it should decrease the total debt by withdrawn value
-                              ├── it should reduce the stream balance by the withdrawn amount
-                              ├── it should perform the ERC20 transfer
-                              ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
-                              └── it should return the transfer amount
+             ├── when withdrawal address not owner
+             │  ├── when caller sender
+             │  │  └── it should revert
+             │  ├── when caller unknown
+             │  │  └── it should revert
+             │  └── when caller recipient
+             │     └── it should withdraw
+             └── when withdrawal address owner
+                ├── given balance zero
+                │  └── it should revert
+                └── given balance not zero
+                   ├── when total debt exceeds balance
+                   │  ├── it should withdraw the balance
+                   │  ├── it should update snapshot time
+                   │  ├── it should decrease the total debt by balance
+                   │  ├── it should update the stream balance to 0
+                   │  ├── it should perform the ERC20 transfer
+                   │  ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events
+                   │  └── it should return the transfer amount
+                   └── when total debt does not exceed balance
+                      ├── given token does not have 18 decimals
+                      │  ├── it should withdraw the total debt
+                      │  ├── it should update snapshot time
+                      │  ├── it should decrease the total debt by withdrawn value
+                      │  ├── it should reduce the stream balance by the withdrawn amount
+                      │  ├── it should perform the ERC20 transfer
+                      │  └── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
+                      │  └── it should return the transfer amount
+                      └── given token has 18 decimals
+                         ├── it should withdraw the total debt
+                         ├── it should update snapshot time
+                         ├── it should decrease the total debt by withdrawn value
+                         ├── it should reduce the stream balance by the withdrawn amount
+                         ├── it should perform the ERC20 transfer
+                         ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
+                         └── it should return the transfer amount
