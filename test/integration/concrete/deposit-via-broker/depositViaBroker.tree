@@ -17,11 +17,11 @@ DepositViaBroker_Integration_Concrete_Test
                ├── when token misses ERC20 return
                │  └── it should make the deposit
                └── when token does not miss ERC20 return
-                  ├── given token does not have 18 decimals
+                  ├── given token has 18 decimals
                   │  ├── it should update the stream balance
                   │  ├── it should perform the ERC20 transfers
                   │  └── it should emit 2 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events
-                  └── given token has 18 decimals
+                  └── given token does not have 18 decimals
                      ├── it should update the stream balance
                      ├── it should perform the ERC20 transfers
                      └── it should emit 2 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events
