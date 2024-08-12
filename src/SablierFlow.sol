@@ -101,6 +101,19 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
+    function refundableAmountOf(
+        uint256 streamId
+    )
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 refundableAmount)
+    {
+        refundableAmount = _refundableAmountOf({ streamId: streamId, time: uint40(block.timestamp) });
+    }
+
+    /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
         // See whether the stream has debt.
         bool hasDebt = _uncoveredDebtOf(streamId) > 0;
@@ -455,6 +468,12 @@ contract SablierFlow is
     /// @dev Calculates the normalized refundable amount.
     function _normalizedRefundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         return _streams[streamId].balance - _coveredDebtOf(streamId, time);
+    }
+
+    /// @dev Calculates the refundable amount.
+    function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
+        uint128 normalizedRefundableAmount = _streams[streamId].balance - _coveredDebtOf(streamId, time);
+        return Helpers.denormalizeAmount(normalizedRefundableAmount, _streams[streamId].assetDecimals);
     }
 
     /// @notice Calculates the total debt at the provided time.

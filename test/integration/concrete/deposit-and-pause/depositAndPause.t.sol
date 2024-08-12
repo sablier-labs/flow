@@ -57,24 +57,24 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
         uint128 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
-        // vm.expectEmit({ emitter: address(dai) });
-        // emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
+        vm.expectEmit({ emitter: address(usdc) });
+        emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
-        // vm.expectEmit({ emitter: address(flow) });
-        // emit DepositFlowStream({
-        //     streamId: defaultStreamId,
-        //     funder: users.sender,
-        //     depositAmount: depositAmount,
-        //     normalizedDepositAmount: normalizedDepositAmount
-        // });
+        vm.expectEmit({ emitter: address(flow) });
+        emit DepositFlowStream({
+            streamId: defaultStreamId,
+            funder: users.sender,
+            depositAmount: depositAmount,
+            normalizedDepositAmount: normalizedDepositAmount
+        });
 
-        // vm.expectEmit({ emitter: address(flow) });
-        // emit PauseFlowStream({
-        //     streamId: defaultStreamId,
-        //     sender: users.sender,
-        //     recipient: users.recipient,
-        //     totalDebt: previousTotalDebt
-        // });
+        vm.expectEmit({ emitter: address(flow) });
+        emit PauseFlowStream({
+            streamId: defaultStreamId,
+            sender: users.sender,
+            recipient: users.recipient,
+            totalDebt: previousTotalDebt
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });

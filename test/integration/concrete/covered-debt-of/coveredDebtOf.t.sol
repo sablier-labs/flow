@@ -41,6 +41,6 @@ contract CoveredDebtOf_Integration_Concrete_Test is Integration_Test {
     function test_WhenTotalDebtDoesNotExceedBalance() external givenNotNull givenBalanceNotZero {
         // It should return the correct withdraw amount.
         uint128 coveredDebt = flow.coveredDebtOf(defaultStreamId);
-        assertEq(coveredDebt, ONE_MONTH_STREAMED_AMOUNT, "covered debt");
+        assertEq(coveredDebt, ONE_MONTH_DEBT, "covered debt");
     }
 }

@@ -143,6 +143,11 @@ interface ISablierFlow is
         view
         returns (uint128 normalizedRefundableAmount);
 
+    /// @notice Returns the amount that the sender can be refunded from the stream, denoted in the asset's decimals.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    function refundableAmountOf(uint256 streamId) external view returns (uint128 refundableAmount);
+
     /// @notice Returns the stream's status.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.

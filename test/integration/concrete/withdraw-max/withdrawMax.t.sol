@@ -37,7 +37,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_WithdrawMax() private {
-        uint128 withdrawAmount = getDenormalizedAmount({ amount: ONE_MONTH_STREAMED_AMOUNT, decimals: DECIMALS });
+        uint128 withdrawAmount = getDenormalizedAmount({ amount: ONE_MONTH_DEBT, decimals: DECIMALS });
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(usdc) });
@@ -50,7 +50,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
             asset: IERC20(address(usdc)),
             caller: users.sender,
             withdrawAmount: withdrawAmount,
-            normalizedWithdrawAmount: ONE_MONTH_STREAMED_AMOUNT
+            normalizedWithdrawAmount: ONE_MONTH_DEBT
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -63,7 +63,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
+        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_DEBT;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should set the snapshot debt to zero.

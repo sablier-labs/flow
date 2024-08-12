@@ -35,11 +35,11 @@ abstract contract Constants {
     uint40 internal constant WITHDRAW_TIME = MAY_1_2024 + 2_500_000;
 
     // Streaming amounts
-    uint128 internal constant ONE_MONTH_REFUNDABLE_AMOUNT = NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT;
-    uint128 internal constant ONE_MONTH_STREAMED_AMOUNT = 2592e18; // 86.4 * 30
+    uint128 internal constant ONE_MONTH_NORMALIZED_REFUNDABLE_AMOUNT = NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_DEBT;
+    uint128 internal constant ONE_MONTH_DEBT = 2592e18; // 86.4 * 30
 
     // Misc
-    uint8 DECIMALS = 6;
+    uint8 internal constant DECIMALS = 6;
     bool internal constant IS_TRANSFERABLE = true;
     uint128 internal constant RATE_PER_SECOND = 0.001e18; // 86.4 daily
 }

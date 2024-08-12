@@ -98,7 +98,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit AdjustFlowStream({
             streamId: defaultStreamId,
-            totalDebt: ONE_MONTH_STREAMED_AMOUNT,
+            totalDebt: ONE_MONTH_DEBT,
             oldRatePerSecond: RATE_PER_SECOND,
             newRatePerSecond: newRatePerSecond
         });
@@ -110,7 +110,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
 
         // It should update snapshot debt.
         actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        expectedSnapshotDebt = ONE_MONTH_STREAMED_AMOUNT;
+        expectedSnapshotDebt = ONE_MONTH_DEBT;
         assertEq(actualSnapshotDebt, expectedSnapshotDebt, "snapshot debt");
 
         // It should set the new rate per second

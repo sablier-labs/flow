@@ -52,7 +52,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
                 Errors.SablierFlow_RefundOverflow.selector,
                 defaultStreamId,
                 NORMALIZED_DEPOSIT_AMOUNT,
-                NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_STREAMED_AMOUNT
+                NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_DEBT
             )
         );
         flow.refund({ streamId: defaultStreamId, normalizedRefundAmount: NORMALIZED_DEPOSIT_AMOUNT });
