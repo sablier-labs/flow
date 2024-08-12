@@ -47,7 +47,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         emit WithdrawFromFlowStream({
             streamId: defaultStreamId,
             to: users.recipient,
-            asset: IERC20(address(usdc)),
+            token: IERC20(address(usdc)),
             caller: users.sender,
             withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: ONE_MONTH_DEBT
@@ -57,7 +57,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransfer({ asset: usdc, to: users.recipient, amount: withdrawAmount });
+        expectCallToTransfer({ token: usdc, to: users.recipient, amount: withdrawAmount });
 
         uint128 actualWithdrawAmount = flow.withdrawMax(defaultStreamId, users.recipient);
 

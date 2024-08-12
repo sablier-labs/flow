@@ -32,13 +32,13 @@ library Errors {
     /// @notice Thrown when trying to create a stream with a zero deposit amount.
     error SablierFlow_DepositAmountZero(uint256 streamId);
 
-    /// @notice Thrown when trying to create a stream with an asset with no decimals.
-    error SablierFlow_InvalidAssetDecimals(address asset);
+    /// @notice Thrown when trying to create a stream with an token with no decimals.
+    error SablierFlow_InvalidTokenDecimals(address token);
 
     /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
     error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
 
-    /// @notice Thrown when trying to withdraw assets with a withdrawal time not greater than or equal to
+    /// @notice Thrown when trying to withdraw tokens with a withdrawal time not greater than or equal to
     /// `snapshotTime`.
     error SablierFlow_LastUpdateNotLessThanWithdrawalTime(uint256 streamId, uint40 lastUpdate, uint40 time);
 
@@ -51,7 +51,7 @@ library Errors {
     /// @notice Thrown when trying to set the rate per second of a stream to zero.
     error SablierFlow_RatePerSecondZero();
 
-    /// @notice Thrown when trying to refund zero assets from a stream.
+    /// @notice Thrown when trying to refund zero tokens from a stream.
     error SablierFlow_RefundAmountZero(uint256 streamId);
 
     /// @notice Thrown when trying to refund an amount greater than the refundable amount.
@@ -77,7 +77,7 @@ library Errors {
     /// @notice Thrown when trying to withdraw to an address other than the recipient's.
     error SablierFlow_WithdrawalAddressNotRecipient(uint256 streamId, address caller, address to);
 
-    /// @notice Thrown when trying to withdraw assets with a withdrawal time in the future.
+    /// @notice Thrown when trying to withdraw tokens with a withdrawal time in the future.
     error SablierFlow_WithdrawalTimeInTheFuture(uint256 streamId, uint40 time, uint256 currentTime);
 
     /// @notice Thrown when trying to withdraw but the stream no funds available.

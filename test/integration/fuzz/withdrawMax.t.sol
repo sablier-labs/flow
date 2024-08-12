@@ -31,14 +31,14 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
         // Ensure no value is transferred.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
 
         uint128 expectedTotalDebt = flow.totalDebtOf(streamId);
         uint128 expectedStreamBalance = flow.getBalance(streamId);
-        uint256 expectedAssetBalance = asset.balanceOf(address(flow));
+        uint256 expectedTokenBalance = token.balanceOf(address(flow));
 
-        // Prank the caller and withdraw the assets.
+        // Prank the caller and withdraw the tokens.
         resetPrank(caller);
         flow.withdrawMax(streamId, users.recipient);
 
@@ -52,8 +52,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 actualStreamBalance = flow.getBalance(streamId);
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
     }
 
     /// @dev Checklist:
@@ -63,7 +63,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
     /// - Multiple non-zero values for withdrawTo address.
-    /// - Multiple streams to withdraw from, each with different asset decimals and rps.
+    /// - Multiple streams to withdraw from, each with different token decimals and rps.
     /// - Multiple points in time.
     function testFuzz_WithdrawalAddressNotOwner(
         address withdrawTo,
@@ -90,7 +90,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         address caller = useRecipientOrOperator(streamId, timeJump);
         resetPrank({ msgSender: caller });
 
-        // Withdraw the assets.
+        // Withdraw the tokens.
         _test_WithdrawMax(caller, withdrawTo, streamId, decimals);
     }
 
@@ -100,7 +100,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
-    /// - Multiple streams to withdraw from, each with different asset decimals and rps.
+    /// - Multiple streams to withdraw from, each with different token decimals and rps.
     /// - Multiple points in time.
     function testFuzz_WithdrawMax(
         address caller,
@@ -124,7 +124,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Prank the caller and withdraw the assets.
+        // Prank the caller and withdraw the tokens.
         resetPrank(caller);
         _test_WithdrawMax(caller, users.recipient, streamId, decimals);
     }
@@ -132,12 +132,12 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     // Shared private function.
     function _test_WithdrawMax(address caller, address withdrawTo, uint256 streamId, uint8 decimals) private {
         uint128 totalDebt = flow.totalDebtOf(streamId);
-        uint256 assetBalance = asset.balanceOf(address(flow));
+        uint256 tokenBalance = token.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 normalizedWithdrawAmount = flow.coveredDebtOf(streamId);
 
         // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, decimals);
         emit IERC20.Transfer({ from: address(flow), to: withdrawTo, value: withdrawAmount });
 
@@ -145,7 +145,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit WithdrawFromFlowStream({
             streamId: streamId,
             to: withdrawTo,
-            asset: asset,
+            token: token,
             caller: caller,
             withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: normalizedWithdrawAmount
@@ -154,7 +154,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // Withdraw the assets.
+        // Withdraw the tokens.
         flow.withdrawMax(streamId, withdrawTo);
 
         // It should update snapshot time.
@@ -170,9 +170,9 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 expectedStreamBalance = streamBalance - normalizedWithdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should reduce the asset balance of stream.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetBalance - getDenormalizedAmount(normalizedWithdrawAmount, decimals);
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+        // It should reduce the token balance of stream.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = tokenBalance - getDenormalizedAmount(normalizedWithdrawAmount, decimals);
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
     }
 }

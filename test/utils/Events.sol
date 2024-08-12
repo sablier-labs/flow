@@ -41,7 +41,7 @@ abstract contract Events {
         address indexed sender,
         address indexed recipient,
         uint128 ratePerSecond,
-        IERC20 indexed asset,
+        IERC20 indexed token,
         bool transferable
     );
 
@@ -71,7 +71,7 @@ abstract contract Events {
     event WithdrawFromFlowStream(
         uint256 indexed streamId,
         address indexed to,
-        IERC20 indexed asset,
+        IERC20 indexed token,
         address caller,
         uint128 withdrawAmount,
         uint128 normalizedWithdrawAmount

@@ -9,7 +9,7 @@ import { Flow } from "src/types/DataTypes.sol";
 import { Fork_Test } from "./Fork.t.sol";
 
 contract Flow_Fork_Test is Fork_Test {
-    /// @dev Total number of streams to create for each asset.
+    /// @dev Total number of streams to create for each token.
     uint256 internal constant TOTAL_STREAMS = 20;
 
     /// @dev An enum to represent functions from the Flow contract.
@@ -41,9 +41,9 @@ contract Flow_Fork_Test is Fork_Test {
                                     FORK TEST
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For each asset:
+    /// @dev For each token:
     /// - It creates the equal number of new streams
-    /// - It executes the same sequence of flow functions for each asset
+    /// - It executes the same sequence of flow functions for each token
     /// @param params The fuzzed parameters to use for the tests.
     /// @param flowFuncU8 Using calldata here as required by array slicing in Solidity, and using `uint8` to be
     /// able to bound it.
@@ -62,9 +62,9 @@ contract Flow_Fork_Test is Fork_Test {
             flowFunc[i] = FlowFunc(boundUint8(flowFuncU8[i], 0, 6));
         }
 
-        // Run the tests for each asset.
-        for (uint256 i = 0; i < assets.length; ++i) {
-            asset = assets[i];
+        // Run the tests for each token.
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            token = tokens[i];
             _executeSequence(params, flowFunc);
         }
     }
@@ -73,7 +73,7 @@ contract Flow_Fork_Test is Fork_Test {
                                 PRIVATE HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For a given asset, it creates a number of streams and then execute the sequence of Flow functions.
+    /// @dev For a given token, it creates a number of streams and then execute the sequence of Flow functions.
     /// @param params The fuzzed parameters to use for the tests.
     /// @param flowFunc The sequence of Flow functions to execute.
     function _executeSequence(Params memory params, FlowFunc[] memory flowFunc) private {
@@ -236,7 +236,7 @@ contract Flow_Fork_Test is Fork_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit CreateFlowStream({
             streamId: expectedStreamId,
-            asset: asset,
+            token: token,
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
@@ -247,14 +247,12 @@ contract Flow_Fork_Test is Fork_Test {
             recipient: recipient,
             sender: sender,
             ratePerSecond: ratePerSecond,
-            asset: asset,
+            token: token,
             transferable: isTransferable
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);
         Flow.Stream memory expectedStream = Flow.Stream({
-            asset: asset,
-            assetDecimals: IERC20Metadata(address(asset)).decimals(),
             balance: 0,
             isPaused: false,
             isStream: true,
@@ -262,7 +260,9 @@ contract Flow_Fork_Test is Fork_Test {
             snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond,
             snapshotDebt: 0,
-            sender: sender
+            sender: sender,
+            token: token,
+            tokenDecimals: IERC20Metadata(address(token)).decimals()
         });
 
         // It should create the stream.
@@ -283,25 +283,25 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_Deposit(uint256 streamId, uint128 depositAmount) private {
-        uint8 assetDecimals = flow.getAssetDecimals(streamId);
+        uint8 tokenDecimals = flow.getTokenDecimals(streamId);
 
         // Following variables are used during assertions.
-        uint256 prevAssetBalance = asset.balanceOf(address(flow));
-        uint128 prevStreamBalance = flow.getBalance(streamId);
+        uint256 initialTokenBalance = token.balanceOf(address(flow));
+        uint128 initialStreamBalance = flow.getBalance(streamId);
 
-        uint128 transferAmountSeed = uint128(uint256(keccak256(abi.encodePacked(depositAmount, streamId))));
-        depositAmount = boundDepositAmount(transferAmountSeed, prevStreamBalance, assetDecimals);
+        uint128 depositAmountSeed = uint128(uint256(keccak256(abi.encodePacked(depositAmount, streamId))));
+        depositAmount = boundDepositAmount(depositAmountSeed, initialStreamBalance, tokenDecimals);
 
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
-        deal({ token: address(asset), to: sender, give: depositAmount });
+        deal({ token: address(token), to: sender, give: depositAmount });
         safeApprove(depositAmount);
 
         // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: sender, to: address(flow), value: depositAmount });
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, assetDecimals);
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, tokenDecimals);
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
@@ -315,19 +315,19 @@ contract Flow_Fork_Test is Fork_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: asset, from: sender, to: address(flow), amount: depositAmount });
+        expectCallToTransferFrom({ token: token, from: sender, to: address(flow), amount: depositAmount });
 
         // Make the deposit.
         flow.deposit(streamId, depositAmount);
 
-        // Assert that the asset balance of stream has been updated.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = prevAssetBalance + depositAmount;
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balanceOf");
+        // Assert that the token balance of stream has been updated.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = initialTokenBalance + depositAmount;
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balanceOf");
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = prevStreamBalance + normalizedDepositAmount;
+        uint256 expectedStreamBalance = initialStreamBalance + normalizedDepositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -373,24 +373,24 @@ contract Flow_Fork_Test is Fork_Test {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
 
-        uint8 assetDecimals = flow.getAssetDecimals(streamId);
+        uint8 tokenDecimals = flow.getTokenDecimals(streamId);
 
         // If the refundable amount less than 1, deposit some funds.
         if (flow.normalizedRefundableAmountOf(streamId) <= 1) {
             uint128 depositAmount =
-                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
+                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), tokenDecimals);
             depositOnStream(streamId, depositAmount);
         }
 
         // Bound the refund amount to avoid error.
         normalizedRefundAmount = boundUint128(normalizedRefundAmount, 1, flow.normalizedRefundableAmountOf(streamId));
 
-        uint256 prevAssetBalance = asset.balanceOf(address(flow));
-        uint128 prevStreamBalance = flow.getBalance(streamId);
-        uint128 refundAmount = getDenormalizedAmount(normalizedRefundAmount, assetDecimals);
+        uint256 initialTokenBalance = token.balanceOf(address(flow));
+        uint128 initialStreamBalance = flow.getBalance(streamId);
+        uint128 refundAmount = getDenormalizedAmount(normalizedRefundAmount, tokenDecimals);
 
         // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: address(flow), to: sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -407,14 +407,14 @@ contract Flow_Fork_Test is Fork_Test {
         // Request the refund.
         flow.refund(streamId, normalizedRefundAmount);
 
-        // Assert that the asset balance of stream has been updated.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = prevAssetBalance - refundAmount;
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balanceOf");
+        // Assert that the token balance of stream has been updated.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = initialTokenBalance - refundAmount;
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balanceOf");
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = prevStreamBalance - normalizedRefundAmount;
+        uint256 expectedStreamBalance = initialStreamBalance - normalizedRefundAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -523,18 +523,18 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 withdrawTimeSeed = uint256(keccak256(abi.encodePacked(withdrawTime, streamId)));
         withdrawTime = boundUint40(uint40(withdrawTimeSeed), flow.getSnapshotTime(streamId), getBlockTimestamp());
 
-        uint8 assetDecimals = flow.getAssetDecimals(streamId);
+        uint8 tokenDecimals = flow.getTokenDecimals(streamId);
 
         uint128 streamBalance = flow.getBalance(streamId);
         if (streamBalance == 0) {
             uint128 depositAmount =
-                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), assetDecimals);
+                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), tokenDecimals);
             depositOnStream(streamId, depositAmount);
             streamBalance = flow.getBalance(streamId);
         }
 
         uint128 totalDebt = flow.totalDebtOf(streamId);
-        uint256 assetBalance = asset.balanceOf(address(flow));
+        uint256 tokenBalance = token.balanceOf(address(flow));
         uint128 normalizedWithdrawAmount = flow.getSnapshotDebt(streamId)
             + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
 
@@ -546,15 +546,15 @@ contract Flow_Fork_Test is Fork_Test {
         address recipient = flow.getRecipient(streamId);
 
         // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(asset) });
-        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, assetDecimals);
+        vm.expectEmit({ emitter: address(token) });
+        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, tokenDecimals);
         emit IERC20.Transfer({ from: address(flow), to: recipient, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
             streamId: streamId,
             to: recipient,
-            asset: asset,
+            token: token,
             caller: caller,
             withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: normalizedWithdrawAmount
@@ -563,7 +563,7 @@ contract Flow_Fork_Test is Fork_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // Withdraw the assets.
+        // Withdraw the tokens.
         flow.withdrawAt(streamId, recipient, withdrawTime);
 
         // It should update snapshot time.
@@ -579,9 +579,9 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 expectedStreamBalance = streamBalance - normalizedWithdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should reduce the asset balance of stream.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetBalance - withdrawAmount;
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+        // It should reduce the token balance of stream.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = tokenBalance - withdrawAmount;
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
     }
 }

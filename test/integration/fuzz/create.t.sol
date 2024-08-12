@@ -12,7 +12,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for the sender, recipient and ratePerSecond.
-    /// - Multiple values for asset decimals less than or equal to 18.
+    /// - Multiple values for token decimals less than or equal to 18.
     /// - Both transferable and non-transferable streams.
     function testFuzz_Create(
         address recipient,
@@ -31,8 +31,8 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         ratePerSecond = boundUint128(ratePerSecond, 1, UINT128_MAX - 1);
         decimals = boundUint8(decimals, 0, 18);
 
-        // Create a new asset.
-        asset = createAsset(decimals);
+        // Create a new token.
+        token = createToken(decimals);
 
         uint256 expectedStreamId = flow.nextStreamId();
 
@@ -49,7 +49,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
-            asset: asset,
+            token: token,
             transferable: isTransferable
         });
 
@@ -58,19 +58,19 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
-            asset: asset,
+            token: token,
             transferable: isTransferable
         });
 
         // Assert stream's initial states. This is the only place testing for state's getter functions.
-        assertEq(flow.getAsset(actualStreamId), asset);
-        assertEq(flow.getAssetDecimals(actualStreamId), decimals);
         assertEq(flow.getBalance(actualStreamId), 0);
         assertEq(flow.getSnapshotTime(actualStreamId), getBlockTimestamp());
         assertEq(flow.getRatePerSecond(actualStreamId), ratePerSecond);
         assertEq(flow.getRecipient(actualStreamId), recipient);
         assertEq(flow.getSnapshotDebt(actualStreamId), 0);
         assertEq(flow.getSender(actualStreamId), sender);
+        assertEq(flow.getToken(actualStreamId), token);
+        assertEq(flow.getTokenDecimals(actualStreamId), decimals);
         assertEq(flow.isPaused(actualStreamId), false);
         assertEq(flow.isStream(actualStreamId), true);
 

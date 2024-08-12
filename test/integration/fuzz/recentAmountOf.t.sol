@@ -7,7 +7,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should return the expected value.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple paused streams, each with different asset decimals and rps.
+    /// - Multiple paused streams, each with different token decimals and rps.
     /// - Multiple points in time.
     function testFuzz_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
@@ -34,7 +34,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should return 0.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non-paused streams, each with different asset decimals and rps.
+    /// - Multiple non-paused streams, each with different token decimals and rps.
     function testFuzz_EqualSnapshotTime(
         uint256 streamId,
         uint40 timeJump,
@@ -63,7 +63,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should return the ongoing debt.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non-paused streams, each with different asset decimals and rps.
+    /// - Multiple non-paused streams, each with different token decimals and rps.
     /// - Multiple points in time after the value of snapshotTime.
     function testFuzz_OngoingDebtOf(
         uint256 streamId,

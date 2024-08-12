@@ -125,24 +125,24 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
-        // Calculate the upper bound, based on the asset decimals, for the transfer amount.
-        uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getAssetDecimals(currentStreamId));
+        // Calculate the upper bound, based on the token decimals, for the transfer amount.
+        uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
 
         // Bound the transfer amount.
         depositAmount = uint128(_bound(depositAmount, 100, upperBound));
 
-        IERC20 asset = flow.getAsset(currentStreamId);
+        IERC20 token = flow.getToken(currentStreamId);
 
-        // Mint enough assets to the Sender.
-        deal({ token: address(asset), to: currentSender, give: asset.balanceOf(currentSender) + depositAmount });
+        // Mint enough tokens to the Sender.
+        deal({ token: address(token), to: currentSender, give: token.balanceOf(currentSender) + depositAmount });
 
-        // Approve {SablierFlow} to spend the assets.
-        asset.approve({ spender: address(flow), value: depositAmount });
+        // Approve {SablierFlow} to spend the tokens.
+        token.approve({ spender: address(flow), value: depositAmount });
 
         // Deposit into the stream.
         flow.deposit({ streamId: currentStreamId, depositAmount: depositAmount });
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, flow.getAssetDecimals(currentStreamId));
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, flow.getTokenDecimals(currentStreamId));
 
         // Update the deposited amount.
         flowStore.updateStreamDepositedAmountsSum(currentStreamId, normalizedDepositAmount);

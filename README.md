@@ -20,8 +20,8 @@ struct Stream {
   bool isPaused;
   bool isStream;
   bool isTransferable;
-  IERC20 asset;
-  uint8 assetDecimals;
+  IERC20 token;
+  uint8 tokenDecimals;
   uint128 snapshotDebt;
 }
 ```
@@ -42,7 +42,7 @@ amount into the stream at any time. To improve experience for some users, a `cre
 implemented to allow both create and deposit operations in a single transaction.
 
 Streams begin streaming as soon as the transaction is confirmed on the blockchain. They have no end date, but the sender
-can pause the stream at any time. This stops the streaming of assets but retains the record of the accrued debt up to
+can pause the stream at any time. This stops the streaming of tokens but retains the record of the accrued debt up to
 that point.
 
 The `snapshotTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the debt over
@@ -110,7 +110,7 @@ $`cd = \begin{cases} td & \text{if } ud = 0 \\ bal & \text{if } ud \gt 0 \end{ca
 
 ## Precision Issues
 
-The `rps` introduces a precision problem for assets with fewer decimals (e.g.
+The `rps` introduces a precision problem for tokens with fewer decimals (e.g.
 [USDC](https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48s), which has 6 decimals).
 
 Let's consider an example: if a user wants to stream 10 USDC per day, the _rps_ should be
@@ -148,22 +148,22 @@ Currently, it's not possible to address this precision problem entirely.
 We use 18-decimal fixed-point numbers for all internal amounts and calculation functions to avoid the overload of
 conversion to actual `ERC20` balances. The only time we perform these conversions is during external calls to `ERC20`'s
 `transfer`/`transferFrom` (i.e. deposit, withdraw and refund operations). When performing these actions, we adjust the
-calculated amount (e.g. refundable amount) based on the asset's decimals:
+calculated amount (e.g. refundable amount) based on the token's decimals:
 
 Deposit:
 
-- if the asset has 18 decimals, the internal deposited amount remains same as the transfer amount
-- if the asset has fewer decimals, the internal deposited amount is increased by the difference between the asset
+- if the token has 18 decimals, the internal deposited amount remains same as the transfer amount
+- if the token has fewer decimals, the internal deposited amount is increased by the difference between the token
   decimals and 18
 
 Withdraw and Refund:
 
-- if the asset has 18 decimals, the transfer amount is the same as the internal amount
-- if the asset has fewer decimals, the transfer amount is decreased by the difference between 18 and asset decimals
+- if the token has 18 decimals, the transfer amount is the same as the internal amount
+- if the token has fewer decimals, the transfer amount is decreased by the difference between 18 and token decimals
 
-Asset decimal is retrieved directly from the ERC-20 contract. We store the asset decimals to avoid making an external
-call to get the decimals of the asset each time a deposit or withdraw is made. Decimals are stored as `uint8`, making
-them inexpensive to store.
+The token decimals value is retrieved directly from the ERC-20 contract. We store the token decimals to avoid making an
+external call to get the decimals of the token each time a deposit or withdraw is made. Decimals are stored as `uint8`,
+making them inexpensive to store.
 
 ### Limitations
 
@@ -173,7 +173,7 @@ them inexpensive to store.
 
 1. for any stream, $lst \le now$
 
-2. for a given asset, $\sum$ stream balances normalized to asset decimal $\leq$ asset.balanceOf(SablierFlow)
+2. for a given token, $\sum$ stream balances normalized to token decimal $\leq$ token.balanceOf(SablierFlow)
 
 3. for any stream, if $ud > 0 \implies cd = bal$
 

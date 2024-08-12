@@ -46,7 +46,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: IERC20(address(usdt)),
+            token: IERC20(address(usdt)),
             transferable: IS_TRANSFERABLE
         });
 
@@ -149,7 +149,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE
         });
 
@@ -163,7 +163,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE
         });
 
@@ -214,8 +214,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
         // It should perform the ERC20 transfers.
-        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
-        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         // Call the batch function.
         flow.batch(calls);
@@ -306,8 +306,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         });
 
         // It should perform the ERC20 transfers.
-        expectCallToTransfer({ asset: usdc, to: users.sender, amount: refundAmount });
-        expectCallToTransfer({ asset: usdc, to: users.sender, amount: refundAmount });
+        expectCallToTransfer({ token: usdc, to: users.sender, amount: refundAmount });
+        expectCallToTransfer({ token: usdc, to: users.sender, amount: refundAmount });
 
         // Call the batch function.
         flow.batch(calls);
@@ -369,7 +369,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit WithdrawFromFlowStream({
             streamId: defaultStreamIds[0],
             to: users.recipient,
-            asset: IERC20(address(usdc)),
+            token: IERC20(address(usdc)),
             caller: users.sender,
             withdrawAmount: WITHDRAW_AMOUNT_6D,
             normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
@@ -386,7 +386,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit WithdrawFromFlowStream({
             streamId: defaultStreamIds[1],
             to: users.recipient,
-            asset: IERC20(address(usdc)),
+            token: IERC20(address(usdc)),
             caller: users.sender,
             withdrawAmount: WITHDRAW_AMOUNT_6D,
             normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
@@ -396,8 +396,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
         // It should perform the ERC20 transfers.
-        expectCallToTransfer({ asset: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
-        expectCallToTransfer({ asset: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
 
         // Call the batch function.
         flow.batch(calls);

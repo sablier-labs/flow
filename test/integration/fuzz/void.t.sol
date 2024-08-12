@@ -10,7 +10,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
-    /// - Multiple non-paused streams, each with different asset decimals and rps.
+    /// - Multiple non-paused streams, each with different token decimals and rps.
     /// - Multiple points in time pre depletion timestamp.
     function testFuzz_RevertWhen_PreDepletion(
         uint256 streamId,
@@ -49,7 +49,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
-    /// - Multiple paused streams, each with different asset decimals and rps.
+    /// - Multiple paused streams, each with different token decimals and rps.
     /// - Multiple points in time post depletion timestamp.
     function testFuzz_Paused(
         uint256 streamId,
@@ -88,7 +88,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
-    /// - Multiple non-paused streams, each with different asset decimals and rps.
+    /// - Multiple non-paused streams, each with different token decimals and rps.
     /// - Multiple points in time post depletion timestamp.
     function testFuzz_Void(
         uint256 streamId,

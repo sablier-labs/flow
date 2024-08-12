@@ -7,13 +7,13 @@ import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
-    /// - It should deposit asset into a stream. 40% runs should load streams from fixtures.
+    /// - It should deposit token into a stream. 40% runs should load streams from fixtures.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {DepositFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
     /// - Multiple non-zero values for transfer amount.
-    /// - Multiple streams to deposit into, each with different asset decimals and rps.
+    /// - Multiple streams to deposit into, each with different token decimals and rps.
     /// - Multiple points in time.
     function testFuzz_Deposit(
         address caller,
@@ -31,27 +31,27 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Following variables are used during assertions.
-        uint256 prevAssetBalance = asset.balanceOf(address(flow));
-        uint128 prevStreamBalance = flow.getBalance(streamId);
+        uint256 initialTokenBalance = token.balanceOf(address(flow));
+        uint128 initialStreamBalance = flow.getBalance(streamId);
 
         // Bound the transfer amount to avoid overflow.
-        depositAmount = boundDepositAmount(depositAmount, prevStreamBalance, decimals);
+        depositAmount = boundDepositAmount(depositAmount, initialStreamBalance, decimals);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
         // Change prank to caller and deal some tokens to him.
-        deal({ token: address(asset), to: caller, give: depositAmount });
+        deal({ token: address(token), to: caller, give: depositAmount });
         resetPrank(caller);
 
-        // Approve the flow contract to spend the asset.
-        asset.approve(address(flow), depositAmount);
+        // Approve the flow contract to spend the token.
+        token.approve(address(flow), depositAmount);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
         // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: caller, to: address(flow), value: depositAmount });
 
         uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, decimals);
@@ -68,19 +68,19 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: asset, from: caller, to: address(flow), amount: depositAmount });
+        expectCallToTransferFrom({ token: token, from: caller, to: address(flow), amount: depositAmount });
 
         // Make the deposit.
         flow.deposit(streamId, depositAmount);
 
-        // Assert that the asset balance of stream has been updated.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = prevAssetBalance + depositAmount;
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balanceOf");
+        // Assert that the token balance of stream has been updated.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = initialTokenBalance + depositAmount;
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balanceOf");
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = prevStreamBalance + normalizedDepositAmount;
+        uint256 expectedStreamBalance = initialStreamBalance + normalizedDepositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

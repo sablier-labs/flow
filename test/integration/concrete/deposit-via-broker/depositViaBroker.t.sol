@@ -51,7 +51,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         flow.depositViaBroker(defaultStreamId, 0, defaultBroker);
     }
 
-    function test_WhenAssetMissesERC20Return()
+    function test_WhenTokenMissesERC20Return()
         external
         whenNoDelegateCall
         givenNotNull
@@ -66,61 +66,61 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         );
     }
 
-    function test_GivenAssetHas18Decimals()
+    function test_GivenTokenHas18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressNotZero
         whenTotalAmountNotZero
-        whenAssetDoesNotMissERC20Return
+        whenTokenDoesNotMissERC20Return
     {
         uint256 streamId = createDefaultStream(IERC20(address(dai)));
         _test_DepositViaBroker({
             streamId: streamId,
-            asset: dai,
+            token: dai,
             totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_18D,
             depositAmount: DEPOSIT_AMOUNT_18D,
             brokerFeeAmount: BROKER_FEE_AMOUNT_18D,
-            assetDecimals: 18
+            tokenDecimals: 18
         });
     }
 
-    function test_GivenAssetDoesNotHave18Decimals()
+    function test_GivenTokenDoesNotHave18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressNotZero
         whenTotalAmountNotZero
-        whenAssetDoesNotMissERC20Return
+        whenTokenDoesNotMissERC20Return
     {
         uint256 streamId = createDefaultStream(IERC20(address(usdc)));
         _test_DepositViaBroker({
             streamId: streamId,
-            asset: usdc,
+            token: usdc,
             totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
             depositAmount: DEPOSIT_AMOUNT_6D,
             brokerFeeAmount: BROKER_FEE_AMOUNT_6D,
-            assetDecimals: 6
+            tokenDecimals: 6
         });
     }
 
     function _test_DepositViaBroker(
         uint256 streamId,
-        IERC20 asset,
+        IERC20 token,
         uint128 totalAmount,
         uint128 depositAmount,
         uint128 brokerFeeAmount,
-        uint8 assetDecimals
+        uint8 tokenDecimals
     )
         private
     {
         // It should emit 2 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, assetDecimals);
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, tokenDecimals);
 
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({
@@ -130,15 +130,15 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
             normalizedDepositAmount: normalizedDepositAmount
         });
 
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: brokerFeeAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({ asset: asset, from: users.sender, to: address(flow), amount: depositAmount });
-        expectCallToTransferFrom({ asset: asset, from: users.sender, to: users.broker, amount: brokerFeeAmount });
+        expectCallToTransferFrom({ token: token, from: users.sender, to: address(flow), amount: depositAmount });
+        expectCallToTransferFrom({ token: token, from: users.sender, to: users.broker, amount: brokerFeeAmount });
 
         flow.depositViaBroker(streamId, totalAmount, defaultBroker);
 

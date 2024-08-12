@@ -37,14 +37,14 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
         // Ensure no value is transferred.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
 
         uint128 expectedTotalDebt = flow.totalDebtOf(streamId);
         uint128 expectedStreamBalance = flow.getBalance(streamId);
-        uint256 expectedAssetBalance = asset.balanceOf(address(flow));
+        uint256 expectedTokenBalance = token.balanceOf(address(flow));
 
-        // Change prank to caller and withdraw the assets.
+        // Change prank to caller and withdraw the tokens.
         resetPrank(caller);
         flow.withdrawAt(streamId, users.recipient, withdrawTime);
 
@@ -58,18 +58,18 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 actualStreamBalance = flow.getBalance(streamId);
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
     }
 
     /// @dev Checklist:
-    /// - It should withdraw asset from a stream.
+    /// - It should withdraw token from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Only two values for caller (stream owner and approved operator).
     /// - Multiple non-zero values for to address.
-    /// - Multiple streams to withdraw from, each with different asset decimals and rps.
+    /// - Multiple streams to withdraw from, each with different token decimals and rps.
     /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or
     /// after
     /// depletion time.
@@ -94,17 +94,17 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         address caller = useRecipientOrOperator(streamId, timeJump);
         resetPrank({ msgSender: caller });
 
-        // Withdraw the assets.
+        // Withdraw the tokens.
         _test_WithdrawAt(caller, to, streamId, timeJump, withdrawTime, decimals);
     }
 
     /// @dev Checklist:
-    /// - It should withdraw asset from a stream.
+    /// - It should withdraw token from a stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
-    /// - Multiple streams to withdraw from, each with different asset decimals and rps.
+    /// - Multiple streams to withdraw from, each with different token decimals and rps.
     /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or
     /// after
     /// depletion time.
@@ -126,7 +126,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
-        // Prank the caller and withdraw the assets.
+        // Prank the caller and withdraw the tokens.
         resetPrank(caller);
         _test_WithdrawAt(caller, users.recipient, streamId, timeJump, withdrawTime, decimals);
     }
@@ -154,7 +154,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
         uint128 totalDebt = flow.totalDebtOf(streamId);
-        uint256 assetBalance = asset.balanceOf(address(flow));
+        uint256 tokenBalance = token.balanceOf(address(flow));
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 normalizedWithdrawAmount = flow.getSnapshotDebt(streamId)
             + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
@@ -164,7 +164,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         }
 
         // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, decimals);
         emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
@@ -172,7 +172,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit WithdrawFromFlowStream({
             streamId: streamId,
             to: to,
-            asset: asset,
+            token: token,
             caller: caller,
             withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: normalizedWithdrawAmount
@@ -181,7 +181,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // Withdraw the assets.
+        // Withdraw the tokens.
         flow.withdrawAt(streamId, to, withdrawTime);
 
         // It should update snapshot time.
@@ -197,9 +197,9 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 expectedStreamBalance = streamBalance - normalizedWithdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should reduce the asset balance of stream.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetBalance - withdrawAmount;
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+        // It should reduce the token balance of stream.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = tokenBalance - withdrawAmount;
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
     }
 }

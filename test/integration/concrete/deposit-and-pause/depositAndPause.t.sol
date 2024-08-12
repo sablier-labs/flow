@@ -80,7 +80,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: depositAmount });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: depositAmount });
 
         flow.depositAndPause(defaultStreamId, depositAmount);
 

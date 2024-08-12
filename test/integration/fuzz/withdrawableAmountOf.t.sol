@@ -7,7 +7,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
     /// @dev It should return the expected value.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple paused streams, each with different asset decimals and rps.
+    /// - Multiple paused streams, each with different token decimals and rps.
     /// - Multiple points in time prior to depletion period.
     function testFuzz_PreDepletion_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
@@ -36,7 +36,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
     /// @dev It should return the streamed amount, denoted in 18 decimals.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple non-paused streams, each with different asset decimals and rps.
+    /// - Multiple non-paused streams, each with different token decimals and rps.
     /// - Multiple points in time prior to depletion period.
     function testFuzz_PreDepletion(
         uint256 streamId,
@@ -66,7 +66,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
     /// @dev It should return the stream balance which is also same as the deposited amount, denoted in 18 decimals.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
-    /// - Multiple streams, each with different asset decimals and rps.
+    /// - Multiple streams, each with different token decimals and rps.
     /// - Multiple points in time post depletion period.
     function testFuzz_PostDepletion(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
         (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals);

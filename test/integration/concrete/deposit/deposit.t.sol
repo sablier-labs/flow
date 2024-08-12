@@ -23,46 +23,46 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         flow.deposit(defaultStreamId, 0);
     }
 
-    function test_WhenAssetMissesERC20Return() external whenNoDelegateCall givenNotNull whenDepositAmountNotZero {
+    function test_WhenTokenMissesERC20Return() external whenNoDelegateCall givenNotNull whenDepositAmountNotZero {
         uint256 streamId = createDefaultStream(IERC20(address(usdt)));
 
         // It should make the deposit
         _test_Deposit({
             streamId: streamId,
-            asset: IERC20(address(usdt)),
+            token: IERC20(address(usdt)),
             depositAmount: DEPOSIT_AMOUNT_6D,
-            assetDecimals: 6
+            tokenDecimals: 6
         });
     }
 
-    function test_GivenAssetHas18Decimals()
+    function test_GivenTokenHas18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
         whenDepositAmountNotZero
-        whenAssetDoesNotMissERC20Return
+        whenTokenDoesNotMissERC20Return
     {
         // It should make the deposit.
         uint256 streamId = createDefaultStream(IERC20(address(dai)));
-        _test_Deposit({ streamId: streamId, asset: dai, depositAmount: DEPOSIT_AMOUNT_18D, assetDecimals: 18 });
+        _test_Deposit({ streamId: streamId, token: dai, depositAmount: DEPOSIT_AMOUNT_18D, tokenDecimals: 18 });
     }
 
-    function test_GivenAssetDoesNotHave18Decimals()
+    function test_GivenTokenDoesNotHave18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
         whenDepositAmountNotZero
-        whenAssetDoesNotMissERC20Return
+        whenTokenDoesNotMissERC20Return
     {
         // It should make the deposit.
-        _test_Deposit({ streamId: defaultStreamId, asset: usdc, depositAmount: DEPOSIT_AMOUNT_6D, assetDecimals: 6 });
+        _test_Deposit({ streamId: defaultStreamId, token: usdc, depositAmount: DEPOSIT_AMOUNT_6D, tokenDecimals: 6 });
     }
 
-    function _test_Deposit(uint256 streamId, IERC20 asset, uint128 depositAmount, uint8 assetDecimals) private {
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, assetDecimals);
+    function _test_Deposit(uint256 streamId, IERC20 token, uint128 depositAmount, uint8 tokenDecimals) private {
+        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, tokenDecimals);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -77,7 +77,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransferFrom({ asset: asset, from: users.sender, to: address(flow), amount: depositAmount });
+        expectCallToTransferFrom({ token: token, from: users.sender, to: address(flow), amount: depositAmount });
         flow.deposit({ streamId: streamId, depositAmount: depositAmount });
 
         // It should update the stream balance.

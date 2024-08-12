@@ -23,7 +23,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             sender: address(0),
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: dai,
+            token: dai,
             transferable: IS_TRANSFERABLE
         });
     }
@@ -34,46 +34,46 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: 0,
-            asset: dai,
+            token: dai,
             transferable: IS_TRANSFERABLE
         });
     }
 
-    function test_RevertWhen_AssetDoesNotImplementDecimals()
+    function test_RevertWhen_TokenDoesNotImplementDecimals()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
         whenRatePerSecondNotZero
     {
-        address invalidAsset = address(8128);
+        address invalidToken = address(8128);
         vm.expectRevert(bytes(""));
         flow.create({
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: IERC20(invalidAsset),
+            token: IERC20(invalidToken),
             transferable: IS_TRANSFERABLE
         });
     }
 
-    function test_RevertWhen_AssetDecimalsExceeds18()
+    function test_RevertWhen_TokenDecimalsExceeds18()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
         whenRatePerSecondNotZero
-        whenAssetImplementsDecimals
+        whenTokenImplementsDecimals
     {
-        IERC20 assetWith24Decimals = new ERC20Mock("Asset with more decimals", "AWMD", 24);
+        IERC20 tokenWith24Decimals = new ERC20Mock("Token With More Decimals", "TWMD", 24);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierFlow_InvalidAssetDecimals.selector, address(assetWith24Decimals))
+            abi.encodeWithSelector(Errors.SablierFlow_InvalidTokenDecimals.selector, address(tokenWith24Decimals))
         );
 
         flow.create({
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: assetWith24Decimals,
+            token: tokenWith24Decimals,
             transferable: IS_TRANSFERABLE
         });
     }
@@ -83,15 +83,15 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         whenSenderNotAddressZero
         whenRatePerSecondNotZero
-        whenAssetImplementsDecimals
-        whenAssetDecimalsDoesNotExceed18
+        whenTokenImplementsDecimals
+        whenTokenDecimalsDoesNotExceed18
     {
         vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721InvalidReceiver.selector, address(0)));
         flow.create({
             sender: users.sender,
             recipient: address(0),
             ratePerSecond: RATE_PER_SECOND,
-            asset: dai,
+            token: dai,
             transferable: IS_TRANSFERABLE
         });
     }
@@ -101,8 +101,8 @@ contract Create_Integration_Concrete_Test is Integration_Test {
         whenNoDelegateCall
         whenSenderNotAddressZero
         whenRatePerSecondNotZero
-        whenAssetImplementsDecimals
-        whenAssetDecimalsDoesNotExceed18
+        whenTokenImplementsDecimals
+        whenTokenDecimalsDoesNotExceed18
     {
         uint256 expectedStreamId = flow.nextStreamId();
 
@@ -119,7 +119,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE
         });
 
@@ -128,7 +128,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE
         });
 

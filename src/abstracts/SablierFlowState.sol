@@ -90,21 +90,21 @@ abstract contract SablierFlowState is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowState
-    function getAsset(uint256 streamId) external view override notNull(streamId) returns (IERC20 asset) {
-        asset = _streams[streamId].asset;
+    function getToken(uint256 streamId) external view override notNull(streamId) returns (IERC20 token) {
+        token = _streams[streamId].token;
     }
 
     /// @inheritdoc ISablierFlowState
-    function getAssetDecimals(
+    function getTokenDecimals(
         uint256 streamId
     )
         external
         view
         override
         notNull(streamId)
-        returns (uint8 assetDecimals)
+        returns (uint8 tokenDecimals)
     {
-        assetDecimals = _streams[streamId].assetDecimals;
+        tokenDecimals = _streams[streamId].tokenDecimals;
     }
 
     /// @inheritdoc ISablierFlowState

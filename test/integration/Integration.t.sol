@@ -44,24 +44,22 @@ abstract contract Integration_Test is Base_Test {
         return createDefaultStream(usdc);
     }
 
-    function createDefaultStream(IERC20 asset_) internal returns (uint256) {
-        return createDefaultStream(RATE_PER_SECOND, asset_);
+    function createDefaultStream(IERC20 token_) internal returns (uint256) {
+        return createDefaultStream(RATE_PER_SECOND, token_);
     }
 
-    function createDefaultStream(uint128 ratePerSecond, IERC20 asset_) internal returns (uint256) {
+    function createDefaultStream(uint128 ratePerSecond, IERC20 token_) internal returns (uint256) {
         return flow.create({
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: ratePerSecond,
-            asset: asset_,
+            token: token_,
             transferable: IS_TRANSFERABLE
         });
     }
 
     function defaultStream() internal view returns (Flow.Stream memory) {
         return Flow.Stream({
-            asset: usdc,
-            assetDecimals: DECIMALS,
             balance: 0,
             snapshotTime: getBlockTimestamp(),
             isPaused: false,
@@ -69,7 +67,9 @@ abstract contract Integration_Test is Base_Test {
             isTransferable: IS_TRANSFERABLE,
             ratePerSecond: RATE_PER_SECOND,
             snapshotDebt: 0,
-            sender: users.sender
+            sender: users.sender,
+            token: usdc,
+            tokenDecimals: DECIMALS
         });
     }
 
@@ -79,21 +79,21 @@ abstract contract Integration_Test is Base_Test {
     }
 
     function depositAmount(uint256 streamId, uint128 depositAmount_) internal {
-        IERC20 asset = flow.getAsset(streamId);
+        IERC20 token = flow.getToken(streamId);
 
-        deal({ token: address(asset), to: users.sender, give: depositAmount_ });
-        asset.approve(address(flow), depositAmount_);
+        deal({ token: address(token), to: users.sender, give: depositAmount_ });
+        token.approve(address(flow), depositAmount_);
 
         flow.deposit(streamId, depositAmount_);
     }
 
     function depositDefaultAmount(uint256 streamId) internal {
-        IERC20 asset = flow.getAsset(streamId);
-        uint8 decimals = flow.getAssetDecimals(streamId);
+        IERC20 token = flow.getToken(streamId);
+        uint8 decimals = flow.getTokenDecimals(streamId);
         uint128 depositAmount_ = getDefaultDepositAmount(decimals);
 
-        deal({ token: address(asset), to: users.sender, give: depositAmount_ });
-        asset.approve(address(flow), depositAmount_);
+        deal({ token: address(token), to: users.sender, give: depositAmount_ });
+        token.approve(address(flow), depositAmount_);
 
         flow.deposit(streamId, depositAmount_);
     }

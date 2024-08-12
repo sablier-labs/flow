@@ -37,7 +37,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE
         });
 
@@ -56,15 +56,15 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: BROKER_FEE_AMOUNT_6D });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
-        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: users.broker, amount: BROKER_FEE_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: users.broker, amount: BROKER_FEE_AMOUNT_6D });
 
         uint256 actualStreamId = flow.createAndDepositViaBroker({
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE,
             totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
             broker: defaultBroker

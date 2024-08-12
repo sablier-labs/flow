@@ -14,7 +14,7 @@ contract Flow_Invariant_Test is Base_Test {
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    IERC20[] internal assets;
+    IERC20[] internal tokens;
     FlowCreateHandler internal flowCreateHandler;
     FlowHandler internal flowHandler;
     FlowStore internal flowStore;
@@ -26,18 +26,18 @@ contract Flow_Invariant_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
 
-        // Declare the default assets.
-        assets.push(assetWithoutDecimals);
-        assets.push(dai);
-        assets.push(usdc);
-        assets.push(IERC20(address(usdt)));
+        // Declare the default tokens.
+        tokens.push(tokenWithoutDecimals);
+        tokens.push(dai);
+        tokens.push(usdc);
+        tokens.push(IERC20(address(usdt)));
 
         // Deploy and the FlowStore contract.
         flowStore = new FlowStore();
 
         // Deploy the handlers.
         flowHandler = new FlowHandler({ flowStore_: flowStore, flow_: flow });
-        flowCreateHandler = new FlowCreateHandler({ flowStore_: flowStore, flow_: flow, assets_: assets });
+        flowCreateHandler = new FlowCreateHandler({ flowStore_: flowStore, flow_: flow, tokens_: tokens });
 
         // Label the contracts.
         vm.label({ account: address(flowStore), newLabel: "flowStore" });
@@ -72,26 +72,26 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev For a given asset, the sum of all stream balances normalized to the asset's decimal should never exceed
-    /// the asset balance of the flow contract.
+    /// @dev For a given token, the sum of all stream balances normalized to the token's decimal should never exceed
+    /// the token balance of the flow contract.
     function invariant_ContractBalanceGeStreamBalances() external view {
-        // Check the invariant for each asset.
-        for (uint256 i = 0; i < assets.length; ++i) {
-            contractBalanceGeStreamBalances(assets[i]);
+        // Check the invariant for each token.
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            contractBalanceGeStreamBalances(tokens[i]);
         }
     }
 
-    function contractBalanceGeStreamBalances(IERC20 asset) internal view {
-        uint256 contractBalance = asset.balanceOf(address(flow));
+    function contractBalanceGeStreamBalances(IERC20 token) internal view {
+        uint256 contractBalance = token.balanceOf(address(flow));
         uint128 streamBalancesSumNormalized;
 
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
 
-            if (flow.getAsset(streamId) == asset) {
+            if (flow.getToken(streamId) == token) {
                 streamBalancesSumNormalized +=
-                    getDenormalizedAmount(flow.getBalance(streamId), flow.getAssetDecimals(streamId));
+                    getDenormalizedAmount(flow.getBalance(streamId), flow.getTokenDecimals(streamId));
             }
         }
 

@@ -69,10 +69,10 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         // It should make the refund.
-        _test_Refund({ streamId: defaultStreamId, asset: usdc, assetDecimals: 6 });
+        _test_Refund({ streamId: defaultStreamId, token: usdc, tokenDecimals: 6 });
     }
 
-    function test_WhenAssetMissesERC20Return()
+    function test_WhenTokenMissesERC20Return()
         external
         whenNoDelegateCall
         givenNotNull
@@ -88,7 +88,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         _test_Refund(streamId, IERC20(address(usdt)), 6);
     }
 
-    function test_GivenAssetDoesNotHave18Decimals()
+    function test_GivenTokenDoesNotHave18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
@@ -96,13 +96,13 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenRefundAmountNotZero
         whenNoOverRefund
         givenNotPaused
-        whenAssetDoesNotMissERC20Return
+        whenTokenDoesNotMissERC20Return
     {
         // It should make the refund.
-        _test_Refund({ streamId: defaultStreamId, asset: IERC20(address(usdc)), assetDecimals: 6 });
+        _test_Refund({ streamId: defaultStreamId, token: IERC20(address(usdc)), tokenDecimals: 6 });
     }
 
-    function test_GivenAssetHas18Decimals()
+    function test_GivenTokenHas18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
@@ -110,20 +110,20 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         whenRefundAmountNotZero
         whenNoOverRefund
         givenNotPaused
-        whenAssetDoesNotMissERC20Return
+        whenTokenDoesNotMissERC20Return
     {
         uint256 streamId = createDefaultStream(IERC20(address(dai)));
         depositDefaultAmount(streamId);
 
         // It should make the refund.
-        _test_Refund({ streamId: streamId, asset: dai, assetDecimals: 18 });
+        _test_Refund({ streamId: streamId, token: dai, tokenDecimals: 18 });
     }
 
-    function _test_Refund(uint256 streamId, IERC20 asset, uint8 assetDecimals) private {
-        uint128 refundAmount = getDenormalizedAmount(NORMALIZED_REFUND_AMOUNT, assetDecimals);
+    function _test_Refund(uint256 streamId, IERC20 token, uint8 tokenDecimals) private {
+        uint128 refundAmount = getDenormalizedAmount(NORMALIZED_REFUND_AMOUNT, tokenDecimals);
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {MetadataUpdate} events.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -138,7 +138,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransfer({ asset: asset, to: users.sender, amount: refundAmount });
+        expectCallToTransfer({ token: token, to: users.sender, amount: refundAmount });
         uint128 actualRefundAmount =
             flow.refund({ streamId: streamId, normalizedRefundAmount: NORMALIZED_REFUND_AMOUNT });
 

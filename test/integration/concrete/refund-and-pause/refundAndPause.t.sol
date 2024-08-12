@@ -76,7 +76,7 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
         // It should perform the ERC20 transfer
-        expectCallToTransfer({ asset: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
 
         uint128 actualRefundAmount = flow.refundAndPause(defaultStreamId, NORMALIZED_REFUND_AMOUNT);
 

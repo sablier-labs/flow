@@ -33,7 +33,7 @@ WithdrawAt_Integration_Concrete_Test
                       │   ├── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
                       │   └── it should return the transfer amount
                       └── when total debt does not exceed balance
-                          ├── given asset does not have 18 decimals
+                          ├── given token does not have 18 decimals
                           │   ├── it should withdraw the total debt
                           │   ├── it should update snapshot time
                           │   ├── it should decrease the total debt by withdrawn value
@@ -41,7 +41,7 @@ WithdrawAt_Integration_Concrete_Test
                           │   ├── it should perform the ERC20 transfer
                           │   └── it should emit 1 {Transfer}, 1 {WithdrawFromFlowStream}  and 1 {MetadataUpdated} events
                           │   └── it should return the transfer amount
-                          └── given asset has 18 decimals
+                          └── given token has 18 decimals
                               ├── it should withdraw the total debt
                               ├── it should update snapshot time
                               ├── it should decrease the total debt by withdrawn value

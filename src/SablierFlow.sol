@@ -173,7 +173,7 @@ contract SablierFlow is
         address sender,
         address recipient,
         uint128 ratePerSecond,
-        IERC20 asset,
+        IERC20 token,
         bool transferable
     )
         external
@@ -182,7 +182,7 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
+        streamId = _create(sender, recipient, ratePerSecond, token, transferable);
     }
 
     /// @inheritdoc ISablierFlow
@@ -190,7 +190,7 @@ contract SablierFlow is
         address sender,
         address recipient,
         uint128 ratePerSecond,
-        IERC20 asset,
+        IERC20 token,
         bool transferable,
         uint128 depositAmount
     )
@@ -200,7 +200,7 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
+        streamId = _create(sender, recipient, ratePerSecond, token, transferable);
 
         // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, depositAmount);
@@ -211,7 +211,7 @@ contract SablierFlow is
         address sender,
         address recipient,
         uint128 ratePerSecond,
-        IERC20 asset,
+        IERC20 token,
         bool transferable,
         uint128 totalAmount,
         Broker calldata broker
@@ -222,7 +222,7 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, asset, transferable);
+        streamId = _create(sender, recipient, ratePerSecond, token, transferable);
 
         // Checks, Effects, and Interactions: deposit into stream through {depositViaBroker}.
         _depositViaBroker(streamId, totalAmount, broker);
@@ -473,7 +473,7 @@ contract SablierFlow is
     /// @dev Calculates the refundable amount.
     function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 normalizedRefundableAmount = _streams[streamId].balance - _coveredDebtOf(streamId, time);
-        return Helpers.denormalizeAmount(normalizedRefundableAmount, _streams[streamId].assetDecimals);
+        return Helpers.denormalizeAmount(normalizedRefundableAmount, _streams[streamId].tokenDecimals);
     }
 
     /// @notice Calculates the total debt at the provided time.
@@ -541,7 +541,7 @@ contract SablierFlow is
         address sender,
         address recipient,
         uint128 ratePerSecond,
-        IERC20 asset,
+        IERC20 token,
         bool transferable
     )
         internal
@@ -557,11 +557,11 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondZero();
         }
 
-        uint8 assetDecimals = IERC20Metadata(address(asset)).decimals();
+        uint8 tokenDecimals = IERC20Metadata(address(token)).decimals();
 
-        // Check: the asset decimals are not greater than 18.
-        if (assetDecimals > 18) {
-            revert Errors.SablierFlow_InvalidAssetDecimals(address(asset));
+        // Check: the token decimals are not greater than 18.
+        if (tokenDecimals > 18) {
+            revert Errors.SablierFlow_InvalidTokenDecimals(address(token));
         }
 
         // Load the stream ID.
@@ -569,8 +569,6 @@ contract SablierFlow is
 
         // Effect: create the stream.
         _streams[streamId] = Flow.Stream({
-            asset: asset,
-            assetDecimals: assetDecimals,
             balance: 0,
             isPaused: false,
             isStream: true,
@@ -578,7 +576,9 @@ contract SablierFlow is
             ratePerSecond: ratePerSecond,
             sender: sender,
             snapshotDebt: 0,
-            snapshotTime: uint40(block.timestamp)
+            snapshotTime: uint40(block.timestamp),
+            token: token,
+            tokenDecimals: tokenDecimals
         });
 
         // Using unchecked arithmetic because this calculation can never realistically overflow.
@@ -596,7 +596,7 @@ contract SablierFlow is
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
-            asset: asset,
+            token: token,
             transferable: transferable
         });
     }
@@ -608,17 +608,17 @@ contract SablierFlow is
             revert Errors.SablierFlow_DepositAmountZero(streamId);
         }
 
-        // Retrieve the ERC-20 asset from storage.
-        IERC20 asset = _streams[streamId].asset;
+        // Retrieve the ERC-20 token from storage.
+        IERC20 token = _streams[streamId].token;
 
         // Calculate the normalized amount.
-        uint128 normalizedDepositAmount = Helpers.normalizeAmount(depositAmount, _streams[streamId].assetDecimals);
+        uint128 normalizedDepositAmount = Helpers.normalizeAmount(depositAmount, _streams[streamId].tokenDecimals);
 
         // Effect: update the stream balance.
         _streams[streamId].balance += normalizedDepositAmount;
 
         // Interaction: transfer the amount.
-        asset.safeTransferFrom({ from: msg.sender, to: address(this), value: depositAmount });
+        token.safeTransferFrom({ from: msg.sender, to: address(this), value: depositAmount });
 
         // Log the deposit.
         emit ISablierFlow.DepositFlowStream({
@@ -639,7 +639,7 @@ contract SablierFlow is
         _deposit(streamId, depositAmount);
 
         // Interaction: transfer the broker's amount.
-        _streams[streamId].asset.safeTransferFrom({ from: msg.sender, to: broker.account, value: brokerFeeAmount });
+        _streams[streamId].token.safeTransferFrom({ from: msg.sender, to: broker.account, value: brokerFeeAmount });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -722,9 +722,9 @@ contract SablierFlow is
     ///
     /// @param streamId The ID of the stream.
     /// @param to The address to receive the transfer.
-    /// @param normalizedAmount The normalized amount of assets to transfer, denoted in 18 decimals.
+    /// @param normalizedAmount The normalized amount of tokens to transfer, denoted in 18 decimals.
     ///
-    /// @return denormalizedAmount The amount transferred, denoted in the asset's decimals.
+    /// @return denormalizedAmount The amount transferred, denoted in the token's decimals.
     function _updateBalanceAndTransfer(
         uint256 streamId,
         address to,
@@ -734,13 +734,13 @@ contract SablierFlow is
         returns (uint128 denormalizedAmount)
     {
         // Calculate the transfer amount.
-        denormalizedAmount = Helpers.denormalizeAmount(normalizedAmount, _streams[streamId].assetDecimals);
+        denormalizedAmount = Helpers.denormalizeAmount(normalizedAmount, _streams[streamId].tokenDecimals);
 
         // Effect: update the stream balance.
         _streams[streamId].balance -= normalizedAmount;
 
         // Interaction: perform the ERC-20 transfer.
-        _streams[streamId].asset.safeTransfer(to, denormalizedAmount);
+        _streams[streamId].token.safeTransfer(to, denormalizedAmount);
     }
 
     /// @dev Update the snapshot debt by adding the ongoing debt streamed since the snapshot time.
@@ -843,7 +843,7 @@ contract SablierFlow is
         emit ISablierFlow.WithdrawFromFlowStream({
             streamId: streamId,
             to: to,
-            asset: _streams[streamId].asset,
+            token: _streams[streamId].token,
             caller: msg.sender,
             withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: normalizedWithdrawAmount

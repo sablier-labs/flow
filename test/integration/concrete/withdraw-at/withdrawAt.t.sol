@@ -183,7 +183,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         _;
     }
 
-    function test_GivenAssetDoesNotHave18Decimals()
+    function test_GivenTokenDoesNotHave18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
@@ -217,7 +217,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    function test_GivenAssetHas18Decimals()
+    function test_GivenTokenHas18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
@@ -244,20 +244,20 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
     )
         private
     {
-        IERC20 asset = flow.getAsset(streamId);
-        uint8 assetDecimals = flow.getAssetDecimals(streamId);
-        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, assetDecimals);
+        IERC20 token = flow.getToken(streamId);
+        uint8 tokenDecimals = flow.getTokenDecimals(streamId);
+        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, tokenDecimals);
         uint128 previousFullTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
-        vm.expectEmit({ emitter: address(asset) });
+        vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
             streamId: streamId,
             to: to,
-            asset: asset,
+            token: token,
             caller: users.recipient,
             withdrawAmount: withdrawAmount,
             normalizedWithdrawAmount: normalizedWithdrawAmount
@@ -267,9 +267,9 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
-        expectCallToTransfer({ asset: asset, to: to, amount: withdrawAmount });
+        expectCallToTransfer({ token: token, to: to, amount: withdrawAmount });
 
-        uint256 assetBalanceBefore = asset.balanceOf(address(flow));
+        uint256 initialTokenBalance = token.balanceOf(address(flow));
 
         uint128 actualWithdrawAmount = flow.withdrawAt({ streamId: streamId, to: to, time: WITHDRAW_TIME });
 
@@ -284,13 +284,13 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = getNormalizedAmount(depositAmount - withdrawAmount, assetDecimals);
+        uint128 expectedStreamBalance = getNormalizedAmount(depositAmount - withdrawAmount, tokenDecimals);
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should reduce the asset balance of stream.
-        uint256 actualAssetBalance = asset.balanceOf(address(flow));
-        uint256 expectedAssetBalance = assetBalanceBefore - withdrawAmount;
-        assertEq(actualAssetBalance, expectedAssetBalance, "asset balance");
+        // It should reduce the token balance of stream.
+        uint256 actualTokenBalance = token.balanceOf(address(flow));
+        uint256 expectedTokenBalance = initialTokenBalance - withdrawAmount;
+        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
 
         // Assert that the returned value equals the transfer value.
         assertEq(actualWithdrawAmount, withdrawAmount);

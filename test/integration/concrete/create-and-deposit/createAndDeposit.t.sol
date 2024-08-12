@@ -30,7 +30,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE
         });
 
@@ -46,13 +46,13 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
         });
 
         // It should perform the ERC20 transfers
-        expectCallToTransferFrom({ asset: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         uint256 actualStreamId = flow.createAndDeposit({
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            asset: usdc,
+            token: usdc,
             transferable: IS_TRANSFERABLE,
             depositAmount: DEPOSIT_AMOUNT_6D
         });
