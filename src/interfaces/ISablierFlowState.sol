@@ -31,16 +31,6 @@ interface ISablierFlowState is
     /// @dev This value is hard coded as a constant.
     function MAX_BROKER_FEE() external view returns (UD60x18 fee);
 
-    /// @notice Retrieves the token of the stream.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The ID of the stream to make the query for.
-    function getToken(uint256 streamId) external view returns (IERC20 token);
-
-    /// @notice Retrieves the token decimals of the stream.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The ID of the stream to make the query for.
-    function getTokenDecimals(uint256 streamId) external view returns (uint8 tokenDecimals);
-
     /// @notice Retrieves the balance of the stream, i.e. the total deposited amounts subtracted by the total withdrawn
     /// amounts, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
@@ -76,6 +66,16 @@ interface ISablierFlowState is
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function getStream(uint256 streamId) external view returns (Flow.Stream memory stream);
+
+    /// @notice Retrieves the token of the stream.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The ID of the stream to make the query for.
+    function getToken(uint256 streamId) external view returns (IERC20 token);
+
+    /// @notice Retrieves the token decimals of the stream.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The ID of the stream to make the query for.
+    function getTokenDecimals(uint256 streamId) external view returns (uint8 tokenDecimals);
 
     /// @notice Retrieves a flag indicating whether the stream is paused.
     /// @dev Reverts if `streamId` references a null stream.

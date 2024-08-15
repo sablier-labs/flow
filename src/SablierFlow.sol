@@ -444,7 +444,7 @@ contract SablierFlow is
         return totalDebt;
     }
 
-    /// @dev Calculates the ongoing debt accrued since last update. Return 0 if the stream is paused.
+    /// @dev Calculates the ongoing debt accrued since last snapshot. Return 0 if the stream is paused.
     function _ongoingDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint40 snapshotTime = _streams[streamId].snapshotTime;
 
@@ -457,7 +457,7 @@ contract SablierFlow is
 
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
-            // Calculate time elapsed since the last update.
+            // Calculate time elapsed since the last snapshot.
             elapsedTime = time - snapshotTime;
         }
 
@@ -480,14 +480,14 @@ contract SablierFlow is
     /// @dev The total debt is the sum of the snapshot debt and the ongoing debt. This value is independent of the
     /// stream's balance.
     function _totalDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
-        // Calculate the ongoing debt streamed since last update.
+        // Calculate the ongoing debt streamed since last snapshot.
         uint128 ongoingDebt = _ongoingDebtOf(streamId, time);
 
         // Calculate the total debt.
         return _streams[streamId].snapshotDebt + ongoingDebt;
     }
 
-    /// @dev Calculates the stream debt.
+    /// @dev Calculates the stream uncovered debt.
     function _uncoveredDebtOf(uint256 streamId) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 
@@ -608,9 +608,6 @@ contract SablierFlow is
             revert Errors.SablierFlow_DepositAmountZero(streamId);
         }
 
-        // Retrieve the ERC-20 token from storage.
-        IERC20 token = _streams[streamId].token;
-
         // Calculate the normalized amount.
         uint128 normalizedDepositAmount = Helpers.normalizeAmount(depositAmount, _streams[streamId].tokenDecimals);
 
@@ -618,7 +615,7 @@ contract SablierFlow is
         _streams[streamId].balance += normalizedDepositAmount;
 
         // Interaction: transfer the amount.
-        token.safeTransferFrom({ from: msg.sender, to: address(this), value: depositAmount });
+        _streams[streamId].token.safeTransferFrom({ from: msg.sender, to: address(this), value: depositAmount });
 
         // Log the deposit.
         emit ISablierFlow.DepositFlowStream({
@@ -719,11 +716,9 @@ contract SablierFlow is
     }
 
     /// @dev Helper function to update the stream balance and transfer the amount to the provided address.
-    ///
     /// @param streamId The ID of the stream.
     /// @param to The address to receive the transfer.
     /// @param normalizedAmount The normalized amount of tokens to transfer, denoted in 18 decimals.
-    ///
     /// @return denormalizedAmount The amount transferred, denoted in the token's decimals.
     function _updateBalanceAndTransfer(
         uint256 streamId,

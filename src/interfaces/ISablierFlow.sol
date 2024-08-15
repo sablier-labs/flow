@@ -122,16 +122,6 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     function depletionTimeOf(uint256 streamId) external view returns (uint40 depletionTime);
 
-    /// @notice Returns the amount of debt accrued since the snapshot time until now, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The stream ID for the query.
-    function ongoingDebtOf(uint256 streamId) external view returns (uint128 ongoingDebt);
-
-    /// @notice Returns the normalized amount that the sender can be refunded from the stream, denoted in 18 decimals.
-    /// @dev Reverts if `streamId` references a null stream.
-    /// @param streamId The stream ID for the query.
-    // function refundableAmountOf(uint256 streamId) external view returns (uint128 refundableAmount);
-
     /// @notice Returns the normalized amount that the sender can be refunded from the stream, denoted in 18 decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
@@ -141,6 +131,11 @@ interface ISablierFlow is
         external
         view
         returns (uint128 normalizedRefundableAmount);
+
+    /// @notice Returns the amount of debt accrued since the snapshot time until now, denoted in 18 decimals.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    function ongoingDebtOf(uint256 streamId) external view returns (uint128 ongoingDebt);
 
     /// @notice Returns the amount that the sender can be refunded from the stream, denoted in the token's decimals.
     /// @dev Reverts if `streamId` references a null stream.
