@@ -29,6 +29,6 @@ contract OngoingDebtOf_Integration_Concrete_Test is Integration_Test {
     function test_WhenSnapshotTimeInPast() external view givenNotNull givenNotPaused {
         // It should return the correct ongoing debt.
         uint128 ongoingDebt = flow.ongoingDebtOf(defaultStreamId);
-        assertEq(ongoingDebt, ONE_MONTH_DEBT, "ongoing debt");
+        assertEq(ongoingDebt, ONE_MONTH_DEBT_6D, "ongoing debt");
     }
 }

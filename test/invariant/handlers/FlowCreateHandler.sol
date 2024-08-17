@@ -5,6 +5,7 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
+import { Helpers } from "src/libraries/Helpers.sol";
 
 import { FlowStore } from "../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
@@ -103,8 +104,8 @@ contract FlowCreateHandler is BaseHandler {
 
         uint8 decimals = IERC20Metadata(address(currentToken)).decimals();
 
-        // Calculate the upper bound, based on the token decimals, for the transfer amount.
-        uint128 upperBound = getDenormalizedAmount(1_000_000e18, decimals);
+        // Calculate the upper bound, based on the token decimals, for the deposit amount.
+        uint128 upperBound = Helpers.denormalizeAmount(1_000_000e18, decimals);
 
         // Bound the stream parameters.
         params.ratePerSecond = boundRatePerSecond(params.ratePerSecond);
@@ -128,9 +129,7 @@ contract FlowCreateHandler is BaseHandler {
         // Store the stream id.
         flowStore.pushStreamId(streamId, params.sender, params.recipient);
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, decimals);
-
         // Store the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(streamId, normalizedDepositAmount);
+        flowStore.updateStreamDepositedAmountsSum(streamId, depositAmount);
     }
 }

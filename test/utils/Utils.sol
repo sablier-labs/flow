@@ -6,8 +6,6 @@ import { PRBMathUtils } from "@prb/math/test/utils/Utils.sol";
 import { CommonBase } from "forge-std/src/Base.sol";
 import { SafeCastLib } from "solady/src/utils/SafeCastLib.sol";
 
-import { Helpers } from "src/libraries/Helpers.sol";
-
 import { Constants } from "./Constants.sol";
 
 abstract contract Utils is CommonBase, Constants, PRBMathUtils {
@@ -28,7 +26,12 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         pure
         returns (uint128 depositAmount)
     {
-        uint128 maxDepositAmount = (UINT128_MAX - balance) / uint128(10 ** (18 - decimals));
+        uint128 maxDepositAmount = (UINT128_MAX - balance);
+
+        if (decimals < 18) {
+            maxDepositAmount = maxDepositAmount / uint128(10 ** (18 - decimals));
+        }
+
         depositAmount = boundUint128(amount, 1, maxDepositAmount - 1);
     }
 
@@ -55,16 +58,6 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     /// @dev Calculates the default deposit amount using `TRANSFER_VALUE` and `decimals`.
     function getDefaultDepositAmount(uint8 decimals) internal pure returns (uint128 depositAmount) {
         return TRANSFER_VALUE * (10 ** decimals).toUint128();
-    }
-
-    /// @dev Mirror function for {Helpers.denormalizeAmount}.
-    function getDenormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
-        return Helpers.denormalizeAmount(amount, decimals);
-    }
-
-    /// @dev Mirror function for {Helpers.normalizeAmount}.
-    function getNormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
-        return Helpers.normalizeAmount(amount, decimals);
     }
 
     /// @dev Checks if the Foundry profile is "test-optimized".

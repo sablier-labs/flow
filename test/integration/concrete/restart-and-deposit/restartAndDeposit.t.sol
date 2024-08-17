@@ -47,12 +47,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: defaultStreamId,
-            funder: users.sender,
-            depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedDepositAmount: NORMALIZED_DEPOSIT_AMOUNT
-        });
+        emit DepositFlowStream({ streamId: defaultStreamId, funder: users.sender, depositAmount: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
@@ -60,11 +55,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
         // It should perform the ERC20 transfer.
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
-        flow.restartAndDeposit({
-            streamId: defaultStreamId,
-            ratePerSecond: RATE_PER_SECOND,
-            depositAmount: DEPOSIT_AMOUNT_6D
-        });
+        flow.restartAndDeposit({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND, amount: DEPOSIT_AMOUNT_6D });
 
         // It should restart the stream.
         bool isPaused = flow.isPaused(defaultStreamId);
@@ -80,7 +71,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT_6D;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

@@ -27,12 +27,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         uint256 streamId = createDefaultStream(IERC20(address(usdt)));
 
         // It should make the deposit
-        _test_Deposit({
-            streamId: streamId,
-            token: IERC20(address(usdt)),
-            depositAmount: DEPOSIT_AMOUNT_6D,
-            tokenDecimals: 6
-        });
+        _test_Deposit({ streamId: streamId, token: IERC20(address(usdt)), depositAmount: DEPOSIT_AMOUNT_6D });
     }
 
     function test_GivenTokenHas18Decimals()
@@ -44,7 +39,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
     {
         // It should make the deposit.
         uint256 streamId = createDefaultStream(IERC20(address(dai)));
-        _test_Deposit({ streamId: streamId, token: dai, depositAmount: DEPOSIT_AMOUNT_18D, tokenDecimals: 18 });
+        _test_Deposit({ streamId: streamId, token: dai, depositAmount: DEPOSIT_AMOUNT_18D });
     }
 
     function test_GivenTokenDoesNotHave18Decimals()
@@ -55,34 +50,27 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         whenTokenDoesNotMissERC20Return
     {
         // It should make the deposit.
-        _test_Deposit({ streamId: defaultStreamId, token: usdc, depositAmount: DEPOSIT_AMOUNT_6D, tokenDecimals: 6 });
+        _test_Deposit({ streamId: defaultStreamId, token: usdc, depositAmount: DEPOSIT_AMOUNT_6D });
     }
 
-    function _test_Deposit(uint256 streamId, IERC20 token, uint128 depositAmount, uint8 tokenDecimals) private {
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, tokenDecimals);
-
+    function _test_Deposit(uint256 streamId, IERC20 token, uint128 depositAmount) private {
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: streamId,
-            funder: users.sender,
-            depositAmount: depositAmount,
-            normalizedDepositAmount: normalizedDepositAmount
-        });
+        emit DepositFlowStream({ streamId: streamId, funder: users.sender, depositAmount: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC20 transfer.
         expectCallToTransferFrom({ token: token, from: users.sender, to: address(flow), amount: depositAmount });
-        flow.deposit({ streamId: streamId, depositAmount: depositAmount });
+        flow.deposit({ streamId: streamId, amount: depositAmount });
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = normalizedDepositAmount;
+        uint128 expectedStreamBalance = depositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

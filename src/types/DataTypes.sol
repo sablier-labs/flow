@@ -38,7 +38,7 @@ library Flow {
     ///
     /// @dev The fields are arranged like this to save gas via tight variable packing.
     ///
-    /// @param balance The amount of tokens that are currently available in the stream, denoted in 18 decimals.
+    /// @param balance The amount of tokens that are currently available in the stream, denoted in token's decimals.
     /// This is the sum of deposited amounts minus the sum of withdrawn amounts.
     /// @param ratePerSecond The payment rate per second, denoted in 18 decimals.
     /// @param sender The address streaming the tokens, with the ability to pause the stream.
@@ -48,8 +48,9 @@ library Flow {
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
     /// @param token The contract address of the ERC-20 token to stream.
     /// @param tokenDecimals The decimals of the ERC-20 token to stream.
-    /// @param snapshotDebt The amount of tokens that the sender owed to the recipient at snapshot time, denoted in 18
-    /// decimals. This, along with the ongoing debt, can be used to calculate the total debt at any given point in time.
+    /// @param snapshotDebt The amount of tokens that the sender owed to the recipient at snapshot time, denoted in
+    /// token's decimals. This, along with the ongoing debt, can be used to calculate the total debt at any given point
+    /// in time.
     struct Stream {
         // slot 0
         uint128 balance;
