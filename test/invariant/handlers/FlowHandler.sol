@@ -4,7 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { FlowStore } from "../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
@@ -35,10 +34,10 @@ contract FlowHandler is BaseHandler {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Updates the states of handler right before calling each Flow function.
-    modifier updateFlowHandlerStates(uint128 totalDebt, uint128 uncoveredDebt) {
+    modifier updateFlowHandlerStates() {
+        previousTotalDebtOf[currentStreamId] = flow.totalDebtOf(currentStreamId);
+        previousUncoveredDebtOf[currentStreamId] = flow.uncoveredDebtOf(currentStreamId);
         _;
-        previousTotalDebtOf[currentStreamId] = totalDebt;
-        previousUncoveredDebtOf[currentStreamId] = uncoveredDebt;
     }
 
     /// @dev Picks a random stream from the store.
@@ -79,7 +78,7 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         // Only non paused streams can have their rate per second adjusted.
         vm.assume(!flow.isPaused(currentStreamId));
@@ -105,7 +104,7 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         // Paused streams cannot be paused again.
         vm.assume(!flow.isPaused(currentStreamId));
@@ -124,10 +123,10 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        uint128 upperBound = Helpers.denormalizeAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
+        uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
 
         // Bound the deposit amount.
         depositAmount = boundUint128(depositAmount, 100, upperBound);
@@ -160,7 +159,7 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         uint128 refundableAmount = flow.refundableAmountOf(currentStreamId);
 
@@ -187,7 +186,7 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamSender
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         // Only paused streams can be restarted.
         vm.assume(flow.isPaused(currentStreamId));
@@ -208,7 +207,7 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         // Check if the uncovered debt is greater than zero.
         vm.assume(flow.uncoveredDebtOf(currentStreamId) > 0);
@@ -228,20 +227,13 @@ contract FlowHandler is BaseHandler {
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
         adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates(flow.totalDebtOf(currentStreamId), flow.uncoveredDebtOf(currentStreamId))
+        updateFlowHandlerStates
     {
         // The protocol doesn't allow the withdrawal address to be the zero address.
-        // vm.assume(to != address(0));
+        vm.assume(to != address(0));
 
-        if (to == address(0)) {
-            return;
-        }
-
-        if (flow.coveredDebtOf(currentStreamId) == 0) {
-            return;
-            // Check if there is anything to withdraw.
-            // vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
-        }
+        // Check if there is anything to withdraw.
+        vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
 
         // Bound the time so that it is between snapshot time and current time.
         time = uint40(_bound(time, flow.getSnapshotTime(currentStreamId), getBlockTimestamp()));
@@ -254,6 +246,17 @@ contract FlowHandler is BaseHandler {
         }
 
         uint128 initialBalance = flow.getBalance(currentStreamId);
+
+        // We need to calculate the total debt at the time of withdrawal. Otherwise the modifier updates the mappings
+        // with `block.timestamp` as the time reference.
+        uint128 totalDebt = flow.getSnapshotDebt(currentStreamId)
+            + getDenormalizedAmount(
+                flow.getRatePerSecond(currentStreamId) * (time - flow.getSnapshotTime(currentStreamId)),
+                flow.getTokenDecimals(currentStreamId)
+            );
+        uint128 unconveredDebt = initialBalance < totalDebt ? totalDebt - initialBalance : 0;
+        previousTotalDebtOf[currentStreamId] = totalDebt;
+        previousUncoveredDebtOf[currentStreamId] = unconveredDebt;
 
         // Withdraw from the stream.
         flow.withdrawAt({ streamId: currentStreamId, to: to, time: time });

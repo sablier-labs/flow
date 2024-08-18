@@ -10,7 +10,7 @@ contract UncoveredDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple paused streams, each with different rate per second and decimals.
     /// - Multiple points in time, both pre-depletion and post-depletion.
     function testFuzz_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
@@ -48,7 +48,7 @@ contract UncoveredDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,, depositedAmount) = useFuzzedStreamOrCreate(streamId, decimals);
 
         uint128 balance = flow.getBalance(streamId);
         uint40 depletionTime = flow.depletionTimeOf(streamId);

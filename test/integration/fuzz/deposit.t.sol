@@ -28,7 +28,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0) && caller != address(flow));
 
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Following variables are used during assertions.
         uint256 initialTokenBalance = token.balanceOf(address(flow));

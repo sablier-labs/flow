@@ -10,7 +10,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple paused streams, each with different token decimals and rps.
     /// - Multiple points in time.
     function testFuzz_Paused(uint256 streamId, uint40 timeJump, uint8 decimals) external givenNotNull {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
@@ -44,7 +44,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
@@ -53,7 +53,7 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
         // Update the last time to block timestamp.
-        updateLastTimeToBlockTimestamp(streamId);
+        updateSnapshotTimeToBlockTimestamp(streamId);
 
         // Assert that ongoing debt is zero.
         uint128 actualOngoingDebt = flow.ongoingDebtOf(streamId);
@@ -74,10 +74,10 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Update the last time to block timestamp.
-        updateLastTimeToBlockTimestamp(streamId);
+        updateSnapshotTimeToBlockTimestamp(streamId);
 
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
@@ -89,7 +89,8 @@ contract OngoingDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Assert that total debt is zero.
         uint128 actualOngoingDebt = flow.ongoingDebtOf(streamId);
-        uint128 expectedOngoingDebt = flow.getRatePerSecond(streamId) * (warpTimestamp - MAY_1_2024);
+        uint128 expectedOngoingDebt =
+            getDenormalizedAmount(flow.getRatePerSecond(streamId) * (warpTimestamp - MAY_1_2024), decimals);
         assertEq(actualOngoingDebt, expectedOngoingDebt, "ongoing debt");
     }
 }

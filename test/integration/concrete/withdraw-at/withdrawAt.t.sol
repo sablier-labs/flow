@@ -30,7 +30,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertWhen_TimeLessThanSnapshotTime() external whenNoDelegateCall givenNotNull {
         // Set the snapshot time to the current block timestamp.
-        updateLastTimeToBlockTimestamp(defaultStreamId);
+        updateSnapshotTimeToBlockTimestamp(defaultStreamId);
 
         uint40 snapshotTime = flow.getSnapshotTime(defaultStreamId);
 

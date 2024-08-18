@@ -103,7 +103,7 @@ abstract contract Integration_Test is Base_Test {
     }
 
     /// @dev Update the `snapshotTime` of a stream to the current block timestamp.
-    function updateLastTimeToBlockTimestamp(uint256 streamId) internal {
+    function updateSnapshotTimeToBlockTimestamp(uint256 streamId) internal {
         resetPrank(users.sender);
         uint128 ratePerSecond = flow.getRatePerSecond(streamId);
 

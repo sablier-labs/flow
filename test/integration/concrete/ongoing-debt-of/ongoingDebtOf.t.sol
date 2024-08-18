@@ -19,7 +19,7 @@ contract OngoingDebtOf_Integration_Concrete_Test is Integration_Test {
 
     function test_WhenSnapshotTimeInPresent() external givenNotNull givenNotPaused {
         // Update the last time to the current block timestamp.
-        updateLastTimeToBlockTimestamp(defaultStreamId);
+        updateSnapshotTimeToBlockTimestamp(defaultStreamId);
 
         // It should return zero.
         uint128 ongoingDebt = flow.ongoingDebtOf(defaultStreamId);

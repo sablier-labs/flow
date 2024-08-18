@@ -5,7 +5,6 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Flow } from "src/types/DataTypes.sol";
-import { Helpers } from "src/libraries/Helpers.sol";
 
 import { Fork_Test } from "./Fork.t.sol";
 
@@ -518,15 +517,12 @@ contract Flow_Fork_Test is Fork_Test {
             streamBalance = flow.getBalance(streamId);
         }
 
-        uint128 totalDebt = flow.totalDebtOf(streamId);
-        uint128 ongoingDebtAtWithdrawTime = Helpers.denormalizeAmount(
-            flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)), tokenDecimals
-        );
-        uint128 withdrawAmount = flow.getSnapshotDebt(streamId) + ongoingDebtAtWithdrawTime;
-
-        if (withdrawAmount > streamBalance) {
-            withdrawAmount = streamBalance;
-        }
+        uint128 totalDebt = flow.getSnapshotDebt(streamId)
+            + getDenormalizedAmount(
+                flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                flow.getTokenDecimals(streamId)
+            );
+        uint128 withdrawAmount = streamBalance < totalDebt ? streamBalance : totalDebt;
 
         (, address caller,) = vm.readCallers();
         address recipient = flow.getRecipient(streamId);
@@ -555,8 +551,12 @@ contract Flow_Fork_Test is Fork_Test {
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
-        // It should decrease the total debt by withdrawn value.
-        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
+        // It should decrease the total debt by withdrawn amount.
+        uint128 actualTotalDebt = flow.getSnapshotDebt(streamId)
+            + getDenormalizedAmount(
+                flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                flow.getTokenDecimals(streamId)
+            );
         uint128 expectedTotalDebt = totalDebt - withdrawAmount;
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 

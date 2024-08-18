@@ -40,8 +40,9 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
     /// @param decimals The decimals to fuzz.
     ///
     /// @return uint256 The fuzzed stream ID of either a stream picked from the fixture or a new stream.
+    /// @return uint8 The fuzzed decimals.
     /// @return uint128 The fuzzed deposit amount.
-    function useFuzzedStreamOrCreate(uint256 streamId, uint8 decimals) internal returns (uint256, uint128) {
+    function useFuzzedStreamOrCreate(uint256 streamId, uint8 decimals) internal returns (uint256, uint8, uint128) {
         // Check if stream id is picked from the fixtures.
         if (!flow.isStream(streamId)) {
             // If not, create a new stream.
@@ -52,19 +53,19 @@ abstract contract Shared_Integration_Fuzz_Test is Integration_Test {
 
             // Hash the next stream ID and the decimal to generate a seed.
             uint128 amountSeed = uint128(uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals))));
-
             // Bound the amount between a realistic range.
-            uint128 depositAmount = boundDepositAmount(amountSeed, 0, decimals);
+            uint128 amount = boundUint128(amountSeed, 1, 1_000_000_000e18);
+            uint128 depositAmount = getDenormalizedAmount(amount, decimals);
 
             // Deposit into the stream.
             deposit(streamId, depositAmount);
 
-            return (streamId, depositAmount);
+            return (streamId, decimals, depositAmount);
         }
 
         token = flow.getToken(streamId);
-
-        return (streamId, DEPOSIT_AMOUNT_6D);
+        decimals = flow.getTokenDecimals(streamId);
+        return (streamId, decimals, getDefaultDepositAmount(decimals));
     }
 
     /// @dev Helper function to return the address of either recipient or operator depending on the value of `timeJump`.

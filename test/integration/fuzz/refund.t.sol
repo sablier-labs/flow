@@ -27,7 +27,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Only allow non zero refund amounts.
         vm.assume(refundAmount > 0);
 
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
@@ -61,7 +61,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
     {
-        (streamId,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Bound the time jump to provide a realistic time frame and not exceeding depletion timestamp.
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
@@ -71,7 +71,7 @@ contract Refund_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: timeJump });
 
         // Bound the refund amount to avoid error.
-        refundAmount = boundUint128(refundAmount, 0.001e18, flow.refundableAmountOf(streamId));
+        refundAmount = boundUint128(refundAmount, 1, flow.refundableAmountOf(streamId));
 
         // Following variables are used during assertions.
         uint256 initialTokenBalance = token.balanceOf(address(flow));

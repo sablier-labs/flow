@@ -6,15 +6,12 @@ import { PRBMathUtils } from "@prb/math/test/utils/Utils.sol";
 import { CommonBase } from "forge-std/src/Base.sol";
 import { SafeCastLib } from "solady/src/utils/SafeCastLib.sol";
 
+import { Helpers } from "src/libraries/Helpers.sol";
+
 import { Constants } from "./Constants.sol";
 
 abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     using SafeCastLib for uint256;
-
-    /// @dev Bounds the rate per second between a realistic range.
-    function boundRatePerSecond(uint128 ratePerSecond) internal pure returns (uint128) {
-        return boundUint128(ratePerSecond, 0.00001e18, 10e18);
-    }
 
     /// @dev Bound deposit amount to avoid overflow.
     function boundDepositAmount(
@@ -33,6 +30,11 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         }
 
         depositAmount = boundUint128(amount, 1, maxDepositAmount - 1);
+    }
+
+    /// @dev Bounds the rate per second between a realistic range.
+    function boundRatePerSecond(uint128 ratePerSecond) internal pure returns (uint128) {
+        return boundUint128(ratePerSecond, 0.00001e18, 10e18);
     }
 
     /// @dev Bounds a `uint128` number.
@@ -58,6 +60,16 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     /// @dev Calculates the default deposit amount using `TRANSFER_VALUE` and `decimals`.
     function getDefaultDepositAmount(uint8 decimals) internal pure returns (uint128 depositAmount) {
         return TRANSFER_VALUE * (10 ** decimals).toUint128();
+    }
+
+    /// @dev Mirror function for {Helpers.denormalizeAmount}.
+    function getDenormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.denormalizeAmount(amount, decimals);
+    }
+
+    /// @dev Mirror function for {Helpers.normalizeAmount}.
+    function getNormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return Helpers.normalizeAmount(amount, decimals);
     }
 
     /// @dev Checks if the Foundry profile is "test-optimized".
