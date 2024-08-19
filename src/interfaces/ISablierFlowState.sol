@@ -32,7 +32,7 @@ interface ISablierFlowState is
     function MAX_BROKER_FEE() external view returns (UD60x18 fee);
 
     /// @notice Retrieves the balance of the stream, i.e. the total deposited amounts subtracted by the total withdrawn
-    /// amounts, denoted in 18 decimals.
+    /// amounts, denoted in token's decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function getBalance(uint256 streamId) external view returns (uint128 balance);
@@ -52,7 +52,7 @@ interface ISablierFlowState is
     /// @param streamId The stream ID for the query.
     function getSender(uint256 streamId) external view returns (address sender);
 
-    /// @notice Retrieves the snapshot debt of the stream, denoted in 18 decimals.
+    /// @notice Retrieves the snapshot debt of the stream, denoted in token's decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function getSnapshotDebt(uint256 streamId) external view returns (uint128 snapshotDebt);

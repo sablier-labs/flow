@@ -58,7 +58,7 @@ recipient can only withdraw the available balance.
 | snapshotDebt     | sd           |
 | snapshotTime     | st           |
 | uncoveredDebt    | ud           |
-| refundableAmount | rfa          |
+| refundableAmount | ra           |
 | coveredDebt      | cd           |
 | balance          | bal          |
 | block.timestamp  | now          |
@@ -96,10 +96,10 @@ $`ud = \begin{cases} td - bal & \text{if } td \gt bal \\ 0 & \text{if } td \le b
 
 ### 5. Refundable amount
 
-The refundable amount (rfa) is the amount that the sender can be refunded. It is the difference between the stream
+The refundable amount (ra) is the amount that the sender can be refunded. It is the difference between the stream
 balance and the total debt.
 
-$`rfa = \begin{cases} bal - td & \text{if } ud = 0 \\ 0 & \text{if } ud > 0 \end{cases}`$
+$`ra = \begin{cases} bal - td & \text{if } ud = 0 \\ 0 & \text{if } ud > 0 \end{cases}`$
 
 ### 6. Covered Debt
 
@@ -123,8 +123,8 @@ $0.064000$ USDC per day, which is problematic.
 
 ### Solution
 
-In the contracts, we normalize all internal amounts (e.g. `rps`, `bal`, `sd`, `td`) to 18 decimals. While this doesn't
-completely solve the issue, it significantly minimizes it.
+In the contracts, we normalize the rate per second to 18 decimals. While this doesn't completely solve the issue, it
+significantly minimizes it.
 
 Using the same example (streaming 10 USDC per day), if _rps_ has 18 decimals, the end-of-day result would be:
 
@@ -142,28 +142,6 @@ per day. Using the 18 decimals format would delay it by just 1 more second:
 $0.000115740740740740 \times (\text{seconds in one day} + 1 second) = 10.000115740740677000$
 
 Currently, it's not possible to address this precision problem entirely.
-
-### Technical Implementation
-
-We use 18-decimal fixed-point numbers for all internal amounts and calculation functions to avoid the overload of
-conversion to actual `ERC20` balances. The only time we perform these conversions is during external calls to `ERC20`'s
-`transfer`/`transferFrom` (i.e. deposit, withdraw and refund operations). When performing these actions, we adjust the
-calculated amount (e.g. refundable amount) based on the token's decimals:
-
-Deposit:
-
-- if the token has 18 decimals, the internal deposited amount remains same as the transfer amount
-- if the token has fewer decimals, the internal deposited amount is increased by the difference between the token
-  decimals and 18
-
-Withdraw and Refund:
-
-- if the token has 18 decimals, the transfer amount is the same as the internal amount
-- if the token has fewer decimals, the transfer amount is decreased by the difference between 18 and token decimals
-
-The token decimals value is retrieved directly from the ERC-20 contract. We store the token decimals to avoid making an
-external call to get the decimals of the token each time a deposit or withdraw is made. Decimals are stored as `uint8`,
-making them inexpensive to store.
 
 ### Limitations
 

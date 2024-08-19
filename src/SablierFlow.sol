@@ -424,7 +424,7 @@ contract SablierFlow is
                             INTERNAL CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Calculates the amount of debt covered by the stream balance.
+    /// @dev Calculates the amount of covered debt by the stream balance.
     function _coveredDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 
