@@ -4,7 +4,7 @@ pragma solidity >=0.8.22;
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
-    /// @dev It should return the refundable amount equal to the deposited amount, denoted in 18 decimals.
+    /// @dev It should return the refundable amount equal to the deposited amount, denoted in token's decimals.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple paused streams, each with different token decimals and rps.

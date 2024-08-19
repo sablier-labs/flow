@@ -362,6 +362,19 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
+    function withdrawableAmountOf(
+        uint256 streamId
+    )
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 withdrawableAmount)
+    {
+        withdrawableAmount = _coveredDebtOf(streamId, uint40(block.timestamp));
+    }
+
+    /// @inheritdoc ISablierFlow
     function withdrawAt(
         uint256 streamId,
         address to,
@@ -411,7 +424,7 @@ contract SablierFlow is
                             INTERNAL CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Calculates the amount available to withdraw at provided time. The return value considers stream balance.
+    /// @dev Calculates the amount of debt covered by the stream balance.
     function _coveredDebtOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 
@@ -452,7 +465,7 @@ contract SablierFlow is
         return Helpers.denormalizeAmount(normalizedAmount, _streams[streamId].tokenDecimals);
     }
 
-    /// @dev Calculates the normalized refundable amount.
+    /// @dev Calculates the refundable amount.
     function _refundableAmountOf(uint256 streamId, uint40 time) internal view returns (uint128) {
         return _streams[streamId].balance - _coveredDebtOf(streamId, time);
     }

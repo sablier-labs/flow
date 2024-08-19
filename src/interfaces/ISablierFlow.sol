@@ -133,6 +133,12 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     function uncoveredDebtOf(uint256 streamId) external view returns (uint128 debt);
 
+    /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in token decimals.
+    /// @dev It is a mirror function for `coveredDebtOf` Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    /// @return withdrawableAmount The amount that the recipient can withdraw.
+    function withdrawableAmountOf(uint256 streamId) external view returns (uint128 withdrawableAmount);
+
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
@@ -393,7 +399,7 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external;
 
-    /// @notice Withdraws to the `to` address the amount calculated based on the `time` reference and the snapshot debt.
+    /// @notice Withdraws to the `to` address the amount calculated based on the `time` reference and the snapshot time.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///
@@ -421,7 +427,7 @@ interface ISablierFlow is
     /// @return withdrawAmount The amount transferred to the recipient, denoted in token's decimals.
     function withdrawAt(uint256 streamId, address to, uint40 time) external returns (uint128 withdrawAmount);
 
-    /// @notice Withdraws the entire covered debt from the stream to the provided address `to`.
+    /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///

@@ -59,9 +59,8 @@ contract CoveredDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Assert that the covered debt equals the ongoing debt.
         uint128 actualCoveredDebt = flow.coveredDebtOf(streamId);
-        uint128 expectedCoveredDebt = flow.uncoveredDebtOf(streamId) > 0
-            ? flow.getBalance(streamId)
-            : getDenormalizedAmount(flow.getRatePerSecond(streamId) * (timeJump - MAY_1_2024), decimals);
+        uint128 expectedCoveredDebt =
+            getDenormalizedAmount(flow.getRatePerSecond(streamId) * (timeJump - MAY_1_2024), decimals);
         assertEq(actualCoveredDebt, expectedCoveredDebt);
     }
 
