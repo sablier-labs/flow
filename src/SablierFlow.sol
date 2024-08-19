@@ -813,7 +813,8 @@ contract SablierFlow is
             to: to,
             token: _streams[streamId].token,
             caller: msg.sender,
-            withdrawAmount: withdrawAmount
+            withdrawAmount: withdrawAmount,
+            withdrawTime: time
         });
     }
 }

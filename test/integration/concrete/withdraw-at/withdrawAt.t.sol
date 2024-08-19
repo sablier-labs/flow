@@ -245,7 +245,8 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             to: to,
             token: token,
             caller: users.recipient,
-            withdrawAmount: withdrawAmount
+            withdrawAmount: withdrawAmount,
+            withdrawTime: WITHDRAW_TIME
         });
 
         vm.expectEmit({ emitter: address(flow) });

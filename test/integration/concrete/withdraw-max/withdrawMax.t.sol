@@ -49,7 +49,8 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
             to: users.recipient,
             token: IERC20(address(usdc)),
             caller: users.sender,
-            withdrawAmount: withdrawAmount
+            withdrawAmount: withdrawAmount,
+            withdrawTime: getBlockTimestamp()
         });
 
         vm.expectEmit({ emitter: address(flow) });

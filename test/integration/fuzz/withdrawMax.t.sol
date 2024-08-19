@@ -141,7 +141,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({ from: address(flow), to: withdrawTo, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream(streamId, withdrawTo, token, caller, withdrawAmount);
+        emit WithdrawFromFlowStream(streamId, withdrawTo, token, caller, withdrawAmount, getBlockTimestamp());
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

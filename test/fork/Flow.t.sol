@@ -539,7 +539,8 @@ contract Flow_Fork_Test is Fork_Test {
             to: recipient,
             token: token,
             caller: caller,
-            withdrawAmount: withdrawAmount
+            withdrawAmount: withdrawAmount,
+            withdrawTime: withdrawTime
         });
 
         vm.expectEmit({ emitter: address(flow) });

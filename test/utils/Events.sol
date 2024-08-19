@@ -65,6 +65,11 @@ abstract contract Events {
     );
 
     event WithdrawFromFlowStream(
-        uint256 indexed streamId, address indexed to, IERC20 indexed token, address caller, uint128 withdrawAmount
+        uint256 indexed streamId,
+        address indexed to,
+        IERC20 indexed token,
+        address caller,
+        uint128 withdrawAmount,
+        uint40 withdrawTime
     );
 }
