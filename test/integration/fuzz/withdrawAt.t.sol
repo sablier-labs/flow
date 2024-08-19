@@ -2,10 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
-
-import { console2 } from "forge-std/src/console2.sol";
 
 contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should withdraw 0 amount from a stream.
@@ -156,10 +153,10 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         uint256 tokenBalance = token.balanceOf(address(flow));
         uint128 totalDebt = flow.getSnapshotDebt(streamId)
-            + getDenormalizedAmount(
-                flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
-                flow.getTokenDecimals(streamId)
-            );
+            + getDenormalizedAmount({
+                amount: flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                decimals: flow.getTokenDecimals(streamId)
+            });
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 withdrawAmount = streamBalance < totalDebt ? streamBalance : totalDebt;
 
@@ -181,10 +178,10 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should decrease the full total debt by withdrawn value.
         uint128 actualTotalDebt = flow.getSnapshotDebt(streamId)
-            + getDenormalizedAmount(
-                flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
-                flow.getTokenDecimals(streamId)
-            );
+            + getDenormalizedAmount({
+                amount: flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                decimals: flow.getTokenDecimals(streamId)
+            });
         uint128 expectedTotalDebt = totalDebt - withdrawAmount;
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 

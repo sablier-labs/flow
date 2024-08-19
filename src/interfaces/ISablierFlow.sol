@@ -88,8 +88,8 @@ interface ISablierFlow is
     /// @param to The address that received the withdrawn tokens.
     /// @param token The contract address of the ERC-20 token that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
-    /// @param withdrawAmount The amount withdrawn, denoted in token's decimals.
-    /// @param withdrawTime The Unix timestamp that the snapshot time was set to.
+    /// @param withdrawAmount The amount withdrawn, denoted in the token's decimals.
+    /// @param withdrawTime The Unix timestamp used to calculate the ongoing debt since the snapshot time.
     event WithdrawFromFlowStream(
         uint256 indexed streamId,
         address indexed to,
@@ -140,7 +140,8 @@ interface ISablierFlow is
     function uncoveredDebtOf(uint256 streamId) external view returns (uint128 debt);
 
     /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in token decimals.
-    /// @dev It is a mirror function for `coveredDebtOf` Reverts if `streamId` references a null stream.
+    /// This is an alias for `coveredDebtOf`.
+    /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     /// @return withdrawableAmount The amount that the recipient can withdraw.
     function withdrawableAmountOf(uint256 streamId) external view returns (uint128 withdrawableAmount);

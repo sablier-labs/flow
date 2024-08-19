@@ -250,13 +250,13 @@ contract FlowHandler is BaseHandler {
         // We need to calculate the total debt at the time of withdrawal. Otherwise the modifier updates the mappings
         // with `block.timestamp` as the time reference.
         uint128 totalDebt = flow.getSnapshotDebt(currentStreamId)
-            + getDenormalizedAmount(
-                flow.getRatePerSecond(currentStreamId) * (time - flow.getSnapshotTime(currentStreamId)),
-                flow.getTokenDecimals(currentStreamId)
-            );
-        uint128 unconveredDebt = initialBalance < totalDebt ? totalDebt - initialBalance : 0;
+            + getDenormalizedAmount({
+                amount: flow.getRatePerSecond(currentStreamId) * (time - flow.getSnapshotTime(currentStreamId)),
+                decimals: flow.getTokenDecimals(currentStreamId)
+            });
+        uint128 uncoveredDebt = initialBalance < totalDebt ? totalDebt - initialBalance : 0;
         previousTotalDebtOf[currentStreamId] = totalDebt;
-        previousUncoveredDebtOf[currentStreamId] = unconveredDebt;
+        previousUncoveredDebtOf[currentStreamId] = uncoveredDebt;
 
         // Withdraw from the stream.
         flow.withdrawAt({ streamId: currentStreamId, to: to, time: time });
