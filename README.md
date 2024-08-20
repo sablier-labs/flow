@@ -169,6 +169,6 @@ Currently, it's not possible to address this precision problem entirely.
 
 10. if $ud = 0$ and $isPaused = false \implies cd = sa + oa$
 
-11. $bal = rfa + cd$
+11. $bal = ra + cd$
 
 12. if $isPaused = true \implies rps = 0$

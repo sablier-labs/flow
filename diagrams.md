@@ -221,9 +221,9 @@ flowchart TD
 
 ```mermaid
     flowchart TD
-    rfa([Refundable Amount - rfa]):::orange0
-    res_rfa([bal - cd]):::orange1
-    rfa --> res_rfa
+    ra([Refundable Amount - ra]):::orange0
+    res_ra([bal - cd]):::orange1
+    ra --> res_ra
 
     classDef orange0 fill:#FFA500,stroke:#333,stroke-width:2px;
     classDef orange1 fill:#FFCD28,stroke:#333,stroke-width:2px;
