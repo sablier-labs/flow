@@ -131,8 +131,29 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function uncoveredDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 debt) {
-        debt = _uncoveredDebtOf(streamId);
+    function uncoveredDebtOf(
+        uint256 streamId
+    )
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 uncoveredDebt)
+    {
+        uncoveredDebt = _uncoveredDebtOf(streamId);
+    }
+
+    /// @inheritdoc ISablierFlow
+    function withdrawableAmountOf(
+        uint256 streamId
+    )
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint128 withdrawableAmount)
+    {
+        withdrawableAmount = _coveredDebtOf(streamId, uint40(block.timestamp));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -234,7 +255,7 @@ contract SablierFlow is
     /// @inheritdoc ISablierFlow
     function depositAndPause(
         uint256 streamId,
-        uint128 depositAmount
+        uint128 amount
     )
         external
         override
@@ -245,7 +266,7 @@ contract SablierFlow is
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream.
-        _deposit(streamId, depositAmount);
+        _deposit(streamId, amount);
 
         // Checks, Effects, and Interactions: pause the stream.
         _pause(streamId);
@@ -362,19 +383,6 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function withdrawableAmountOf(
-        uint256 streamId
-    )
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint128 withdrawableAmount)
-    {
-        withdrawableAmount = _coveredDebtOf(streamId, uint40(block.timestamp));
-    }
-
-    /// @inheritdoc ISablierFlow
     function withdrawAt(
         uint256 streamId,
         address to,
@@ -481,7 +489,7 @@ contract SablierFlow is
         return _streams[streamId].snapshotDebt + ongoingDebt;
     }
 
-    /// @dev Calculates the stream uncovered debt.
+    /// @dev Calculates the uncovered debt.
     function _uncoveredDebtOf(uint256 streamId) internal view returns (uint128) {
         uint128 balance = _streams[streamId].balance;
 

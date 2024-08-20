@@ -137,7 +137,7 @@ interface ISablierFlow is
     /// @notice Returns the amount of debt not covered by the stream balance, denoted in token's decimals.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
-    function uncoveredDebtOf(uint256 streamId) external view returns (uint128 debt);
+    function uncoveredDebtOf(uint256 streamId) external view returns (uint128 uncoveredDebt);
 
     /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in token decimals.
     /// This is an alias for `coveredDebtOf`.
