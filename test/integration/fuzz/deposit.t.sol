@@ -55,7 +55,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({ from: caller, to: address(flow), value: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: streamId, funder: caller, depositAmount: depositAmount });
+        emit DepositFlowStream({ streamId: streamId, funder: caller, amount: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

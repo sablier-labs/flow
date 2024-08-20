@@ -77,6 +77,7 @@ contract SablierFlow is
 
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
+            // Since the rate per second is normalized to 18 decimals, normalize the solvency amount accordingly.
             uint128 solvencyAmount = Helpers.normalizeAmount(balance - totalDebt, _streams[streamId].tokenDecimals);
             uint128 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond;
             depletionTime = uint40(block.timestamp + solvencyPeriod);
@@ -470,6 +471,8 @@ contract SablierFlow is
 
         // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
         uint128 normalizedAmount = elapsedTime * _streams[streamId].ratePerSecond;
+
+        // Since amount values are represented in token decimals, denormalize the amount before returning.abi
         return Helpers.denormalizeAmount(normalizedAmount, _streams[streamId].tokenDecimals);
     }
 
@@ -617,7 +620,7 @@ contract SablierFlow is
         _streams[streamId].token.safeTransferFrom({ from: msg.sender, to: address(this), value: amount });
 
         // Log the deposit.
-        emit ISablierFlow.DepositFlowStream({ streamId: streamId, funder: msg.sender, depositAmount: amount });
+        emit ISablierFlow.DepositFlowStream({ streamId: streamId, funder: msg.sender, amount: amount });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.

@@ -145,7 +145,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: streamId, sender: users.sender, refundAmount: refundAmount });
+        emit RefundFromFlowStream({ streamId: streamId, sender: users.sender, amount: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

@@ -122,7 +122,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: streamId, funder: users.sender, depositAmount: depositAmount });
+        emit DepositFlowStream({ streamId: streamId, funder: users.sender, amount: depositAmount });
 
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: brokerFeeAmount });

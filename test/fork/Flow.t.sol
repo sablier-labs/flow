@@ -302,7 +302,7 @@ contract Flow_Fork_Test is Fork_Test {
         emit IERC20.Transfer({ from: sender, to: address(flow), value: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: streamId, funder: sender, depositAmount: depositAmount });
+        emit DepositFlowStream({ streamId: streamId, funder: sender, amount: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -384,7 +384,7 @@ contract Flow_Fork_Test is Fork_Test {
         emit IERC20.Transfer({ from: address(flow), to: sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: streamId, sender: sender, refundAmount: refundAmount });
+        emit RefundFromFlowStream({ streamId: streamId, sender: sender, amount: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

@@ -57,7 +57,7 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: REFUND_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: defaultStreamId, sender: users.sender, refundAmount: REFUND_AMOUNT_6D });
+        emit RefundFromFlowStream({ streamId: defaultStreamId, sender: users.sender, amount: REFUND_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit PauseFlowStream({

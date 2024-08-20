@@ -45,13 +45,13 @@ abstract contract Events {
         bool transferable
     );
 
-    event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
+    event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 amount);
 
     event PauseFlowStream(
         uint256 indexed streamId, address indexed sender, address indexed recipient, uint128 totalDebt
     );
 
-    event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
+    event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 amount);
 
     event RestartFlowStream(uint256 indexed streamId, address indexed sender, uint128 ratePerSecond);
 

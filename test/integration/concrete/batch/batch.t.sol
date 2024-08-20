@@ -188,7 +188,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: defaultStreamIds[0], funder: users.sender, depositAmount: DEPOSIT_AMOUNT_6D });
+        emit DepositFlowStream({ streamId: defaultStreamIds[0], funder: users.sender, amount: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[0] });
@@ -198,7 +198,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({ streamId: defaultStreamIds[1], funder: users.sender, depositAmount: DEPOSIT_AMOUNT_6D });
+        emit DepositFlowStream({ streamId: defaultStreamIds[1], funder: users.sender, amount: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
@@ -272,14 +272,14 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: REFUND_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: defaultStreamIds[0], sender: users.sender, refundAmount: REFUND_AMOUNT_6D });
+        emit RefundFromFlowStream({ streamId: defaultStreamIds[0], sender: users.sender, amount: REFUND_AMOUNT_6D });
 
         // Second stream refund
         vm.expectEmit({ emitter: address(usdc) });
         emit IERC20.Transfer({ from: address(flow), to: users.sender, value: REFUND_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({ streamId: defaultStreamIds[1], sender: users.sender, refundAmount: REFUND_AMOUNT_6D });
+        emit RefundFromFlowStream({ streamId: defaultStreamIds[1], sender: users.sender, amount: REFUND_AMOUNT_6D });
 
         // It should perform the ERC20 transfers.
         expectCallToTransfer({ token: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });

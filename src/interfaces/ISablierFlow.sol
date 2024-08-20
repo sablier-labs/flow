@@ -43,8 +43,8 @@ interface ISablierFlow is
     /// @notice Emitted when a stream is funded.
     /// @param streamId The ID of the stream.
     /// @param funder The address that made the deposit.
-    /// @param depositAmount The amount of tokens deposited into the stream, denoted in token's decimals.
-    event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 depositAmount);
+    /// @param amount The amount of tokens deposited into the stream, denoted in token's decimals.
+    event DepositFlowStream(uint256 indexed streamId, address indexed funder, uint128 amount);
 
     /// @notice Emitted when a stream is paused by the sender.
     /// @param streamId The ID of the stream.
@@ -58,8 +58,8 @@ interface ISablierFlow is
     /// @notice Emitted when a sender is refunded from a stream.
     /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
-    /// @param refundAmount The amount of tokens refunded to the sender, denoted in token's decimals.
-    event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 refundAmount);
+    /// @param amount The amount of tokens refunded to the sender, denoted in token's decimals.
+    event RefundFromFlowStream(uint256 indexed streamId, address indexed sender, uint128 amount);
 
     /// @notice Emitted when a stream is restarted by the sender.
     /// @param streamId The ID of the stream.
