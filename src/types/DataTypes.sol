@@ -40,9 +40,8 @@ library Flow {
     ///
     /// @param balance The amount of tokens that are currently available in the stream, denoted in token's decimals.
     /// This is the sum of deposited amounts minus the sum of withdrawn amounts.
-    /// @param ratePerSecond The payment rate per second, denoted in 18 decimals. This represents a fraction of the
-    /// total amount intended to be streamed over a specified period. For example, if one whishes to stream 1,000 tokens
-    /// per week, the value of `ratePerSecond` would be calculated as $(1000 * 10^18) / (7 days in seconds)$.
+    /// @param ratePerSecond The payment rate per second, denoted in 18 decimals. For example, to stream 1000 tokens per
+    /// week, this parameter would have the value $(1000 * 10^18) / (7 days in seconds)$.
     /// @param sender The address streaming the tokens, with the ability to pause the stream.
     /// @param snapshotTime The Unix timestamp used for the ongoing debt calculation.
     /// @param isPaused Boolean indicating if the stream is paused.

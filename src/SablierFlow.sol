@@ -77,7 +77,7 @@ contract SablierFlow is
 
         // Safe to unchecked because subtraction cannot underflow.
         unchecked {
-            // Since the rate per second is normalized to 18 decimals, normalize the solvency amount accordingly.
+            // The solvency amount is normalized to 18 decimals since it is divided by the rate per second.
             uint128 solvencyAmount = Helpers.normalizeAmount(balance - totalDebt, _streams[streamId].tokenDecimals);
             uint128 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond;
             depletionTime = uint40(block.timestamp + solvencyPeriod);
