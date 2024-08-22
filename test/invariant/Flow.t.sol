@@ -94,7 +94,9 @@ contract Flow_Invariant_Test is Base_Test {
             }
         }
 
-        assertGe(contractBalance, streamBalancesSum, unicode"Invariant violation: contract balance < Σ stream balances");
+        assertEq(
+            contractBalance, streamBalancesSum, unicode"Invariant violation: contract balance != Σ stream balances"
+        );
     }
 
     /// @dev For any stream, if uncovered debt > 0, then the covered debt should equal the stream balance.

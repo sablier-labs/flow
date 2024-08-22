@@ -151,7 +151,10 @@ Currently, it's not possible to address this precision problem entirely.
 
 1. for any stream, $lst \le now$
 
-2. for a given token, $\sum$ stream balances normalized to token decimal $\leq$ token.balanceOf(SablierFlow)
+2. for a given token, $\sum$ stream balances $\leq$ token.balanceOf(SablierFlow)
+
+   Note: In the code, this invariant is tested with equality, as we don't implement the `ERC20.transferFrom` handlers.
+   In real life, someone can transfer tokens to the contract, so this is why the $\leq$ operator is used.
 
 3. for any stream, if $ud > 0 \implies cd = bal$
 
