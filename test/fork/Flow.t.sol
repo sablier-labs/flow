@@ -33,7 +33,7 @@ contract Flow_Fork_Test is Fork_Test {
         bool isTransferable;
         // Amounts
         uint128 depositAmount;
-        uint128 normalizedRefundAmount;
+        uint128 refundAmount;
         uint40 withdrawAtTime;
     }
 
@@ -117,7 +117,7 @@ contract Flow_Fork_Test is Fork_Test {
                 streamId,
                 params.ratePerSecond,
                 params.depositAmount,
-                params.normalizedRefundAmount,
+                params.refundAmount,
                 params.withdrawAtTime
             );
         }
@@ -128,14 +128,14 @@ contract Flow_Fork_Test is Fork_Test {
     /// @param streamId The stream id to use.
     /// @param ratePerSecond The rate per second.
     /// @param depositAmount The deposit amount.
-    /// @param normalizedRefundAmount The normalized refund amount.
+    /// @param refundAmount The refund amount.
     /// @param withdrawAtTime The time to withdraw at.
     function _executeFunc(
         FlowFunc flowFunc,
         uint256 streamId,
         uint128 ratePerSecond,
         uint128 depositAmount,
-        uint128 normalizedRefundAmount,
+        uint128 refundAmount,
         uint40 withdrawAtTime
     )
         private
@@ -147,7 +147,7 @@ contract Flow_Fork_Test is Fork_Test {
         } else if (flowFunc == FlowFunc.pause) {
             _test_Pause(streamId);
         } else if (flowFunc == FlowFunc.refund) {
-            _test_Refund(streamId, normalizedRefundAmount);
+            _test_Refund(streamId, refundAmount);
         } else if (flowFunc == FlowFunc.restart) {
             _test_Restart(streamId, ratePerSecond);
         } else if (flowFunc == FlowFunc.void) {
@@ -301,15 +301,8 @@ contract Flow_Fork_Test is Fork_Test {
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: sender, to: address(flow), value: depositAmount });
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, tokenDecimals);
-
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: streamId,
-            funder: sender,
-            depositAmount: depositAmount,
-            normalizedDepositAmount: normalizedDepositAmount
-        });
+        emit DepositFlowStream({ streamId: streamId, funder: sender, amount: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -327,7 +320,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = initialStreamBalance + normalizedDepositAmount;
+        uint256 expectedStreamBalance = initialStreamBalance + depositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -368,44 +361,36 @@ contract Flow_Fork_Test is Fork_Test {
                                        REFUND
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _test_Refund(uint256 streamId, uint128 normalizedRefundAmount) private {
+    function _test_Refund(uint256 streamId, uint128 refundAmount) private {
         // Make sure the requirements are respected.
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
 
-        uint8 tokenDecimals = flow.getTokenDecimals(streamId);
-
         // If the refundable amount less than 1, deposit some funds.
-        if (flow.normalizedRefundableAmountOf(streamId) <= 1) {
+        if (flow.refundableAmountOf(streamId) <= 1) {
             uint128 depositAmount =
-                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), tokenDecimals);
+                flow.uncoveredDebtOf(streamId) + getDefaultDepositAmount(flow.getTokenDecimals(streamId));
             depositOnStream(streamId, depositAmount);
         }
 
         // Bound the refund amount to avoid error.
-        normalizedRefundAmount = boundUint128(normalizedRefundAmount, 1, flow.normalizedRefundableAmountOf(streamId));
+        refundAmount = boundUint128(refundAmount, 1, flow.refundableAmountOf(streamId));
 
         uint256 initialTokenBalance = token.balanceOf(address(flow));
         uint128 initialStreamBalance = flow.getBalance(streamId);
-        uint128 refundAmount = getDenormalizedAmount(normalizedRefundAmount, tokenDecimals);
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: address(flow), to: sender, value: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit RefundFromFlowStream({
-            streamId: streamId,
-            sender: sender,
-            refundAmount: refundAmount,
-            normalizedRefundAmount: normalizedRefundAmount
-        });
+        emit RefundFromFlowStream({ streamId: streamId, sender: sender, amount: refundAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // Request the refund.
-        flow.refund(streamId, normalizedRefundAmount);
+        flow.refund(streamId, refundAmount);
 
         // Assert that the token balance of stream has been updated.
         uint256 actualTokenBalance = token.balanceOf(address(flow));
@@ -414,7 +399,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = initialStreamBalance - normalizedRefundAmount;
+        uint256 expectedStreamBalance = initialStreamBalance - refundAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 
@@ -472,10 +457,10 @@ contract Flow_Fork_Test is Fork_Test {
 
             // In case of a big depletion time, refund and withdraw all the funds, and then warp for one second. Warping
             // too much in the future would affect the other tests.
-            uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(streamId);
-            if (normalizedRefundableAmount > 0) {
+            uint128 refundableAmount = flow.refundableAmountOf(streamId);
+            if (refundableAmount > 0) {
                 // Refund and withdraw all the funds.
-                flow.refund(streamId, normalizedRefundableAmount);
+                flow.refund(streamId, refundableAmount);
             }
             if (flow.coveredDebtOf(streamId) > 0) {
                 flow.withdrawMax(streamId, recipient);
@@ -527,27 +512,25 @@ contract Flow_Fork_Test is Fork_Test {
 
         uint128 streamBalance = flow.getBalance(streamId);
         if (streamBalance == 0) {
-            uint128 depositAmount =
-                getDenormalizedAmount(NORMALIZED_DEPOSIT_AMOUNT + flow.uncoveredDebtOf(streamId), tokenDecimals);
+            uint128 depositAmount = getDefaultDepositAmount(tokenDecimals);
             depositOnStream(streamId, depositAmount);
             streamBalance = flow.getBalance(streamId);
         }
 
-        uint128 totalDebt = flow.totalDebtOf(streamId);
-        uint256 tokenBalance = token.balanceOf(address(flow));
-        uint128 normalizedWithdrawAmount = flow.getSnapshotDebt(streamId)
-            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
-
-        if (streamBalance < normalizedWithdrawAmount) {
-            normalizedWithdrawAmount = streamBalance;
-        }
+        uint128 totalDebt = flow.getSnapshotDebt(streamId)
+            + getDenormalizedAmount(
+                flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                flow.getTokenDecimals(streamId)
+            );
+        uint128 withdrawAmount = streamBalance < totalDebt ? streamBalance : totalDebt;
 
         (, address caller,) = vm.readCallers();
         address recipient = flow.getRecipient(streamId);
 
+        uint256 tokenBalance = token.balanceOf(address(flow));
+
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
-        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, tokenDecimals);
         emit IERC20.Transfer({ from: address(flow), to: recipient, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -557,7 +540,7 @@ contract Flow_Fork_Test is Fork_Test {
             token: token,
             caller: caller,
             withdrawAmount: withdrawAmount,
-            normalizedWithdrawAmount: normalizedWithdrawAmount
+            withdrawTime: withdrawTime
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -569,14 +552,18 @@ contract Flow_Fork_Test is Fork_Test {
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
-        // It should decrease the total debt by withdrawn value.
-        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedTotalDebt = totalDebt - normalizedWithdrawAmount;
+        // It should decrease the total debt by withdrawn amount.
+        uint128 actualTotalDebt = flow.getSnapshotDebt(streamId)
+            + getDenormalizedAmount(
+                flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                flow.getTokenDecimals(streamId)
+            );
+        uint128 expectedTotalDebt = totalDebt - withdrawAmount;
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = streamBalance - normalizedWithdrawAmount;
+        uint128 expectedStreamBalance = streamBalance - withdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.

@@ -2,7 +2,6 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
@@ -88,14 +87,14 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(to != address(0) && to != address(flow));
 
-        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Prank to either recipient or operator.
         address caller = useRecipientOrOperator(streamId, timeJump);
         resetPrank({ msgSender: caller });
 
         // Withdraw the tokens.
-        _test_WithdrawAt(caller, to, streamId, timeJump, withdrawTime, decimals);
+        _test_WithdrawAt(caller, to, streamId, timeJump, withdrawTime);
     }
 
     /// @dev Checklist:
@@ -124,11 +123,11 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0));
 
-        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Prank the caller and withdraw the tokens.
         resetPrank(caller);
-        _test_WithdrawAt(caller, users.recipient, streamId, timeJump, withdrawTime, decimals);
+        _test_WithdrawAt(caller, users.recipient, streamId, timeJump, withdrawTime);
     }
 
     // Shared private function.
@@ -137,8 +136,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         address to,
         uint256 streamId,
         uint40 timeJump,
-        uint40 withdrawTime,
-        uint8 decimals
+        uint40 withdrawTime
     )
         private
     {
@@ -153,30 +151,21 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the withdraw time between the allowed range.
         withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
-        uint128 totalDebt = flow.totalDebtOf(streamId);
         uint256 tokenBalance = token.balanceOf(address(flow));
+        uint128 totalDebt = flow.getSnapshotDebt(streamId)
+            + getDenormalizedAmount({
+                amount: flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                decimals: flow.getTokenDecimals(streamId)
+            });
         uint128 streamBalance = flow.getBalance(streamId);
-        uint128 normalizedWithdrawAmount = flow.getSnapshotDebt(streamId)
-            + flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId));
-
-        if (streamBalance < normalizedWithdrawAmount) {
-            normalizedWithdrawAmount = streamBalance;
-        }
+        uint128 withdrawAmount = streamBalance < totalDebt ? streamBalance : totalDebt;
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
-        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, decimals);
         emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: streamId,
-            to: to,
-            token: token,
-            caller: caller,
-            withdrawAmount: withdrawAmount,
-            normalizedWithdrawAmount: normalizedWithdrawAmount
-        });
+        emit WithdrawFromFlowStream(streamId, to, token, caller, withdrawAmount, withdrawTime);
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -188,13 +177,17 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
         // It should decrease the full total debt by withdrawn value.
-        uint128 actualTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedTotalDebt = totalDebt - normalizedWithdrawAmount;
+        uint128 actualTotalDebt = flow.getSnapshotDebt(streamId)
+            + getDenormalizedAmount({
+                amount: flow.getRatePerSecond(streamId) * (withdrawTime - flow.getSnapshotTime(streamId)),
+                decimals: flow.getTokenDecimals(streamId)
+            });
+        uint128 expectedTotalDebt = totalDebt - withdrawAmount;
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = streamBalance - normalizedWithdrawAmount;
+        uint128 expectedStreamBalance = streamBalance - withdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.

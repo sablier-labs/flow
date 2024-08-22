@@ -7,14 +7,13 @@ abstract contract Constants {
     // Amounts
     uint128 internal constant DEPOSIT_AMOUNT_18D = 50_000e18;
     uint128 internal constant DEPOSIT_AMOUNT_6D = 50_000e6;
-    uint128 internal constant NORMALIZED_DEPOSIT_AMOUNT = 50_000e18;
-    uint128 internal constant NORMALIZED_REFUND_AMOUNT = 10_000e18;
-    uint128 internal constant NORMALIZED_WITHDRAW_AMOUNT = 2500e18;
+    uint128 internal constant REFUND_AMOUNT_18D = 10_000e18;
     uint128 internal constant REFUND_AMOUNT_6D = 10_000e6;
     uint128 internal constant TRANSFER_VALUE = 50_000;
     uint128 internal constant TOTAL_AMOUNT_WITH_BROKER_FEE_6D = DEPOSIT_AMOUNT_6D + BROKER_FEE_AMOUNT_6D;
     uint128 internal constant TOTAL_AMOUNT_WITH_BROKER_FEE_18D = DEPOSIT_AMOUNT_18D + BROKER_FEE_AMOUNT_18D;
     uint128 internal constant WITHDRAW_AMOUNT_6D = 2500e6;
+    uint128 internal constant WITHDRAW_AMOUNT_18D = 2500e18;
 
     // Broker
     UD60x18 internal constant BROKER_FEE = UD60x18.wrap(0.01e18); // 1%
@@ -29,14 +28,16 @@ abstract contract Constants {
     // Time
     uint40 internal constant MAY_1_2024 = 1_714_518_000;
     uint40 internal constant ONE_MONTH = 30 days; // "30/360" convention
-    uint40 internal constant SOLVENCY_PERIOD = uint40(NORMALIZED_DEPOSIT_AMOUNT / RATE_PER_SECOND); // 578 days
+    uint40 internal constant SOLVENCY_PERIOD = uint40(DEPOSIT_AMOUNT_18D / RATE_PER_SECOND); // 578 days
     uint40 internal constant WARP_ONE_MONTH = MAY_1_2024 + ONE_MONTH;
     uint40 internal constant WARP_SOLVENCY_PERIOD = MAY_1_2024 + SOLVENCY_PERIOD;
     uint40 internal constant WITHDRAW_TIME = MAY_1_2024 + 2_500_000;
 
     // Streaming amounts
-    uint128 internal constant ONE_MONTH_NORMALIZED_REFUNDABLE_AMOUNT = NORMALIZED_DEPOSIT_AMOUNT - ONE_MONTH_DEBT;
-    uint128 internal constant ONE_MONTH_DEBT = 2592e18; // 86.4 * 30
+    uint128 internal constant ONE_MONTH_DEBT_18D = 2592e18; // 86.4 * 30
+    uint128 internal constant ONE_MONTH_DEBT_6D = 2592e6; // 86.4 * 30
+    uint128 internal constant ONE_MONTH_REFUNDABLE_AMOUNT_6D = DEPOSIT_AMOUNT_6D - ONE_MONTH_DEBT_6D;
+    uint128 internal constant ONE_MONTH_REFUNDABLE_AMOUNT_18D = DEPOSIT_AMOUNT_18D - ONE_MONTH_DEBT_18D;
 
     // Misc
     uint8 internal constant DECIMALS = 6;

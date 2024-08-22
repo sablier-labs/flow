@@ -38,12 +38,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: expectedStreamId,
-            funder: users.sender,
-            depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedDepositAmount: NORMALIZED_DEPOSIT_AMOUNT
-        });
+        emit DepositFlowStream({ streamId: expectedStreamId, funder: users.sender, amount: DEPOSIT_AMOUNT_6D });
 
         // It should perform the ERC20 transfers
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
@@ -54,7 +49,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
             transferable: IS_TRANSFERABLE,
-            depositAmount: DEPOSIT_AMOUNT_6D
+            amount: DEPOSIT_AMOUNT_6D
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);
@@ -73,7 +68,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(expectedStreamId);
-        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT_6D;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

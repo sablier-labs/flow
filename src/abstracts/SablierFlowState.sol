@@ -90,31 +90,8 @@ abstract contract SablierFlowState is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowState
-    function getToken(uint256 streamId) external view override notNull(streamId) returns (IERC20 token) {
-        token = _streams[streamId].token;
-    }
-
-    /// @inheritdoc ISablierFlowState
-    function getTokenDecimals(
-        uint256 streamId
-    )
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint8 tokenDecimals)
-    {
-        tokenDecimals = _streams[streamId].tokenDecimals;
-    }
-
-    /// @inheritdoc ISablierFlowState
     function getBalance(uint256 streamId) external view override notNull(streamId) returns (uint128 balance) {
         balance = _streams[streamId].balance;
-    }
-
-    /// @inheritdoc ISablierFlowState
-    function getSnapshotTime(uint256 streamId) external view override notNull(streamId) returns (uint40 snapshotTime) {
-        snapshotTime = _streams[streamId].snapshotTime;
     }
 
     /// @inheritdoc ISablierFlowState
@@ -136,6 +113,11 @@ abstract contract SablierFlowState is
     }
 
     /// @inheritdoc ISablierFlowState
+    function getSender(uint256 streamId) external view override notNull(streamId) returns (address sender) {
+        sender = _streams[streamId].sender;
+    }
+
+    /// @inheritdoc ISablierFlowState
     function getSnapshotDebt(
         uint256 streamId
     )
@@ -149,13 +131,31 @@ abstract contract SablierFlowState is
     }
 
     /// @inheritdoc ISablierFlowState
-    function getSender(uint256 streamId) external view override notNull(streamId) returns (address sender) {
-        sender = _streams[streamId].sender;
+    function getSnapshotTime(uint256 streamId) external view override notNull(streamId) returns (uint40 snapshotTime) {
+        snapshotTime = _streams[streamId].snapshotTime;
     }
 
     /// @inheritdoc ISablierFlowState
     function getStream(uint256 streamId) external view override notNull(streamId) returns (Flow.Stream memory stream) {
         stream = _streams[streamId];
+    }
+
+    /// @inheritdoc ISablierFlowState
+    function getToken(uint256 streamId) external view override notNull(streamId) returns (IERC20 token) {
+        token = _streams[streamId].token;
+    }
+
+    /// @inheritdoc ISablierFlowState
+    function getTokenDecimals(
+        uint256 streamId
+    )
+        external
+        view
+        override
+        notNull(streamId)
+        returns (uint8 tokenDecimals)
+    {
+        tokenDecimals = _streams[streamId].tokenDecimals;
     }
 
     /// @inheritdoc ISablierFlowState

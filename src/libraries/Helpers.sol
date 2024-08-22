@@ -57,11 +57,11 @@ library Helpers {
             amount = (normalizedAmount / (10 ** factor)).toUint128();
         }
     }
+
     /// @notice Normalizes the provided amount to be denoted in 18 decimals.
     /// @dev The following logic is used to normalize the amount:
     /// - If the token has exactly 18 decimals, the amount is returned as is.
-    /// - if the token has fewer than 18 decimals, the amount is multiplied by $10^(18 - tokenDecimals)$.
-
+    /// - If the token has fewer than 18 decimals, the amount is multiplied by $10^(18 - tokenDecimals)$.
     function normalizeAmount(uint128 amount, uint8 tokenDecimals) internal pure returns (uint128 normalizedAmount) {
         // Return the transfer amount if token's decimals is 18.
         if (tokenDecimals == 18) {

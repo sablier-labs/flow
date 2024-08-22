@@ -61,9 +61,13 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
     {
         // It should make the deposit
         uint256 streamId = createDefaultStream(IERC20(address(usdt)));
-        _test_DepositViaBroker(
-            streamId, IERC20(address(usdt)), TOTAL_AMOUNT_WITH_BROKER_FEE_6D, DEPOSIT_AMOUNT_6D, BROKER_FEE_AMOUNT_6D, 6
-        );
+        _test_DepositViaBroker({
+            streamId: streamId,
+            token: IERC20(address(usdt)),
+            totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            brokerFeeAmount: BROKER_FEE_AMOUNT_6D
+        });
     }
 
     function test_GivenTokenHas18Decimals()
@@ -81,8 +85,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
             token: dai,
             totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_18D,
             depositAmount: DEPOSIT_AMOUNT_18D,
-            brokerFeeAmount: BROKER_FEE_AMOUNT_18D,
-            tokenDecimals: 18
+            brokerFeeAmount: BROKER_FEE_AMOUNT_18D
         });
     }
 
@@ -101,8 +104,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
             token: usdc,
             totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
             depositAmount: DEPOSIT_AMOUNT_6D,
-            brokerFeeAmount: BROKER_FEE_AMOUNT_6D,
-            tokenDecimals: 6
+            brokerFeeAmount: BROKER_FEE_AMOUNT_6D
         });
     }
 
@@ -111,8 +113,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         IERC20 token,
         uint128 totalAmount,
         uint128 depositAmount,
-        uint128 brokerFeeAmount,
-        uint8 tokenDecimals
+        uint128 brokerFeeAmount
     )
         private
     {
@@ -120,15 +121,8 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: depositAmount });
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, tokenDecimals);
-
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: streamId,
-            funder: users.sender,
-            depositAmount: depositAmount,
-            normalizedDepositAmount: normalizedDepositAmount
-        });
+        emit DepositFlowStream({ streamId: streamId, funder: users.sender, amount: depositAmount });
 
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: brokerFeeAmount });
@@ -144,7 +138,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = normalizedDepositAmount;
+        uint128 expectedStreamBalance = depositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

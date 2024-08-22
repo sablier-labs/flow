@@ -28,7 +28,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0) && caller != address(flow));
 
-        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         // Following variables are used during assertions.
         uint256 initialTokenBalance = token.balanceOf(address(flow));
@@ -54,15 +54,8 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(token) });
         emit IERC20.Transfer({ from: caller, to: address(flow), value: depositAmount });
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, decimals);
-
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: streamId,
-            funder: caller,
-            depositAmount: depositAmount,
-            normalizedDepositAmount: normalizedDepositAmount
-        });
+        emit DepositFlowStream({ streamId: streamId, funder: caller, amount: depositAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -80,7 +73,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Assert that stored balance in stream has been updated.
         uint256 actualStreamBalance = flow.getBalance(streamId);
-        uint256 expectedStreamBalance = initialStreamBalance + normalizedDepositAmount;
+        uint256 expectedStreamBalance = initialStreamBalance + depositAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

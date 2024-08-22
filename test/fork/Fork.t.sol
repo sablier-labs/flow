@@ -88,7 +88,7 @@ abstract contract Fork_Test is Base_Test {
         resetPrank({ msgSender: sender });
         deal({ token: address(token), to: sender, give: depositAmount });
         safeApprove(depositAmount);
-        flow.deposit({ streamId: streamId, depositAmount: depositAmount });
+        flow.deposit({ streamId: streamId, amount: depositAmount });
     }
 
     /// @dev Use a low-level call to ignore reverts in case of USDT.

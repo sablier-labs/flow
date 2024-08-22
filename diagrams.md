@@ -65,7 +65,7 @@ stateDiagram-v2
 
 1. The arrows point to the status on which the function can be called
 2. The "update" comments refer only to the internal state
-3. `ltu` is always updated to `block.timestamp`
+3. `st` is always updated to `block.timestamp`, expect for `withdrawAt`
 4. Red lines refers to the function that are doing an ERC20 transfer
 
 ```mermaid
@@ -95,22 +95,22 @@ flowchart LR
     classDef yellow fill:#ffff99,stroke:#333,stroke-width:2px;
     classDef black fill:#000000,stroke:#333,stroke-width:2px;
 
-    CR -- "update rps\nupdate lut" --> NULL
-    ADJRPS -- "update ra (+rca)\nupdate rps\nupdate lut" -->  STR
+    CR -- "update rps\nupdate st" --> NULL
+    ADJRPS -- "update sd (+od)\nupdate rps\nupdate st" -->  STR
 
     DP -- "update bal (+)" --> BOTH
 
     RFD -- "update bal (-)" --> BOTH
 
-    WTD -- "update ra (-) \nupdate lut\nupdate bal (-)" --> BOTH
+    WTD -- "update sd (-) \nupdate st\nupdate bal (-)" --> BOTH
 
-    VD -- "update ra (bal)\nupdate rps (0)" --> BOTH
+    VD -- "update sd (bal)\nupdate rps (0)" --> BOTH
 
-    PS -- "update ra (+rca)\nupdate rps (0)" --> STR
+    PS -- "update sd (+od)\nupdate rps (0)" --> STR
 
     BOTH --> STR & PSED
 
-    RST -- "update rps \nupdate lut" --> PSED
+    RST -- "update rps \nupdate st" --> PSED
 
     linkStyle 2,3,4 stroke:#ff0000,stroke-width:2px
 ```
@@ -135,13 +135,13 @@ flowchart LR
     stream[(Stream Internal State)]:::green
     bal([Balance - bal]):::green
     rps([RatePerSecond - rps]):::green
-    ra([SnapshotAmount - ra]):::green
-    lst([Last Snapshot Time - lst]):::green
+    sd([SnapshotDebt - sd]):::green
+    st([Snapshot Time - st]):::green
 
     stream --> bal
     stream --> rps
-    stream --> ra
-    stream --> lst
+    stream --> sd
+    stream --> st
 
     classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
 ```
@@ -189,8 +189,8 @@ classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
 
 **Notes:** Uncovered debt greater than zero means:
 
-1. `sa > bal` when the status is `PAUSED`
-2. `sa + oa > bal` when the status is `STREAMING`
+1. `sd > bal` when the status is `PAUSED`
+2. `sd + od > bal` when the status is `STREAMING`
 
 ```mermaid
 flowchart TD
@@ -200,8 +200,8 @@ flowchart TD
     cd([Covered Debt - cd]):::blue0
     res_0([0 ]):::blue1
     res_bal([bal]):::blue1
-    res_ra([sa]):::blue1
-    res_sum([oa + sa]):::blue1
+    res_sd([sd]):::blue1
+    res_sum([od + sd]):::blue1
 
 
     cd --> di0
@@ -209,7 +209,7 @@ flowchart TD
     di0 -- "bal > 0" --> di1
     di1 -- "ud > 0" --> res_bal
     di1 -- "ud = 0" --> di2
-    di2 -- "paused" --> res_ra
+    di2 -- "paused" --> res_sd
     di2 -- "streaming" --> res_sum
 
     classDef blue0 fill:#DAE8FC,stroke:#333,stroke-width:2px;
@@ -221,27 +221,27 @@ flowchart TD
 
 ```mermaid
     flowchart TD
-    rfa([Refundable Amount - rfa]):::orange0
-    res_rfa([bal - cd]):::orange1
-    rfa --> res_rfa
+    ra([Refundable Amount - ra]):::orange0
+    res_ra([bal - cd]):::orange1
+    ra --> res_ra
 
     classDef orange0 fill:#FFA500,stroke:#333,stroke-width:2px;
     classDef orange1 fill:#FFCD28,stroke:#333,stroke-width:2px;
 
 ```
 
-### Stream Debt
+### Uncovered Debt
 
 ```mermaid
 flowchart TD
     di0{ }:::red1
-    sd([Stream Debt - sd]):::red0
-    res_sd(["oa + sa - bal"]):::red1
+    sd([Uncovered Debt - ud]):::red0
+    res_sd(["od + sd - bal"]):::red1
     res_zero([0]):::red1
 
     sd --> di0
-    di0 -- "bal < oa + sa" --> res_sd
-    di0 -- "bal >= oa + sa" --> res_zero
+    di0 -- "bal < od + sd" --> res_sd
+    di0 -- "bal >= od + sd" --> res_zero
 
     classDef red0 fill:#EA6B66,stroke:#333,stroke-width:2px;
     classDef red1 fill:#FFCCCC,stroke:#333,stroke-width:2px;

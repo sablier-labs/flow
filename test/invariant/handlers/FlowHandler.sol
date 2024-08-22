@@ -17,11 +17,11 @@ contract FlowHandler is BaseHandler {
     address internal currentSender;
     uint256 internal currentStreamId;
 
-    /// @dev Uncovered debts mapped by stream IDs.
-    mapping(uint256 streamId => uint128 amount) public previousUncoveredDebtOf;
-
     /// @dev Total debts mapped by stream IDs.
     mapping(uint256 streamId => uint128 amount) public previousTotalDebtOf;
+
+    /// @dev Uncovered debts mapped by stream IDs.
+    mapping(uint256 streamId => uint128 amount) public previousUncoveredDebtOf;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTRUCTOR
@@ -35,8 +35,8 @@ contract FlowHandler is BaseHandler {
 
     /// @dev Updates the states of handler right before calling each Flow function.
     modifier updateFlowHandlerStates() {
-        previousUncoveredDebtOf[currentStreamId] = flow.uncoveredDebtOf(currentStreamId);
         previousTotalDebtOf[currentStreamId] = flow.totalDebtOf(currentStreamId);
+        previousUncoveredDebtOf[currentStreamId] = flow.uncoveredDebtOf(currentStreamId);
         _;
     }
 
@@ -125,11 +125,11 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
-        // Calculate the upper bound, based on the token decimals, for the transfer amount.
+        // Calculate the upper bound, based on the token decimals, for the deposit amount.
         uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
 
-        // Bound the transfer amount.
-        depositAmount = uint128(_bound(depositAmount, 100, upperBound));
+        // Bound the deposit amount.
+        depositAmount = boundUint128(depositAmount, 100, upperBound);
 
         IERC20 token = flow.getToken(currentStreamId);
 
@@ -140,12 +140,10 @@ contract FlowHandler is BaseHandler {
         token.approve({ spender: address(flow), value: depositAmount });
 
         // Deposit into the stream.
-        flow.deposit({ streamId: currentStreamId, depositAmount: depositAmount });
-
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, flow.getTokenDecimals(currentStreamId));
+        flow.deposit({ streamId: currentStreamId, amount: depositAmount });
 
         // Update the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(currentStreamId, normalizedDepositAmount);
+        flowStore.updateStreamDepositedAmountsSum(currentStreamId, depositAmount);
     }
 
     /// @dev A function that does nothing but warp the time into the future.
@@ -154,7 +152,7 @@ contract FlowHandler is BaseHandler {
     function refund(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
-        uint128 normalizedRefundAmount
+        uint128 refundAmount
     )
         external
         instrument("refund")
@@ -163,19 +161,19 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
-        uint128 normalizedRefundableAmount = flow.normalizedRefundableAmountOf(currentStreamId);
+        uint128 refundableAmount = flow.refundableAmountOf(currentStreamId);
 
         // The protocol doesn't allow zero refund amounts.
-        vm.assume(normalizedRefundableAmount > 0);
+        vm.assume(refundableAmount > 0);
 
-        // Bound the refund amount so that it does not exceed the `normalizedRefundableAmount`.
-        normalizedRefundAmount = uint128(_bound(normalizedRefundAmount, 1, normalizedRefundableAmount));
+        // Bound the refund amount so that it does not exceed the `refundableAmount`.
+        refundAmount = uint128(_bound(refundAmount, 1, refundableAmount));
 
         // Refund from stream.
-        flow.refund(currentStreamId, normalizedRefundAmount);
+        flow.refund(currentStreamId, refundAmount);
 
         // Update the refunded amount.
-        flowStore.updateStreamRefundedAmountsSum(currentStreamId, normalizedRefundAmount);
+        flowStore.updateStreamRefundedAmountsSum(currentStreamId, refundAmount);
     }
 
     function restart(
@@ -248,6 +246,17 @@ contract FlowHandler is BaseHandler {
         }
 
         uint128 initialBalance = flow.getBalance(currentStreamId);
+
+        // We need to calculate the total debt at the time of withdrawal. Otherwise the modifier updates the mappings
+        // with `block.timestamp` as the time reference.
+        uint128 totalDebt = flow.getSnapshotDebt(currentStreamId)
+            + getDenormalizedAmount({
+                amount: flow.getRatePerSecond(currentStreamId) * (time - flow.getSnapshotTime(currentStreamId)),
+                decimals: flow.getTokenDecimals(currentStreamId)
+            });
+        uint128 uncoveredDebt = initialBalance < totalDebt ? totalDebt - initialBalance : 0;
+        previousTotalDebtOf[currentStreamId] = totalDebt;
+        previousUncoveredDebtOf[currentStreamId] = uncoveredDebt;
 
         // Withdraw from the stream.
         flow.withdrawAt({ streamId: currentStreamId, to: to, time: time });

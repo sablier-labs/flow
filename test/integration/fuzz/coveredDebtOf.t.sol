@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
-contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
+contract CoveredDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev It should return the expected value.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -20,20 +20,20 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        uint128 expectedWithdrawbleAmount = flow.coveredDebtOf(streamId);
+        uint128 expectedCoveredDebt = flow.coveredDebtOf(streamId);
 
         // Pause the stream.
         flow.pause(streamId);
 
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
+        vm.warp({ newTimestamp: uint256(getBlockTimestamp()) + uint256(timeJump) });
 
-        // Assert that the withdrawble amount equals 0.
-        uint128 actualWithdrawbleAmount = flow.coveredDebtOf(streamId);
-        assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
+        // Assert that the covered debt did not change.
+        uint128 actualCoveredDebt = flow.coveredDebtOf(streamId);
+        assertEq(actualCoveredDebt, expectedCoveredDebt);
     }
 
-    /// @dev It should return the streamed amount, denoted in 18 decimals.
+    /// @dev It should return the expected value.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-paused streams, each with different token decimals and rps.
@@ -47,7 +47,7 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         givenNotNull
         givenNotPaused
     {
-        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
+        (streamId, decimals,) = useFuzzedStreamOrCreate(streamId, decimals);
 
         uint40 depletionPeriod = flow.depletionTimeOf(streamId);
 
@@ -57,13 +57,15 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        // Assert that the withdrawble amount equals the streamed amount.
-        uint128 actualWithdrawbleAmount = flow.coveredDebtOf(streamId);
-        uint128 expectedWithdrawbleAmount = flow.getRatePerSecond(streamId) * (timeJump - MAY_1_2024);
-        assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
+        // Assert that the covered debt equals the ongoing debt.
+        uint128 actualCoveredDebt = flow.coveredDebtOf(streamId);
+        uint128 expectedCoveredDebt =
+            getDenormalizedAmount(flow.getRatePerSecond(streamId) * (timeJump - MAY_1_2024), decimals);
+        assertEq(actualCoveredDebt, expectedCoveredDebt);
     }
 
-    /// @dev It should return the stream balance which is also same as the deposited amount, denoted in 18 decimals.
+    /// @dev It should return the stream balance which is also same as the deposited amount,
+    /// denoted in token's decimals.
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple streams, each with different token decimals and rps.
@@ -78,12 +80,11 @@ contract WithdrawbleAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
-        // Assert that the withdrawble amount equals the stream balance.
-        uint128 actualWithdrawbleAmount = flow.coveredDebtOf(streamId);
-        uint128 expectedWithdrawbleAmount = flow.getBalance(streamId);
-        assertEq(actualWithdrawbleAmount, expectedWithdrawbleAmount);
+        // Assert that the covered debt equals the stream balance.
+        uint128 actualCoveredDebt = flow.coveredDebtOf(streamId);
+        assertEq(actualCoveredDebt, flow.getBalance(streamId), "covered debt vs stream balance");
 
-        // Assert that the withdrawble amount is same as the deposited amount.
-        assertEq(actualWithdrawbleAmount, depositedAmount);
+        // Assert that the covered debt is same as the deposited amount.
+        assertEq(actualCoveredDebt, depositedAmount, "covered debt vs deposited amount");
     }
 }

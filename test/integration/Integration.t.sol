@@ -75,35 +75,35 @@ abstract contract Integration_Test is Base_Test {
 
     function defaultStreamWithDeposit() internal view returns (Flow.Stream memory stream) {
         stream = defaultStream();
-        stream.balance = NORMALIZED_DEPOSIT_AMOUNT;
+        stream.balance = DEPOSIT_AMOUNT_6D;
     }
 
-    function depositAmount(uint256 streamId, uint128 depositAmount_) internal {
+    function deposit(uint256 streamId, uint128 amount) internal {
         IERC20 token = flow.getToken(streamId);
 
-        deal({ token: address(token), to: users.sender, give: depositAmount_ });
-        token.approve(address(flow), depositAmount_);
+        deal({ token: address(token), to: users.sender, give: amount });
+        token.approve(address(flow), amount);
 
-        flow.deposit(streamId, depositAmount_);
+        flow.deposit(streamId, amount);
     }
 
     function depositDefaultAmount(uint256 streamId) internal {
         IERC20 token = flow.getToken(streamId);
         uint8 decimals = flow.getTokenDecimals(streamId);
-        uint128 depositAmount_ = getDefaultDepositAmount(decimals);
+        uint128 depositAmount = getDefaultDepositAmount(decimals);
 
-        deal({ token: address(token), to: users.sender, give: depositAmount_ });
-        token.approve(address(flow), depositAmount_);
+        deal({ token: address(token), to: users.sender, give: depositAmount });
+        token.approve(address(flow), depositAmount);
 
-        flow.deposit(streamId, depositAmount_);
+        flow.deposit(streamId, depositAmount);
     }
 
     function depositToDefaultStream() internal {
-        depositAmount(defaultStreamId, DEPOSIT_AMOUNT_6D);
+        deposit(defaultStreamId, DEPOSIT_AMOUNT_6D);
     }
 
     /// @dev Update the `snapshotTime` of a stream to the current block timestamp.
-    function updateLastTimeToBlockTimestamp(uint256 streamId) internal {
+    function updateSnapshotTimeToBlockTimestamp(uint256 streamId) internal {
         resetPrank(users.sender);
         uint128 ratePerSecond = flow.getRatePerSecond(streamId);
 

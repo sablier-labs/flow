@@ -45,12 +45,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
         emit IERC20.Transfer({ from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit DepositFlowStream({
-            streamId: expectedStreamId,
-            funder: users.sender,
-            depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedDepositAmount: NORMALIZED_DEPOSIT_AMOUNT
-        });
+        emit DepositFlowStream({ streamId: expectedStreamId, funder: users.sender, amount: DEPOSIT_AMOUNT_6D });
 
         vm.expectEmit({ emitter: address(usdc) });
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: BROKER_FEE_AMOUNT_6D });
@@ -86,7 +81,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(expectedStreamId);
-        uint128 expectedStreamBalance = NORMALIZED_DEPOSIT_AMOUNT;
+        uint128 expectedStreamBalance = DEPOSIT_AMOUNT_6D;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
     }
 }

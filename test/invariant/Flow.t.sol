@@ -72,8 +72,8 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev For a given token, the sum of all stream balances normalized to the token's decimal should never exceed
-    /// the token balance of the flow contract.
+    /// @dev For a given token, the sum of all stream balances should never exceed the token balance of the flow
+    /// contract.
     function invariant_ContractBalanceGeStreamBalances() external view {
         // Check the invariant for each token.
         for (uint256 i = 0; i < tokens.length; ++i) {
@@ -83,22 +83,19 @@ contract Flow_Invariant_Test is Base_Test {
 
     function contractBalanceGeStreamBalances(IERC20 token) internal view {
         uint256 contractBalance = token.balanceOf(address(flow));
-        uint128 streamBalancesSumNormalized;
+        uint128 streamBalancesSum;
 
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
 
             if (flow.getToken(streamId) == token) {
-                streamBalancesSumNormalized +=
-                    getDenormalizedAmount(flow.getBalance(streamId), flow.getTokenDecimals(streamId));
+                streamBalancesSum += flow.getBalance(streamId);
             }
         }
 
-        assertGe(
-            contractBalance,
-            streamBalancesSumNormalized,
-            unicode"Invariant violation: contract balance < Σ stream balances"
+        assertEq(
+            contractBalance, streamBalancesSum, unicode"Invariant violation: contract balance != Σ stream balances"
         );
     }
 
@@ -171,8 +168,7 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev If there is no uncovered debt and the stream is paused, the covered debt should always be equal to
-    /// the
-    /// snapshot debt.
+    /// the snapshot debt.
     function invariant_NoUncoveredDebt_StreamedPaused_CoveredDebtEqSnapshotAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -219,14 +215,14 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev The stream balance should be equal to the sum of the covered debt and the refundable amount.
-    function invariant_StreamBalanceEqCoveredDebtPlusNormalizedRefundableAmount() external view {
+    function invariant_StreamBalanceEqCoveredDebtPlusRefundableAmount() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             assertEq(
                 flow.getBalance(streamId),
-                flow.coveredDebtOf(streamId) + flow.normalizedRefundableAmountOf(streamId),
-                "Invariant violation: stream balance != covered debt + normalized refundable amount"
+                flow.coveredDebtOf(streamId) + flow.refundableAmountOf(streamId),
+                "Invariant violation: stream balance != covered debt + refundable amount"
             );
         }
     }

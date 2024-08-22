@@ -27,9 +27,7 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
 
         // It should return the correct refundable amount.
         uint128 actualRefundableAmount = flow.refundableAmountOf(defaultStreamId);
-        uint128 expectedRefundableAmount =
-            getDenormalizedAmount({ amount: ONE_MONTH_NORMALIZED_REFUNDABLE_AMOUNT, decimals: DECIMALS });
-        assertEq(actualRefundableAmount, expectedRefundableAmount, "refundable amount");
+        assertEq(actualRefundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT_6D, "refundable amount");
     }
 
     function test_WhenTotalDebtExceedsBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
@@ -44,8 +42,6 @@ contract RefundableAmountOf_Integration_Concrete_Test is Integration_Test {
     function test_WhenTotalDebtDoesNotExceedBalance() external givenNotNull givenBalanceNotZero givenNotPaused {
         // It should return the correct refundable amount.
         uint128 actualRefundableAmount = flow.refundableAmountOf(defaultStreamId);
-        uint128 expectedRefundableAmount =
-            getDenormalizedAmount({ amount: ONE_MONTH_NORMALIZED_REFUNDABLE_AMOUNT, decimals: DECIMALS });
-        assertEq(actualRefundableAmount, expectedRefundableAmount, "refundable amount");
+        assertEq(actualRefundableAmount, ONE_MONTH_REFUNDABLE_AMOUNT_6D, "refundable amount");
     }
 }

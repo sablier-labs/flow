@@ -13,11 +13,6 @@ import { Constants } from "./Constants.sol";
 abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     using SafeCastLib for uint256;
 
-    /// @dev Bounds the rate per second between a realistic range.
-    function boundRatePerSecond(uint128 ratePerSecond) internal pure returns (uint128) {
-        return boundUint128(ratePerSecond, 0.00001e18, 10e18);
-    }
-
     /// @dev Bound deposit amount to avoid overflow.
     function boundDepositAmount(
         uint128 amount,
@@ -28,8 +23,18 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         pure
         returns (uint128 depositAmount)
     {
-        uint128 maxDepositAmount = (UINT128_MAX - balance) / uint128(10 ** (18 - decimals));
+        uint128 maxDepositAmount = (UINT128_MAX - balance);
+
+        if (decimals < 18) {
+            maxDepositAmount = maxDepositAmount / uint128(10 ** (18 - decimals));
+        }
+
         depositAmount = boundUint128(amount, 1, maxDepositAmount - 1);
+    }
+
+    /// @dev Bounds the rate per second between a realistic range.
+    function boundRatePerSecond(uint128 ratePerSecond) internal pure returns (uint128) {
+        return boundUint128(ratePerSecond, 0.00001e18, 10e18);
     }
 
     /// @dev Bounds a `uint128` number.

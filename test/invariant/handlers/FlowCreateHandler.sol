@@ -103,7 +103,7 @@ contract FlowCreateHandler is BaseHandler {
 
         uint8 decimals = IERC20Metadata(address(currentToken)).decimals();
 
-        // Calculate the upper bound, based on the token decimals, for the transfer amount.
+        // Calculate the upper bound, based on the token decimals, for the deposit amount.
         uint128 upperBound = getDenormalizedAmount(1_000_000e18, decimals);
 
         // Bound the stream parameters.
@@ -128,9 +128,7 @@ contract FlowCreateHandler is BaseHandler {
         // Store the stream id.
         flowStore.pushStreamId(streamId, params.sender, params.recipient);
 
-        uint128 normalizedDepositAmount = getNormalizedAmount(depositAmount, decimals);
-
         // Store the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(streamId, normalizedDepositAmount);
+        flowStore.updateStreamDepositedAmountsSum(streamId, depositAmount);
     }
 }

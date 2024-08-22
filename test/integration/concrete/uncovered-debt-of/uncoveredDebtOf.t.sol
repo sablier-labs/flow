@@ -26,11 +26,11 @@ contract UncoveredDebtOf_Integration_Concrete_Test is Integration_Test {
         // Simulate the passage of time to accumulate uncovered debt for one month.
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + ONE_MONTH });
 
-        uint128 totalStreamed = RATE_PER_SECOND * (SOLVENCY_PERIOD + ONE_MONTH);
+        uint128 totalStreamed = getDenormalizedAmount(RATE_PER_SECOND * (SOLVENCY_PERIOD + ONE_MONTH), 6);
 
         // It should return non-zero value.
         uint128 actualUncoveredDebt = flow.uncoveredDebtOf(defaultStreamId);
-        uint128 expectedUncoveredDebt = totalStreamed - NORMALIZED_DEPOSIT_AMOUNT;
+        uint128 expectedUncoveredDebt = totalStreamed - DEPOSIT_AMOUNT_6D;
         assertEq(actualUncoveredDebt, expectedUncoveredDebt, "uncovered debt");
     }
 }

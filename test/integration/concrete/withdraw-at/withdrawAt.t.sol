@@ -30,7 +30,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertWhen_TimeLessThanSnapshotTime() external whenNoDelegateCall givenNotNull {
         // Set the snapshot time to the current block timestamp.
-        updateLastTimeToBlockTimestamp(defaultStreamId);
+        updateSnapshotTimeToBlockTimestamp(defaultStreamId);
 
         uint40 snapshotTime = flow.getSnapshotTime(defaultStreamId);
 
@@ -120,7 +120,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             to: users.eve,
             depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT_6D
         });
     }
 
@@ -162,7 +162,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         // Create a new stream with a much smaller deposit.
         uint256 streamId = createDefaultStream();
-        depositAmount(streamId, chickenfeed);
+        deposit(streamId, chickenfeed);
 
         // Simulate the one month of streaming.
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
@@ -171,12 +171,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         resetPrank({ msgSender: users.recipient });
 
         // It should withdraw the balance.
-        _test_Withdraw({
-            streamId: streamId,
-            to: users.recipient,
-            depositAmount: chickenfeed,
-            normalizedWithdrawAmount: 50e18
-        });
+        _test_Withdraw({ streamId: streamId, to: users.recipient, depositAmount: chickenfeed, withdrawAmount: 50e6 });
     }
 
     modifier whenTotalDebtDoesNotExceedBalance() {
@@ -193,27 +188,12 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         givenBalanceNotZero
         whenTotalDebtDoesNotExceedBalance
     {
-        // Go back to the starting point.
-        vm.warp({ newTimestamp: MAY_1_2024 });
-
-        resetPrank({ msgSender: users.sender });
-
-        // Create the stream and make a deposit.
-        uint256 streamId = createDefaultStream(IERC20(address(usdc)));
-        depositDefaultAmount(streamId);
-
-        // Simulate the one month of streaming.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
-
-        // Make recipient the caller for subsequent tests.
-        resetPrank({ msgSender: users.recipient });
-
         // It should withdraw the total debt.
         _test_Withdraw({
-            streamId: streamId,
+            streamId: defaultStreamId,
             to: users.recipient,
             depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
+            withdrawAmount: WITHDRAW_AMOUNT_6D
         });
     }
 
@@ -227,27 +207,33 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         givenBalanceNotZero
         whenTotalDebtDoesNotExceedBalance
     {
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: MAY_1_2024 });
+
+        resetPrank({ msgSender: users.sender });
+
+        // Create the stream and make a deposit.
+        uint256 streamId = createDefaultStream(dai);
+        deposit(streamId, DEPOSIT_AMOUNT_18D);
+
+        // Simulate the one month of streaming.
+        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        // Make recipient the caller for subsequent tests.
+        resetPrank({ msgSender: users.recipient });
+
         // It should withdraw the total debt.
         _test_Withdraw({
-            streamId: defaultStreamId,
+            streamId: streamId,
             to: users.recipient,
-            depositAmount: DEPOSIT_AMOUNT_6D,
-            normalizedWithdrawAmount: NORMALIZED_WITHDRAW_AMOUNT
+            depositAmount: DEPOSIT_AMOUNT_18D,
+            withdrawAmount: WITHDRAW_AMOUNT_18D
         });
     }
 
-    function _test_Withdraw(
-        uint256 streamId,
-        address to,
-        uint128 depositAmount,
-        uint128 normalizedWithdrawAmount
-    )
-        private
-    {
+    function _test_Withdraw(uint256 streamId, address to, uint128 depositAmount, uint128 withdrawAmount) private {
         IERC20 token = flow.getToken(streamId);
-        uint8 tokenDecimals = flow.getTokenDecimals(streamId);
-        uint128 withdrawAmount = getDenormalizedAmount(normalizedWithdrawAmount, tokenDecimals);
-        uint128 previousFullTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint128 previousFullTotalDebt = flow.totalDebtOf(streamId);
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(token) });
@@ -260,7 +246,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             token: token,
             caller: users.recipient,
             withdrawAmount: withdrawAmount,
-            normalizedWithdrawAmount: normalizedWithdrawAmount
+            withdrawTime: WITHDRAW_TIME
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -279,12 +265,12 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         // It should decrease the total debt by the withdrawn value.
         uint128 actualFullTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedFullTotalDebt = previousFullTotalDebt - normalizedWithdrawAmount;
+        uint128 expectedFullTotalDebt = previousFullTotalDebt - withdrawAmount;
         assertEq(actualFullTotalDebt, expectedFullTotalDebt, "total debt");
 
         // It should reduce the stream balance by the withdrawn amount.
         uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = getNormalizedAmount(depositAmount - withdrawAmount, tokenDecimals);
+        uint128 expectedStreamBalance = depositAmount - withdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.

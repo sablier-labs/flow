@@ -8,4 +8,4 @@ CoveredDebtOf_Integration_Concrete_Test
       ├── when total debt exceeds balance
       │   └── it should return the stream balance
       └── when total debt does not exceed balance
-          └── it should return the correct withdraw amount
+          └── it should return the correct covered debt
