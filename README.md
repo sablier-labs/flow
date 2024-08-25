@@ -35,7 +35,7 @@ struct Stream {
 - Streams without sufficient balance will accumulate debt until paused or sufficiently funded.
 - Senders can pause and restart streams without losing track of previously accrued debt.
 
-## How it Works
+## How it works
 
 When a stream is created, no deposit is required, so the initial stream balance can be zero. The sender can deposit any
 amount into the stream at any time. To improve experience for some users, a `createAndDeposit` function has been
@@ -64,9 +64,9 @@ recipient can only withdraw the available balance.
 | block.timestamp  | now          |
 | ratePerSecond    | rps          |
 
-## Core Components
+## Core components
 
-### 1. Total Debt
+### 1. Total debt
 
 The total debt (td) is the total amount the sender owes to the recipient. It is calculated as the sum of the snapshot
 debt and the ongoing debt.
@@ -87,7 +87,7 @@ updated, the snapshot debt increases by the ongoing debt.
 
 $sd = \sum od_t$
 
-### 4. Uncovered Debt
+### 4. Uncovered debt
 
 The uncovered debt (ud) is the difference between the total debt and the actual balance, applicable when the total debt
 exceeds the balance.
@@ -101,14 +101,14 @@ balance and the total debt.
 
 $`ra = \begin{cases} bal - td & \text{if } ud = 0 \\ 0 & \text{if } ud > 0 \end{cases}`$
 
-### 6. Covered Debt
+### 6. Covered debt
 
 The covered debt (cd) is the total debt when there is no uncovered debt. But if there is uncovered debt, the covered
 debt is capped to the stream balance.
 
 $`cd = \begin{cases} td & \text{if } ud = 0 \\ bal & \text{if } ud \gt 0 \end{cases}`$
 
-## Precision Issues
+## Precision issues
 
 The `rps` introduces a precision problem for tokens with fewer decimals (e.g.
 [USDC](https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48s), which has 6 decimals).
@@ -151,10 +151,10 @@ Currently, it's not possible to address this precision problem entirely.
 
 1. for any stream, $lst \le now$
 
-2. for a given token, $\sum$ stream balances $\leq$ token.balanceOf(SablierFlow)
+2. for a given token, $\sum$ stream balances $\eq$ token.balanceOf(SablierFlow)
 
    Note: In the code, this invariant is tested with equality, as we don't implement the `ERC20.transferFrom` handlers.
-   In real life, someone can transfer tokens to the contract, so this is why the $\leq$ operator is used.
+   In real life, someone can transfer tokens to the contract.
 
 3. for any stream, if $ud > 0 \implies cd = bal$
 

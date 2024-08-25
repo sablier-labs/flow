@@ -12,7 +12,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
-    /// - Multiple non-zero values for transfer amount.
+    /// - Multiple non-zero values for deposit amount.
     /// - Multiple streams to deposit into, each with different token decimals and rps.
     /// - Multiple points in time.
     function testFuzz_Deposit(
@@ -34,7 +34,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint256 initialTokenBalance = token.balanceOf(address(flow));
         uint128 initialStreamBalance = flow.getBalance(streamId);
 
-        // Bound the transfer amount to avoid overflow.
+        // Bound the deposit amount to avoid overflow.
         depositAmount = boundDepositAmount(depositAmount, initialStreamBalance, decimals);
 
         // Bound the time jump to provide a realistic time frame.
@@ -60,7 +60,7 @@ contract Deposit_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // It should perform the ERC20 transfer.
+        // It should perform the ERC-20 transfer.
         expectCallToTransferFrom({ token: token, from: caller, to: address(flow), amount: depositAmount });
 
         // Make the deposit.

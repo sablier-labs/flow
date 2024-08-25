@@ -73,7 +73,7 @@ interface ISablierFlow is
     /// @param recipient The address of the stream's recipient.
     /// @param caller The address that performed the void, which can be the recipient or an approved operator.
     /// @param newTotalDebt The new total debt, denoted in token's decimals.
-    /// @param writtenOffDebt The amount of debt written off by the recipient, denoted in token's decimals..
+    /// @param writtenOffDebt The amount of debt written off by the caller, denoted in token's decimals.
     event VoidFlowStream(
         uint256 indexed streamId,
         address indexed sender,
@@ -110,7 +110,7 @@ interface ISablierFlow is
 
     /// @notice Returns the time at which the stream will deplete its balance and start to accumulate uncovered debt. If
     /// there already is uncovered debt, it returns zero.
-    /// @dev Reverts if `streamId` refers to a paused or a null stream.
+    /// @dev Reverts if `streamId` references a paused or a null stream.
     /// @param streamId The stream ID for the query.
     function depletionTimeOf(uint256 streamId) external view returns (uint40 depletionTime);
 
@@ -130,7 +130,7 @@ interface ISablierFlow is
     function statusOf(uint256 streamId) external view returns (Flow.Status status);
 
     /// @notice Returns the total amount owed by the sender to the recipient, denoted in token's decimals.
-    /// @dev Reverts if `streamId` refers to a null stream.
+    /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function totalDebtOf(uint256 streamId) external view returns (uint128 totalDebt);
 
@@ -170,10 +170,11 @@ interface ISablierFlow is
     /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
     ///
-    /// @dev Emits a {Transfer} and {CreateFlowStream} event.
+    /// @dev Emits a {CreateFlowStream} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
+    /// - `sender` must not be the zero address.
     /// - `recipient` must not be the zero address.
     /// - `ratePerSecond` must be greater than zero.
     /// - The `token`'s decimals must be less than or equal to 18.
@@ -245,7 +246,7 @@ interface ISablierFlow is
     /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in units of the token's
     /// decimals.
     /// @param broker Struct encapsulating (i) the address of the broker assisting in creating the stream, and (ii) the
-    /// percentage fee paid to the broker from `totalTransferAmount`, denoted as a fixed-point number. Both can be set
+    /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point number. Both can be set
     /// to zero.
     ///
     /// @return streamId The ID of the newly created stream.

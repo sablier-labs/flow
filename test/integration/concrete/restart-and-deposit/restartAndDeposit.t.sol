@@ -38,7 +38,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenCallerSender() external whenNoDelegateCall givenNotNull {
-        // It should perform the ERC20 transfer.
+        // It should perform the ERC-20 transfer.
         // It should emit 1 {RestartFlowStream}, 1 {Transfer}, 1 {DepositFlowStream} and 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
         emit RestartFlowStream({ streamId: defaultStreamId, sender: users.sender, ratePerSecond: RATE_PER_SECOND });
@@ -52,7 +52,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
-        // It should perform the ERC20 transfer.
+        // It should perform the ERC-20 transfer.
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         flow.restartAndDeposit({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND, amount: DEPOSIT_AMOUNT_6D });

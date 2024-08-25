@@ -50,7 +50,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
         vm.expectEmit({ emitter: address(usdc) });
         emit IERC20.Transfer({ from: users.sender, to: users.broker, value: BROKER_FEE_AMOUNT_6D });
 
-        // It should perform the ERC20 transfers
+        // It should perform the ERC-20 transfers
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: users.broker, amount: BROKER_FEE_AMOUNT_6D });

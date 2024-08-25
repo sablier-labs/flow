@@ -18,7 +18,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_TransferAmountZero() external whenNoDelegateCall givenNotNull {
+    function test_RevertWhen_DepositAmountZero() external whenNoDelegateCall givenNotNull {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_DepositAmountZero.selector, defaultStreamId));
         flow.deposit(defaultStreamId, 0);
     }
@@ -64,7 +64,7 @@ contract Deposit_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // It should perform the ERC20 transfer.
+        // It should perform the ERC-20 transfer.
         expectCallToTransferFrom({ token: token, from: users.sender, to: address(flow), amount: depositAmount });
         flow.deposit({ streamId: streamId, amount: depositAmount });
 

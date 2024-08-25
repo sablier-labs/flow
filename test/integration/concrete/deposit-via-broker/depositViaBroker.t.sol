@@ -130,7 +130,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // It should perform the ERC20 transfers
+        // It should perform the ERC-20 transfers
         expectCallToTransferFrom({ token: token, from: users.sender, to: address(flow), amount: depositAmount });
         expectCallToTransferFrom({ token: token, from: users.sender, to: users.broker, amount: brokerFeeAmount });
 

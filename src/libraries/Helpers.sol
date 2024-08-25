@@ -33,11 +33,11 @@ library Helpers {
             revert Errors.SablierFlow_BrokerAddressZero();
         }
 
-        // Calculate the broker fee amount that is going to be transfer to the `broker.account`.
+        // Calculate the broker fee amount that is going to be transferred to the `broker.account`.
         // The cast to uint128 is safe because the maximum fee is hard coded.
         brokerFeeAmount = ud(totalAmount).mul(broker.fee).intoUint256().toUint128();
 
-        // Calculate the transfer amount to the Flow contract.
+        // Calculate the deposit amount to the Flow contract.
         depositAmount = totalAmount - brokerFeeAmount;
     }
 
@@ -63,7 +63,7 @@ library Helpers {
     /// - If the token has exactly 18 decimals, the amount is returned as is.
     /// - If the token has fewer than 18 decimals, the amount is multiplied by $10^(18 - tokenDecimals)$.
     function normalizeAmount(uint128 amount, uint8 tokenDecimals) internal pure returns (uint128 normalizedAmount) {
-        // Return the transfer amount if token's decimals is 18.
+        // Return the original amount if token's decimals is 18.
         if (tokenDecimals == 18) {
             return amount;
         }

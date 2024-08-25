@@ -40,7 +40,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit DepositFlowStream({ streamId: expectedStreamId, funder: users.sender, amount: DEPOSIT_AMOUNT_6D });
 
-        // It should perform the ERC20 transfers
+        // It should perform the ERC-20 transfers
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
         uint256 actualStreamId = flow.createAndDeposit({

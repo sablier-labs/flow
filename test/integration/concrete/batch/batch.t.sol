@@ -72,7 +72,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         bytes[] memory calls = new bytes[](1);
         calls[0] = abi.encodeCall(flow.refund, (streamId, REFUND_AMOUNT_6D));
 
-        // Remove the ERC20 balance from flow contract.
+        // Remove the ERC-20 balance from flow contract.
         deal({ token: address(usdt), to: address(flow), give: 0 });
 
         vm.expectRevert();
@@ -203,7 +203,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
-        // It should perform the ERC20 transfers.
+        // It should perform the ERC-20 transfers.
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
 
@@ -281,7 +281,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit RefundFromFlowStream({ streamId: defaultStreamIds[1], sender: users.sender, amount: REFUND_AMOUNT_6D });
 
-        // It should perform the ERC20 transfers.
+        // It should perform the ERC-20 transfers.
         expectCallToTransfer({ token: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
         expectCallToTransfer({ token: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
 
@@ -371,7 +371,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
-        // It should perform the ERC20 transfers.
+        // It should perform the ERC-20 transfers.
         expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
         expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
 

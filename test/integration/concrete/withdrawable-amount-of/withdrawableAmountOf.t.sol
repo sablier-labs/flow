@@ -12,7 +12,7 @@ contract WithdrawableAmountOf_Integration_Concrete_Test is Integration_Test {
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
 
         // It should return the correct withdrawable amount.
-        uint128 coveredDebt = flow.withdrawableAmountOf(defaultStreamId);
-        assertEq(coveredDebt, ONE_MONTH_DEBT_6D, "covered debt");
+        uint128 withdrawableAmount = flow.withdrawableAmountOf(defaultStreamId);
+        assertEq(withdrawableAmount, ONE_MONTH_DEBT_6D, "withdrawable amount");
     }
 }

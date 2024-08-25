@@ -472,7 +472,7 @@ contract SablierFlow is
         // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
         uint128 normalizedAmount = elapsedTime * _streams[streamId].ratePerSecond;
 
-        // Since amount values are represented in token decimals, denormalize the amount before returning.abi
+        // Since amount values are represented in token decimals, denormalize the amount before returning.
         return Helpers.denormalizeAmount(normalizedAmount, _streams[streamId].tokenDecimals);
     }
 
@@ -608,7 +608,7 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _deposit(uint256 streamId, uint128 amount) internal {
-        // Check: the transfer amount is not zero.
+        // Check: the deposit amount is not zero.
         if (amount == 0) {
             revert Errors.SablierFlow_DepositAmountZero(streamId);
         }
@@ -748,7 +748,6 @@ contract SablierFlow is
             revert Errors.SablierFlow_Unauthorized({ streamId: streamId, caller: msg.sender });
         }
 
-        // The new total debt is set to the stream balance.
         uint128 balance = _streams[streamId].balance;
 
         // Effect: update the total debt by setting snapshot debt to the stream balance.

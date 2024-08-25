@@ -17,7 +17,7 @@ contract FlowCreateHandler is BaseHandler {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Default ERC20 tokens used for testing.
+    /// @dev Default ERC-20 tokens used for testing.
     IERC20[] public tokens;
     IERC20 public currentToken;
 

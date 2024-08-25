@@ -72,16 +72,15 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev For a given token, the sum of all stream balances should never exceed the token balance of the flow
-    /// contract.
-    function invariant_ContractBalanceGeStreamBalances() external view {
+    /// @dev For a given token, the sum of all stream balances should equal the token balance of the flow contract.
+    function invariant_ContractBalanceEqStreamBalances() external view {
         // Check the invariant for each token.
         for (uint256 i = 0; i < tokens.length; ++i) {
-            contractBalanceGeStreamBalances(tokens[i]);
+            contractBalanceEqStreamBalances(tokens[i]);
         }
     }
 
-    function contractBalanceGeStreamBalances(IERC20 token) internal view {
+    function contractBalanceEqStreamBalances(IERC20 token) internal view {
         uint256 contractBalance = token.balanceOf(address(flow));
         uint128 streamBalancesSum;
 

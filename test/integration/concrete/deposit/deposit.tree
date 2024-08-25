@@ -5,9 +5,9 @@ Deposit_Integration_Concrete_Test
    ├── given null
    │  └── it should revert
    └── given not null
-      ├── when transfer amount zero
+      ├── when deposit amount zero
       │  └── it should revert
-      └── when transfer amount not zero
+      └── when deposit amount not zero
          ├── when token misses ERC20 return
          │  └── it should make the deposit
          └── when token does not miss ERC20 return

@@ -150,7 +150,7 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // It should perform the ERC20 transfer.
+        // It should perform the ERC-20 transfer.
         expectCallToTransfer({ token: token, to: users.sender, amount: refundAmount });
         flow.refund({ streamId: streamId, amount: refundAmount });
 

@@ -51,7 +51,7 @@ contract Flow_Fork_Test is Fork_Test {
         // Ensure a large number of function calls.
         vm.assume(flowFuncU8.length > 1);
 
-        // Limit the number of functions to call if it exceeds 50.
+        // Limit the number of functions to call if it exceeds 15.
         if (flowFuncU8.length > 15) {
             flowFuncU8 = flowFuncU8[0:15];
         }
@@ -307,7 +307,7 @@ contract Flow_Fork_Test is Fork_Test {
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
-        // It should perform the ERC20 transfer.
+        // It should perform the ERC-20 transfer.
         expectCallToTransferFrom({ token: token, from: sender, to: address(flow), amount: depositAmount });
 
         // Make the deposit.
