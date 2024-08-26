@@ -39,6 +39,6 @@ abstract contract Constants {
 
     // Misc
     uint8 internal constant DECIMALS = 6;
-    bool internal constant IS_TRANSFERABLE = true;
+    bool internal constant TRANSFERABLE = true;
     uint128 internal constant RATE_PER_SECOND = 0.001e18; // 86.4 daily
 }

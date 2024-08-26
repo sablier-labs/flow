@@ -64,7 +64,7 @@ contract FlowCreateHandler is BaseHandler {
         address sender;
         address recipient;
         uint128 ratePerSecond;
-        bool isTransferable;
+        bool transferable;
     }
 
     function create(
@@ -83,7 +83,7 @@ contract FlowCreateHandler is BaseHandler {
 
         // Create the stream.
         uint256 streamId =
-            flow.create(params.sender, params.recipient, params.ratePerSecond, currentToken, params.isTransferable);
+            flow.create(params.sender, params.recipient, params.ratePerSecond, currentToken, params.transferable);
 
         // Store the stream id.
         flowStore.pushStreamId(streamId, params.sender, params.recipient);
@@ -122,7 +122,7 @@ contract FlowCreateHandler is BaseHandler {
 
         // Create the stream.
         uint256 streamId = flow.createAndDeposit(
-            params.sender, params.recipient, params.ratePerSecond, currentToken, params.isTransferable, depositAmount
+            params.sender, params.recipient, params.ratePerSecond, currentToken, params.transferable, depositAmount
         );
 
         // Store the stream id.

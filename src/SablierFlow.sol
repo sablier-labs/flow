@@ -401,7 +401,7 @@ contract SablierFlow is
 
         // Check: the time reference is greater than `snapshotTime`.
         if (time < snapshotTime) {
-            revert Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime(streamId, snapshotTime, time);
+            revert Errors.SablierFlow_WithdrawTimeLessThanSnapshotTime(streamId, snapshotTime, time);
         }
 
         // Check: the withdrawal time is not in the future.

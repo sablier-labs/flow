@@ -16,7 +16,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
                 users.recipient,
                 RATE_PER_SECOND,
                 usdc,
-                IS_TRANSFERABLE,
+                TRANSFERABLE,
                 TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
                 defaultBroker
             )
@@ -38,7 +38,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         vm.expectEmit({ emitter: address(usdc) });
@@ -60,7 +60,7 @@ contract CreateAndDepositViaBroker_Integration_Concrete_Test is Integration_Test
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE,
+            transferable: TRANSFERABLE,
             totalAmount: TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
             broker: defaultBroker
         });

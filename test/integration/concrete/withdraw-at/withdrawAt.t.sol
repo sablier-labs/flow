@@ -36,7 +36,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.SablierFlow_LastUpdateNotLessThanWithdrawalTime.selector,
+                Errors.SablierFlow_WithdrawTimeLessThanSnapshotTime.selector,
                 defaultStreamId,
                 snapshotTime,
                 WITHDRAW_TIME

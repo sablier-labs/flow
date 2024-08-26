@@ -19,7 +19,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         address sender,
         uint128 ratePerSecond,
         uint8 decimals,
-        bool isTransferable
+        bool transferable
     )
         external
         whenNoDelegateCall
@@ -50,7 +50,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             recipient: recipient,
             ratePerSecond: ratePerSecond,
             token: token,
-            transferable: isTransferable
+            transferable: transferable
         });
 
         // Create the stream.
@@ -59,7 +59,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             recipient: recipient,
             ratePerSecond: ratePerSecond,
             token: token,
-            transferable: isTransferable
+            transferable: transferable
         });
 
         // Assert stream's initial states. This is the only place testing for state's getter functions.
@@ -73,6 +73,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.getTokenDecimals(actualStreamId), decimals);
         assertEq(flow.isPaused(actualStreamId), false);
         assertEq(flow.isStream(actualStreamId), true);
+        assertEq(flow.isTransferable(actualStreamId), transferable);
 
         // Assert that the next stream ID has been bumped.
         uint256 actualNextStreamId = flow.nextStreamId();

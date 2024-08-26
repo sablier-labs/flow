@@ -47,7 +47,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: IERC20(address(usdt)),
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         address noAllowanceAddress = address(0xBEEF);
@@ -134,8 +134,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
 
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](2);
-        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, IS_TRANSFERABLE));
-        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, IS_TRANSFERABLE));
+        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE));
+        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE));
 
         // It should emit events: 2 {MetadataUpdate}, 2 {CreateFlowStream}
 
@@ -150,7 +150,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         // Second stream to create
@@ -164,7 +164,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         // Call the batch function.

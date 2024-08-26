@@ -13,7 +13,7 @@ import { Integration_Test } from "./../../Integration.t.sol";
 contract Create_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData =
-            abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, IS_TRANSFERABLE));
+            abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, dai, TRANSFERABLE));
         expectRevert_DelegateCall(callData);
     }
 
@@ -24,7 +24,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: dai,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
     }
 
@@ -35,7 +35,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: 0,
             token: dai,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
     }
 
@@ -52,7 +52,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: IERC20(invalidToken),
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
     }
 
@@ -74,7 +74,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: tokenWith24Decimals,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
     }
 
@@ -92,7 +92,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: address(0),
             ratePerSecond: RATE_PER_SECOND,
             token: dai,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
     }
 
@@ -120,7 +120,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         // Create the stream.
@@ -129,7 +129,7 @@ contract Create_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);

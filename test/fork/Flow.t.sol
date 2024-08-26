@@ -30,7 +30,7 @@ contract Flow_Fork_Test is Fork_Test {
         address recipient;
         address sender;
         uint128 ratePerSecond;
-        bool isTransferable;
+        bool transferable;
         // Amounts
         uint128 depositAmount;
         uint128 refundAmount;
@@ -94,7 +94,7 @@ contract Flow_Fork_Test is Fork_Test {
             params.timeJump = _passTime(params.timeJump);
 
             // Create a stream.
-            _test_Create(params.recipient, params.sender, params.ratePerSecond, params.isTransferable);
+            _test_Create(params.recipient, params.sender, params.ratePerSecond, params.transferable);
         }
 
         // Assert that the stream IDs have been bumped.
@@ -224,7 +224,7 @@ contract Flow_Fork_Test is Fork_Test {
                                        CREATE
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _test_Create(address recipient, address sender, uint128 ratePerSecond, bool isTransferable) private {
+    function _test_Create(address recipient, address sender, uint128 ratePerSecond, bool transferable) private {
         uint256 expectedStreamId = flow.nextStreamId();
 
         vm.expectEmit({ emitter: address(flow) });
@@ -240,7 +240,7 @@ contract Flow_Fork_Test is Fork_Test {
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
-            transferable: isTransferable
+            transferable: transferable
         });
 
         uint256 actualStreamId = flow.create({
@@ -248,7 +248,7 @@ contract Flow_Fork_Test is Fork_Test {
             sender: sender,
             ratePerSecond: ratePerSecond,
             token: token,
-            transferable: isTransferable
+            transferable: transferable
         });
 
         Flow.Stream memory actualStream = flow.getStream(actualStreamId);
@@ -256,7 +256,7 @@ contract Flow_Fork_Test is Fork_Test {
             balance: 0,
             isPaused: false,
             isStream: true,
-            isTransferable: isTransferable,
+            isTransferable: transferable,
             snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond,
             snapshotDebt: 0,

@@ -87,6 +87,11 @@ interface ISablierFlowState is
     /// @param streamId The stream ID for the query.
     function isStream(uint256 streamId) external view returns (bool result);
 
+    /// @notice Retrieves a flag indicating whether the stream NFT is transferable.
+    /// @dev Reverts if `streamId` references a null stream.
+    /// @param streamId The stream ID for the query.
+    function isTransferable(uint256 streamId) external view returns (bool result);
+
     /// @notice Counter for stream ids.
     /// @return The next stream ID.
     function nextStreamId() external view returns (uint256);

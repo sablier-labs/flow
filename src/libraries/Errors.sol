@@ -40,7 +40,7 @@ library Errors {
 
     /// @notice Thrown when trying to withdraw tokens with a withdrawal time not greater than or equal to
     /// `snapshotTime`.
-    error SablierFlow_LastUpdateNotLessThanWithdrawalTime(uint256 streamId, uint40 lastUpdate, uint40 time);
+    error SablierFlow_WithdrawTimeLessThanSnapshotTime(uint256 streamId, uint40 snapshotTime, uint40 withdrawTime);
 
     /// @notice Thrown when the ID references a null stream.
     error SablierFlow_Null(uint256 streamId);

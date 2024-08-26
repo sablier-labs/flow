@@ -11,7 +11,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_DelegateCall() external {
         bytes memory callData = abi.encodeCall(
             flow.createAndDeposit,
-            (users.sender, users.recipient, RATE_PER_SECOND, usdc, IS_TRANSFERABLE, DEPOSIT_AMOUNT_6D)
+            (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE, DEPOSIT_AMOUNT_6D)
         );
         expectRevert_DelegateCall(callData);
     }
@@ -31,7 +31,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE
+            transferable: TRANSFERABLE
         });
 
         vm.expectEmit({ emitter: address(usdc) });
@@ -48,7 +48,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Integration_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: IS_TRANSFERABLE,
+            transferable: TRANSFERABLE,
             amount: DEPOSIT_AMOUNT_6D
         });
 
