@@ -89,7 +89,7 @@ interface ISablierFlow is
     /// @param token The contract address of the ERC-20 token that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
     /// @param withdrawAmount The amount withdrawn, denoted in the token's decimals.
-    /// @param withdrawTime The Unix timestamp used to calculate the ongoing debt since the snapshot time.
+    /// @param withdrawTime The Unix timestamp up to which ongoing debt was calculated from the snapshot time.
     event WithdrawFromFlowStream(
         uint256 indexed streamId,
         address indexed to,
