@@ -430,7 +430,7 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
-    /// @param time The Unix timestamp to calculate the ongoing debt since the snapshot time.
+    /// @param time The Unix timestamp up to which ongoing debt is calculated from the snapshot time.
     ///
     /// @return withdrawAmount The amount transferred to the recipient, denoted in token's decimals.
     function withdrawAt(uint256 streamId, address to, uint40 time) external returns (uint128 withdrawAmount);
