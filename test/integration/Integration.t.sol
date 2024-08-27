@@ -58,6 +58,18 @@ abstract contract Integration_Test is Base_Test {
         });
     }
 
+    /// @dev Helper function to create an token with the `decimals` and then a stream using the newly created token.
+    function createTokenAndStream(uint8 decimals) internal returns (IERC20 token, uint256 streamId) {
+        token = createToken(decimals);
+
+        // Hash the next stream ID and the decimal to generate a seed.
+        uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(flow.nextStreamId(), decimals)));
+        uint128 ratePerSecond = boundRatePerSecond(uint128(ratePerSecondSeed));
+
+        // Create stream.
+        streamId = createDefaultStream(ratePerSecond, token);
+    }
+
     function defaultStream() internal view returns (Flow.Stream memory) {
         return Flow.Stream({
             balance: 0,
