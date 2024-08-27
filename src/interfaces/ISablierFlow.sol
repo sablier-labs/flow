@@ -88,7 +88,7 @@ interface ISablierFlow is
     /// @param to The address that received the withdrawn tokens.
     /// @param token The contract address of the ERC-20 token that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
-    /// @param withdrawAmount The amount withdrawn, denoted in the token's decimals.
+    /// @param withdrawAmount The amount withdrawn, denoted in token's decimals.
     /// @param withdrawTime The Unix timestamp up to which ongoing debt was calculated from the snapshot time.
     event WithdrawFromFlowStream(
         uint256 indexed streamId,
@@ -139,8 +139,8 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     function uncoveredDebtOf(uint256 streamId) external view returns (uint128 uncoveredDebt);
 
-    /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in token decimals.
-    /// This is an alias for `coveredDebtOf`.
+    /// @notice Calculates the amount that the recipient can withdraw from the stream, denoted in token decimals. This
+    /// is an alias for `coveredDebtOf`.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     /// @return withdrawableAmount The amount that the recipient can withdraw.
@@ -304,8 +304,7 @@ interface ISablierFlow is
     /// - `broker.fee` must not be greater than `MAX_BROKER_FEE`. It can be zero.
     ///
     /// @param streamId The ID of the stream to deposit on.
-    /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in units of the token's
-    /// decimals.
+    /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in token's decimals.
     /// @param broker Struct encapsulating (i) the address of the broker assisting in creating the stream, and (ii) the
     /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point number. Both can be set to zero.
     function depositViaBroker(uint256 streamId, uint128 totalAmount, Broker calldata broker) external;

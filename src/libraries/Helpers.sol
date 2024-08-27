@@ -44,14 +44,14 @@ library Helpers {
     /// @notice Denormalizes the provided amount to be denoted in the token's decimals.
     /// @dev The following logic is used to denormalize the amount:
     /// - If the token has exactly 18 decimals, the amount is returned as is.
-    /// - if the token has fewer than 18 decimals, the amount is divided by $10^(18 - tokenDecimals)$.
+    /// - If the token has fewer than 18 decimals, the amount is divided by $10^(18 - tokenDecimals)$.
     function denormalizeAmount(uint128 normalizedAmount, uint8 tokenDecimals) internal pure returns (uint128 amount) {
         // Return the original amount if token's decimals is 18.
         if (tokenDecimals == 18) {
             return normalizedAmount;
         }
 
-        // Safe to use unchecked because the subtraction and division cannot overflow.
+        // Safe to use unchecked because we use {SafeCast}.
         unchecked {
             uint8 factor = 18 - tokenDecimals;
             amount = (normalizedAmount / (10 ** factor)).toUint128();
@@ -68,7 +68,7 @@ library Helpers {
             return amount;
         }
 
-        // Safe to use unchecked because the subtraction cannot overflow.
+        // Safe to use unchecked because we use {SafeCast}.
         unchecked {
             uint8 factor = 18 - tokenDecimals;
             normalizedAmount = (amount * (10 ** factor)).toUint128();

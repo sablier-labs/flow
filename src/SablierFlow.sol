@@ -75,7 +75,7 @@ contract SablierFlow is
             return 0;
         }
 
-        // Safe to unchecked because subtraction cannot underflow.
+        // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
             // The solvency amount is normalized to 18 decimals since it is divided by the rate per second.
             uint128 solvencyAmount = Helpers.normalizeAmount(balance - totalDebt, _streams[streamId].tokenDecimals);
@@ -463,7 +463,7 @@ contract SablierFlow is
 
         uint128 elapsedTime;
 
-        // Safe to unchecked because subtraction cannot underflow.
+        // Safe to use unchecked because subtraction cannot underflow.
         unchecked {
             // Calculate time elapsed since the last snapshot.
             elapsedTime = time - snapshotTime;
@@ -792,23 +792,23 @@ contract SablierFlow is
 
         uint128 totalDebt = _totalDebtOf(streamId, time);
 
-        // Safe to use unchecked because subtraction cannot underflow.
-        unchecked {
-            // If there is debt, the withdraw amount is the balance, and the snapshot debt is updated so that we
-            // don't lose track of the debt.
-            if (totalDebt > balance) {
-                withdrawAmount = balance;
+        // If there is debt, the withdraw amount is the balance, and the snapshot debt is updated so that we
+        // don't lose track of the debt.
+        if (totalDebt > balance) {
+            withdrawAmount = balance;
 
+            // Safe to use unchecked because subtraction cannot underflow.
+            unchecked {
                 // Effect: update the snapshot debt.
                 _streams[streamId].snapshotDebt = totalDebt - balance;
             }
-            // Otherwise, recipient can withdraw the full amount, and the snapshot debt must be set to zero.
-            else {
-                withdrawAmount = totalDebt;
+        }
+        // Otherwise, recipient can withdraw the full amount, and the snapshot debt must be set to zero.
+        else {
+            withdrawAmount = totalDebt;
 
-                // Effect: set the snapshot debt to zero.
-                _streams[streamId].snapshotDebt = 0;
-            }
+            // Effect: set the snapshot debt to zero.
+            _streams[streamId].snapshotDebt = 0;
         }
 
         // Effect: update the stream time.
