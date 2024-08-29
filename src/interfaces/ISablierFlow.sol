@@ -400,7 +400,7 @@ interface ISablierFlow is
     /// Requirements:
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream.
-    /// - `msg.sender` must either be the stream's sender, stream's recipient or an approved third party.
+    /// - `msg.sender` must either be the stream's sender, recipient or an approved third party.
     /// - The uncovered debt must be greater than zero.
     ///
     /// @param streamId The ID of the stream to void.

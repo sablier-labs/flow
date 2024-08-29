@@ -733,7 +733,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_UncoveredDebtZero(streamId);
         }
 
-        // Check: if `msg.sender` is either the stream's sender, stream's recipient or an approved third party.
+        // Check: `msg.sender` is either the stream's sender, recipient or an approved third party.
         if (msg.sender != _streams[streamId].sender && !_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized({ streamId: streamId, caller: msg.sender });
         }
@@ -767,7 +767,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawToZeroAddress(streamId);
         }
 
-        // Check: if `msg.sender` is neither the stream's recipient nor an approved third party, the withdrawal address
+        // Check: `msg.sender` is neither the stream's recipient nor an approved third party, the withdrawal address
         // must be the recipient.
         if (to != _ownerOf(streamId) && !_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_WithdrawalAddressNotRecipient({ streamId: streamId, caller: msg.sender, to: to });
