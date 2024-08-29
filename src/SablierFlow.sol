@@ -50,9 +50,7 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function depletionTimeOf(
-        uint256 streamId
-    )
+    function depletionTimeOf(uint256 streamId)
         external
         view
         override
@@ -90,9 +88,7 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function refundableAmountOf(
-        uint256 streamId
-    )
+    function refundableAmountOf(uint256 streamId)
         external
         view
         override
@@ -132,9 +128,7 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function uncoveredDebtOf(
-        uint256 streamId
-    )
+    function uncoveredDebtOf(uint256 streamId)
         external
         view
         override
@@ -145,9 +139,7 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function withdrawableAmountOf(
-        uint256 streamId
-    )
+    function withdrawableAmountOf(uint256 streamId)
         external
         view
         override
@@ -290,9 +282,7 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function pause(
-        uint256 streamId
-    )
+    function pause(uint256 streamId)
         external
         override
         noDelegateCall
