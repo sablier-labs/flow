@@ -743,8 +743,8 @@ contract SablierFlow is
             revert Errors.SablierFlow_UncoveredDebtZero(streamId);
         }
 
-        // Check: if `msg.sender` is either the stream's recipient or an approved third party.
-        if (!_isCallerStreamRecipientOrApproved(streamId)) {
+        // Check: if `msg.sender` is either the stream's sender, stream's recipient or an approved third party.
+        if (msg.sender != _streams[streamId].sender && !_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized({ streamId: streamId, caller: msg.sender });
         }
 

@@ -67,7 +67,7 @@ interface ISablierFlow is
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted in 18 decimals.
     event RestartFlowStream(uint256 indexed streamId, address indexed sender, uint128 ratePerSecond);
 
-    /// @notice Emitted when a stream is voided by a recipient or an approved operator.
+    /// @notice Emitted when a stream is voided by the sender, recipient or an approved operator.
     /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
@@ -400,7 +400,7 @@ interface ISablierFlow is
     /// Requirements:
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream.
-    /// - `msg.sender` must either be the stream's recipient or an approved third party.
+    /// - `msg.sender` must either be the stream's sender, stream's recipient or an approved third party.
     /// - The uncovered debt must be greater than zero.
     ///
     /// @param streamId The ID of the stream to void.
