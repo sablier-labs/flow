@@ -71,7 +71,7 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream.
     /// @param sender The address of the stream's sender.
     /// @param recipient The address of the stream's recipient.
-    /// @param caller The address that performed the void, which can be the recipient or an approved operator.
+    /// @param caller The address that performed the void, which can be the sender, recipient or an approved operator.
     /// @param newTotalDebt The new total debt, denoted in token's decimals.
     /// @param writtenOffDebt The amount of debt written off by the caller, denoted in token's decimals.
     event VoidFlowStream(
