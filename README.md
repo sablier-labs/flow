@@ -177,3 +177,7 @@ Currently, it's not possible to address this precision problem entirely.
 12. if $isPaused = true \implies rps = 0$
 
 13. if $isVoided = true \implies isPaused = true$
+
+14. if $isVoided = true \implies ra = 0$
+
+15. if $isVoided = true \implies ud = 0$
