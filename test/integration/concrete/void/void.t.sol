@@ -27,15 +27,11 @@ contract Void_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertGiven_Voided() external whenNoDelegateCall givenNotNull {
-        // Simulate the passage of time to accumulate uncovered debt for one month.
-        vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + ONE_MONTH });
-        flow.void(defaultStreamId);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_StreamVoided.selector, defaultStreamId));
-        flow.void(defaultStreamId);
+        bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
+        expectRevert_Voided(callData);
     }
 
-    function test_RevertGiven_StreamHasNoUncoveredDebt() external whenNoDelegateCall givenNotNull {
+    function test_RevertGiven_StreamHasNoUncoveredDebt() external whenNoDelegateCall givenNotNull givenNotVoided {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_UncoveredDebtZero.selector, defaultStreamId));
         flow.void(defaultStreamId);
     }
@@ -51,6 +47,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
+        givenNotVoided
         givenStreamHasUncoveredDebt
     {
         bytes memory callData = abi.encodeCall(flow.void, (defaultStreamId));
@@ -61,6 +58,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
+        givenNotVoided
         givenStreamHasUncoveredDebt
         whenCallerAuthorized
     {
@@ -75,6 +73,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
+        givenNotVoided
         givenStreamHasUncoveredDebt
         whenCallerAuthorized
     {
@@ -92,6 +91,7 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
+        givenNotVoided
         givenStreamHasUncoveredDebt
         whenCallerAuthorized
     {

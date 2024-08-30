@@ -175,3 +175,5 @@ Currently, it's not possible to address this precision problem entirely.
 11. $bal = ra + cd$
 
 12. if $isPaused = true \implies rps = 0$
+
+13. if $isVoided = true \implies isPaused = true$

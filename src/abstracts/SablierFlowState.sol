@@ -72,6 +72,13 @@ abstract contract SablierFlowState is
         _;
     }
 
+    modifier notVoided(uint256 streamId) {
+        if (_streams[streamId].isVoided) {
+            revert Errors.SablierFlow_StreamVoided(streamId);
+        }
+        _;
+    }
+
     /// @dev Checks the `msg.sender` is the stream's sender.
     modifier onlySender(uint256 streamId) {
         if (msg.sender != _streams[streamId].sender) {

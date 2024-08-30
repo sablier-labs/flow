@@ -240,4 +240,15 @@ contract Flow_Invariant_Test is Base_Test {
             }
         }
     }
+
+    /// @dev If the stream is voided, then the stream should be paused.
+    function invariant_StreamVoided_StreamPaused() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (flow.isVoided(streamId)) {
+                assertTrue(flow.isPaused(streamId), "Invariant violation: voided stream is not paused");
+            }
+        }
+    }
 }

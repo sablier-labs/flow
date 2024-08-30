@@ -245,6 +245,7 @@ contract SablierFlow is
         override
         noDelegateCall
         notNull(streamId)
+        notVoided(streamId)
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream.
@@ -310,6 +311,7 @@ contract SablierFlow is
         override
         noDelegateCall
         notNull(streamId)
+        notVoided(streamId)
         onlySender(streamId)
         updateMetadata(streamId)
     {
@@ -346,6 +348,7 @@ contract SablierFlow is
         override
         noDelegateCall
         notNull(streamId)
+        notVoided(streamId)
         onlySender(streamId)
         updateMetadata(streamId)
     {
@@ -374,7 +377,14 @@ contract SablierFlow is
     }
 
     /// @inheritdoc ISablierFlow
-    function void(uint256 streamId) external override noDelegateCall notNull(streamId) updateMetadata(streamId) {
+    function void(uint256 streamId)
+        external
+        override
+        noDelegateCall
+        notNull(streamId)
+        notVoided(streamId)
+        updateMetadata(streamId)
+    {
         // Checks, Effects, and Interactions: void the stream.
         _void(streamId);
     }
@@ -685,11 +695,6 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _restart(uint256 streamId, UD21x18 ratePerSecond) internal {
-        // Check: the stream is not voided.
-        if (_streams[streamId].isVoided) {
-            revert Errors.SablierFlow_StreamVoided(streamId);
-        }
-
         // Check: the stream is paused.
         if (!_streams[streamId].isPaused) {
             revert Errors.SablierFlow_StreamNotPaused(streamId);
@@ -738,11 +743,6 @@ contract SablierFlow is
 
     /// @dev Voids a stream that has uncovered debt.
     function _void(uint256 streamId) internal {
-        // Check: the stream is not voided.
-        if (_streams[streamId].isVoided) {
-            revert Errors.SablierFlow_StreamVoided(streamId);
-        }
-
         uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
 
         // Check: the stream has debt.

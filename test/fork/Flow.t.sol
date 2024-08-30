@@ -311,6 +311,13 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_Deposit(uint256 streamId, uint128 depositAmount) private {
+        streamId = _findNonVoidedStreamId(streamId);
+
+        // If no non-voided stream is found, skip the test.
+        if (streamId == 0) {
+            return;
+        }
+
         uint8 tokenDecimals = flow.getTokenDecimals(streamId);
 
         // Following variables are used during assertions.
@@ -391,6 +398,13 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_Refund(uint256 streamId, uint128 refundAmount) private {
+        streamId = _findNonVoidedStreamId(streamId);
+
+        // If no non-voided stream is found, skip the test.
+        if (streamId == 0) {
+            return;
+        }
+
         // Make sure the requirements are respected.
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
