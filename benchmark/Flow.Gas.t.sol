@@ -50,37 +50,8 @@ contract Flow_Gas_Test is Integration_Test {
             "create", abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE))
         );
 
-        // {flow.createAndDeposit}
-        computeGas(
-            "createAndDeposit",
-            abi.encodeCall(
-                flow.createAndDeposit,
-                (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE, DEPOSIT_AMOUNT_6D)
-            )
-        );
-
-        // {flow.createAndDepositViaBroker}
-        computeGas(
-            "createAndDepositViaBroker",
-            abi.encodeCall(
-                flow.createAndDepositViaBroker,
-                (
-                    users.sender,
-                    users.recipient,
-                    RATE_PER_SECOND,
-                    usdc,
-                    TRANSFERABLE,
-                    TOTAL_AMOUNT_WITH_BROKER_FEE_6D,
-                    defaultBroker
-                )
-            )
-        );
-
         // {flow.deposit}
         computeGas("deposit", abi.encodeCall(flow.deposit, (streamId, DEPOSIT_AMOUNT_6D)));
-
-        // {flow.depositAndPause}
-        computeGas("depositAndPause", abi.encodeCall(flow.depositAndPause, (streamId, DEPOSIT_AMOUNT_6D)));
 
         // {flow.depositViaBroker}
         computeGas(
@@ -88,25 +59,14 @@ contract Flow_Gas_Test is Integration_Test {
             abi.encodeCall(flow.depositViaBroker, (streamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker))
         );
 
-        // {flow.pause} on an incremented stream ID.
-        computeGas("pause", abi.encodeCall(flow.pause, (++streamId)));
+        // {flow.pause}
+        computeGas("pause", abi.encodeCall(flow.pause, (streamId)));
 
         // {flow.refund}
         computeGas("refund", abi.encodeCall(flow.refund, (streamId, REFUND_AMOUNT_6D)));
 
-        // {flow.refundAndPause} on an incremented stream ID.
-        computeGas("refundAndPause", abi.encodeCall(flow.refundAndPause, (++streamId, REFUND_AMOUNT_6D)));
-
         // {flow.restart}
         computeGas("restart", abi.encodeCall(flow.restart, (streamId, RATE_PER_SECOND)));
-
-        // Pause the stream for the next call.
-        flow.pause(streamId);
-
-        // {flow.restartAndDeposit}
-        computeGas(
-            "restartAndDeposit", abi.encodeCall(flow.restartAndDeposit, (streamId, RATE_PER_SECOND, DEPOSIT_AMOUNT_6D))
-        );
 
         // Warp time to accrue uncovered debt for the next call.
         vm.warp(flow.depletionTimeOf(streamId) + 2 days);
