@@ -78,7 +78,7 @@ contract SablierFlow is
         unchecked {
             // The solvency amount is normalized to 18 decimals since it is divided by the rate per second.
             uint128 solvencyAmount = Helpers.normalizeAmount(balance - totalDebt, _streams[streamId].tokenDecimals);
-            uint128 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond.intoUint128();
+            uint128 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond.unwrap();
             depletionTime = uint40(block.timestamp + solvencyPeriod);
         }
     }
