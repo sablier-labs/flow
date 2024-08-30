@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Integration_Test } from "./../test/integration/Integration.t.sol";
 
 /// @notice A contract to benchmark Flow functions.
@@ -12,10 +11,9 @@ contract Flow_Gas_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev The path to the file where the benchmark results are stored.
-    string internal benchmarkResultsFile = string.concat("benchmark/results/SablierFlow.md");
+    string internal benchmarkResultsFile = "benchmark/results/SablierFlow.md";
 
     uint256 internal streamId;
-    IERC20 internal token;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -24,15 +22,13 @@ contract Flow_Gas_Test is Integration_Test {
     function setUp() public override {
         Integration_Test.setUp();
 
-        // Setup a few streams with 6 decimals asset.
+        // Setup a few streams with usdc.
         for (uint8 count; count < 100; ++count) {
-            (token, streamId) = createTokenAndStream({ decimals: 6 });
-            depositDefaultAmount(streamId);
-
-            // Deal sufficient tokens to sender so that all tests can be run without getting any error.
-            deal({ token: address(token), to: users.sender, give: UINT128_MAX });
-            token.approve(address(flow), UINT128_MAX);
+            depositDefaultAmount({ streamId: createDefaultStream() });
         }
+
+        // Set the streamId to 50 for the test function.
+        streamId = 50;
 
         // Create the file if it doesn't exist, otherwise overwrite it.
         vm.writeFile({
@@ -46,9 +42,6 @@ contract Flow_Gas_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function testGas_Implementations() external {
-        // Set the streamId to 50 for the next few calls.
-        streamId = 50;
-
         // {flow.adjustRatePerSecond}
         benchmark_functionWithSelector(
             "adjustRatePerSecond", abi.encodeCall(flow.adjustRatePerSecond, (streamId, RATE_PER_SECOND + 1))
@@ -99,52 +92,51 @@ contract Flow_Gas_Test is Integration_Test {
             abi.encodeCall(flow.depositViaBroker, (streamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker))
         );
 
-        // Bump the streamId to 51 and use it for the next few calls.
-        streamId = 51;
-
-        // {flow.pause}
-        benchmark_functionWithSelector("pause", abi.encodeCall(flow.pause, (streamId)));
-
-        // Deposit excess amount in case the stream has accumulated debt.
-        deposit(streamId, flow.totalDebtOf(streamId) + 20 * DEPOSIT_AMOUNT_6D);
+        // {flow.pause} on an incremented stream ID.
+        benchmark_functionWithSelector("pause", abi.encodeCall(flow.pause, (++streamId)));
 
         // {flow.refund}
         benchmark_functionWithSelector("refund", abi.encodeCall(flow.refund, (streamId, REFUND_AMOUNT_6D)));
 
-        // Bump the streamId to 52 and use it for the next few calls.
-        streamId = 52;
-
-        // Deposit excess amount in case the stream has accumulated debt.
-        deposit(streamId, flow.totalDebtOf(streamId) + 20 * DEPOSIT_AMOUNT_6D);
-
-        // {flow.refundAndPause}
+        // {flow.refundAndPause} on an incremented stream ID.
         benchmark_functionWithSelector(
-            "refundAndPause", abi.encodeCall(flow.refundAndPause, (streamId, REFUND_AMOUNT_6D))
+            "refundAndPause", abi.encodeCall(flow.refundAndPause, (++streamId, REFUND_AMOUNT_6D))
         );
 
         // {flow.restart}
         benchmark_functionWithSelector("restart", abi.encodeCall(flow.restart, (streamId, RATE_PER_SECOND)));
 
+        // Pause the stream for the next call.
+        flow.pause(streamId);
+
         // {flow.restartAndDeposit}
         benchmark_functionWithSelector(
-            "restartAndDeposit", abi.encodeCall(flow.restartAndDeposit, (50, RATE_PER_SECOND, DEPOSIT_AMOUNT_6D))
+            "restartAndDeposit", abi.encodeCall(flow.restartAndDeposit, (streamId, RATE_PER_SECOND, DEPOSIT_AMOUNT_6D))
         );
 
-        // Set the caller to the recipient for the next calls.
-        resetPrank({ msgSender: users.recipient });
+        // Warp time to accrue uncovered debt for the next call.
+        vm.warp(flow.depletionTimeOf(streamId) + 2 days);
 
         // {flow.void}
-        benchmark_functionWithSelector("void", abi.encodeCall(flow.void, (53)));
+        benchmark_functionWithSelector("void", abi.encodeCall(flow.void, (streamId)));
 
-        uint40 withdrawTime = flow.getSnapshotTime({ streamId: 53 }) + 1 hours;
-
-        // {flow.withdrawAt}
+        // {flow.withdrawAt} (on an insolvent stream) on an incremented stream ID.
         benchmark_functionWithSelector(
-            "withdrawAt", abi.encodeCall(flow.withdrawAt, (53, users.recipient, withdrawTime))
+            "withdrawAt (insolvent stream)",
+            abi.encodeCall(flow.withdrawAt, (++streamId, users.recipient, getBlockTimestamp()))
         );
 
-        // {flow.withdrawMax}
-        benchmark_functionWithSelector("withdrawMax", abi.encodeCall(flow.withdrawMax, (54, users.recipient)));
+        // Deposit amount on an incremented stream ID to make stream solvent.
+        deposit(++streamId, flow.uncoveredDebtOf(streamId) + DEPOSIT_AMOUNT_6D);
+
+        // {flow.withdrawAt} (on a solvent stream).
+        benchmark_functionWithSelector(
+            "withdrawAt (solvent stream)",
+            abi.encodeCall(flow.withdrawAt, (streamId, users.recipient, getBlockTimestamp()))
+        );
+
+        // {flow.withdrawMax} on an incremented stream ID.
+        benchmark_functionWithSelector("withdrawMax", abi.encodeCall(flow.withdrawMax, (++streamId, users.recipient)));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -157,11 +149,11 @@ contract Flow_Gas_Test is Integration_Test {
         vm.warp(getBlockTimestamp() + 2 days);
 
         uint256 initialGas = gasleft();
-        (bool s,) = address(flow).call(payload);
+        (bool status,) = address(flow).call(payload);
         string memory gasUsed = vm.toString(initialGas - gasleft());
 
         // Ensure the function call was successful.
-        require(s, "Benchmark: call failed");
+        require(status, "Benchmark: call failed");
 
         // Append the gas usage to the benchmark results file.
         string memory contentToAppend = string.concat("| `", name, "` | ", gasUsed, " |");
