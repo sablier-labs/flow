@@ -211,11 +211,11 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         withdrawTime = boundUint40(withdrawTime, MAY_1_2024, warpTimestamp);
 
         uint256 tokenBalance = token.balanceOf(address(flow));
-        uint128 totalDebt = flow.getSnapshotDebt(streamId)
-            + getDenormalizedAmount({
-                amount: flow.getRatePerSecond(streamId).unwrap() * (withdrawTime - flow.getSnapshotTime(streamId)),
-                decimals: flow.getTokenDecimals(streamId)
-            });
+        uint128 ongoingDebt = getDenormalizedAmount({
+            amount: flow.getRatePerSecond(streamId).unwrap() * (withdrawTime - flow.getSnapshotTime(streamId)),
+            decimals: flow.getTokenDecimals(streamId)
+        });
+        uint128 totalDebt = flow.getSnapshotDebt(streamId) + ongoingDebt;
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 withdrawAmount = streamBalance < totalDebt ? streamBalance : totalDebt;
 
@@ -227,6 +227,12 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             withdrawAmount -= feeAmount;
             expectedProtocolRevenue += feeAmount;
         }
+
+        // Compute the snapshot time that will be stored post withdraw.
+        uint40 expectedSnapshotTime = uint40(
+            getNormalizedAmount(ongoingDebt, flow.getTokenDecimals(streamId)) / flow.getRatePerSecond(streamId).unwrap()
+                + flow.getSnapshotTime(streamId)
+        );
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
@@ -240,7 +246,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             caller: caller,
             protocolFeeAmount: feeAmount,
             withdrawAmount: withdrawAmount,
-            withdrawTime: withdrawTime
+            withdrawTime: expectedSnapshotTime
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -253,12 +259,12 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(flow.protocolRevenue(token), expectedProtocolRevenue, "protocol revenue");
 
         // It should update snapshot time.
-        assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
+        assertEq(flow.getSnapshotTime(streamId), expectedSnapshotTime, "snapshot time");
 
         // It should decrease the full total debt by withdrawn amount and fee amount.
         uint128 actualTotalDebt = flow.getSnapshotDebt(streamId)
             + getDenormalizedAmount({
-                amount: flow.getRatePerSecond(streamId).unwrap() * (withdrawTime - flow.getSnapshotTime(streamId)),
+                amount: flow.getRatePerSecond(streamId).unwrap() * (expectedSnapshotTime - flow.getSnapshotTime(streamId)),
                 decimals: flow.getTokenDecimals(streamId)
             });
         uint128 expectedTotalDebt = totalDebt - withdrawAmount - feeAmount;
