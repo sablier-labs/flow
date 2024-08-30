@@ -43,17 +43,15 @@ contract Flow_Gas_Test is Integration_Test {
 
     function testGas_Implementations() external {
         // {flow.adjustRatePerSecond}
-        benchmark_functionWithSelector(
-            "adjustRatePerSecond", abi.encodeCall(flow.adjustRatePerSecond, (streamId, RATE_PER_SECOND + 1))
-        );
+        computeGas("adjustRatePerSecond", abi.encodeCall(flow.adjustRatePerSecond, (streamId, RATE_PER_SECOND + 1)));
 
         // {flow.create}
-        benchmark_functionWithSelector(
+        computeGas(
             "create", abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE))
         );
 
         // {flow.createAndDeposit}
-        benchmark_functionWithSelector(
+        computeGas(
             "createAndDeposit",
             abi.encodeCall(
                 flow.createAndDeposit,
@@ -62,7 +60,7 @@ contract Flow_Gas_Test is Integration_Test {
         );
 
         // {flow.createAndDepositViaBroker}
-        benchmark_functionWithSelector(
+        computeGas(
             "createAndDepositViaBroker",
             abi.encodeCall(
                 flow.createAndDepositViaBroker,
@@ -79,38 +77,34 @@ contract Flow_Gas_Test is Integration_Test {
         );
 
         // {flow.deposit}
-        benchmark_functionWithSelector("deposit", abi.encodeCall(flow.deposit, (streamId, DEPOSIT_AMOUNT_6D)));
+        computeGas("deposit", abi.encodeCall(flow.deposit, (streamId, DEPOSIT_AMOUNT_6D)));
 
         // {flow.depositAndPause}
-        benchmark_functionWithSelector(
-            "depositAndPause", abi.encodeCall(flow.depositAndPause, (streamId, DEPOSIT_AMOUNT_6D))
-        );
+        computeGas("depositAndPause", abi.encodeCall(flow.depositAndPause, (streamId, DEPOSIT_AMOUNT_6D)));
 
         // {flow.depositViaBroker}
-        benchmark_functionWithSelector(
+        computeGas(
             "depositViaBroker",
             abi.encodeCall(flow.depositViaBroker, (streamId, TOTAL_AMOUNT_WITH_BROKER_FEE_6D, defaultBroker))
         );
 
         // {flow.pause} on an incremented stream ID.
-        benchmark_functionWithSelector("pause", abi.encodeCall(flow.pause, (++streamId)));
+        computeGas("pause", abi.encodeCall(flow.pause, (++streamId)));
 
         // {flow.refund}
-        benchmark_functionWithSelector("refund", abi.encodeCall(flow.refund, (streamId, REFUND_AMOUNT_6D)));
+        computeGas("refund", abi.encodeCall(flow.refund, (streamId, REFUND_AMOUNT_6D)));
 
         // {flow.refundAndPause} on an incremented stream ID.
-        benchmark_functionWithSelector(
-            "refundAndPause", abi.encodeCall(flow.refundAndPause, (++streamId, REFUND_AMOUNT_6D))
-        );
+        computeGas("refundAndPause", abi.encodeCall(flow.refundAndPause, (++streamId, REFUND_AMOUNT_6D)));
 
         // {flow.restart}
-        benchmark_functionWithSelector("restart", abi.encodeCall(flow.restart, (streamId, RATE_PER_SECOND)));
+        computeGas("restart", abi.encodeCall(flow.restart, (streamId, RATE_PER_SECOND)));
 
         // Pause the stream for the next call.
         flow.pause(streamId);
 
         // {flow.restartAndDeposit}
-        benchmark_functionWithSelector(
+        computeGas(
             "restartAndDeposit", abi.encodeCall(flow.restartAndDeposit, (streamId, RATE_PER_SECOND, DEPOSIT_AMOUNT_6D))
         );
 
@@ -118,10 +112,10 @@ contract Flow_Gas_Test is Integration_Test {
         vm.warp(flow.depletionTimeOf(streamId) + 2 days);
 
         // {flow.void}
-        benchmark_functionWithSelector("void", abi.encodeCall(flow.void, (streamId)));
+        computeGas("void", abi.encodeCall(flow.void, (streamId)));
 
         // {flow.withdrawAt} (on an insolvent stream) on an incremented stream ID.
-        benchmark_functionWithSelector(
+        computeGas(
             "withdrawAt (insolvent stream)",
             abi.encodeCall(flow.withdrawAt, (++streamId, users.recipient, getBlockTimestamp()))
         );
@@ -130,13 +124,13 @@ contract Flow_Gas_Test is Integration_Test {
         deposit(++streamId, flow.uncoveredDebtOf(streamId) + DEPOSIT_AMOUNT_6D);
 
         // {flow.withdrawAt} (on a solvent stream).
-        benchmark_functionWithSelector(
+        computeGas(
             "withdrawAt (solvent stream)",
             abi.encodeCall(flow.withdrawAt, (streamId, users.recipient, getBlockTimestamp()))
         );
 
         // {flow.withdrawMax} on an incremented stream ID.
-        benchmark_functionWithSelector("withdrawMax", abi.encodeCall(flow.withdrawMax, (++streamId, users.recipient)));
+        computeGas("withdrawMax", abi.encodeCall(flow.withdrawMax, (++streamId, users.recipient)));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -144,7 +138,7 @@ contract Flow_Gas_Test is Integration_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Compute gas usage of a given function using low-level call.
-    function benchmark_functionWithSelector(string memory name, bytes memory payload) internal {
+    function computeGas(string memory name, bytes memory payload) internal {
         // Simulate the passage of time.
         vm.warp(getBlockTimestamp() + 2 days);
 
