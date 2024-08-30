@@ -101,6 +101,11 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
+        // Check: the stream is voided.
+        if (_streams[streamId].isVoided) {
+            return Flow.Status.VOIDED;
+        }
+
         // See whether the stream has uncovered debt.
         bool hasDebt = _uncoveredDebtOf(streamId) > 0;
 
@@ -569,6 +574,7 @@ contract SablierFlow is
             isPaused: false,
             isStream: true,
             isTransferable: transferable,
+            isVoided: false,
             ratePerSecond: ratePerSecond,
             sender: sender,
             snapshotDebt: 0,
@@ -679,6 +685,11 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _restart(uint256 streamId, UD21x18 ratePerSecond) internal {
+        // Check: the stream is not voided.
+        if (_streams[streamId].isVoided) {
+            revert Errors.SablierFlow_StreamVoided(streamId);
+        }
+
         // Check: the stream is paused.
         if (!_streams[streamId].isPaused) {
             revert Errors.SablierFlow_StreamNotPaused(streamId);
@@ -727,6 +738,11 @@ contract SablierFlow is
 
     /// @dev Voids a stream that has uncovered debt.
     function _void(uint256 streamId) internal {
+        // Check: the stream is not voided.
+        if (_streams[streamId].isVoided) {
+            revert Errors.SablierFlow_StreamVoided(streamId);
+        }
+
         uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
 
         // Check: the stream has debt.
@@ -749,6 +765,9 @@ contract SablierFlow is
 
         // Effect: set the stream as paused. This also sets the ongoing debt to zero.
         _streams[streamId].isPaused = true;
+
+        // Effect: set the stream as voided.
+        _streams[streamId].isVoided = true;
 
         // Log the void.
         emit ISablierFlow.VoidFlowStream({

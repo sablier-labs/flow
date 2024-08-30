@@ -373,7 +373,7 @@ interface ISablierFlow is
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null or paused stream.
+    /// - `streamId` must not reference a null, voided or paused stream.
     /// - `msg.sender` must be the stream's sender.
     /// - `ratePerSecond` must be greater than zero.
     ///
@@ -399,7 +399,7 @@ interface ISablierFlow is
     /// @param amount The deposit amount, denoted in token's decimals.
     function restartAndDeposit(uint256 streamId, UD21x18 ratePerSecond, uint128 amount) external;
 
-    /// @notice Voids the uncovered debt, and pauses the stream.
+    /// @notice Voids the uncovered debt, and stops the stream.
     ///
     /// @dev Emits a {VoidFlowStream} event.
     ///
@@ -407,10 +407,11 @@ interface ISablierFlow is
     /// - It sets the snapshot debt to the stream's balance so that the uncovered debt becomes zero.
     /// - It sets the payment rate per second to zero.
     /// - A paused stream can be voided only if its uncovered debt is not zero.
+    /// - A voided stream cannot be restarted.
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null stream.
+    /// - `streamId` must not reference a null or a voided stream.
     /// - `msg.sender` must either be the stream's sender, recipient or an approved third party.
     /// - The uncovered debt must be greater than zero.
     ///

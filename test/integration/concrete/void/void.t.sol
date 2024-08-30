@@ -26,6 +26,15 @@ contract Void_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
+    function test_RevertGiven_Voided() external whenNoDelegateCall givenNotNull {
+        // Simulate the passage of time to accumulate uncovered debt for one month.
+        vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + ONE_MONTH });
+        flow.void(defaultStreamId);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_StreamVoided.selector, defaultStreamId));
+        flow.void(defaultStreamId);
+    }
+
     function test_RevertGiven_StreamHasNoUncoveredDebt() external whenNoDelegateCall givenNotNull {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_UncoveredDebtZero.selector, defaultStreamId));
         flow.void(defaultStreamId);
@@ -115,6 +124,9 @@ contract Void_Integration_Concrete_Test is Integration_Test {
 
         // It should pause the stream.
         assertTrue(flow.isPaused(defaultStreamId), "paused");
+
+        // It should void the stream.
+        assertTrue(flow.isVoided(defaultStreamId), "voided");
 
         // It should set the total debt to the stream balance.
         assertEq(flow.totalDebtOf(defaultStreamId), streamBalance, "total debt");

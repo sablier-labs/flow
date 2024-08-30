@@ -189,6 +189,9 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
+        // Voided streams cannot be restarted.
+        vm.assume(!flow.isVoided(currentStreamId));
+
         // Only paused streams can be restarted.
         vm.assume(flow.isPaused(currentStreamId));
 
@@ -210,6 +213,9 @@ contract FlowHandler is BaseHandler {
         adjustTimestamp(timeJumpSeed)
         updateFlowHandlerStates
     {
+        // Voided streams cannot be voided again.
+        vm.assume(!flow.isVoided(currentStreamId));
+
         // Check if the uncovered debt is greater than zero.
         vm.assume(flow.uncoveredDebtOf(currentStreamId) > 0);
 

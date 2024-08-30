@@ -168,6 +168,11 @@ abstract contract SablierFlowState is
         result = _streams[streamId].isTransferable;
     }
 
+    /// @inheritdoc ISablierFlowState
+    function isVoided(uint256 streamId) external view override notNull(streamId) returns (bool result) {
+        result = _streams[streamId].isVoided;
+    }
+
     /// @inheritdoc ERC721
     function tokenURI(uint256 streamId) public view override(IERC721Metadata, ERC721) returns (string memory uri) {
         // Check: the stream NFT exists.

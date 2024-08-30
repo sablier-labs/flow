@@ -159,6 +159,29 @@ contract Flow_Fork_Test is Fork_Test {
         }
     }
 
+    /// @notice Find the first non-voided stream ID.
+    /// @dev If no non-voided stream is found, it returns 0.
+    function _findNonVoidedStreamId(uint256 streamId) private view returns (uint256) {
+        // Check if the current stream ID is voided.
+        if (flow.isVoided(streamId)) {
+            bool found = false;
+            for (uint256 i = 1; i < flow.nextStreamId(); ++i) {
+                if (!flow.isVoided(i)) {
+                    streamId = i;
+                    found = true;
+                    break;
+                }
+            }
+
+            // If no non-voided stream is found, set the stream ID to 0.
+            if (!found) {
+                streamId = 0;
+            }
+        }
+
+        return streamId;
+    }
+
     /// @notice Simulate passage of time.
     function _passTime(uint256 timeJump) internal returns (uint256) {
         // Hash the time jump with the current timestamp to create a unique value.
@@ -260,6 +283,7 @@ contract Flow_Fork_Test is Fork_Test {
             balance: 0,
             isPaused: false,
             isStream: true,
+            isVoided: false,
             isTransferable: transferable,
             snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond,
@@ -413,6 +437,13 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_Restart(uint256 streamId, UD21x18 ratePerSecond) private {
+        streamId = _findNonVoidedStreamId(streamId);
+
+        // If no non-voided stream is found, skip the test.
+        if (streamId == 0) {
+            return;
+        }
+
         // Make sure the requirements are respected.
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
@@ -449,6 +480,13 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_Void(uint256 streamId) private {
+        streamId = _findNonVoidedStreamId(streamId);
+
+        // If no non-voided stream is found, skip the test.
+        if (streamId == 0) {
+            return;
+        }
+
         // Make sure the requirements are respected.
         address sender = flow.getSender(streamId);
         address recipient = flow.getRecipient(streamId);

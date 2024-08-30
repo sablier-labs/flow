@@ -25,6 +25,15 @@ contract Restart_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
+    function test_RevertGiven_Voided() external whenNoDelegateCall givenNotNull {
+        // Simulate the passage of time to accumulate uncovered debt for one month.
+        vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD + ONE_MONTH });
+        flow.void(defaultStreamId);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_StreamVoided.selector, defaultStreamId));
+        flow.restart({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
+    }
+
     function test_RevertWhen_CallerRecipient() external whenNoDelegateCall givenNotNull whenCallerNotSender {
         bytes memory callData = abi.encodeCall(flow.restart, (defaultStreamId, RATE_PER_SECOND));
         expectRevert_CallerRecipient(callData);
