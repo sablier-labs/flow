@@ -85,8 +85,9 @@ contract Flow_Fork_Test is Fork_Test {
             // Create unique values by hashing the fuzzed params with index.
             params.recipient = makeAddr(vm.toString(abi.encodePacked(params.recipient, i)));
             params.sender = makeAddr(vm.toString(abi.encodePacked(params.sender, i)));
-            uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(params.ratePerSecond.unwrap(), i)));
-            params.ratePerSecond = boundRatePerSecond(ud21x18(uint128(ratePerSecondSeed)));
+            params.ratePerSecond = boundRatePerSecond(
+                ud21x18(uint128(uint256(keccak256(abi.encodePacked(params.ratePerSecond.unwrap(), i)))))
+            );
 
             // Make sure that fuzzed users don't overlap with Flow address.
             checkUsers(params.recipient, params.sender);
@@ -176,8 +177,9 @@ contract Flow_Fork_Test is Fork_Test {
 
     function _test_AdjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) private {
         // Create unique values by hashing the fuzzed params with index.
-        uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(newRatePerSecond.unwrap(), streamId)));
-        newRatePerSecond = boundRatePerSecond(ud21x18(uint128(ratePerSecondSeed)));
+        newRatePerSecond = boundRatePerSecond(
+            ud21x18(uint128(uint256(keccak256(abi.encodePacked(newRatePerSecond.unwrap(), streamId)))))
+        );
 
         // Make sure the requirements are respected.
         resetPrank({ msgSender: flow.getSender(streamId) });
@@ -291,8 +293,9 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 initialTokenBalance = token.balanceOf(address(flow));
         uint128 initialStreamBalance = flow.getBalance(streamId);
 
-        uint128 depositAmountSeed = uint128(uint256(keccak256(abi.encodePacked(depositAmount, streamId))));
-        depositAmount = boundDepositAmount(depositAmountSeed, initialStreamBalance, tokenDecimals);
+        depositAmount = boundDepositAmount(
+            uint128(uint256(keccak256(abi.encodePacked(depositAmount, streamId)))), initialStreamBalance, tokenDecimals
+        );
 
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
@@ -417,8 +420,8 @@ contract Flow_Fork_Test is Fork_Test {
             flow.pause(streamId);
         }
 
-        uint256 ratePerSecondSeed = uint256(keccak256(abi.encodePacked(ratePerSecond, streamId)));
-        ratePerSecond = boundRatePerSecond(ud21x18(uint128(ratePerSecondSeed)));
+        ratePerSecond =
+            boundRatePerSecond(ud21x18(uint128(uint256(keccak256(abi.encodePacked(ratePerSecond.unwrap(), streamId))))));
 
         // It should emit 1 {RestartFlowStream}, 1 {MetadataUpdate} event.
         vm.expectEmit({ emitter: address(flow) });
@@ -506,8 +509,11 @@ contract Flow_Fork_Test is Fork_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     function _test_WithdrawAt(uint256 streamId, uint40 withdrawTime) private {
-        uint256 withdrawTimeSeed = uint256(keccak256(abi.encodePacked(withdrawTime, streamId)));
-        withdrawTime = boundUint40(uint40(withdrawTimeSeed), flow.getSnapshotTime(streamId), getBlockTimestamp());
+        withdrawTime = boundUint40(
+            uint40(uint256(keccak256(abi.encodePacked(withdrawTime, streamId)))),
+            flow.getSnapshotTime(streamId),
+            getBlockTimestamp()
+        );
 
         uint8 tokenDecimals = flow.getTokenDecimals(streamId);
 
