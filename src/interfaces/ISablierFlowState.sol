@@ -15,13 +15,20 @@ import { ISablierFlowNFTDescriptor } from "./ISablierFlowNFTDescriptor.sol";
 interface ISablierFlowState is
     IERC721Metadata // 2 inherited components
 {
-    /// @notice Emitted when the admin sets a new NFT descriptor contract.
-    /// @param admin The address of the current contract admin.
+    /// @notice Emitted when the contract admin sets a new NFT descriptor contract.
+    /// @param admin The address of the contract admin.
     /// @param oldNFTDescriptor The address of the old NFT descriptor contract.
     /// @param newNFTDescriptor The address of the new NFT descriptor contract.
     event SetNFTDescriptor(
         address indexed admin, ISablierFlowNFTDescriptor oldNFTDescriptor, ISablierFlowNFTDescriptor newNFTDescriptor
     );
+
+    /// @notice Emitted when the contract admin sets a new protocol fee for the provided ERC-20 token.
+    /// @param admin The address of the contract admin.
+    /// @param token The address of the ERC-20 token the new protocol fee has been set for.
+    /// @param oldProtocolFee The old protocol fee, denoted as a fixed-point number.
+    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point number.
+    event SetProtocolFee(address indexed admin, IERC20 indexed token, UD60x18 oldProtocolFee, UD60x18 newProtocolFee);
 
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
@@ -31,6 +38,11 @@ interface ISablierFlowState is
     /// where 1e18 is 100%.
     /// @dev This value is hard coded as a constant.
     function MAX_BROKER_FEE() external view returns (UD60x18 fee);
+
+    /// @notice Retrieves the maximum protocol fee that can be charged by the protocol admin, denoted as a fixed-point
+    /// number where 1e18 is 100%.
+    /// @dev This value is hard coded as a constant.
+    function MAX_PROTOCOL_FEE() external view returns (UD60x18 fee);
 
     /// @notice Retrieves the balance of the stream, i.e. the total deposited amounts subtracted by the total withdrawn
     /// amounts, denoted in token's decimals.
@@ -101,6 +113,12 @@ interface ISablierFlowState is
     /// @notice Contract that generates the non-fungible token URI.
     function nftDescriptor() external view returns (ISablierFlowNFTDescriptor);
 
+    /// @notice Protocol fee for the provided ERC-20 token, denoted as a fixed-point number where 1e18 is 100%.
+    function protocolFee(IERC20 token) external view returns (UD60x18);
+
+    /// @notice Protocol revenue accrued for the provided ERC-20 token.
+    function protocolRevenue(IERC20 token) external view returns (uint128);
+
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
@@ -117,4 +135,20 @@ interface ISablierFlowState is
     ///
     /// @param newNFTDescriptor The address of the new NFT descriptor contract.
     function setNFTDescriptor(ISablierFlowNFTDescriptor newNFTDescriptor) external;
+
+    /// @notice Sets a new protocol fee that will be charged on all the withdrawals from streams created with the
+    /// provided ERC-20 token.
+    ///
+    /// @dev Emits a {SetProtocolFee} event.
+    ///
+    /// Notes:
+    /// - Does not revert if the fee is the same.
+    ///
+    /// Requirements:
+    /// - `msg.sender` must be the contract admin.
+    /// - `newProtocolFee` must not be greater than `MAX_PROTOCOL_FEE`. It can be zero.
+    ///
+    /// @param token The contract address of the ERC-20 token to update the fee for.
+    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point number where 1e18 is 100%.
+    function setProtocolFee(IERC20 token, UD60x18 newProtocolFee) external;
 }

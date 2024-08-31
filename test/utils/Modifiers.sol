@@ -18,7 +18,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenTokenDoesNotMissERC20Return() {
+    modifier whenTokenNotMissERC20Return() {
         _;
     }
 
@@ -46,7 +46,7 @@ abstract contract Modifiers {
                                        CREATE
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenTokenDecimalsDoesNotExceed18() {
+    modifier whenTokenDecimalsNotExceed18() {
         _;
     }
 
@@ -113,6 +113,10 @@ abstract contract Modifiers {
     /*//////////////////////////////////////////////////////////////////////////
                                     WITHDRAW-AT
     //////////////////////////////////////////////////////////////////////////*/
+
+    modifier givenProtocolFeeZero() {
+        _;
+    }
 
     modifier whenWithdrawalAddressNotOwner() {
         _;

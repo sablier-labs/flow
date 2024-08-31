@@ -2,6 +2,7 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { Errors } from "src/libraries/Errors.sol";
 
@@ -174,11 +175,11 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         _test_Withdraw({ streamId: streamId, to: users.recipient, depositAmount: chickenfeed, withdrawAmount: 50e6 });
     }
 
-    modifier whenTotalDebtDoesNotExceedBalance() {
+    modifier whenTotalDebtNotExceedBalance() {
         _;
     }
 
-    function test_GivenTokenDoesNotHave18Decimals()
+    function test_GivenTokenNotHave18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
@@ -186,7 +187,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
-        whenTotalDebtDoesNotExceedBalance
+        whenTotalDebtNotExceedBalance
     {
         // It should withdraw the total debt.
         _test_Withdraw({
@@ -197,7 +198,11 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    function test_GivenTokenHas18Decimals()
+    modifier givenTokenHas18Decimals() {
+        _;
+    }
+
+    function test_GivenProtocolFeeZero()
         external
         whenNoDelegateCall
         givenNotNull
@@ -205,7 +210,8 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
-        whenTotalDebtDoesNotExceedBalance
+        whenTotalDebtNotExceedBalance
+        givenTokenHas18Decimals
     {
         // Go back to the starting point.
         vm.warp({ newTimestamp: MAY_1_2024 });
@@ -231,13 +237,61 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         });
     }
 
+    function test_GivenProtocolFeeNotZero()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenTimeBetweenSnapshotTimeAndCurrentTime
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressIsOwner
+        givenBalanceNotZero
+        whenTotalDebtNotExceedBalance
+        givenTokenHas18Decimals
+    {
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: MAY_1_2024 });
+
+        // Set protocol fee.
+        resetPrank({ msgSender: users.admin });
+        flow.setProtocolFee(dai, PROTOCOL_FEE);
+
+        resetPrank({ msgSender: users.sender });
+
+        // Create the stream and make a deposit.
+        uint256 streamId = createDefaultStream(dai);
+        deposit(streamId, DEPOSIT_AMOUNT_18D);
+
+        // Simulate the one month of streaming.
+        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        // Make recipient the caller for subsequent tests.
+        resetPrank({ msgSender: users.recipient });
+
+        // It should withdraw the total debt.
+        _test_Withdraw({
+            streamId: streamId,
+            to: users.recipient,
+            depositAmount: DEPOSIT_AMOUNT_18D,
+            withdrawAmount: WITHDRAW_AMOUNT_18D
+        });
+    }
+
     function _test_Withdraw(uint256 streamId, address to, uint128 depositAmount, uint128 withdrawAmount) private {
         IERC20 token = flow.getToken(streamId);
         uint128 previousFullTotalDebt = flow.totalDebtOf(streamId);
+        uint128 expectedProtocolRevenue = flow.protocolRevenue(token);
+
+        // Net Withdraw Amount = Withdraw Amount - Protocol Fee Amount.
+        uint128 netWithdrawAmount = withdrawAmount;
+
+        if (flow.protocolFee(token) > ZERO) {
+            netWithdrawAmount -= PROTOCOL_FEE_AMOUNT_18D;
+            expectedProtocolRevenue += PROTOCOL_FEE_AMOUNT_18D;
+        }
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(token) });
-        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: netWithdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
@@ -245,7 +299,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             to: to,
             token: token,
             caller: users.recipient,
-            withdrawAmount: withdrawAmount,
+            withdrawAmount: netWithdrawAmount,
             withdrawTime: WITHDRAW_TIME
         });
 
@@ -253,11 +307,14 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC-20 transfer.
-        expectCallToTransfer({ token: token, to: to, amount: withdrawAmount });
+        expectCallToTransfer({ token: token, to: to, amount: netWithdrawAmount });
 
         uint256 initialTokenBalance = token.balanceOf(address(flow));
 
         uint128 actualWithdrawAmount = flow.withdrawAt({ streamId: streamId, to: to, time: WITHDRAW_TIME });
+
+        // Assert the protocol revenue.
+        assertEq(flow.protocolRevenue(token), expectedProtocolRevenue, "protocol revenue");
 
         // It should update snapshot time.
         uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
@@ -268,17 +325,17 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 expectedFullTotalDebt = previousFullTotalDebt - withdrawAmount;
         assertEq(actualFullTotalDebt, expectedFullTotalDebt, "total debt");
 
-        // It should reduce the stream balance by the withdrawn amount.
+        // It should reduce the stream balance by the withdrawn value.
         uint128 actualStreamBalance = flow.getBalance(streamId);
         uint128 expectedStreamBalance = depositAmount - withdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.
         uint256 actualTokenBalance = token.balanceOf(address(flow));
-        uint256 expectedTokenBalance = initialTokenBalance - withdrawAmount;
+        uint256 expectedTokenBalance = initialTokenBalance - netWithdrawAmount;
         assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
 
-        // Assert that the returned value equals the transfer value.
-        assertEq(actualWithdrawAmount, withdrawAmount);
+        // Assert that the returned value equals the net withdrawn value.
+        assertEq(actualWithdrawAmount, netWithdrawAmount);
     }
 }

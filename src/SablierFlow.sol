@@ -6,6 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ud21x18, UD21x18 } from "@prb/math/src/UD21x18.sol";
+import { ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { Batch } from "./abstracts/Batch.sol";
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
@@ -148,6 +149,28 @@ contract SablierFlow is
         returns (uint128 withdrawableAmount)
     {
         withdrawableAmount = _coveredDebtOf(streamId, uint40(block.timestamp));
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                         ADMIN-FACING NON-CONSTANT FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc ISablierFlow
+    function collectProtocolRevenue(IERC20 token, address recipient) external override onlyAdmin {
+        uint128 revenue = protocolRevenue[token];
+
+        // Check: there is protocol revenue to collect.
+        if (revenue == 0) {
+            revert Errors.SablierFlow_NoProtocolRevenue(address(token));
+        }
+
+        // Effect: reset the protocol revenue.
+        protocolRevenue[token] = 0;
+
+        // Interaction: transfer the protocol revenue to the recipient.
+        IERC20(token).safeTransfer(recipient, revenue);
+
+        emit ISablierFlow.CollectProtocolRevenue({ admin: admin, token: token, recipient: recipient, revenue: revenue });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -805,6 +828,25 @@ contract SablierFlow is
         // Effect: update the stream time.
         _updateSnapshotTime(streamId, time);
 
+        IERC20 token = _streams[streamId].token;
+
+        if (protocolFee[token] > ZERO) {
+            // Calculate the protocol fee amount.
+            uint128 feeAmount = Helpers.calculateProtocolFee(withdrawAmount, protocolFee[token]);
+
+            // Safe to use unchecked because subtraction cannot underflow.
+            unchecked {
+                // Subtract the protocol fee amount from the withdraw amount.
+                withdrawAmount -= feeAmount;
+
+                // Effect: update the stream balance.
+                _streams[streamId].balance -= feeAmount;
+
+                // Effect: update the protocol revenue.
+                protocolRevenue[token] += feeAmount;
+            }
+        }
+
         // Effect and Interaction: update the balance and perform the ERC-20 transfer to the recipient.
         _updateBalanceAndTransfer(streamId, to, withdrawAmount);
 
@@ -812,7 +854,7 @@ contract SablierFlow is
         emit ISablierFlow.WithdrawFromFlowStream({
             streamId: streamId,
             to: to,
-            token: _streams[streamId].token,
+            token: token,
             caller: msg.sender,
             withdrawAmount: withdrawAmount,
             withdrawTime: time

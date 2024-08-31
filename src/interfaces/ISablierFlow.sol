@@ -27,6 +27,13 @@ interface ISablierFlow is
         uint256 indexed streamId, uint128 totalDebt, UD21x18 oldRatePerSecond, UD21x18 newRatePerSecond
     );
 
+    /// @notice Emitted when the contract admin collects protocol revenue accrued.
+    /// @param admin The address of the contract admin.
+    /// @param token The address of the ERC-20 token the protocol revenue has been collected for.
+    /// @param recipient The address the protocol revenue has been sent to.
+    /// @param revenue The amount of protocol revenue collected.
+    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address recipient, uint128 revenue);
+
     /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
     /// @param sender The address streaming the tokens, which is able to adjust and pause the stream.
@@ -172,6 +179,18 @@ interface ISablierFlow is
     /// @param newRatePerSecond The new payment rate per second, denoted as a fixed-point number where 1e18 is 1 token
     /// per second.
     function adjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) external;
+
+    /// @notice Collect the protocol revenue accrued for the provided ERC-20 token.
+    ///
+    /// @dev Emits a {CollectProtocolRevenue} event.
+    ///
+    /// Requirements:
+    /// - `msg.sender` must be the contract admin.
+    /// - The accrued protocol revenue must be greater than zero.
+    ///
+    /// @param token The contract address of the ERC-20 token for which to claim protocol revenue.
+    /// @param recipient The address to send the protocol revenue to.
+    function collectProtocolRevenue(IERC20 token, address recipient) external;
 
     /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
@@ -429,6 +448,7 @@ interface ISablierFlow is
     /// - If stream balance is greater than the total debt at `time`:
     ///   - It withdraws the total debt at `time`.
     ///   - It sets the snapshot debt to zero.
+    /// - If the protocol fee is enabled for the streaming token, the amount withdrawn is adjusted by the protocol fee.
     ///
     /// Requirements:
     /// - Must not be delegate called.

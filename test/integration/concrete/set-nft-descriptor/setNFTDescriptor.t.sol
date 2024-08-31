@@ -7,12 +7,6 @@ import { SablierFlowNFTDescriptor } from "src/SablierFlowNFTDescriptor.sol";
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract SetNFTDescriptor_Integration_Concrete_Test is Integration_Test {
-    function setUp() public virtual override {
-        Integration_Test.setUp();
-
-        resetPrank({ msgSender: users.admin });
-    }
-
     function test_RevertWhen_CallerNotAdmin() external {
         resetPrank({ msgSender: users.eve });
         vm.expectRevert(abi.encodeWithSelector(Errors.CallerNotAdmin.selector, users.admin, users.eve));
@@ -20,6 +14,7 @@ contract SetNFTDescriptor_Integration_Concrete_Test is Integration_Test {
     }
 
     modifier whenCallerAdmin() {
+        resetPrank({ msgSender: users.admin });
         _;
     }
 

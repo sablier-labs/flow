@@ -41,6 +41,19 @@ library Helpers {
         depositAmount = totalAmount - brokerFeeAmount;
     }
 
+    /// @dev Calculate the protocol fee amount that is going to be transferred to the protocol admin.
+    function calculateProtocolFee(
+        uint128 withdrawAmount,
+        UD60x18 protocolFee
+    )
+        internal
+        pure
+        returns (uint128 protocolFeeAmount)
+    {
+        // The cast to uint128 is safe because the maximum fee is hard coded.
+        protocolFeeAmount = ud(withdrawAmount).mul(protocolFee).intoUint256().toUint128();
+    }
+
     /// @notice Denormalizes the provided amount to be denoted in the token's decimals.
     /// @dev The following logic is used to denormalize the amount:
     /// - If the token has exactly 18 decimals, the amount is returned as is.

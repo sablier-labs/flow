@@ -16,6 +16,11 @@ contract Constructor_Integration_Concrete_Test is Integration_Test {
         UD60x18 expectedMaxBrokerFee = UD60x18.wrap(0.1e18);
         assertEq(actualMaxBrokerFee, expectedMaxBrokerFee, "MAX_BROKER_FEE");
 
+        // {SablierFlowState.MAX_PROTOCOL_FEE}
+        UD60x18 actualMaxProtocolFee = constructedFlow.MAX_PROTOCOL_FEE();
+        UD60x18 expectedMaxProtocolFee = UD60x18.wrap(0.1e18);
+        assertEq(actualMaxProtocolFee, expectedMaxProtocolFee, "MAX_PROTOCOL_FEE");
+
         // {SablierFlowState.nextStreamId}
         uint256 actualStreamId = constructedFlow.nextStreamId();
         uint256 expectedStreamId = 1;

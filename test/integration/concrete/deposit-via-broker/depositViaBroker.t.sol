@@ -77,7 +77,7 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressNotZero
         whenTotalAmountNotZero
-        whenTokenDoesNotMissERC20Return
+        whenTokenNotMissERC20Return
     {
         uint256 streamId = createDefaultStream(IERC20(address(dai)));
         _test_DepositViaBroker({
@@ -89,14 +89,14 @@ contract DepositViaBroker_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    function test_GivenTokenDoesNotHave18Decimals()
+    function test_GivenTokenNotHave18Decimals()
         external
         whenNoDelegateCall
         givenNotNull
         whenBrokerFeeNotGreaterThanMaxFee
         whenBrokerAddressNotZero
         whenTotalAmountNotZero
-        whenTokenDoesNotMissERC20Return
+        whenTokenNotMissERC20Return
     {
         uint256 streamId = createDefaultStream(IERC20(address(usdc)));
         _test_DepositViaBroker({

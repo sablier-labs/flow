@@ -2,6 +2,8 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ud, UD60x18, ZERO } from "@prb/math/src/UD60x18.sol";
+
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
@@ -16,6 +18,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         external
         whenNoDelegateCall
         givenNotNull
+        givenProtocolFeeZero
     {
         vm.assume(caller != address(0));
 
@@ -75,8 +78,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Only two values for caller (stream owner and approved operator).
     /// - Multiple non-zero values for to address.
     /// - Multiple streams to withdraw from, each with different token decimals and rps.
-    /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or
-    /// after
+    /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or after
     /// depletion time.
     /// - Multiple points in time.
     function testFuzz_WithdrawalAddressNotOwner(
@@ -90,6 +92,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         whenNoDelegateCall
         givenNotNull
         givenNotPaused
+        givenProtocolFeeZero
     {
         vm.assume(to != address(0) && to != address(flow));
 
@@ -101,6 +104,47 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Withdraw the tokens.
         _test_WithdrawAt(caller, to, streamId, timeJump, withdrawTime);
+    }
+
+    /// @dev Checklist:
+    /// - It should transfer protocol fee to the admin.
+    /// - It should withdraw token from a stream.
+    /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
+    ///
+    /// Given enough runs, all of the following scenarios should be fuzzed:
+    /// - Multiple non-zero values for callers.
+    /// - Multiple non-zero values for protocol fee not exceeding max allowed.
+    /// - Multiple streams to withdraw from, each with different token decimals and rps.
+    /// - Multiple values for withdraw time in the range (snapshotTime, currentTime). It could also be before or after
+    /// depletion time.
+    /// - Multiple points in time.
+    function testFuzz_ProtocolFeeNotZero(
+        address caller,
+        UD60x18 protocolFee,
+        uint256 streamId,
+        uint40 timeJump,
+        uint40 withdrawTime,
+        uint8 decimals
+    )
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenNotPaused
+        whenWithdrawalAddressIsOwner
+    {
+        vm.assume(caller != address(0));
+
+        protocolFee = boundUd60x18(protocolFee, ZERO, MAX_PROTOCOL_FEE);
+
+        (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
+
+        // Set protocol fee.
+        resetPrank(users.admin);
+        flow.setProtocolFee(token, protocolFee);
+
+        // Prank the caller and withdraw the tokens.
+        resetPrank(caller);
+        _test_WithdrawAt(caller, users.recipient, streamId, timeJump, withdrawTime);
     }
 
     /// @dev Checklist:
@@ -126,6 +170,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         givenNotNull
         givenNotPaused
         whenWithdrawalAddressIsOwner
+        givenProtocolFeeZero
     {
         vm.assume(caller != address(0));
 
@@ -166,12 +211,23 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 streamBalance = flow.getBalance(streamId);
         uint128 withdrawAmount = streamBalance < totalDebt ? streamBalance : totalDebt;
 
+        // Net Withdraw Amount = Withdraw Amount - Protocol Fee Amount.
+        uint128 netWithdrawAmount = withdrawAmount;
+
+        uint128 expectedProtocolRevenue = flow.protocolRevenue(token);
+
+        if (flow.protocolFee(token) > ZERO) {
+            uint128 feeAmount = uint128(ud(withdrawAmount).mul(flow.protocolFee(token)).unwrap());
+            netWithdrawAmount -= feeAmount;
+            expectedProtocolRevenue += feeAmount;
+        }
+
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
-        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: netWithdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream(streamId, to, token, caller, withdrawAmount, withdrawTime);
+        emit WithdrawFromFlowStream(streamId, to, token, caller, netWithdrawAmount, withdrawTime);
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -179,10 +235,13 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Withdraw the tokens.
         flow.withdrawAt(streamId, to, withdrawTime);
 
+        // Assert the protocol revenue.
+        assertEq(flow.protocolRevenue(token), expectedProtocolRevenue, "protocol revenue");
+
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), withdrawTime, "snapshot time");
 
-        // It should decrease the full total debt by withdrawn value.
+        // It should decrease the full total debt by withdrawn amount.
         uint128 actualTotalDebt = flow.getSnapshotDebt(streamId)
             + getDenormalizedAmount({
                 amount: flow.getRatePerSecond(streamId).unwrap() * (withdrawTime - flow.getSnapshotTime(streamId)),
@@ -196,9 +255,9 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 expectedStreamBalance = streamBalance - withdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should reduce the token balance of stream.
+        // It should reduce the token balance of stream by net withdrawn amount.
         uint256 actualTokenBalance = token.balanceOf(address(flow));
-        uint256 expectedTokenBalance = tokenBalance - withdrawAmount;
+        uint256 expectedTokenBalance = tokenBalance - netWithdrawAmount;
         assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
     }
 }

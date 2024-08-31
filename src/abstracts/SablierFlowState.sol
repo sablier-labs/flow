@@ -30,10 +30,19 @@ abstract contract SablierFlowState is
     UD60x18 public constant override MAX_BROKER_FEE = UD60x18.wrap(0.1e18);
 
     /// @inheritdoc ISablierFlowState
+    UD60x18 public constant override MAX_PROTOCOL_FEE = UD60x18.wrap(0.1e18);
+
+    /// @inheritdoc ISablierFlowState
     uint256 public override nextStreamId;
 
     /// @inheritdoc ISablierFlowState
     ISablierFlowNFTDescriptor public override nftDescriptor;
+
+    /// @inheritdoc ISablierFlowState
+    mapping(IERC20 token => UD60x18 fee) public override protocolFee;
+
+    /// @inheritdoc ISablierFlowState
+    mapping(IERC20 token => uint128 revenue) public override protocolRevenue;
 
     /// @dev Sablier Flow streams mapped by unsigned integers.
     mapping(uint256 id => Flow.Stream stream) internal _streams;
@@ -178,7 +187,7 @@ abstract contract SablierFlowState is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                         USER-FACING NON-CONSTANT FUNCTIONS
+                         ADMIN-FACING NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowState
@@ -196,6 +205,27 @@ abstract contract SablierFlowState is
 
         // Refresh the NFT metadata for all streams.
         emit BatchMetadataUpdate({ _fromTokenId: 1, _toTokenId: nextStreamId - 1 });
+    }
+
+    /// @inheritdoc ISablierFlowState
+    function setProtocolFee(IERC20 token, UD60x18 newProtocolFee) external override onlyAdmin {
+        // Check: the new protocol fee is not greater than the maximum allowed.
+        if (newProtocolFee > MAX_PROTOCOL_FEE) {
+            revert Errors.SablierFlowState_ProtocolFeeTooHigh(newProtocolFee, MAX_PROTOCOL_FEE);
+        }
+
+        UD60x18 oldProtocolFee = protocolFee[token];
+
+        // Effects: set the new global fee.
+        protocolFee[token] = newProtocolFee;
+
+        // Log the change of the protocol fee.
+        emit ISablierFlowState.SetProtocolFee({
+            admin: msg.sender,
+            token: token,
+            oldProtocolFee: oldProtocolFee,
+            newProtocolFee: newProtocolFee
+        });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
