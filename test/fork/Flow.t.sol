@@ -162,14 +162,14 @@ contract Flow_Fork_Test is Fork_Test {
         }
     }
 
-    /// @notice Find the first non-voided stream ID.
+    /// @notice Find the first non-voided stream ID with the same token.
     /// @dev If no non-voided stream is found, it will create a new stream.
     function _findNonVoidedStreamId(uint256 streamId) private returns (uint256) {
         // Check if the current stream ID is voided.
         if (flow.isVoided(streamId)) {
             bool found = false;
             for (uint256 i = 1; i < flow.nextStreamId(); ++i) {
-                if (!flow.isVoided(i)) {
+                if (!flow.isVoided(i) && token == flow.getToken(i)) {
                     streamId = i;
                     found = true;
                     break;
