@@ -16,11 +16,14 @@ abstract contract Constants {
     uint128 internal constant WITHDRAW_AMOUNT_18D = 2500e18;
     uint128 internal constant WITHDRAW_AMOUNT_6D = 2500e6;
 
-    // Broker
+    // Fee amounts
     UD60x18 internal constant BROKER_FEE = UD60x18.wrap(0.01e18); // 1%
     uint128 internal constant BROKER_FEE_AMOUNT_18D = 505.050505050505050505e18; // 1% of total amount
     uint128 internal constant BROKER_FEE_AMOUNT_6D = 505.050505e6; // 1% of total amount
-    UD60x18 internal constant MAX_BROKER_FEE = UD60x18.wrap(0.1e18); // 10%
+    UD60x18 internal constant MAX_FEE = UD60x18.wrap(0.1e18); // 10%
+    UD60x18 internal constant PROTOCOL_FEE = UD60x18.wrap(0.01e18); // 1%
+    uint128 internal constant PROTOCOL_FEE_AMOUNT_18D = 25e18; // 1% of withdraw amount
+    uint128 internal constant PROTOCOL_FEE_AMOUNT_6D = 25e6; // 1% of withdraw amount
 
     // Max value
     uint128 internal constant UINT128_MAX = type(uint128).max;
@@ -31,12 +34,6 @@ abstract contract Constants {
     UD21x18 internal constant RATE_PER_SECOND = UD21x18.wrap(0.001e18); // 86.4 daily
     uint128 internal constant RATE_PER_SECOND_U128 = 0.001e18; // 86.4 daily
     bool internal constant TRANSFERABLE = true;
-
-    // Protocol fee
-    UD60x18 internal constant MAX_PROTOCOL_FEE = UD60x18.wrap(0.1e18); // 10%
-    UD60x18 internal constant PROTOCOL_FEE = UD60x18.wrap(0.01e18); // 1%
-    uint128 internal constant PROTOCOL_FEE_AMOUNT_18D = 25e18; // 1% of withdraw amount
-    uint128 internal constant PROTOCOL_FEE_AMOUNT_6D = 25e6; // 1% of withdraw amount
 
     // Streaming amounts
     uint128 internal constant ONE_MONTH_DEBT_6D = 2592e6; // 86.4 * 30

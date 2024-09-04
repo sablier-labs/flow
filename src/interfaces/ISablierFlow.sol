@@ -5,12 +5,12 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
 
 import { Broker, Flow } from "./../types/DataTypes.sol";
-import { ISablierFlowState } from "./ISablierFlowState.sol";
+import { ISablierFlowBase } from "./ISablierFlowBase.sol";
 
 /// @title ISablierFlow
 /// @notice Creates and manages Flow streams with linear streaming functions.
 interface ISablierFlow is
-    ISablierFlowState // 3 inherited component
+    ISablierFlowBase // 3 inherited component
 {
     /*//////////////////////////////////////////////////////////////////////////
                                        EVENTS
@@ -26,13 +26,6 @@ interface ISablierFlow is
     event AdjustFlowStream(
         uint256 indexed streamId, uint128 totalDebt, UD21x18 oldRatePerSecond, UD21x18 newRatePerSecond
     );
-
-    /// @notice Emitted when the contract admin collects protocol revenue accrued.
-    /// @param admin The address of the contract admin.
-    /// @param token The address of the ERC-20 token the protocol revenue has been collected for.
-    /// @param to The address the protocol revenue has been sent to.
-    /// @param revenue The amount of protocol revenue collected.
-    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
 
     /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
@@ -100,7 +93,8 @@ interface ISablierFlow is
     /// @param to The address that received the withdrawn tokens.
     /// @param token The contract address of the ERC-20 token that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
-    /// @param protocolFee The amount of protocol fee deducted from the withdrawn amount, denoted in token's decimals.
+    /// @param protocolFeeAmount The amount of protocol fee deducted from the withdrawn amount, denoted in token's
+    /// decimals.
     /// @param withdrawAmount The amount withdrawn to the recipient after subtracting the protocol fee, denoted in
     /// token's decimals.
     /// @param withdrawTime The Unix timestamp up to which ongoing debt was calculated from the snapshot time.
@@ -109,7 +103,7 @@ interface ISablierFlow is
         address indexed to,
         IERC20 indexed token,
         address caller,
-        uint128 protocolFee,
+        uint128 protocolFeeAmount,
         uint128 withdrawAmount,
         uint40 withdrawTime
     );
@@ -182,18 +176,6 @@ interface ISablierFlow is
     /// @param newRatePerSecond The new payment rate per second, denoted as a fixed-point number where 1e18 is 1 token
     /// per second.
     function adjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) external;
-
-    /// @notice Collect the protocol revenue accrued for the provided ERC-20 token.
-    ///
-    /// @dev Emits a {CollectProtocolRevenue} event.
-    ///
-    /// Requirements:
-    /// - `msg.sender` must be the contract admin.
-    /// - The accrued protocol revenue must be greater than zero.
-    ///
-    /// @param token The contract address of the ERC-20 token for which to claim protocol revenue.
-    /// @param to The address to send the protocol revenue to.
-    function collectProtocolRevenue(IERC20 token, address to) external;
 
     /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
@@ -333,7 +315,7 @@ interface ISablierFlow is
     /// - `streamId` must not reference a null stream.
     /// - `totalAmount` must be greater than zero. Otherwise it will revert inside {deposit}.
     /// - `broker.account` must not be 0 address.
-    /// - `broker.fee` must not be greater than `MAX_BROKER_FEE`.
+    /// - `broker.fee` must not be greater than `MAX_FEE`.
     ///
     /// @param streamId The ID of the stream to deposit on.
     /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in token's decimals.

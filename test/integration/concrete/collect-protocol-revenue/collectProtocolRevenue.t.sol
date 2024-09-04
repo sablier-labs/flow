@@ -28,19 +28,14 @@ contract CollectProtocolRevenue_Integration_Concrete_Test is Integration_Test {
         flow.collectProtocolRevenue(tokenWithProtocolFee, users.eve);
     }
 
-    modifier whenCallerAdmin() {
-        resetPrank({ msgSender: users.admin });
-        _;
-    }
-
-    function test_RevertWhen_ProtocolRevenueZero() external whenCallerAdmin {
+    function test_RevertGiven_ProtocolRevenueZero() external whenCallerAdmin {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.SablierFlow_NoProtocolRevenue.selector, address(tokenWithProtocolFee))
         );
         flow.collectProtocolRevenue(tokenWithProtocolFee, users.admin);
     }
 
-    function test_WhenProtocolRevenueNotZero() external whenCallerAdmin {
+    function test_GivenProtocolRevenueNotZero() external whenCallerAdmin {
         // Withdraw to generate protocol revenue.
         flow.withdrawAt({ streamId: streamIdWithProtocolFee, to: users.recipient, time: WITHDRAW_TIME });
 

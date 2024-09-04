@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ud21x18, UD21x18 } from "@prb/math/src/UD21x18.sol";
-import { UD60x18, UNIT, ZERO } from "@prb/math/src/UD60x18.sol";
+import { ud, UD60x18, UNIT, ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
@@ -267,7 +267,7 @@ contract FlowHandler is BaseHandler {
 
         UD60x18 protocolFee = flow.protocolFee(flow.getToken(currentStreamId));
         if (protocolFee > ZERO) {
-            amountWithdrawn -= uint128((UD60x18.wrap(amountWithdrawn).mul(UNIT - protocolFee)).unwrap());
+            amountWithdrawn -= uint128((ud(amountWithdrawn).mul(UNIT - protocolFee)).unwrap());
         }
 
         // Update the withdrawn amount.

@@ -22,6 +22,10 @@ abstract contract Modifiers {
         _;
     }
 
+    modifier whenCallerAdmin() virtual {
+        _;
+    }
+
     modifier whenCallerNotSender() {
         _;
     }

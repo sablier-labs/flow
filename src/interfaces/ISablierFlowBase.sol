@@ -9,12 +9,20 @@ import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 import { Flow } from "./../types/DataTypes.sol";
 import { ISablierFlowNFTDescriptor } from "./ISablierFlowNFTDescriptor.sol";
 
-/// @title ISablierFlowState
-/// @notice State variables, storage and constants, for the {SablierFlow} contract, and their respective getters.
-/// @dev This contract also includes helpful modifiers and helper functions.
-interface ISablierFlowState is
+/// @title ISablierFlowBase
+/// @notice Base contract that includes state variables (storage and constants) for the {SablierFlow} contract,
+/// their respective getters, helpful modifiers, and helper functions.
+/// @dev This contract also includes admin control functions.
+interface ISablierFlowBase is
     IERC721Metadata // 2 inherited components
 {
+    /// @notice Emitted when the contract admin collects protocol revenue accrued.
+    /// @param admin The address of the contract admin.
+    /// @param token The address of the ERC-20 token the protocol revenue has been collected for.
+    /// @param to The address the protocol revenue has been sent to.
+    /// @param revenue The amount of protocol revenue collected.
+    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
+
     /// @notice Emitted when the contract admin sets a new NFT descriptor contract.
     /// @param admin The address of the contract admin.
     /// @param oldNFTDescriptor The address of the old NFT descriptor contract.
@@ -37,12 +45,7 @@ interface ISablierFlowState is
     /// @notice Retrieves the maximum broker fee that can be charged by the broker, denoted as a fixed-point percentage
     /// where 1e18 is 100%.
     /// @dev This value is hard coded as a constant.
-    function MAX_BROKER_FEE() external view returns (UD60x18 fee);
-
-    /// @notice Retrieves the maximum protocol fee that can be charged by the protocol admin, denoted as a fixed-point
-    /// number where 1e18 is 100%.
-    /// @dev This value is hard coded as a constant.
-    function MAX_PROTOCOL_FEE() external view returns (UD60x18 fee);
+    function MAX_FEE() external view returns (UD60x18 fee);
 
     /// @notice Retrieves the balance of the stream, i.e. the total deposited amounts subtracted by the total withdrawn
     /// amounts, denoted in token's decimals.
@@ -116,12 +119,24 @@ interface ISablierFlowState is
     /// @notice Protocol fee for the provided ERC-20 token, denoted as a fixed-point percentage where 1e18 is 100%.
     function protocolFee(IERC20 token) external view returns (UD60x18);
 
-    /// @notice Protocol revenue accrued for the provided ERC-20 token.
+    /// @notice Protocol revenue accrued for the provided ERC-20 token, denoted in token's decimals.
     function protocolRevenue(IERC20 token) external view returns (uint128);
 
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Collect the protocol revenue accrued for the provided ERC-20 token.
+    ///
+    /// @dev Emits a {CollectProtocolRevenue} event.
+    ///
+    /// Requirements:
+    /// - `msg.sender` must be the contract admin.
+    /// - The accrued protocol revenue must be greater than zero.
+    ///
+    /// @param token The contract address of the ERC-20 token for which to claim protocol revenue.
+    /// @param to The address to send the protocol revenue.
+    function collectProtocolRevenue(IERC20 token, address to) external;
 
     /// @notice Sets a new NFT descriptor contract, which produces the URI describing the Sablier stream NFTs.
     ///
@@ -147,7 +162,7 @@ interface ISablierFlowState is
     ///
     /// Requirements:
     /// - `msg.sender` must be the contract admin.
-    /// - `newProtocolFee` must not be greater than `MAX_PROTOCOL_FEE`.
+    /// - `newProtocolFee` must not be greater than `MAX_FEE`.
     ///
     /// @param token The contract address of the ERC-20 token to update the fee for.
     /// @param newProtocolFee The new protocol fee, denoted as a fixed-point percentage where 1e18 is 100%.

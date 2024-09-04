@@ -49,7 +49,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
             to: users.recipient,
             token: IERC20(address(usdc)),
             caller: users.sender,
-            protocolFee: 0,
+            protocolFeeAmount: 0,
             withdrawAmount: withdrawAmount,
             withdrawTime: getBlockTimestamp()
         });

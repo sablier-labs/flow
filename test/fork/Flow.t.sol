@@ -546,7 +546,7 @@ contract Flow_Fork_Test is Fork_Test {
             to: recipient,
             token: token,
             caller: caller,
-            protocolFee: 0,
+            protocolFeeAmount: 0,
             withdrawAmount: withdrawAmount,
             withdrawTime: withdrawTime
         });

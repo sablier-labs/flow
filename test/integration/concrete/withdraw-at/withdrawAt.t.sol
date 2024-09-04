@@ -179,6 +179,54 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         _;
     }
 
+    function test_GivenProtocolFeeNotZero()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenTimeBetweenSnapshotTimeAndCurrentTime
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressIsOwner
+        givenBalanceNotZero
+        whenTotalDebtNotExceedBalance
+    {
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: MAY_1_2024 });
+
+        resetPrank({ msgSender: users.sender });
+
+        // Create the stream and make a deposit.
+        uint256 streamId = createDefaultStream(tokenWithProtocolFee);
+        deposit(streamId, DEPOSIT_AMOUNT_6D);
+
+        // Simulate the one month of streaming.
+        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        // Make recipient the caller for subsequent tests.
+        resetPrank({ msgSender: users.recipient });
+
+        // It should withdraw the total debt.
+        _test_Withdraw({
+            streamId: streamId,
+            to: users.recipient,
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            withdrawAmount: WITHDRAW_AMOUNT_6D
+        });
+    }
+
+    function test_GivenTokenHas18Decimals()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenTimeBetweenSnapshotTimeAndCurrentTime
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressNotOwner
+        givenBalanceNotZero
+        whenTotalDebtNotExceedBalance
+        givenProtocolFeeZero
+    {
+        // it should make the withdrawal
+    }
+
     function test_GivenTokenNotHave18Decimals()
         external
         whenNoDelegateCall
@@ -188,6 +236,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressIsOwner
         givenBalanceNotZero
         whenTotalDebtNotExceedBalance
+        givenProtocolFeeZero
     {
         // It should withdraw the total debt.
         _test_Withdraw({
@@ -198,84 +247,6 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    modifier givenTokenHas18Decimals() {
-        _;
-    }
-
-    function test_GivenProtocolFeeZero()
-        external
-        whenNoDelegateCall
-        givenNotNull
-        whenTimeBetweenSnapshotTimeAndCurrentTime
-        whenWithdrawalAddressNotZero
-        whenWithdrawalAddressIsOwner
-        givenBalanceNotZero
-        whenTotalDebtNotExceedBalance
-        givenTokenHas18Decimals
-    {
-        // Go back to the starting point.
-        vm.warp({ newTimestamp: MAY_1_2024 });
-
-        resetPrank({ msgSender: users.sender });
-
-        // Create the stream and make a deposit.
-        uint256 streamId = createDefaultStream(dai);
-        deposit(streamId, DEPOSIT_AMOUNT_18D);
-
-        // Simulate the one month of streaming.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
-
-        // Make recipient the caller for subsequent tests.
-        resetPrank({ msgSender: users.recipient });
-
-        // It should withdraw the total debt.
-        _test_Withdraw({
-            streamId: streamId,
-            to: users.recipient,
-            depositAmount: DEPOSIT_AMOUNT_18D,
-            withdrawAmount: WITHDRAW_AMOUNT_18D
-        });
-    }
-
-    function test_GivenProtocolFeeNotZero()
-        external
-        whenNoDelegateCall
-        givenNotNull
-        whenTimeBetweenSnapshotTimeAndCurrentTime
-        whenWithdrawalAddressNotZero
-        whenWithdrawalAddressIsOwner
-        givenBalanceNotZero
-        whenTotalDebtNotExceedBalance
-        givenTokenHas18Decimals
-    {
-        // Go back to the starting point.
-        vm.warp({ newTimestamp: MAY_1_2024 });
-
-        // Set protocol fee.
-        resetPrank({ msgSender: users.admin });
-        flow.setProtocolFee(dai, PROTOCOL_FEE);
-
-        resetPrank({ msgSender: users.sender });
-
-        // Create the stream and make a deposit.
-        uint256 streamId = createDefaultStream(dai);
-        deposit(streamId, DEPOSIT_AMOUNT_18D);
-
-        // Simulate the one month of streaming.
-        vm.warp({ newTimestamp: WARP_ONE_MONTH });
-
-        // Make recipient the caller for subsequent tests.
-        resetPrank({ msgSender: users.recipient });
-
-        // It should withdraw the total debt.
-        _test_Withdraw({
-            streamId: streamId,
-            to: users.recipient,
-            depositAmount: DEPOSIT_AMOUNT_18D,
-            withdrawAmount: WITHDRAW_AMOUNT_18D
-        });
-    }
-
     function _test_Withdraw(uint256 streamId, address to, uint128 depositAmount, uint128 withdrawAmount) private {
         IERC20 token = flow.getToken(streamId);
         uint128 previousFullTotalDebt = flow.totalDebtOf(streamId);
@@ -283,7 +254,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
 
         uint128 feeAmount = 0;
         if (flow.protocolFee(token) > ZERO) {
-            feeAmount = PROTOCOL_FEE_AMOUNT_18D;
+            feeAmount = PROTOCOL_FEE_AMOUNT_6D;
             withdrawAmount -= feeAmount;
             expectedProtocolRevenue += feeAmount;
         }
@@ -298,7 +269,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             to: to,
             token: token,
             caller: users.recipient,
-            protocolFee: feeAmount,
+            protocolFeeAmount: feeAmount,
             withdrawAmount: withdrawAmount,
             withdrawTime: WITHDRAW_TIME
         });

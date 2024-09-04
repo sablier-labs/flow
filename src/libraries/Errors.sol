@@ -89,12 +89,12 @@ library Errors {
     error SablierFlow_WithdrawToZeroAddress(uint256 streamId);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                 SABLIER-FLOW-STATE
+                                 SABLIER-FLOW-BASE
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
-    error SablierFlowState_NotTransferable(uint256 streamId);
+    error SablierFlowBase_NotTransferable(uint256 streamId);
 
     /// @notice Thrown when trying to set protocol fee more than the allowed.
-    error SablierFlowState_ProtocolFeeTooHigh(UD60x18 newProtocolFee, UD60x18 maxProtocolFee);
+    error SablierFlowBase_ProtocolFeeTooHigh(UD60x18 newProtocolFee, UD60x18 maxProtocolFee);
 }

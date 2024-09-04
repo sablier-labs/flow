@@ -13,17 +13,10 @@ contract SetProtocolFee_Integration_Concrete_Test is Integration_Test {
         flow.setProtocolFee(tokenWithProtocolFee, PROTOCOL_FEE);
     }
 
-    modifier whenCallerAdmin() {
-        resetPrank({ msgSender: users.admin });
-        _;
-    }
-
     function test_RevertWhen_NewProtocolFeeExceedsMaxFee() external whenCallerAdmin {
-        UD60x18 newProtocolFee = MAX_PROTOCOL_FEE + UNIT;
+        UD60x18 newProtocolFee = MAX_FEE + UNIT;
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.SablierFlowState_ProtocolFeeTooHigh.selector, newProtocolFee, MAX_PROTOCOL_FEE
-            )
+            abi.encodeWithSelector(Errors.SablierFlowBase_ProtocolFeeTooHigh.selector, newProtocolFee, MAX_FEE)
         );
         flow.setProtocolFee(tokenWithProtocolFee, newProtocolFee);
     }

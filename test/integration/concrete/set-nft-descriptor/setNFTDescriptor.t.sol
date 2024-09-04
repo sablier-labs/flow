@@ -13,11 +13,6 @@ contract SetNFTDescriptor_Integration_Concrete_Test is Integration_Test {
         flow.setNFTDescriptor(SablierFlowNFTDescriptor(users.eve));
     }
 
-    modifier whenCallerAdmin() {
-        resetPrank({ msgSender: users.admin });
-        _;
-    }
-
     function test_WhenNewAndOldNFTDescriptorsAreSame() external whenCallerAdmin {
         // It should emit 1 {SetNFTDescriptor} and 1 {BatchMetadataUpdate} events
         vm.expectEmit({ emitter: address(flow) });

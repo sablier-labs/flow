@@ -23,8 +23,10 @@ abstract contract Events {
     event MetadataUpdate(uint256 _tokenId);
 
     /*//////////////////////////////////////////////////////////////////////////
-                                 SABLIER-FLOW-STATE
+                                 SABLIER-FLOW-BASE
     //////////////////////////////////////////////////////////////////////////*/
+
+    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
 
     event SetNFTDescriptor(
         address indexed admin, ISablierFlowNFTDescriptor oldNFTDescriptor, ISablierFlowNFTDescriptor newNFTDescriptor
@@ -39,8 +41,6 @@ abstract contract Events {
     event AdjustFlowStream(
         uint256 indexed streamId, uint128 totalDebt, UD21x18 oldRatePerSecond, UD21x18 newRatePerSecond
     );
-
-    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
 
     event CreateFlowStream(
         uint256 streamId,
@@ -75,7 +75,7 @@ abstract contract Events {
         address indexed to,
         IERC20 indexed token,
         address caller,
-        uint128 protocolFee,
+        uint128 protocolFeeAmount,
         uint128 withdrawAmount,
         uint40 withdrawTime
     );

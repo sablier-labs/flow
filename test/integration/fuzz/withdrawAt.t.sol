@@ -134,7 +134,7 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     {
         vm.assume(caller != address(0));
 
-        protocolFee = bound(protocolFee, ZERO, MAX_PROTOCOL_FEE);
+        protocolFee = bound(protocolFee, ZERO, MAX_FEE);
 
         (streamId,,) = useFuzzedStreamOrCreate(streamId, decimals);
 
