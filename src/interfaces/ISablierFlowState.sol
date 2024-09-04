@@ -26,15 +26,15 @@ interface ISablierFlowState is
     /// @notice Emitted when the contract admin sets a new protocol fee for the provided ERC-20 token.
     /// @param admin The address of the contract admin.
     /// @param token The address of the ERC-20 token the new protocol fee has been set for.
-    /// @param oldProtocolFee The old protocol fee, denoted as a fixed-point number.
-    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point number.
+    /// @param oldProtocolFee The old protocol fee, denoted as a fixed-point percentage.
+    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point percentage.
     event SetProtocolFee(address indexed admin, IERC20 indexed token, UD60x18 oldProtocolFee, UD60x18 newProtocolFee);
 
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Retrieves the maximum broker fee that can be charged by the broker, denoted as a fixed-point number
+    /// @notice Retrieves the maximum broker fee that can be charged by the broker, denoted as a fixed-point percentage
     /// where 1e18 is 100%.
     /// @dev This value is hard coded as a constant.
     function MAX_BROKER_FEE() external view returns (UD60x18 fee);
@@ -113,7 +113,7 @@ interface ISablierFlowState is
     /// @notice Contract that generates the non-fungible token URI.
     function nftDescriptor() external view returns (ISablierFlowNFTDescriptor);
 
-    /// @notice Protocol fee for the provided ERC-20 token, denoted as a fixed-point number where 1e18 is 100%.
+    /// @notice Protocol fee for the provided ERC-20 token, denoted as a fixed-point percentage where 1e18 is 100%.
     function protocolFee(IERC20 token) external view returns (UD60x18);
 
     /// @notice Protocol revenue accrued for the provided ERC-20 token.
@@ -150,6 +150,6 @@ interface ISablierFlowState is
     /// - `newProtocolFee` must not be greater than `MAX_PROTOCOL_FEE`.
     ///
     /// @param token The contract address of the ERC-20 token to update the fee for.
-    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point number where 1e18 is 100%.
+    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point percentage where 1e18 is 100%.
     function setProtocolFee(IERC20 token, UD60x18 newProtocolFee) external;
 }

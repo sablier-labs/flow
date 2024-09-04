@@ -277,7 +277,7 @@ interface ISablierFlow is
     /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in units of the token's
     /// decimals.
     /// @param broker Struct encapsulating (i) the address of the broker assisting in creating the stream, and (ii) the
-    /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point number. Both can be set
+    /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point percentage. Both can be set
     /// to zero.
     ///
     /// @return streamId The ID of the newly created stream.
@@ -338,7 +338,8 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to deposit on.
     /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in token's decimals.
     /// @param broker Struct encapsulating (i) the address of the broker assisting in creating the stream, and (ii) the
-    /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point number. Both can be set to zero.
+    /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point percentage. Both can be set to
+    /// zero.
     function depositViaBroker(uint256 streamId, uint128 totalAmount, Broker calldata broker) external;
 
     /// @notice Pauses the stream.
