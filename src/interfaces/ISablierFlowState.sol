@@ -143,10 +143,11 @@ interface ISablierFlowState is
     ///
     /// Notes:
     /// - Does not revert if the fee is the same.
+    /// - It can be zero.
     ///
     /// Requirements:
     /// - `msg.sender` must be the contract admin.
-    /// - `newProtocolFee` must not be greater than `MAX_PROTOCOL_FEE`. It can be zero.
+    /// - `newProtocolFee` must not be greater than `MAX_PROTOCOL_FEE`.
     ///
     /// @param token The contract address of the ERC-20 token to update the fee for.
     /// @param newProtocolFee The new protocol fee, denoted as a fixed-point number where 1e18 is 100%.

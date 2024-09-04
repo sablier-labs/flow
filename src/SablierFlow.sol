@@ -156,7 +156,7 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlow
-    function collectProtocolRevenue(IERC20 token, address recipient) external override onlyAdmin {
+    function collectProtocolRevenue(IERC20 token, address to) external override onlyAdmin {
         uint128 revenue = protocolRevenue[token];
 
         // Check: there is protocol revenue to collect.
@@ -167,10 +167,10 @@ contract SablierFlow is
         // Effect: reset the protocol revenue.
         protocolRevenue[token] = 0;
 
-        // Interaction: transfer the protocol revenue to the recipient.
-        IERC20(token).safeTransfer(recipient, revenue);
+        // Interaction: transfer the protocol revenue to the provided address.
+        token.safeTransfer(to, revenue);
 
-        emit ISablierFlow.CollectProtocolRevenue({ admin: admin, token: token, recipient: recipient, revenue: revenue });
+        emit ISablierFlow.CollectProtocolRevenue({ admin: msg.sender, token: token, to: to, revenue: revenue });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

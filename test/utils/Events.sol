@@ -40,7 +40,7 @@ abstract contract Events {
         uint256 indexed streamId, uint128 totalDebt, UD21x18 oldRatePerSecond, UD21x18 newRatePerSecond
     );
 
-    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address recipient, uint128 revenue);
+    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
 
     event CreateFlowStream(
         uint256 streamId,

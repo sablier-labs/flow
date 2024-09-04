@@ -30,9 +30,9 @@ interface ISablierFlow is
     /// @notice Emitted when the contract admin collects protocol revenue accrued.
     /// @param admin The address of the contract admin.
     /// @param token The address of the ERC-20 token the protocol revenue has been collected for.
-    /// @param recipient The address the protocol revenue has been sent to.
+    /// @param to The address the protocol revenue has been sent to.
     /// @param revenue The amount of protocol revenue collected.
-    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address recipient, uint128 revenue);
+    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
 
     /// @notice Emitted when a Flow stream is created.
     /// @param streamId The ID of the newly created stream.
@@ -189,8 +189,8 @@ interface ISablierFlow is
     /// - The accrued protocol revenue must be greater than zero.
     ///
     /// @param token The contract address of the ERC-20 token for which to claim protocol revenue.
-    /// @param recipient The address to send the protocol revenue to.
-    function collectProtocolRevenue(IERC20 token, address recipient) external;
+    /// @param to The address to send the protocol revenue to.
+    function collectProtocolRevenue(IERC20 token, address to) external;
 
     /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
@@ -323,13 +323,14 @@ interface ISablierFlow is
     ///
     /// Notes:
     /// - Refer to the notes in {deposit}.
+    /// - It can be zero.
     ///
     /// Requirements:
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream.
     /// - `totalAmount` must be greater than zero. Otherwise it will revert inside {deposit}.
     /// - `broker.account` must not be 0 address.
-    /// - `broker.fee` must not be greater than `MAX_BROKER_FEE`. It can be zero.
+    /// - `broker.fee` must not be greater than `MAX_BROKER_FEE`.
     ///
     /// @param streamId The ID of the stream to deposit on.
     /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in token's decimals.
