@@ -281,17 +281,16 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         uint128 previousFullTotalDebt = flow.totalDebtOf(streamId);
         uint128 expectedProtocolRevenue = flow.protocolRevenue(token);
 
-        // Net Withdraw Amount = Withdraw Amount - Protocol Fee Amount.
-        uint128 netWithdrawAmount = withdrawAmount;
-
+        uint128 feeAmount = 0;
         if (flow.protocolFee(token) > ZERO) {
-            netWithdrawAmount -= PROTOCOL_FEE_AMOUNT_18D;
-            expectedProtocolRevenue += PROTOCOL_FEE_AMOUNT_18D;
+            feeAmount = PROTOCOL_FEE_AMOUNT_18D;
+            withdrawAmount -= feeAmount;
+            expectedProtocolRevenue += feeAmount;
         }
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(token) });
-        emit IERC20.Transfer({ from: address(flow), to: to, value: netWithdrawAmount });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit WithdrawFromFlowStream({
@@ -299,7 +298,8 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
             to: to,
             token: token,
             caller: users.recipient,
-            withdrawAmount: netWithdrawAmount,
+            protocolFee: feeAmount,
+            withdrawAmount: withdrawAmount,
             withdrawTime: WITHDRAW_TIME
         });
 
@@ -307,7 +307,7 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         emit MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC-20 transfer.
-        expectCallToTransfer({ token: token, to: to, amount: netWithdrawAmount });
+        expectCallToTransfer({ token: token, to: to, amount: withdrawAmount });
 
         uint256 initialTokenBalance = token.balanceOf(address(flow));
 
@@ -317,25 +317,21 @@ contract WithdrawAt_Integration_Concrete_Test is Integration_Test {
         assertEq(flow.protocolRevenue(token), expectedProtocolRevenue, "protocol revenue");
 
         // It should update snapshot time.
-        uint128 actualSnapshotTime = flow.getSnapshotTime(streamId);
-        assertEq(actualSnapshotTime, WITHDRAW_TIME, "snapshot time");
+        assertEq(flow.getSnapshotTime(streamId), WITHDRAW_TIME, "snapshot time");
 
-        // It should decrease the total debt by the withdrawn value.
-        uint128 actualFullTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedFullTotalDebt = previousFullTotalDebt - withdrawAmount;
-        assertEq(actualFullTotalDebt, expectedFullTotalDebt, "total debt");
+        // It should decrease the total debt by the withdrawn value and fee amount.
+        uint128 expectedFullTotalDebt = previousFullTotalDebt - withdrawAmount - feeAmount;
+        assertEq(flow.totalDebtOf(streamId), expectedFullTotalDebt, "total debt");
 
-        // It should reduce the stream balance by the withdrawn value.
-        uint128 actualStreamBalance = flow.getBalance(streamId);
-        uint128 expectedStreamBalance = depositAmount - withdrawAmount;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+        // It should reduce the stream balance by the withdrawn value and fee amount.
+        uint128 expectedStreamBalance = depositAmount - withdrawAmount - feeAmount;
+        assertEq(flow.getBalance(streamId), expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.
-        uint256 actualTokenBalance = token.balanceOf(address(flow));
-        uint256 expectedTokenBalance = initialTokenBalance - netWithdrawAmount;
-        assertEq(actualTokenBalance, expectedTokenBalance, "token balance");
+        uint256 expectedTokenBalance = initialTokenBalance - withdrawAmount;
+        assertEq(token.balanceOf(address(flow)), expectedTokenBalance, "token balance");
 
         // Assert that the returned value equals the net withdrawn value.
-        assertEq(actualWithdrawAmount, netWithdrawAmount);
+        assertEq(actualWithdrawAmount, withdrawAmount);
     }
 }

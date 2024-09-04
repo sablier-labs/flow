@@ -830,9 +830,10 @@ contract SablierFlow is
 
         IERC20 token = _streams[streamId].token;
 
+        uint128 feeAmount;
         if (protocolFee[token] > ZERO) {
             // Calculate the protocol fee amount.
-            uint128 feeAmount = Helpers.calculateProtocolFee(withdrawAmount, protocolFee[token]);
+            feeAmount = Helpers.calculateProtocolFee(withdrawAmount, protocolFee[token]);
 
             // Safe to use unchecked because subtraction cannot underflow.
             unchecked {
@@ -856,6 +857,7 @@ contract SablierFlow is
             to: to,
             token: token,
             caller: msg.sender,
+            protocolFee: feeAmount,
             withdrawAmount: withdrawAmount,
             withdrawTime: time
         });
