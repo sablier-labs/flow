@@ -37,11 +37,6 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return ud21x18(boundUint128(ratePerSecond.unwrap(), 0.00001e18, 10e18));
     }
 
-    /// @dev Bounds a `UD60x18` value.
-    function boundUd60x18(UD60x18 x, UD60x18 min, UD60x18 max) internal pure returns (UD60x18) {
-        return UD60x18.wrap(_bound(x.unwrap(), min.unwrap(), max.unwrap()));
-    }
-
     /// @dev Bounds a `uint128` number.
     function boundUint128(uint128 x, uint128 min, uint128 max) internal pure returns (uint128) {
         return uint128(_bound(uint256(x), uint256(min), uint256(max)));

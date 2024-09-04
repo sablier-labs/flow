@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ud21x18, UD21x18 } from "@prb/math/src/UD21x18.sol";
-import { ZERO } from "@prb/math/src/UD60x18.sol";
+import { UD60x18, ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { Batch } from "./abstracts/Batch.sol";
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
@@ -830,10 +830,11 @@ contract SablierFlow is
 
         IERC20 token = _streams[streamId].token;
 
+        UD60x18 protocolFee = protocolFee[token];
         uint128 feeAmount;
-        if (protocolFee[token] > ZERO) {
+        if (protocolFee > ZERO) {
             // Calculate the protocol fee amount.
-            feeAmount = Helpers.calculateProtocolFee(withdrawAmount, protocolFee[token]);
+            feeAmount = Helpers.calculateProtocolFee(withdrawAmount, protocolFee);
 
             // Safe to use unchecked because subtraction cannot underflow.
             unchecked {
