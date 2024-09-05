@@ -33,11 +33,6 @@ abstract contract Integration_Test is Base_Test {
         vm.warp({ newTimestamp: WARP_ONE_MONTH });
     }
 
-    modifier whenCallerAdmin() override {
-        resetPrank({ msgSender: users.admin });
-        _;
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
                                      MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
@@ -45,6 +40,11 @@ abstract contract Integration_Test is Base_Test {
     modifier givenBalanceNotZero() override {
         // Deposit into the stream.
         depositToDefaultStream();
+        _;
+    }
+
+    modifier whenCallerAdmin() override {
+        resetPrank({ msgSender: users.admin });
         _;
     }
 

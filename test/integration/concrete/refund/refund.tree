@@ -25,6 +25,7 @@ Refund_Integration_Concrete_Test
                   │  ├── it should update the stream balance
                   │  ├── it should perform the ERC20 transfer
                   │  ├── it should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {MetadataUpdate} event
+                  │  └── it should return the transfer amount
                   └── given not paused
                      ├── when token misses ERC20 return
                      │  ├── it should make the refund

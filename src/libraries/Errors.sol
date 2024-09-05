@@ -39,9 +39,6 @@ library Errors {
     /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
     error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
 
-    /// @notice Thrown when trying to claim protocol revenue when the accrued amount is zero.
-    error SablierFlow_NoProtocolRevenue(address token);
-
     /// @notice Thrown when the ID references a null stream.
     error SablierFlow_Null(uint256 streamId);
 
@@ -94,6 +91,9 @@ library Errors {
     /*//////////////////////////////////////////////////////////////////////////
                                  SABLIER-FLOW-BASE
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice Thrown when trying to claim protocol revenue when the accrued amount is zero.
+    error SablierFlowBase_NoProtocolRevenue(address token);
 
     /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
     error SablierFlowBase_NotTransferable(uint256 streamId);

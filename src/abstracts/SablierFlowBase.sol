@@ -207,7 +207,7 @@ abstract contract SablierFlowBase is
 
         // Check: there is protocol revenue to collect.
         if (revenue == 0) {
-            revert Errors.SablierFlow_NoProtocolRevenue(address(token));
+            revert Errors.SablierFlowBase_NoProtocolRevenue(address(token));
         }
 
         // Effect: reset the protocol revenue.

@@ -43,7 +43,15 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: 0 });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream(streamId, users.recipient, token, caller, 0, 0, withdrawTime);
+        emit WithdrawFromFlowStream({
+            streamId: streamId,
+            to: users.recipient,
+            token: token,
+            caller: caller,
+            protocolFeeAmount: 0,
+            withdrawAmount: 0,
+            withdrawTime: withdrawTime
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -107,8 +115,8 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should transfer protocol fee to the admin.
-    /// - It should withdraw token from a stream.
+    /// - It should increase protocol revenue for the token.
+    /// - It should withdraw token amount after deducting protocol fee from the stream.
     /// - It should emit the following events: {Transfer}, {MetadataUpdate}, {WithdrawFromFlowStream}
     ///
     /// Given enough runs, all of the following scenarios should be fuzzed:
@@ -225,7 +233,15 @@ contract WithdrawAt_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream(streamId, to, token, caller, feeAmount, withdrawAmount, withdrawTime);
+        emit WithdrawFromFlowStream({
+            streamId: streamId,
+            to: to,
+            token: token,
+            caller: caller,
+            protocolFeeAmount: feeAmount,
+            withdrawAmount: withdrawAmount,
+            withdrawTime: withdrawTime
+        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });

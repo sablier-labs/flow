@@ -30,7 +30,7 @@ contract CollectProtocolRevenue_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertGiven_ProtocolRevenueZero() external whenCallerAdmin {
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SablierFlow_NoProtocolRevenue.selector, address(tokenWithProtocolFee))
+            abi.encodeWithSelector(Errors.SablierFlowBase_NoProtocolRevenue.selector, address(tokenWithProtocolFee))
         );
         flow.collectProtocolRevenue(tokenWithProtocolFee, users.admin);
     }

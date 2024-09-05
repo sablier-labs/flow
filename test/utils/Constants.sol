@@ -16,7 +16,7 @@ abstract contract Constants {
     uint128 internal constant WITHDRAW_AMOUNT_18D = 2500e18;
     uint128 internal constant WITHDRAW_AMOUNT_6D = 2500e6;
 
-    // Fee amounts
+    // Fees
     UD60x18 internal constant BROKER_FEE = UD60x18.wrap(0.01e18); // 1%
     uint128 internal constant BROKER_FEE_AMOUNT_18D = 505.050505050505050505e18; // 1% of total amount
     uint128 internal constant BROKER_FEE_AMOUNT_6D = 505.050505e6; // 1% of total amount
