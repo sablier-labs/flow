@@ -399,7 +399,7 @@ interface ISablierFlow is
     /// @param amount The deposit amount, denoted in token's decimals.
     function restartAndDeposit(uint256 streamId, UD21x18 ratePerSecond, uint128 amount) external;
 
-    /// @notice Voids the uncovered debt, and stops the stream.
+    /// @notice Voids the uncovered debt, and ends the stream.
     ///
     /// @dev Emits a {VoidFlowStream} event.
     ///

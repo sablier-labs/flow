@@ -282,6 +282,7 @@ contract SablierFlow is
         override
         noDelegateCall
         notNull(streamId)
+        notVoided(streamId)
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream through broker.
@@ -366,6 +367,7 @@ contract SablierFlow is
         override
         noDelegateCall
         notNull(streamId)
+        notVoided(streamId)
         onlySender(streamId)
         updateMetadata(streamId)
     {

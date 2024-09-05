@@ -26,7 +26,7 @@ library Flow {
     /// @custom:value1 STREAMING_INSOLVENT Streaming stream when there is uncovered debt.
     /// @custom:value2 PAUSED_SOLVENT Paused stream when there is no uncovered debt.
     /// @custom:value3 PAUSED_INSOLVENT Paused stream when there is uncovered debt.
-    /// @custom:value4 VOIDED Stream that has no uncovered debt and it cannot be restarted.
+    /// @custom:value4 VOIDED Paused stream with no uncovered debt and it cannot be restarted.
     enum Status {
         // Streaming
         STREAMING_SOLVENT,
@@ -52,7 +52,8 @@ library Flow {
     /// @param isPaused Boolean indicating if the stream is paused.
     /// @param isStream Boolean indicating if the struct entity exists.
     /// @param isTransferable Boolean indicating if the stream NFT is transferable.
-    /// @param isVoided Boolean indicating if the stream is voided.
+    /// @param isVoided Boolean indicating if the stream is voided. Voiding a stream is a non reversible step. When a
+    /// stream is voided, its uncovered debt is set to zero and it can not be restarted.
     /// @param token The contract address of the ERC-20 token to stream.
     /// @param tokenDecimals The decimals of the ERC-20 token to stream.
     /// @param snapshotDebt The amount of tokens that the sender owed to the recipient at snapshot time, denoted in
