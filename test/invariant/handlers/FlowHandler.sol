@@ -97,24 +97,6 @@ contract FlowHandler is BaseHandler {
         flow.adjustRatePerSecond(currentStreamId, newRatePerSecond);
     }
 
-    function pause(
-        uint256 timeJumpSeed,
-        uint256 streamIndexSeed
-    )
-        external
-        instrument("pause")
-        useFuzzedStream(streamIndexSeed)
-        useFuzzedStreamSender
-        adjustTimestamp(timeJumpSeed)
-        updateFlowHandlerStates
-    {
-        // Paused streams cannot be paused again.
-        vm.assume(!flow.isPaused(currentStreamId));
-
-        // Pause the stream.
-        flow.pause(currentStreamId);
-    }
-
     function deposit(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
@@ -153,6 +135,24 @@ contract FlowHandler is BaseHandler {
 
     /// @dev A function that does nothing but warp the time into the future.
     function passTime(uint256 timeJumpSeed) external instrument("passTime") adjustTimestamp(timeJumpSeed) { }
+
+    function pause(
+        uint256 timeJumpSeed,
+        uint256 streamIndexSeed
+    )
+        external
+        instrument("pause")
+        useFuzzedStream(streamIndexSeed)
+        useFuzzedStreamSender
+        adjustTimestamp(timeJumpSeed)
+        updateFlowHandlerStates
+    {
+        // Paused streams cannot be paused again.
+        vm.assume(!flow.isPaused(currentStreamId));
+
+        // Pause the stream.
+        flow.pause(currentStreamId);
+    }
 
     function refund(
         uint256 timeJumpSeed,
