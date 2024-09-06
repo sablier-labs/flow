@@ -472,10 +472,12 @@ contract SablierFlow is
         return totalDebt;
     }
 
-    /// @dev When token decimal is less than 18 and rps is less than minimum transferable value, the denormalization
-    /// process introduces a time range [t, t+δ] during which the ongoing debt would result in the same value. Thus, to
-    /// avoid any loss to the users, this function returns a corrected time which is the lower bound, t in the range [t,
-    /// t+δ]. This corrected time is then stored as the snapshot time.
+    /// @dev When token decimal is less than 18, the `_ongoingDebtOf` function can be non-injective with respect to its
+    /// input parameter `time` due to the denormalization. This results into a time range [t, t+δ] during which it
+    /// would produce the same value. Thus, to minimise any loss to the users, this function returns a corrected time
+    /// which is the lower bound, t in the range [t, t+δ]. The corrected time is the nearest Unix timestamp that
+    /// produces the smallest remainder greater than the minimum transferable value. This corrected time is then stored
+    /// as the snapshot time.
     ///
     /// @param streamId The ID of the stream.
     /// @param time The time to calculate the ongoing debt.
