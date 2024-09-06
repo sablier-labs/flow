@@ -472,9 +472,10 @@ contract SablierFlow is
         return totalDebt;
     }
 
-    /// @dev The denormalization process introduces a time range [t, t+δ] during which the ongoing debt would result in
-    /// the same value. Thus, to avoid any loss to the users, this function returns a corrected time which is the lower
-    /// bound, t in the range [t, t+δ]. This corrected time is then stored as the snapshot time.
+    /// @dev When token decimal is less than 18 and rps is less than minimum transferable value, the denormalization
+    /// process introduces a time range [t, t+δ] during which the ongoing debt would result in the same value. Thus, to
+    /// avoid any loss to the users, this function returns a corrected time which is the lower bound, t in the range [t,
+    /// t+δ]. This corrected time is then stored as the snapshot time.
     ///
     /// @param streamId The ID of the stream.
     /// @param time The time to calculate the ongoing debt.
@@ -524,7 +525,7 @@ contract SablierFlow is
             ongoingDebt = (normalizedOngoingDebt / (10 ** factor)).toUint128();
 
             // Renormalize the ongoing debt for the calculation of corrected time.
-            uint256 renormalizedOngoingDebt = (ongoingDebt * (10 ** factor)).toUint128();
+            uint128 renormalizedOngoingDebt = (ongoingDebt * (10 ** factor)).toUint128();
 
             // Derive the corrected time from the renormalized ongoing debt.
             correctedTime = uint40(snapshotTime + renormalizedOngoingDebt / ratePerSecond);
