@@ -82,7 +82,8 @@ contract SablierFlow is
         uint128 solvencyAmount;
 
         // Depletion time is defined as the UNIX timestamp beyond which the total debt exceeds stream balance.
-        // The following calculation assumes that at the depletion time, total debt = stream balance + 1.
+        // So we calculate it by solving: debt at depletion time = stream balance + 1. This ensures that we find the
+        // lowest timestamp at which the debt exceeds the balance.
         // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
             if (tokenDecimals == 18) {
