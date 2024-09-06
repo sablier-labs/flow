@@ -81,8 +81,8 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
         uint128 solvencyAmount;
 
-        /// @dev Depletion time is defined as the UNIX timestamp beyond which the total debt exceeds stream balance.
-        /// The following calculation assumes that at the depletion time, total debt = stream balance + 1.
+        // Depletion time is defined as the UNIX timestamp beyond which the total debt exceeds stream balance.
+        // The following calculation assumes that at the depletion time, total debt = stream balance + 1.
         // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
             if (tokenDecimals == 18) {
@@ -510,24 +510,24 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
 
         // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
-        uint128 normalizedAmount = elapsedTime * ratePerSecond;
+        uint128 normalizedOngoingDebt = elapsedTime * ratePerSecond;
 
-        // If the token decimals are 18, return the normalized amount and the time.
+        // If the token decimals are 18, return the normalized ongoing debt and the time.
         if (tokenDecimals == 18) {
-            return (normalizedAmount, time);
+            return (normalizedOngoingDebt, time);
         }
 
         // Safe to use unchecked because we use {SafeCast}.
         unchecked {
             uint8 factor = 18 - tokenDecimals;
-            // Since amount values are represented in token decimals, denormalize the amount.
-            ongoingDebt = (normalizedAmount / (10 ** factor)).toUint128();
+            // Since debt is denoted in token decimals, denormalize the amount.
+            ongoingDebt = (normalizedOngoingDebt / (10 ** factor)).toUint128();
 
             // Renormalize the ongoing debt for the calculation of corrected time.
-            uint256 renormalizedAmount = (ongoingDebt * (10 ** factor)).toUint128();
+            uint256 renormalizedOngoingDebt = (ongoingDebt * (10 ** factor)).toUint128();
 
-            // Derive the corrected time from the renormalized amount.
-            correctedTime = uint40(snapshotTime + renormalizedAmount / ratePerSecond);
+            // Derive the corrected time from the renormalized ongoing debt.
+            correctedTime = uint40(snapshotTime + renormalizedOngoingDebt / ratePerSecond);
         }
 
         return (ongoingDebt, correctedTime);
