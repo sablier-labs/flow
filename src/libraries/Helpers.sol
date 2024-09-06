@@ -9,8 +9,6 @@ import { Errors } from "./Errors.sol";
 /// @title Helpers
 /// @notice Library with helper functions in {SablierFlow} contract.
 library Helpers {
-    using SafeCast for uint256;
-
     /// @dev Calculate the fee amount and the net amount after subtracting the fee, based on the `fee` percentage.
     function calculateAmountsFromFee(
         uint128 totalAmount,

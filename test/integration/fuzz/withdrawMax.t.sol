@@ -158,7 +158,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             caller: caller,
             protocolFeeAmount: 0,
             withdrawAmount: withdrawAmount,
-            withdrawTime: expectedCorrectedAmount
+            snapshotTime: expectedCorrectedAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });

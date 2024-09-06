@@ -81,7 +81,7 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
         uint128 solvencyAmount;
 
-        /// @dev Depletion time is defined as the unix timestamp beyond which the total debt exceeds stream balance.
+        /// @dev Depletion time is defined as the UNIX timestamp beyond which the total debt exceeds stream balance.
         /// The following calculation assumes that at the depletion time, total debt = stream balance + 1.
         // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
@@ -882,7 +882,7 @@ contract SablierFlow is
         _streams[streamId].balance -= totalWithdrawAmount;
 
         // Interaction: perform the ERC-20 transfer.
-        _streams[streamId].token.safeTransfer({ to: to, value: withdrawAmount });
+        token.safeTransfer({ to: to, value: withdrawAmount });
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({
