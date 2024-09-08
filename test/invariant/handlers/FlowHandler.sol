@@ -234,14 +234,14 @@ contract FlowHandler is BaseHandler {
         flow.void(currentStreamId);
     }
 
-    function withdrawAt(
+    function withdraw(
         uint256 timeJumpSeed,
         uint256 streamIndexSeed,
         address to,
-        uint40 time
+        uint128 amount
     )
         external
-        instrument("withdrawAt")
+        instrument("withdraw")
         useFuzzedStream(streamIndexSeed)
         useFuzzedStreamRecipient
         adjustTimestamp(timeJumpSeed)
@@ -253,8 +253,8 @@ contract FlowHandler is BaseHandler {
         // Check if there is anything to withdraw.
         vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
 
-        // Bound the time so that it is between snapshot time and current time.
-        time = uint40(_bound(time, flow.getSnapshotTime(currentStreamId), getBlockTimestamp()));
+        // Bound the withdraw amount so that it is less than maximum wihtdrawable amount.
+        amount = boundUint128(amount, 1, flow.withdrawableAmountOf(currentStreamId));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.
@@ -265,19 +265,8 @@ contract FlowHandler is BaseHandler {
 
         uint128 initialBalance = flow.getBalance(currentStreamId);
 
-        // We need to calculate the total debt at the time of withdrawal. Otherwise the modifier updates the mappings
-        // with `block.timestamp` as the time reference.
-        uint128 totalDebt = flow.getSnapshotDebt(currentStreamId)
-            + getDenormalizedAmount({
-                amount: flow.getRatePerSecond(currentStreamId).unwrap() * (time - flow.getSnapshotTime(currentStreamId)),
-                decimals: flow.getTokenDecimals(currentStreamId)
-            });
-        uint128 uncoveredDebt = initialBalance < totalDebt ? totalDebt - initialBalance : 0;
-        previousTotalDebtOf[currentStreamId] = totalDebt;
-        previousUncoveredDebtOf[currentStreamId] = uncoveredDebt;
-
         // Withdraw from the stream.
-        flow.withdrawAt({ streamId: currentStreamId, to: to, time: time });
+        flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
 
         uint128 amountWithdrawn = initialBalance - flow.getBalance(currentStreamId);
 

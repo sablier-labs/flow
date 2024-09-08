@@ -405,26 +405,24 @@ interface ISablierFlow is
     /// - `streamId` must not reference a null stream.
     /// - `to` must not be the zero address.
     /// - `to` must be the recipient if `msg.sender` is not the stream's recipient.
-    /// - `time` must be greater than the stream's `snapshotTime` and must not be in the future.
+    /// - `amount` must be greater than zero and must not exceed the withdrawable amount.
     /// -  The stream balance must be greater than zero.
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
-    /// @param time The Unix timestamp up to which ongoing debt is calculated from the snapshot time.
-    ///
-    /// @return withdrawAmount The amount transferred to the recipient, denoted in token's decimals.
-    function withdrawAt(uint256 streamId, address to, uint40 time) external returns (uint128 withdrawAmount);
+    /// @param amount The amount to withdraw, denoted in units of the token's decimals.
+    function withdraw(uint256 streamId, address to, uint128 amount) external;
 
     /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///
     /// Notes:
-    /// - It uses the value returned by {withdrawAt} with the current block timestamp.
-    /// - Refer to the notes in {withdrawAt}.
+    /// - It uses the value returned by {withdraw} with the current block timestamp.
+    /// - Refer to the notes in {withdraw}.
     ///
     /// Requirements:
-    /// - Refer to the requirements in {withdrawAt}.
+    /// - Refer to the requirements in {withdraw}.
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.

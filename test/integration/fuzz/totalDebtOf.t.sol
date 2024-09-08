@@ -50,15 +50,16 @@ contract TotalDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
 
-        uint40 warpTimestamp = getBlockTimestamp() + timeJump;
-
         // Simulate the passage of time.
-        vm.warp({ newTimestamp: warpTimestamp });
+        vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        // Assert that total debt is zero.
+        uint128 ratePerSecond = flow.getRatePerSecond(streamId).unwrap();
+
+        // Assert that total debt is the ongoing debt.
         uint128 actualTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedTotalDebt =
-            getDenormalizedAmount(flow.getRatePerSecond(streamId).unwrap() * (warpTimestamp - MAY_1_2024), decimals);
+        uint128 expectedTotalDebt = ratePerSecond > getNormalizedAmount(flow.ongoingDebtOf(streamId), decimals)
+            ? 0
+            : getDenormalizedAmount(ratePerSecond * timeJump, decimals);
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
     }
 }

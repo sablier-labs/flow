@@ -60,7 +60,7 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         // It should perform the ERC-20 transfer.
         expectCallToTransfer({ token: usdc, to: users.recipient, amount: withdrawAmount });
 
-        uint128 actualWithdrawAmount = flow.withdrawMax(defaultStreamId, users.recipient);
+        flow.withdrawMax(defaultStreamId, users.recipient);
 
         // It should update the stream balance.
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
@@ -74,8 +74,5 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
         // It should update snapshot time.
         uint128 actualSnapshotTime = flow.getSnapshotTime(defaultStreamId);
         assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
-
-        // Assert that the withdraw amounts match.
-        assertEq(actualWithdrawAmount, withdrawAmount);
     }
 }

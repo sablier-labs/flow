@@ -30,11 +30,11 @@
     "LICENSE-GPL.md"
   ],
   "keywords": [
-    "asset-distribution",
-    "asset-streaming",
+    "token-distribution",
+    "token-streaming",
     "blockchain",
     "crypto",
-    "cryptoasset-streaming",
+    "cryptotoken-streaming",
     "ethereum",
     "forge",
     "foundry",

@@ -33,7 +33,7 @@ contract Flow_Gas_Test is Integration_Test {
         // Create the file if it doesn't exist, otherwise overwrite it.
         vm.writeFile({
             path: benchmarkResultsFile,
-            data: string.concat("# Benchmarks using 6-decimal asset \n\n", "| Function | Gas Usage |\n", "| --- | --- |\n")
+            data: string.concat("# Benchmarks using 6-decimal token \n\n", "| Function | Gas Usage |\n", "| --- | --- |\n")
         });
     }
 
@@ -74,19 +74,18 @@ contract Flow_Gas_Test is Integration_Test {
         // {flow.void}
         computeGas("void", abi.encodeCall(flow.void, (streamId)));
 
-        // {flow.withdrawAt} (on an insolvent stream) on an incremented stream ID.
+        // {flow.withdraw} (on an insolvent stream) on an incremented stream ID.
         computeGas(
-            "withdrawAt (insolvent stream)",
-            abi.encodeCall(flow.withdrawAt, (++streamId, users.recipient, getBlockTimestamp()))
+            "withdraw (insolvent stream)",
+            abi.encodeCall(flow.withdraw, (++streamId, users.recipient, getBlockTimestamp()))
         );
 
         // Deposit amount on an incremented stream ID to make stream solvent.
         deposit(++streamId, flow.uncoveredDebtOf(streamId) + DEPOSIT_AMOUNT_6D);
 
-        // {flow.withdrawAt} (on a solvent stream).
+        // {flow.withdraw} (on a solvent stream).
         computeGas(
-            "withdrawAt (solvent stream)",
-            abi.encodeCall(flow.withdrawAt, (streamId, users.recipient, getBlockTimestamp()))
+            "withdraw (solvent stream)", abi.encodeCall(flow.withdraw, (streamId, users.recipient, getBlockTimestamp()))
         );
 
         // {flow.withdrawMax} on an incremented stream ID.
