@@ -530,6 +530,12 @@ contract SablierFlow is
             // Renormalize the ongoing debt for the calculation of corrected time.
             uint128 renormalizedOngoingDebt = (ongoingDebt * (10 ** factor)).toUint128();
 
+            // Return 0 if renormalized ongoing debt is less than `ratePerSecond`. This eliminates the risk of leaking
+            // funds when renormalized debt is less than rate per second.
+            if (renormalizedOngoingDebt < ratePerSecond) {
+                return (0, snapshotTime);
+            }
+
             // Derive the corrected time from the renormalized ongoing debt.
             correctedTime = uint40(snapshotTime + renormalizedOngoingDebt / ratePerSecond);
         }
