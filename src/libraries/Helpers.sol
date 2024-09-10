@@ -21,9 +21,6 @@ library Helpers {
         // Calculate the fee amount based on the fee percentage.
         feeAmount = ud(totalAmount).mul(fee).intoUint128();
 
-        // Assert that the total amount is strictly greater than the fee amount.
-        assert(totalAmount > feeAmount);
-
         // Calculate the net amount after subtracting the fee from the total amount.
         netAmount = totalAmount - feeAmount;
     }
