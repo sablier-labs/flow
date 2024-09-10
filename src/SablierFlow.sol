@@ -437,7 +437,7 @@ contract SablierFlow is
         return totalDebt;
     }
 
-    /// @dev When token decimal is less than 18, the `_ongoingDebtOf` function can be non-injective with respect
+    /// @dev When token decimal is less than 18, the `_ongoingDebtOf` function can be non-injective with respect to
     /// `block.timestamp` due to the denormalization. This results into a time range [t, t+δ] during which it
     /// would produce the same value. Thus, to minimise any loss to the users, this function returns a corrected time
     /// which is the lower bound, t in the range [t, t+δ]. The corrected time is the nearest Unix timestamp that
