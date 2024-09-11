@@ -29,7 +29,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
     function test_RevertWhen_CustomError() external {
         // The calls declared as bytes
         bytes[] memory calls = new bytes[](1);
-        calls[0] = abi.encodeCall(flow.withdrawMax, (1, users.sender));
+        calls[0] = abi.encodeCall(flow.withdrawMax, (1, users.recipient));
 
         bytes memory expectedRevertData = abi.encodeWithSelector(
             Errors.BatchError.selector, abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountZero.selector, 1)

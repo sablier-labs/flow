@@ -447,9 +447,10 @@ contract SablierFlow is
     /// @param streamId The ID of the stream.
     ///
     /// @return ongoingDebt The denormalized ongoing debt accrued since the last snapshot. Return 0 if the stream is
-    /// paused or `block.timestamp` is less than the snapshot time.
+    /// paused or `block.timestamp` is less than or equal to snapshot time.
+    ///
     /// @return correctedTime The corrected time derived from the denormalized ongoing debt. Return `block.timestamp` if
-    /// the stream is paused or is less than the snapshot time.
+    /// the stream is paused or `block.timestamp` is less than or equal to snapshot time.
     function _ongoingDebtOf(uint256 streamId) internal view returns (uint128 ongoingDebt, uint40 correctedTime) {
         uint40 blockTimestamp = uint40(block.timestamp);
         uint40 snapshotTime = _streams[streamId].snapshotTime;
@@ -814,8 +815,7 @@ contract SablierFlow is
         if (balance < totalDebt) {
             withdrawableAmount = balance;
         }
-        // Otherwise, if stream balance is greater than the total debt, the withdrawable amount is the sum of ongoing
-        // debt and snapshot debt.
+        // Otherwise, if stream balance is greater than the total debt, the withdrawable amount is the total debt.
         else {
             withdrawableAmount = totalDebt;
         }
@@ -825,24 +825,13 @@ contract SablierFlow is
             revert Errors.SablierFlow_Overdraw(streamId, amount, withdrawableAmount);
         }
 
-        // Safe to use unchecked, the balance cannot be less than `amount` at this point.
+        // Safe to use unchecked, the balance or total debt cannot be less than `amount` at this point.
         unchecked {
             // Effect: update the stream balance.
             _streams[streamId].balance -= amount;
-        }
 
-        // If there is debt, the snapshot debt is updated so that we don't lose track of the debt.
-        if (amount < totalDebt) {
-            // Safe to use unchecked because subtraction cannot underflow.
-            unchecked {
-                // Effect: update the snapshot debt.
-                _streams[streamId].snapshotDebt = totalDebt - amount;
-            }
-        }
-        // Otherwise, the snapshot debt must be set to zero.
-        else if (amount == totalDebt) {
-            // Effect: set the snapshot debt to zero.
-            _streams[streamId].snapshotDebt = 0;
+            // Effect: update the snapshot debt.
+            _streams[streamId].snapshotDebt = totalDebt - amount;
         }
 
         // Maybe we should add a safety check wether the snapshot debt is not the same as it previously was?
@@ -850,7 +839,7 @@ contract SablierFlow is
         // Effect: update the stream time.
         _streams[streamId].snapshotTime = correctedTime;
 
-        // Load the variable in memory.
+        // Load the variables in memory.
         IERC20 token = _streams[streamId].token;
         UD60x18 protocolFee = protocolFee[token];
         uint128 feeAmount;

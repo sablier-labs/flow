@@ -386,18 +386,12 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external;
 
-    /// @notice Withdraws to the `to` address the amount calculated based on the `time` reference and the snapshot time.
+    /// @notice Withdraws the provided amount of tokens from the stream to the `to` address.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///
     /// Notes:
-    /// - It sets the snapshot time to the `time` specified.
-    /// - If stream balance is less than the total debt at `time`:
-    ///   - It withdraws the full balance.
-    ///   - It sets the snapshot debt to the total debt minus the stream balance.
-    /// - If stream balance is greater than the total debt at `time`:
-    ///   - It withdraws the total debt at `time`.
-    ///   - It sets the snapshot debt to zero.
+    /// - It sets the snapshot time to the corrected time returned in `_ongoingDebtOf` function.
     /// - If the protocol fee is enabled for the streaming token, the amount withdrawn is adjusted by the protocol fee.
     ///
     /// Requirements:
@@ -405,12 +399,11 @@ interface ISablierFlow is
     /// - `streamId` must not reference a null stream.
     /// - `to` must not be the zero address.
     /// - `to` must be the recipient if `msg.sender` is not the stream's recipient.
-    /// - `amount` must be greater than zero and must not exceed the withdrawable amount.
-    /// -  The stream balance must be greater than zero.
+    /// - `amount` must  be greater than zero and must not exceed the withdrawable amount.
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
-    /// @param amount The amount to withdraw, denoted in units of the token's decimals.
+    /// @param amount The amount to withdraw, denoted in token's decimals.
     function withdraw(uint256 streamId, address to, uint128 amount) external;
 
     /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
@@ -418,7 +411,6 @@ interface ISablierFlow is
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///
     /// Notes:
-    /// - It uses the value returned by {withdraw} with the current block timestamp.
     /// - Refer to the notes in {withdraw}.
     ///
     /// Requirements:

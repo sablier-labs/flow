@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
+import { ud21x18 } from "@prb/math/src/UD21x18.sol";
+
 import { Integration_Test } from "./../test/integration/Integration.t.sol";
 
 /// @notice A contract to benchmark Flow functions.
@@ -43,7 +45,10 @@ contract Flow_Gas_Test is Integration_Test {
 
     function testGas_Implementations() external {
         // {flow.adjustRatePerSecond}
-        computeGas("adjustRatePerSecond", abi.encodeCall(flow.adjustRatePerSecond, (streamId, RATE_PER_SECOND + 1)));
+        computeGas(
+            "adjustRatePerSecond",
+            abi.encodeCall(flow.adjustRatePerSecond, (streamId, ud21x18(RATE_PER_SECOND_U128 + 1)))
+        );
 
         // {flow.create}
         computeGas(
@@ -77,7 +82,7 @@ contract Flow_Gas_Test is Integration_Test {
         // {flow.withdraw} (on an insolvent stream) on an incremented stream ID.
         computeGas(
             "withdraw (insolvent stream)",
-            abi.encodeCall(flow.withdraw, (++streamId, users.recipient, getBlockTimestamp()))
+            abi.encodeCall(flow.withdraw, (++streamId, users.recipient, WITHDRAW_AMOUNT_6D))
         );
 
         // Deposit amount on an incremented stream ID to make stream solvent.
@@ -85,7 +90,7 @@ contract Flow_Gas_Test is Integration_Test {
 
         // {flow.withdraw} (on a solvent stream).
         computeGas(
-            "withdraw (solvent stream)", abi.encodeCall(flow.withdraw, (streamId, users.recipient, getBlockTimestamp()))
+            "withdraw (solvent stream)", abi.encodeCall(flow.withdraw, (streamId, users.recipient, WITHDRAW_AMOUNT_6D))
         );
 
         // {flow.withdrawMax} on an incremented stream ID.
