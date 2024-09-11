@@ -263,19 +263,10 @@ contract FlowHandler is BaseHandler {
             to = currentRecipient;
         }
 
-        uint128 initialBalance = flow.getBalance(currentStreamId);
-
         // Withdraw from the stream.
         flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
 
-        uint128 amountWithdrawn = initialBalance - flow.getBalance(currentStreamId);
-
-        UD60x18 protocolFee = flow.protocolFee(flow.getToken(currentStreamId));
-        if (protocolFee > ZERO) {
-            amountWithdrawn -= uint128((ud(amountWithdrawn).mul(UNIT - protocolFee)).unwrap());
-        }
-
         // Update the withdrawn amount.
-        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, amountWithdrawn);
+        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, amount);
     }
 }
