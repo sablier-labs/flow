@@ -834,8 +834,6 @@ contract SablierFlow is
             _streams[streamId].snapshotDebt = totalDebt - amount;
         }
 
-        // Maybe we should add a safety check wether the snapshot debt is not the same as it previously was?
-
         // Effect: update the stream time.
         _streams[streamId].snapshotTime = correctedTime;
 
