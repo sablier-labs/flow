@@ -32,7 +32,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         flow.pause(streamId);
 
         // Bound the time jump to provide a realistic time frame.
-        timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
+        timeJump = boundUint40(timeJump, 0 seconds, 100 weeks);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
@@ -68,7 +68,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         newRatePerSecond = ud21x18(boundUint128(newRatePerSecond.unwrap(), 1, UINT128_MAX));
 
         // Bound the time jump to provide a realistic time frame.
-        timeJump = boundUint40(timeJump, 1 seconds, 100 weeks);
+        timeJump = boundUint40(timeJump, 0 seconds, 100 weeks);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
