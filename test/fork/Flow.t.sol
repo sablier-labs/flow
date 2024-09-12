@@ -250,16 +250,8 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 totalDebt = flow.totalDebtOf(streamId);
         uint128 ongoingDebt = flow.ongoingDebtOf(streamId);
 
-        uint128 ongoingDebtNormalized = getNormalizedAmount(ongoingDebt, flow.getTokenDecimals(streamId));
-        uint128 ratePerSecond = flow.getRatePerSecond(streamId).unwrap();
-        uint40 snapshotTime = flow.getSnapshotTime(streamId);
-
         // Compute the snapshot time that will be stored post withdraw.
-        vars.expectedSnapshotTime = uint40(
-            ratePerSecond > getRenormalizedAmount(ongoingDebt, flow.getTokenDecimals(streamId))
-                ? snapshotTime
-                : snapshotTime + (ongoingDebtNormalized / ratePerSecond)
-        );
+        vars.expectedSnapshotTime = getBlockTimestamp();
 
         // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
@@ -596,16 +588,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 ratePerSecond = flow.getRatePerSecond(streamId).unwrap();
         uint40 snapshotTime = flow.getSnapshotTime(streamId);
 
-        if (!flow.isPaused(streamId)) {
-            // Compute the snapshot time that will be stored post withdraw.
-            vars.expectedSnapshotTime = uint40(
-                ratePerSecond > getRenormalizedAmount(flow.ongoingDebtOf(streamId), flow.getTokenDecimals(streamId))
-                    ? snapshotTime
-                    : snapshotTime + (ongoingDebtNormalized / ratePerSecond)
-            );
-        } else {
-            vars.expectedSnapshotTime = getBlockTimestamp();
-        }
+        vars.expectedSnapshotTime = getBlockTimestamp();
 
         (, address caller,) = vm.readCallers();
         address recipient = flow.getRecipient(streamId);
@@ -621,8 +604,7 @@ contract Flow_Fork_Test is Fork_Test {
             token: token,
             caller: caller,
             protocolFeeAmount: 0,
-            withdrawAmount: withdrawAmount,
-            snapshotTime: vars.expectedSnapshotTime
+            withdrawAmount: withdrawAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });

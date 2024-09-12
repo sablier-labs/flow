@@ -260,8 +260,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
             token: token,
             caller: users.recipient,
             protocolFeeAmount: feeAmount,
-            withdrawAmount: withdrawAmount - feeAmount,
-            snapshotTime: getBlockTimestamp()
+            withdrawAmount: withdrawAmount - feeAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });
