@@ -131,6 +131,14 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 expectedStreamBalance = streamBalance - withdrawAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
+        // Assert that snapshot time is updated correctly.
+        assertEq(flow.getSnapshotTime(streamId), expectedSnapshotTime, "snapshot time");
+
+        // Assert that total debt equals snapshot debt and ongoing debt
+        assertEq(
+            flow.totalDebtOf(streamId), flow.getSnapshotDebt(streamId) + flow.ongoingDebtOf(streamId), "snapshot debt"
+        );
+
         // It should reduce the token balance of stream.
         uint256 actualTokenBalance = token.balanceOf(address(flow));
         uint256 expectedTokenBalance = tokenBalance - withdrawAmount;

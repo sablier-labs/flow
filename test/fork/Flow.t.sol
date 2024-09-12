@@ -256,7 +256,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // Compute the snapshot time that will be stored post withdraw.
         vars.expectedSnapshotTime = uint40(
-            ratePerSecond > ongoingDebtNormalized
+            ratePerSecond > getRenormalizedAmount(ongoingDebt, flow.getTokenDecimals(streamId))
                 ? snapshotTime
                 : snapshotTime + (ongoingDebtNormalized / ratePerSecond)
         );
@@ -599,7 +599,7 @@ contract Flow_Fork_Test is Fork_Test {
         if (!flow.isPaused(streamId)) {
             // Compute the snapshot time that will be stored post withdraw.
             vars.expectedSnapshotTime = uint40(
-                ratePerSecond > ongoingDebtNormalized
+                ratePerSecond > getRenormalizedAmount(flow.ongoingDebtOf(streamId), flow.getTokenDecimals(streamId))
                     ? snapshotTime
                     : snapshotTime + (ongoingDebtNormalized / ratePerSecond)
             );

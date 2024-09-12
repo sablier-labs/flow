@@ -57,7 +57,7 @@ contract TotalDebtOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Assert that total debt is the ongoing debt.
         uint128 actualTotalDebt = flow.totalDebtOf(streamId);
-        uint128 expectedTotalDebt = ratePerSecond > getNormalizedAmount(flow.ongoingDebtOf(streamId), decimals)
+        uint128 expectedTotalDebt = ratePerSecond > getRenormalizedAmount(flow.ongoingDebtOf(streamId), decimals)
             ? 0
             : getDenormalizedAmount(ratePerSecond * timeJump, decimals);
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");

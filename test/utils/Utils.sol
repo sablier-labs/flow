@@ -80,6 +80,11 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return (amount * (10 ** factor)).toUint128();
     }
 
+    /// @dev Renormalizes the amount to denote it in 18 decimals.
+    function getRenormalizedAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+        return getNormalizedAmount(getDenormalizedAmount(getNormalizedAmount(amount, decimals), decimals), decimals);
+    }
+
     /// @dev Checks if the Foundry profile is "benchmark".
     function isBenchmarkProfile() internal view returns (bool) {
         string memory profile = vm.envOr({ name: "FOUNDRY_PROFILE", defaultValue: string("default") });
