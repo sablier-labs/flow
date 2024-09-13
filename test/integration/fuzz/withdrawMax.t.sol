@@ -92,10 +92,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         uint128 withdrawAmount = flow.withdrawableAmountOf(streamId);
 
-        uint40 expectedSnapshotTime = uint40(
-            getNormalizedAmount(flow.ongoingDebtOf(streamId), flow.getTokenDecimals(streamId))
-                / flow.getRatePerSecond(streamId).unwrap() + flow.getSnapshotTime(streamId)
-        );
+        uint40 expectedSnapshotTime = getBlockTimestamp();
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
@@ -108,8 +105,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             token: token,
             caller: caller,
             protocolFeeAmount: 0,
-            withdrawAmount: withdrawAmount,
-            snapshotTime: expectedSnapshotTime
+            withdrawAmount: withdrawAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -117,6 +113,8 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Withdraw the tokens.
         flow.withdrawMax(streamId, withdrawTo);
+
+        assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), expectedSnapshotTime, "snapshot time");

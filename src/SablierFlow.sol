@@ -69,7 +69,7 @@ contract SablierFlow is
             return 0;
         }
 
-        (uint128 ongoingDebt,) = _ongoingDebtOf(streamId);
+        uint128 ongoingDebt = _ongoingDebtOf(streamId);
         uint128 snapshotDebt = _streams[streamId].snapshotDebt;
         uint128 totalDebt = snapshotDebt + ongoingDebt;
 
@@ -98,7 +98,7 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function ongoingDebtOf(uint256 streamId) external view override notNull(streamId) returns (uint128 ongoingDebt) {
-        (ongoingDebt,) = _ongoingDebtOf(streamId);
+        ongoingDebt = _ongoingDebtOf(streamId);
     }
 
     /// @inheritdoc ISablierFlow
@@ -437,27 +437,15 @@ contract SablierFlow is
         return totalDebt;
     }
 
-    /// @dev When token decimal is less than 18, the `_ongoingDebtOf` function can be non-injective with respect to
-    /// `block.timestamp` due to the denormalization. This results into a time range [t, t+δ] during which it
-    /// would produce the same value. Thus, to minimise any loss to the users, this function returns a corrected time
-    /// which is the lower bound, t in the range [t, t+δ]. The corrected time is the nearest Unix timestamp that
-    /// produces the smallest remainder greater than the minimum transferable value. This corrected time is then stored
-    /// as the snapshot time.
-    ///
-    /// @param streamId The ID of the stream.
-    ///
-    /// @return ongoingDebt The denormalized ongoing debt accrued since the last snapshot. Return 0 if the stream is
-    /// paused or `block.timestamp` is less than or equal to snapshot time.
-    ///
-    /// @return correctedTime The corrected time derived from the denormalized ongoing debt. Return `block.timestamp` if
-    /// the stream is paused or `block.timestamp` is less than or equal to snapshot time.
-    function _ongoingDebtOf(uint256 streamId) internal view returns (uint128 ongoingDebt, uint40 correctedTime) {
+    /// @dev Calculates the ongoing debt accrued since last snapshot. Return 0 if the stream is paused or
+    /// `block.timestamp` is less than or equal to snapshot time.
+    function _ongoingDebtOf(uint256 streamId) internal view returns (uint128 ongoingDebt) {
         uint40 blockTimestamp = uint40(block.timestamp);
         uint40 snapshotTime = _streams[streamId].snapshotTime;
 
         // Check: if the stream is paused or the `block.timestamp` is less than the `snapshotTime`.
         if (_streams[streamId].isPaused || blockTimestamp <= snapshotTime) {
-            return (0, blockTimestamp);
+            return 0;
         }
 
         uint128 elapsedTime;
@@ -468,15 +456,14 @@ contract SablierFlow is
             elapsedTime = blockTimestamp - snapshotTime;
         }
 
-        uint128 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
 
         // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
-        uint128 normalizedOngoingDebt = elapsedTime * ratePerSecond;
+        uint128 normalizedOngoingDebt = elapsedTime * _streams[streamId].ratePerSecond.unwrap();
 
         // If the token decimals are 18, return the normalized ongoing debt and the `block.timestamp`.
         if (tokenDecimals == 18) {
-            return (normalizedOngoingDebt, blockTimestamp);
+            return normalizedOngoingDebt;
         }
 
         // Safe to use unchecked because we use {SafeCast}.
@@ -484,21 +471,7 @@ contract SablierFlow is
             uint8 factor = 18 - tokenDecimals;
             // Since debt is denoted in token decimals, denormalize the amount.
             ongoingDebt = (normalizedOngoingDebt / (10 ** factor)).toUint128();
-
-            // Renormalize the ongoing debt for the calculation of corrected time.
-            uint128 renormalizedOngoingDebt = (ongoingDebt * (10 ** factor)).toUint128();
-
-            // Return 0 if renormalized ongoing debt is less than `ratePerSecond`. This eliminates the risk of leaking
-            // funds when renormalized debt is less than rate per second.
-            if (renormalizedOngoingDebt < ratePerSecond) {
-                return (0, snapshotTime);
-            }
-
-            // Derive the corrected time from the renormalized ongoing debt.
-            correctedTime = uint40(snapshotTime + renormalizedOngoingDebt / ratePerSecond);
         }
-
-        return (ongoingDebt, correctedTime);
     }
 
     /// @dev Calculates the refundable amount.
@@ -511,7 +484,7 @@ contract SablierFlow is
     /// stream's balance.
     function _totalDebtOf(uint256 streamId) internal view returns (uint128) {
         // Calculate the ongoing debt streamed since last snapshot.
-        (uint128 ongoingDebt,) = _ongoingDebtOf(streamId);
+        uint128 ongoingDebt = _ongoingDebtOf(streamId);
 
         // Calculate the total debt.
         return _streams[streamId].snapshotDebt + ongoingDebt;
@@ -548,14 +521,14 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        //  Calculate the ongoing debt and corrected time.
-        (uint128 ongoingDebt, uint40 correctedTime) = _ongoingDebtOf(streamId);
+        //  Calculate the ongoing debt.
+        uint128 ongoingDebt = _ongoingDebtOf(streamId);
 
         // Effect: update the snapshot debt.
         _streams[streamId].snapshotDebt += ongoingDebt;
 
         // Effect: update the snapshot time.
-        _streams[streamId].snapshotTime = correctedTime;
+        _streams[streamId].snapshotTime = uint40(block.timestamp);
 
         // Effect: set the new rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
@@ -668,7 +641,7 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
         // Effect: update the snapshot debt.
-        (uint128 ongoingDebt,) = _ongoingDebtOf(streamId);
+        uint128 ongoingDebt = _ongoingDebtOf(streamId);
         _streams[streamId].snapshotDebt += ongoingDebt;
 
         // Effect: set the rate per second to zero.
@@ -803,11 +776,8 @@ contract SablierFlow is
 
         uint128 balance = _streams[streamId].balance;
 
-        // Calculate the ongoing debt streamed since last snapshot.
-        (uint128 ongoingDebt, uint40 correctedTime) = _ongoingDebtOf(streamId);
-
         // Calculate the total debt.
-        uint128 totalDebt = _streams[streamId].snapshotDebt + ongoingDebt;
+        uint128 totalDebt = _totalDebtOf(streamId);
 
         uint128 withdrawableAmount;
 
@@ -834,8 +804,10 @@ contract SablierFlow is
             _streams[streamId].snapshotDebt = totalDebt - amount;
         }
 
+        uint40 blockTimestamp = uint40(block.timestamp);
+
         // Effect: update the stream time.
-        _streams[streamId].snapshotTime = correctedTime;
+        _streams[streamId].snapshotTime = blockTimestamp;
 
         // Load the variables in memory.
         IERC20 token = _streams[streamId].token;
@@ -863,8 +835,7 @@ contract SablierFlow is
             token: token,
             caller: msg.sender,
             protocolFeeAmount: feeAmount,
-            withdrawAmount: amount,
-            snapshotTime: correctedTime
+            withdrawAmount: amount
         });
     }
 }

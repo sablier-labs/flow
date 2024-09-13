@@ -174,10 +174,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         }
 
         // Compute the snapshot time that will be stored post withdraw.
-        vars.expectedSnapshotTime = uint40(
-            getNormalizedAmount(vars.previousOngoingDebt, flow.getTokenDecimals(streamId))
-                / flow.getRatePerSecond(streamId).unwrap() + flow.getSnapshotTime(streamId)
-        );
+        vars.expectedSnapshotTime = getBlockTimestamp();
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
@@ -190,8 +187,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             token: token,
             caller: caller,
             protocolFeeAmount: vars.feeAmount,
-            withdrawAmount: withdrawAmount - vars.feeAmount,
-            snapshotTime: vars.expectedSnapshotTime
+            withdrawAmount: withdrawAmount - vars.feeAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -199,6 +195,8 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Withdraw the tokens.
         flow.withdraw(streamId, to, withdrawAmount);
+
+        assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 
         // Assert the protocol revenue.
         vars.actualProtocolRevenue = flow.protocolRevenue(token);
