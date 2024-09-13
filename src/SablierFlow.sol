@@ -774,19 +774,21 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawalAddressNotRecipient({ streamId: streamId, caller: msg.sender, to: to });
         }
 
+        // Load the variables in memory.
         uint128 balance = _streams[streamId].balance;
+        IERC20 token = _streams[streamId].token;
+        UD60x18 protocolFee = protocolFee[token];
 
         // Calculate the total debt.
         uint128 totalDebt = _totalDebtOf(streamId);
 
         uint128 withdrawableAmount;
 
-        // If the stream balance is less than or equal to the total debt, the withdrawable amount is the balance.
         if (balance < totalDebt) {
+            // If the stream balance is less than the total debt, the withdrawable amount is the balance.
             withdrawableAmount = balance;
-        }
-        // Otherwise, if stream balance is greater than the total debt, the withdrawable amount is the total debt.
-        else {
+        } else {
+            // Otherwise, the withdrawable amount is the total debt.
             withdrawableAmount = totalDebt;
         }
 
@@ -804,16 +806,10 @@ contract SablierFlow is
             _streams[streamId].snapshotDebt = totalDebt - amount;
         }
 
-        uint40 blockTimestamp = uint40(block.timestamp);
-
         // Effect: update the stream time.
-        _streams[streamId].snapshotTime = blockTimestamp;
+        _streams[streamId].snapshotTime = uint40(block.timestamp);
 
-        // Load the variables in memory.
-        IERC20 token = _streams[streamId].token;
-        UD60x18 protocolFee = protocolFee[token];
         uint128 feeAmount;
-
         if (protocolFee > ZERO) {
             // Calculate the protocol fee amount and the net withdraw amount.
             (feeAmount, amount) = Helpers.calculateAmountsFromFee({ totalAmount: amount, fee: protocolFee });
