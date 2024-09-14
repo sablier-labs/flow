@@ -9,6 +9,8 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ud21x18, UD21x18 } from "@prb/math/src/UD21x18.sol";
 import { UD60x18, ZERO } from "@prb/math/src/UD60x18.sol";
 
+import { console } from "forge-std/src/console.sol";
+
 import { Batch } from "./abstracts/Batch.sol";
 import { NoDelegateCall } from "./abstracts/NoDelegateCall.sol";
 import { SablierFlowBase } from "./abstracts/SablierFlowBase.sol";
@@ -393,9 +395,10 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
+        returns (uint128 amountWithdrawn)
     {
         // Checks, Effects, and Interactions: make the withdrawal.
-        _withdraw(streamId, to, amount);
+        amountWithdrawn = _withdraw(streamId, to, amount);
     }
 
     /// @inheritdoc ISablierFlow
@@ -408,10 +411,12 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
-        returns (uint128 withdrawAmount)
+        returns (uint128 amountWithdrawn)
     {
-        withdrawAmount = _coveredDebtOf(streamId);
-        _withdraw(streamId, to, withdrawAmount);
+        uint128 coveredDebt = _coveredDebtOf(streamId);
+
+        // Checks, Effects, and Interactions: make the withdrawal.
+        amountWithdrawn = _withdraw(streamId, to, coveredDebt);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -644,6 +649,9 @@ contract SablierFlow is
         uint128 ongoingDebt = _ongoingDebtOf(streamId);
         _streams[streamId].snapshotDebt += ongoingDebt;
 
+        // Effect: update the snapshot time.
+        _streams[streamId].snapshotTime = uint40(block.timestamp);
+
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = ud21x18(0);
 
@@ -736,6 +744,9 @@ contract SablierFlow is
         // Effect: update the total debt by setting snapshot debt to the stream balance.
         _streams[streamId].snapshotDebt = balance;
 
+        // Effect: update the snapshot time.
+        _streams[streamId].snapshotTime = uint40(block.timestamp);
+
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = ud21x18(0);
 
@@ -757,7 +768,7 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _withdraw(uint256 streamId, address to, uint128 amount) internal {
+    function _withdraw(uint256 streamId, address to, uint128 amount) internal returns (uint128) {
         // Check: the withdraw amount is not zero.
         if (amount == 0) {
             revert Errors.SablierFlow_WithdrawAmountZero(streamId);
@@ -781,6 +792,11 @@ contract SablierFlow is
         uint128 balance = _streams[streamId].balance;
         uint128 withdrawableAmount;
 
+        console.log("pre withdraw amount", amount);
+        console.log("pre total debt", totalDebt);
+        console.log("pre ongoing debt", _ongoingDebtOf(streamId));
+        console.log("pre snapshot debt", _streams[streamId].snapshotDebt);
+
         if (balance < totalDebt) {
             // If the stream balance is less than the total debt, the withdrawable amount is the balance.
             withdrawableAmount = balance;
@@ -789,22 +805,50 @@ contract SablierFlow is
             withdrawableAmount = totalDebt;
         }
 
+        if (amount <= _streams[streamId].snapshotDebt) {
+            // If the amount is not greater than the snapshot debt, reduce it from the snapshot debt and leave ongoing
+            // debt unchanged.
+            _streams[streamId].snapshotDebt -= amount;
+        } else {
+            // Otherwise, reduce the differece from the ongoing debt by adjusting the snapshot time.
+            // Note:
+            /// - If rate per second is zero i.e. a paused stream, leave the snapshot time as it is because it will
+            // be updated on restart.
+            //
+            // Explaination:
+            // - We set snapshot debt to 0.
+            // - the difference, amount - snapshot debt, is deducted from the the ongoing debt.
+            // - To do that, we calculate the time it would take to stream the difference at the current rate per
+            // second.
+            // - We then add this time to the snapshot time to get the new snapshot time.
+            // - The new snapshot time = snapshot time + (amount - snapshot debt) / rate per second.
+            if (_streams[streamId].ratePerSecond.unwrap() > 0) {
+                _streams[streamId].snapshotTime += uint40(
+                    ((amount - _streams[streamId].snapshotDebt) * (10 ** (18 - _streams[streamId].tokenDecimals)))
+                        / _streams[streamId].ratePerSecond.unwrap()
+                );
+            }
+
+            // Set the snapshot debt to zero.
+            _streams[streamId].snapshotDebt = 0;
+
+            // Adjust the amount withdrawn so that previous total debt - new total debt = amount withdrawn. Note that,
+            // at this point, new total debt = ongoing debt.
+            amount = totalDebt - _ongoingDebtOf(streamId);
+        }
+
         // Check: the withdraw amount is not greater than the withdrawable amount.
         if (amount > withdrawableAmount) {
             revert Errors.SablierFlow_Overdraw(streamId, amount, withdrawableAmount);
         }
 
-        // Safe to use unchecked, the balance or total debt cannot be less than `amount` at this point.
-        unchecked {
-            // Effect: update the stream balance.
-            _streams[streamId].balance -= amount;
+        // Effect: update the stream balance.
+        _streams[streamId].balance -= amount;
 
-            // Effect: update the snapshot debt.
-            _streams[streamId].snapshotDebt = totalDebt - amount;
-        }
-
-        // Effect: update the stream time.
-        _streams[streamId].snapshotTime = uint40(block.timestamp);
+        console.log("post withdraw amount", amount);
+        console.log("post total debt", _totalDebtOf(streamId));
+        console.log("post ongoing debt", _ongoingDebtOf(streamId));
+        console.log("post snapshot debt", _streams[streamId].snapshotDebt);
 
         // Load the variables in memory.
         IERC20 token = _streams[streamId].token;
@@ -837,5 +881,7 @@ contract SablierFlow is
             protocolFeeAmount: feeAmount,
             withdrawAmount: amount
         });
+
+        return amount + feeAmount;
     }
 }
