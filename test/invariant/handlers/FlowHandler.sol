@@ -281,9 +281,9 @@ contract FlowHandler is BaseHandler {
         }
 
         // Withdraw from the stream.
-        flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
+        uint128 actualWithdrawn = flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
 
         // Update the withdrawn amount.
-        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, flow.getToken(currentStreamId), amount);
+        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, flow.getToken(currentStreamId), actualWithdrawn);
     }
 }

@@ -402,7 +402,9 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
     /// @param amount The amount to withdraw, denoted in token's decimals.
-    function withdraw(uint256 streamId, address to, uint128 amount) external;
+    /// @return amountWithdrawn The amount withdrawn to the recipient, denoted in token's decimals. This may differ from
+    /// `amount` provided.
+    function withdraw(uint256 streamId, address to, uint128 amount) external returns (uint128 amountWithdrawn);
 
     /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
     ///
@@ -416,7 +418,7 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
-    ///
-    /// @return withdrawAmount The amount withdrawn to the recipient, denoted in token's decimals.
-    function withdrawMax(uint256 streamId, address to) external returns (uint128 withdrawAmount);
+    /// @return amountWithdrawn The amount withdrawn to the recipient, denoted in token's decimals. This may differ from
+    /// the `coveredDebt` amount.
+    function withdrawMax(uint256 streamId, address to) external returns (uint128 amountWithdrawn);
 }
