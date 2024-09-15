@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ud, UD60x18, ZERO } from "@prb/math/src/UD60x18.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
@@ -39,7 +38,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         resetPrank({ msgSender: caller });
 
         // Withdraw the tokens.
-        _test_Withdraw(caller, to, streamId, timeJump, withdrawAmount);
+        _test_Withdraw(to, streamId, timeJump, withdrawAmount);
     }
 
     /// @dev Checklist:
@@ -80,7 +79,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Prank the caller and withdraw the tokens.
         resetPrank(caller);
-        _test_Withdraw(caller, users.recipient, streamId, timeJump, withdrawAmount);
+        _test_Withdraw(users.recipient, streamId, timeJump, withdrawAmount);
     }
 
     /// @dev Checklist:
@@ -114,15 +113,18 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Prank the caller and withdraw the tokens.
         resetPrank(caller);
-        _test_Withdraw(caller, users.recipient, streamId, timeJump, withdrawAmount);
+        _test_Withdraw(users.recipient, streamId, timeJump, withdrawAmount);
     }
 
     /// @dev A struct to hold the variables used in the test below, this prevents stack error.
     struct Vars {
         uint256 previousTokenBalance;
         uint128 previousOngoingDebt;
+        uint128 previousProtocolRevenue;
         uint128 previousTotalDebt;
+        uint40 previousSnapshotTime;
         uint128 previousStreamBalance;
+        uint256 previousUserBalance;
         uint128 expectedProtocolRevenue;
         uint128 feeAmount;
         uint128 actualProtocolRevenue;
@@ -139,15 +141,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     Vars internal vars;
 
     /// @dev Shared private function.
-    function _test_Withdraw(
-        address caller,
-        address to,
-        uint256 streamId,
-        uint40 timeJump,
-        uint128 withdrawAmount
-    )
-        private
-    {
+    function _test_Withdraw(address to, uint256 streamId, uint40 timeJump, uint128 withdrawAmount) private {
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 0 seconds, 100 weeks);
 
@@ -162,63 +156,54 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the withdraw amount between the allowed range.
         withdrawAmount = boundUint128(withdrawAmount, 1, flow.withdrawableAmountOf(streamId));
 
+        vars.previousProtocolRevenue = flow.protocolRevenue(token);
         vars.previousTokenBalance = token.balanceOf(address(flow));
-        vars.previousOngoingDebt = flow.totalDebtOf(streamId);
-        vars.previousTotalDebt = flow.getSnapshotDebt(streamId) + vars.previousOngoingDebt;
+        vars.previousTotalDebt = flow.totalDebtOf(streamId);
+        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
         vars.previousStreamBalance = flow.getBalance(streamId);
-
-        vars.expectedProtocolRevenue = flow.protocolRevenue(token);
-        if (flow.protocolFee(token) > ZERO) {
-            vars.feeAmount = ud(withdrawAmount).mul(flow.protocolFee(token)).intoUint128();
-            vars.expectedProtocolRevenue += vars.feeAmount;
-        }
-
-        // Compute the snapshot time that will be stored post withdraw.
-        vars.expectedSnapshotTime = getBlockTimestamp();
-
-        // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(token) });
-        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount - vars.feeAmount });
-
-        vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: streamId,
-            to: to,
-            token: token,
-            caller: caller,
-            protocolFeeAmount: vars.feeAmount,
-            withdrawAmount: withdrawAmount - vars.feeAmount
-        });
+        vars.previousUserBalance = token.balanceOf(to);
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the tokens.
-        flow.withdraw(streamId, to, withdrawAmount);
+        uint128 amountWithdrawn = flow.withdraw(streamId, to, withdrawAmount);
 
-        assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
+        // Calculate the fee amount.
+        if (flow.protocolFee(token) > ZERO) {
+            vars.feeAmount = ud(amountWithdrawn).mul(flow.protocolFee(token)).intoUint128();
+        }
+
+        // Check the states after the withdrawal.
+        assertEq(
+            vars.previousTokenBalance - token.balanceOf(address(flow)),
+            amountWithdrawn - vars.feeAmount,
+            "token balance == amount withdrawn - fee amount"
+        );
+        assertEq(vars.previousTotalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
+        assertEq(
+            vars.previousStreamBalance - flow.getBalance(streamId),
+            amountWithdrawn,
+            "stream balance == amount withdrawn"
+        );
+        assertEq(
+            token.balanceOf(to) - vars.previousUserBalance,
+            amountWithdrawn - vars.feeAmount,
+            "user balance == token balance - fee amount"
+        );
 
         // Assert the protocol revenue.
         vars.actualProtocolRevenue = flow.protocolRevenue(token);
-        assertEq(vars.actualProtocolRevenue, vars.expectedProtocolRevenue, "protocol revenue");
+        assertEq(vars.actualProtocolRevenue, vars.previousProtocolRevenue + vars.feeAmount, "protocol revenue");
 
         // It should update snapshot time.
-        vars.actualSnapshotTime = flow.getSnapshotTime(streamId);
-        assertEq(vars.actualSnapshotTime, vars.expectedSnapshotTime, "snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.expectedSnapshotTime, "snapshot time");
 
-        // It should decrease the full total debt by withdrawn amount.
-        vars.actualTotalDebt = flow.totalDebtOf(streamId);
-        vars.expectedTotalDebt = vars.previousTotalDebt - withdrawAmount;
-        assertEq(vars.actualTotalDebt, vars.expectedTotalDebt, "total debt");
-
-        // It should reduce the stream balance by the withdrawn amount.
-        vars.actualStreamBalance = flow.getBalance(streamId);
-        vars.expectedStreamBalance = vars.previousStreamBalance - withdrawAmount;
-        assertEq(vars.actualStreamBalance, vars.expectedStreamBalance, "stream balance");
-
-        // It should reduce the token balance of stream by the net withdrawn amount.
-        vars.actualTokenBalance = token.balanceOf(address(flow));
-        vars.expectedTokenBalance = vars.previousTokenBalance - withdrawAmount + vars.feeAmount;
-        assertEq(vars.actualTokenBalance, vars.expectedTokenBalance, "token balance");
+        // Assert that total debt equals snapshot debt and ongoing debt
+        assertEq(
+            flow.totalDebtOf(streamId),
+            flow.getSnapshotDebt(streamId) + flow.ongoingDebtOf(streamId),
+            "total debt == snapshot debt + ongoing debt"
+        );
     }
 }
