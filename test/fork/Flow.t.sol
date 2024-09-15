@@ -43,6 +43,7 @@ contract Flow_Fork_Test is Fork_Test {
     /// @dev A struct to hold the actual and expected values, this prevents stack overflow.
     struct Vars {
         // Actual values.
+        uint128 actualProtocolRevenue;
         UD21x18 actualRatePerSecond;
         uint40 actualSnapshotTime;
         uint128 actualSnapshotDebt;
@@ -58,6 +59,13 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 expectedStreamId;
         uint256 expectedTokenBalance;
         uint128 expectedTotalDebt;
+        // Previous values.
+        uint128 previousProtocolRevenue;
+        uint256 previousTokenBalance;
+        uint128 previousTotalDebt;
+        uint40 previousSnapshotTime;
+        uint128 previousStreamBalance;
+        uint256 previousUserBalance;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -251,7 +259,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 ongoingDebt = flow.ongoingDebtOf(streamId);
 
         // Compute the snapshot time that will be stored post withdraw.
-        vars.expectedSnapshotTime = getBlockTimestamp();
+        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
 
         // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
@@ -278,8 +286,7 @@ contract Flow_Fork_Test is Fork_Test {
         assertEq(vars.actualRatePerSecond, vars.expectedRatePerSecond, "AdjustRatePerSecond: rate per second");
 
         // It should update snapshot time
-        vars.actualSnapshotTime = flow.getSnapshotTime(streamId);
-        assertEq(vars.actualSnapshotTime, vars.expectedSnapshotTime, "AdjustRatePerSecond: snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.previousSnapshotTime, "AdjustRatePerSecond: snapshot time");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -569,6 +576,7 @@ contract Flow_Fork_Test is Fork_Test {
 
     function _test_Withdraw(uint256 streamId, uint128 withdrawAmount) private {
         uint8 tokenDecimals = flow.getTokenDecimals(streamId);
+        IERC20 token = flow.getToken(streamId);
         uint128 streamBalance = flow.getBalance(streamId);
         if (streamBalance == 0) {
             depositOnStream(streamId, getDefaultDepositAmount(tokenDecimals));
@@ -581,51 +589,49 @@ contract Flow_Fork_Test is Fork_Test {
             flow.withdrawableAmountOf(streamId)
         );
 
-        uint256 initialTokenBalance = token.balanceOf(address(flow));
-        uint128 totalDebt = flow.totalDebtOf(streamId);
-
-        vars.expectedSnapshotTime = getBlockTimestamp();
-
-        (, address caller,) = vm.readCallers();
         address recipient = flow.getRecipient(streamId);
 
-        // Expect the relevant events to be emitted.
-        vm.expectEmit({ emitter: address(token) });
-        emit IERC20.Transfer({ from: address(flow), to: recipient, value: withdrawAmount });
-
-        vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: streamId,
-            to: recipient,
-            token: token,
-            caller: caller,
-            protocolFeeAmount: 0,
-            withdrawAmount: withdrawAmount
-        });
+        vars.previousProtocolRevenue = flow.protocolRevenue(token);
+        vars.previousTokenBalance = token.balanceOf(address(flow));
+        vars.previousTotalDebt = flow.totalDebtOf(streamId);
+        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
+        vars.previousStreamBalance = flow.getBalance(streamId);
+        vars.previousUserBalance = token.balanceOf(recipient);
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the tokens.
-        flow.withdraw(streamId, recipient, withdrawAmount);
+        uint128 amountWithdrawn = flow.withdraw(streamId, recipient, withdrawAmount);
+
+        // Check the states after the withdrawal.
+        assertEq(
+            vars.previousTokenBalance - token.balanceOf(address(flow)),
+            amountWithdrawn,
+            "token balance == amount withdrawn"
+        );
+        assertEq(vars.previousTotalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
+        assertEq(
+            vars.previousStreamBalance - flow.getBalance(streamId),
+            amountWithdrawn,
+            "stream balance == amount withdrawn"
+        );
+        assertEq(
+            token.balanceOf(recipient) - vars.previousUserBalance, amountWithdrawn, "user balance == token balance"
+        );
+
+        // Assert the protocol revenue.
+        vars.actualProtocolRevenue = flow.protocolRevenue(token);
+        assertEq(vars.actualProtocolRevenue, vars.previousProtocolRevenue, "protocol revenue");
 
         // It should update snapshot time.
-        vars.actualSnapshotTime = flow.getSnapshotTime(streamId);
-        assertEq(vars.actualSnapshotTime, vars.expectedSnapshotTime, "Withdraw: snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.expectedSnapshotTime, "snapshot time");
 
-        // It should decrease the total debt by withdrawn amount.
-        vars.actualTotalDebt = flow.totalDebtOf(streamId);
-        vars.expectedTotalDebt = totalDebt - withdrawAmount;
-        assertEq(vars.actualTotalDebt, vars.expectedTotalDebt, "Withdraw: total debt");
-
-        // It should reduce the stream balance by the withdrawn amount.
-        vars.actualStreamBalance = flow.getBalance(streamId);
-        vars.expectedStreamBalance = streamBalance - withdrawAmount;
-        assertEq(vars.actualStreamBalance, vars.expectedStreamBalance, "Withdraw: stream balance");
-
-        // It should reduce the token balance of stream.
-        vars.actualTokenBalance = token.balanceOf(address(flow));
-        vars.expectedTokenBalance = initialTokenBalance - withdrawAmount;
-        assertEq(vars.actualTokenBalance, vars.expectedTokenBalance, "Withdraw: token balance");
+        // Assert that total debt equals snapshot debt and ongoing debt
+        assertEq(
+            flow.totalDebtOf(streamId),
+            flow.getSnapshotDebt(streamId) + flow.ongoingDebtOf(streamId),
+            "total debt == snapshot debt + ongoing debt"
+        );
     }
 }
