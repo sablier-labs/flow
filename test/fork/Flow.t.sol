@@ -45,20 +45,17 @@ contract Flow_Fork_Test is Fork_Test {
         // Actual values.
         uint128 actualProtocolRevenue;
         UD21x18 actualRatePerSecond;
-        uint40 actualSnapshotTime;
         uint128 actualSnapshotDebt;
+        uint40 actualSnapshotTime;
         uint128 actualStreamBalance;
         uint256 actualStreamId;
         uint256 actualTokenBalance;
-        uint128 actualTotalDebt;
         // Expected values.
         UD21x18 expectedRatePerSecond;
-        uint40 expectedSnapshotTime;
         uint128 expectedSnapshotDebt;
         uint128 expectedStreamBalance;
         uint256 expectedStreamId;
         uint256 expectedTokenBalance;
-        uint128 expectedTotalDebt;
         // Previous values.
         uint128 previousProtocolRevenue;
         uint256 previousTokenBalance;
@@ -625,7 +622,7 @@ contract Flow_Fork_Test is Fork_Test {
         assertEq(vars.actualProtocolRevenue, vars.previousProtocolRevenue, "protocol revenue");
 
         // It should update snapshot time.
-        assertGe(flow.getSnapshotTime(streamId), vars.expectedSnapshotTime, "snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.previousSnapshotTime, "snapshot time");
 
         // Assert that total debt equals snapshot debt and ongoing debt
         assertEq(
