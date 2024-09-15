@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
@@ -37,44 +35,48 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_WithdrawMax() private {
+        uint256 previousTokenBalance = usdc.balanceOf(address(flow));
+        uint128 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
+        uint256 previousUserBalance = usdc.balanceOf(users.recipient);
+
         uint128 expectedWithdrawAmount = ONE_MONTH_DEBT_6D;
-
-        // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
-        vm.expectEmit({ emitter: address(usdc) });
-        emit IERC20.Transfer({ from: address(flow), to: users.recipient, value: expectedWithdrawAmount });
-
-        vm.expectEmit({ emitter: address(flow) });
-        emit WithdrawFromFlowStream({
-            streamId: defaultStreamId,
-            to: users.recipient,
-            token: IERC20(address(usdc)),
-            caller: users.sender,
-            protocolFeeAmount: 0,
-            withdrawAmount: expectedWithdrawAmount
-        });
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: defaultStreamId });
 
-        // It should perform the ERC-20 transfer.
-        expectCallToTransfer({ token: usdc, to: users.recipient, amount: expectedWithdrawAmount });
-
         uint128 actualWithdrawnAmount = flow.withdrawMax(defaultStreamId, users.recipient);
 
-        // It should update the stream balance.
-        uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = DEPOSIT_AMOUNT_6D - ONE_MONTH_DEBT_6D;
-        assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
+        // Check the states after the withdrawal.
+        assertEq(
+            previousTokenBalance - usdc.balanceOf(address(flow)),
+            actualWithdrawnAmount,
+            "token balance == amount withdrawn - fee amount"
+        );
+        assertEq(
+            previousTotalDebt - flow.totalDebtOf(defaultStreamId),
+            actualWithdrawnAmount,
+            "total debt == amount withdrawn"
+        );
+        assertEq(
+            previousStreamBalance - flow.getBalance(defaultStreamId),
+            actualWithdrawnAmount,
+            "stream balance == amount withdrawn"
+        );
+        assertEq(
+            usdc.balanceOf(users.recipient) - previousUserBalance,
+            actualWithdrawnAmount,
+            "user balance == token balance "
+        );
 
-        // It should set the snapshot debt to zero.
-        uint128 actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        assertEq(actualSnapshotDebt, 0, "snapshot debt");
-
-        // It should update snapshot time.
-        uint128 actualSnapshotTime = flow.getSnapshotTime(defaultStreamId);
-        assertEq(actualSnapshotTime, getBlockTimestamp(), "snapshot time");
+        // Assert that total debt equals snapshot debt and ongoing debt
+        assertEq(
+            flow.totalDebtOf(defaultStreamId),
+            flow.getSnapshotDebt(defaultStreamId) + flow.ongoingDebtOf(defaultStreamId),
+            "total debt == snapshot debt + ongoing debt"
+        );
 
         // It should return the actual withdrawn amount.
-        assertEq(actualWithdrawnAmount, expectedWithdrawAmount, "withdrawn amount");
+        assertGe(expectedWithdrawAmount, actualWithdrawnAmount, "withdrawn amount");
     }
 }

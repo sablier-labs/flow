@@ -118,24 +118,16 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     /// @dev A struct to hold the variables used in the test below, this prevents stack error.
     struct Vars {
+        uint128 feeAmount;
+        // Actual values.
+        uint128 actualProtocolRevenue;
+        // Previous values.
         uint256 previousTokenBalance;
-        uint128 previousOngoingDebt;
         uint128 previousProtocolRevenue;
         uint128 previousTotalDebt;
         uint40 previousSnapshotTime;
         uint128 previousStreamBalance;
         uint256 previousUserBalance;
-        uint128 expectedProtocolRevenue;
-        uint128 feeAmount;
-        uint128 actualProtocolRevenue;
-        uint40 actualSnapshotTime;
-        uint40 expectedSnapshotTime;
-        uint128 actualTotalDebt;
-        uint128 expectedTotalDebt;
-        uint128 actualStreamBalance;
-        uint128 expectedStreamBalance;
-        uint256 actualTokenBalance;
-        uint256 expectedTokenBalance;
     }
 
     Vars internal vars;
@@ -157,9 +149,9 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         withdrawAmount = boundUint128(withdrawAmount, 1, flow.withdrawableAmountOf(streamId));
 
         vars.previousProtocolRevenue = flow.protocolRevenue(token);
+        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
         vars.previousTokenBalance = token.balanceOf(address(flow));
         vars.previousTotalDebt = flow.totalDebtOf(streamId);
-        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
         vars.previousStreamBalance = flow.getBalance(streamId);
         vars.previousUserBalance = token.balanceOf(to);
 
@@ -197,7 +189,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(vars.actualProtocolRevenue, vars.previousProtocolRevenue + vars.feeAmount, "protocol revenue");
 
         // It should update snapshot time.
-        assertGe(flow.getSnapshotTime(streamId), vars.expectedSnapshotTime, "snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.previousSnapshotTime, "snapshot time");
 
         // Assert that total debt equals snapshot debt and ongoing debt
         assertEq(
