@@ -77,7 +77,7 @@ contract FlowCreateHandler is BaseHandler {
     {
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
 
-        // Bound the stream parameters.
+        // Use a realistic range for the rate per second.
         vm.assume(params.ratePerSecond.unwrap() >= 0.0000000001e18 && params.ratePerSecond.unwrap() <= 10e18);
 
         // Create the stream.
@@ -105,8 +105,10 @@ contract FlowCreateHandler is BaseHandler {
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
         uint128 upperBound = getDenormalizedAmount(1_000_000e18, decimals);
 
-        // Bound the stream parameters.
+        // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
         vm.assume(depositAmount >= 100 && depositAmount <= upperBound);
+
+        // Use a realistic range for the rate per second.
         vm.assume(params.ratePerSecond.unwrap() >= 0.0000000001e18 && params.ratePerSecond.unwrap() <= 10e18);
 
         // Mint enough tokens to the Sender.

@@ -88,7 +88,7 @@ contract FlowHandler is BaseHandler {
         // Only non paused streams can have their rate per second adjusted.
         vm.assume(!flow.isPaused(currentStreamId));
 
-        // Bound the rate per second.
+        // Use a realistic range for the rate per second.
         vm.assume(newRatePerSecond.unwrap() >= 0.0000000001e18 && newRatePerSecond.unwrap() <= 10e18);
 
         // The rate per second must be different from the current rate per second.
@@ -116,7 +116,7 @@ contract FlowHandler is BaseHandler {
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
         uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
 
-        // Bound the deposit amount.
+        // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
         vm.assume(depositAmount >= 100 && depositAmount <= upperBound);
 
         IERC20 token = flow.getToken(currentStreamId);
@@ -175,7 +175,7 @@ contract FlowHandler is BaseHandler {
         // The protocol doesn't allow zero refund amounts.
         vm.assume(refundableAmount > 0);
 
-        // Bound the refund amount so that it does not exceed the `refundableAmount`.
+        // Make sure the refund amount is non-zero and it is less or equal to the maximum refundable amount.
         vm.assume(refundAmount >= 1 && refundAmount <= refundableAmount);
 
         // Refund from stream.
@@ -203,7 +203,7 @@ contract FlowHandler is BaseHandler {
         // Only paused streams can be restarted.
         vm.assume(flow.isPaused(currentStreamId));
 
-        // Bound the stream parameter.
+        // Use a realistic range for the rate per second.
         vm.assume(ratePerSecond.unwrap() >= 0.0000000001e18 && ratePerSecond.unwrap() <= 10e18);
 
         // Restart the stream.
@@ -250,7 +250,7 @@ contract FlowHandler is BaseHandler {
         // Check if there is anything to withdraw.
         vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
 
-        // Bound the withdraw amount so that it is less than maximum wihtdrawable amount.
+        // Make sure the withdraw amount is non-zero and it is less or equal to the maximum wihtdrawable amount.
         vm.assume(amount >= 1 && amount <= flow.withdrawableAmountOf(currentStreamId));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
