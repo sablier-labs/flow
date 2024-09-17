@@ -13,7 +13,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Only two values for caller (stream owner and approved operator).
     /// - Multiple non-zero values for to address.
     /// - Multiple streams to withdraw from, each with different token decimals and rps.
-    /// - Multiple values for withdraw amount, in the range (1, withdrawablemAmount). It could also be before or after
+    /// - Multiple values for withdraw amount, in the range (1, withdrawableAmount). It could also be before or after
     /// depletion time.
     /// - Multiple points in time.
     function testFuzz_WithdrawalAddressNotOwner(
@@ -50,7 +50,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple non-zero values for callers.
     /// - Multiple non-zero values for protocol fee not exceeding max allowed.
     /// - Multiple streams to withdraw from, each with different token decimals and rps.
-    /// - Multiple values for withdraw amount, in the range (1, withdrawablemAmount). It could also be before or after
+    /// - Multiple values for withdraw amount, in the range (1, withdrawableAmount). It could also be before or after
     /// depletion time.
     /// - Multiple points in time.
     function testFuzz_ProtocolFeeNotZero(
@@ -89,7 +89,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for callers.
     /// - Multiple streams to withdraw from, each with different token decimals and rps.
-    /// - Multiple values for withdraw amount, in the range (1, withdrawablemAmount). It could also be before or after
+    /// - Multiple values for withdraw amount, in the range (1, withdrawableAmount). It could also be before or after
     /// depletion time.
     /// depletion time.
     /// - Multiple points in time.
@@ -121,13 +121,13 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint128 feeAmount;
         // Actual values.
         uint128 actualProtocolRevenue;
-        // Previous values.
-        uint256 previousTokenBalance;
-        uint128 previousProtocolRevenue;
-        uint128 previousTotalDebt;
-        uint40 previousSnapshotTime;
-        uint128 previousStreamBalance;
-        uint256 previousUserBalance;
+        // Initial values.
+        uint256 initialTokenBalance;
+        uint128 initialProtocolRevenue;
+        uint128 initialTotalDebt;
+        uint40 initialSnapshotTime;
+        uint128 initialStreamBalance;
+        uint256 initialUserBalance;
     }
 
     Vars internal vars;
@@ -148,12 +148,12 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Bound the withdraw amount between the allowed range.
         withdrawAmount = boundUint128(withdrawAmount, 1, flow.withdrawableAmountOf(streamId));
 
-        vars.previousProtocolRevenue = flow.protocolRevenue(token);
-        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
-        vars.previousTokenBalance = token.balanceOf(address(flow));
-        vars.previousTotalDebt = flow.totalDebtOf(streamId);
-        vars.previousStreamBalance = flow.getBalance(streamId);
-        vars.previousUserBalance = token.balanceOf(to);
+        vars.initialProtocolRevenue = flow.protocolRevenue(token);
+        vars.initialSnapshotTime = flow.getSnapshotTime(streamId);
+        vars.initialTokenBalance = token.balanceOf(address(flow));
+        vars.initialTotalDebt = flow.totalDebtOf(streamId);
+        vars.initialStreamBalance = flow.getBalance(streamId);
+        vars.initialUserBalance = token.balanceOf(to);
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -168,28 +168,26 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Check the states after the withdrawal.
         assertEq(
-            vars.previousTokenBalance - token.balanceOf(address(flow)),
+            vars.initialTokenBalance - token.balanceOf(address(flow)),
             amountWithdrawn - vars.feeAmount,
             "token balance == amount withdrawn - fee amount"
         );
-        assertEq(vars.previousTotalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
+        assertEq(vars.initialTotalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
         assertEq(
-            vars.previousStreamBalance - flow.getBalance(streamId),
-            amountWithdrawn,
-            "stream balance == amount withdrawn"
+            vars.initialStreamBalance - flow.getBalance(streamId), amountWithdrawn, "stream balance == amount withdrawn"
         );
         assertEq(
-            token.balanceOf(to) - vars.previousUserBalance,
+            token.balanceOf(to) - vars.initialUserBalance,
             amountWithdrawn - vars.feeAmount,
             "user balance == token balance - fee amount"
         );
 
         // Assert the protocol revenue.
         vars.actualProtocolRevenue = flow.protocolRevenue(token);
-        assertEq(vars.actualProtocolRevenue, vars.previousProtocolRevenue + vars.feeAmount, "protocol revenue");
+        assertEq(vars.actualProtocolRevenue, vars.initialProtocolRevenue + vars.feeAmount, "protocol revenue");
 
         // It should update snapshot time.
-        assertGe(flow.getSnapshotTime(streamId), vars.previousSnapshotTime, "snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.initialSnapshotTime, "snapshot time");
 
         // Assert that total debt equals snapshot debt and ongoing debt
         assertEq(

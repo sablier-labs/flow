@@ -101,7 +101,7 @@ contract FlowCreateHandler is BaseHandler {
         uint8 decimals = IERC20Metadata(address(currentToken)).decimals();
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        uint128 upperBound = getDenormalizedAmount(1_000_000e18, decimals);
+        uint128 upperBound = getDescaledAmount(1_000_000e18, decimals);
 
         // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
         vm.assume(params.depositAmount >= 100 && params.depositAmount <= upperBound);

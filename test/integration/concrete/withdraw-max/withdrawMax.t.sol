@@ -35,10 +35,10 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_WithdrawMax() private {
-        uint256 previousTokenBalance = usdc.balanceOf(address(flow));
-        uint128 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
-        uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
-        uint256 previousUserBalance = usdc.balanceOf(users.recipient);
+        uint256 initialTokenBalance = usdc.balanceOf(address(flow));
+        uint128 initialTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint128 initialStreamBalance = flow.getBalance(defaultStreamId);
+        uint256 initialUserBalance = usdc.balanceOf(users.recipient);
 
         uint128 expectedWithdrawAmount = ONE_MONTH_DEBT_6D;
 
@@ -49,22 +49,22 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
 
         // Check the states after the withdrawal.
         assertEq(
-            previousTokenBalance - usdc.balanceOf(address(flow)),
+            initialTokenBalance - usdc.balanceOf(address(flow)),
             actualWithdrawnAmount,
             "token balance == amount withdrawn - fee amount"
         );
         assertEq(
-            previousTotalDebt - flow.totalDebtOf(defaultStreamId),
+            initialTotalDebt - flow.totalDebtOf(defaultStreamId),
             actualWithdrawnAmount,
             "total debt == amount withdrawn"
         );
         assertEq(
-            previousStreamBalance - flow.getBalance(defaultStreamId),
+            initialStreamBalance - flow.getBalance(defaultStreamId),
             actualWithdrawnAmount,
             "stream balance == amount withdrawn"
         );
         assertEq(
-            usdc.balanceOf(users.recipient) - previousUserBalance,
+            usdc.balanceOf(users.recipient) - initialUserBalance,
             actualWithdrawnAmount,
             "user balance == token balance "
         );
