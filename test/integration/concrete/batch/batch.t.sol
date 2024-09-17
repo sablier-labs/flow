@@ -219,8 +219,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         calls[0] = abi.encodeCall(flow.pause, (defaultStreamIds[0]));
         calls[1] = abi.encodeCall(flow.pause, (defaultStreamIds[1]));
 
-        uint128 previousTotalDebt0 = flow.totalDebtOf(defaultStreamId);
-        uint128 previousTotalDebt1 = flow.totalDebtOf(defaultStreamIds[1]);
+        uint128 initialTotalDebt0 = flow.totalDebtOf(defaultStreamId);
+        uint128 initialTotalDebt1 = flow.totalDebtOf(defaultStreamIds[1]);
 
         // It should emit 2 {PauseFlowStream}, 2 {MetadataUpdate} events.
 
@@ -230,7 +230,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamIds[0],
             recipient: users.recipient,
             sender: users.sender,
-            totalDebt: previousTotalDebt0
+            totalDebt: initialTotalDebt0
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -242,7 +242,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamIds[1],
             sender: users.sender,
             recipient: users.recipient,
-            totalDebt: previousTotalDebt1
+            totalDebt: initialTotalDebt1
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -345,8 +345,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             to: users.recipient,
             token: usdc,
             caller: users.sender,
-            protocolFeeAmount: 0,
-            withdrawAmount: WITHDRAW_AMOUNT_6D
+            withdrawAmount: WITHDRAW_AMOUNT_6D,
+            protocolFeeAmount: 0
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -362,8 +362,8 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
             to: users.recipient,
             token: usdc,
             protocolFeeAmount: 0,
-            caller: users.sender,
-            withdrawAmount: WITHDRAW_AMOUNT_6D
+            withdrawAmount: WITHDRAW_AMOUNT_6D,
+            caller: users.sender
         });
 
         vm.expectEmit({ emitter: address(flow) });

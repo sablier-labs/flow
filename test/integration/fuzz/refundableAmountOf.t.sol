@@ -24,7 +24,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         // Pause the stream.
         flow.pause(streamId);
 
-        uint128 previousStreamBalance = flow.getBalance(streamId);
+        uint128 initialStreamBalance = flow.getBalance(streamId);
 
         // Bound the time jump so that it is less than the depletion timestamp.
         warpTimestamp = boundUint40(warpTimestamp, getBlockTimestamp(), depletionPeriod - 1);
@@ -34,7 +34,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
 
         // Assert that the refundable amount equals the stream balance before the time warp.
         uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
-        assertEq(actualRefundableAmount, previousStreamBalance);
+        assertEq(actualRefundableAmount, initialStreamBalance);
 
         // Assert that the refundable amount is same as the deposited amount.
         assertEq(actualRefundableAmount, depositedAmount);
@@ -67,7 +67,7 @@ contract RefundableAmountOf_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         // Assert that the refundable amount same as the deposited amount minus streamed amount.
         uint128 actualRefundableAmount = flow.refundableAmountOf(streamId);
         uint128 expectedRefundableAmount =
-            depositedAmount - getDenormalizedAmount(ratePerSecond * (warpTimestamp - MAY_1_2024), decimals);
+            depositedAmount - getDescaledAmount(ratePerSecond * (warpTimestamp - MAY_1_2024), decimals);
         assertEq(actualRefundableAmount, expectedRefundableAmount);
     }
 

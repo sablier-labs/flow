@@ -37,7 +37,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        uint128 previousTotalDebt = flow.totalDebtOf(streamId);
+        uint128 initialTotalDebt = flow.totalDebtOf(streamId);
 
         // Expect the relevant error.
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_StreamPaused.selector, streamId));
@@ -47,7 +47,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
 
         assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 
-        assertEq(previousTotalDebt, flow.totalDebtOf(streamId), "rate per second");
+        assertEq(initialTotalDebt, flow.totalDebtOf(streamId), "rate per second");
     }
 
     /// @dev Checklist:
@@ -79,7 +79,7 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
         // Simulate the passage of time.
         vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-        uint128 previousTotalDebt = flow.totalDebtOf(streamId);
+        uint128 initialTotalDebt = flow.totalDebtOf(streamId);
 
         UD21x18 currentRatePerSecond = flow.getRatePerSecond(streamId);
         if (newRatePerSecond.unwrap() == currentRatePerSecond.unwrap()) {
@@ -108,6 +108,6 @@ contract AdjustRatePerSecond_Integration_Fuzz_Test is Shared_Integration_Fuzz_Te
 
         assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 
-        assertEq(previousTotalDebt, flow.totalDebtOf(streamId), "rate per second");
+        assertEq(initialTotalDebt, flow.totalDebtOf(streamId), "rate per second");
     }
 }

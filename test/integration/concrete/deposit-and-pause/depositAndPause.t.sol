@@ -52,8 +52,8 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenCallerSender() external whenNoDelegateCall givenNotNull givenNotPaused {
-        uint128 previousStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint128 initialStreamBalance = flow.getBalance(defaultStreamId);
+        uint128 initialTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
         vm.expectEmit({ emitter: address(usdc) });
@@ -67,7 +67,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
             streamId: defaultStreamId,
             sender: users.sender,
             recipient: users.recipient,
-            totalDebt: previousTotalDebt
+            totalDebt: initialTotalDebt
         });
 
         vm.expectEmit({ emitter: address(flow) });
@@ -80,7 +80,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
 
         // It should update the stream balance
         uint128 actualStreamBalance = flow.getBalance(defaultStreamId);
-        uint128 expectedStreamBalance = previousStreamBalance + DEPOSIT_AMOUNT_6D;
+        uint128 expectedStreamBalance = initialStreamBalance + DEPOSIT_AMOUNT_6D;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should pause the stream
@@ -92,6 +92,6 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
 
         // It should update the snapshot debt
         uint128 actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        assertEq(actualSnapshotDebt, previousTotalDebt, "snapshot debt");
+        assertEq(actualSnapshotDebt, initialTotalDebt, "snapshot debt");
     }
 }

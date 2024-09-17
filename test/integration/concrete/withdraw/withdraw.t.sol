@@ -213,13 +213,13 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
     /// @dev A struct to hold the variables used in the test below, this prevents stack error.
     struct Vars {
         uint128 feeAmount;
-        // Previous values.
-        uint128 previousProtocolRevenue;
-        uint40 previousSnapshotTime;
-        uint128 previousStreamBalance;
-        uint256 previousTokenBalance;
-        uint128 previousTotalDebt;
-        uint256 previousUserBalance;
+        // Initial values.
+        uint128 initialProtocolRevenue;
+        uint40 initialSnapshotTime;
+        uint128 initialStreamBalance;
+        uint256 initialTokenBalance;
+        uint128 initialTotalDebt;
+        uint256 initialUserBalance;
     }
 
     Vars internal vars;
@@ -227,12 +227,12 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
     function _test_Withdraw(uint256 streamId, address to, uint128 withdrawAmount) private {
         IERC20 token = flow.getToken(streamId);
 
-        vars.previousProtocolRevenue = flow.protocolRevenue(token);
-        vars.previousTokenBalance = token.balanceOf(address(flow));
-        vars.previousTotalDebt = flow.totalDebtOf(streamId);
-        vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
-        vars.previousStreamBalance = flow.getBalance(streamId);
-        vars.previousUserBalance = token.balanceOf(to);
+        vars.initialProtocolRevenue = flow.protocolRevenue(token);
+        vars.initialTokenBalance = token.balanceOf(address(flow));
+        vars.initialTotalDebt = flow.totalDebtOf(streamId);
+        vars.initialSnapshotTime = flow.getSnapshotTime(streamId);
+        vars.initialStreamBalance = flow.getBalance(streamId);
+        vars.initialUserBalance = token.balanceOf(to);
 
         vm.expectEmit({ emitter: address(flow) });
         emit MetadataUpdate({ _tokenId: streamId });
@@ -245,24 +245,24 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         }
 
         // Assert the protocol revenue.
-        assertEq(flow.protocolRevenue(token), vars.previousProtocolRevenue + vars.feeAmount, "protocol revenue");
+        assertEq(flow.protocolRevenue(token), vars.initialProtocolRevenue + vars.feeAmount, "protocol revenue");
 
         // Check the states after the withdrawal.
         assertEq(
-            vars.previousTokenBalance - token.balanceOf(address(flow)),
+            vars.initialTokenBalance - token.balanceOf(address(flow)),
             actualWithdrawnAmount - vars.feeAmount,
             "token balance == amount withdrawn - fee amount"
         );
         assertEq(
-            vars.previousTotalDebt - flow.totalDebtOf(streamId), actualWithdrawnAmount, "total debt == amount withdrawn"
+            vars.initialTotalDebt - flow.totalDebtOf(streamId), actualWithdrawnAmount, "total debt == amount withdrawn"
         );
         assertEq(
-            vars.previousStreamBalance - flow.getBalance(streamId),
+            vars.initialStreamBalance - flow.getBalance(streamId),
             actualWithdrawnAmount,
             "stream balance == amount withdrawn"
         );
         assertEq(
-            token.balanceOf(to) - vars.previousUserBalance,
+            token.balanceOf(to) - vars.initialUserBalance,
             actualWithdrawnAmount - vars.feeAmount,
             "user balance == token balance - fee amount"
         );
@@ -275,7 +275,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         );
 
         // It should update snapshot time.
-        assertGe(flow.getSnapshotTime(streamId), vars.previousSnapshotTime, "snapshot time");
+        assertGe(flow.getSnapshotTime(streamId), vars.initialSnapshotTime, "snapshot time");
 
         // It should return the actual withdrawn amount.
         assertGe(withdrawAmount, actualWithdrawnAmount, "withdrawn amount");
