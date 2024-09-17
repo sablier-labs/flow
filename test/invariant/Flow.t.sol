@@ -262,4 +262,31 @@ contract Flow_Invariant_Test is Base_Test {
             }
         }
     }
+
+    /// @dev For a given stream with no change in rps, the total debt should be equal to the amount streamed since the
+    /// stream start time minus the total withdrawn amount.
+    function invariant_RatePerSecondConstant_TotalDebtEqStreamedMinusWithdrawn() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            // If there are no calls to adjustRatePerSecond, pause, or void, then the rate per second is constant.
+            if (
+                flowHandler.calls(streamId, "adjustRatePerSecond") == 0 && flowHandler.calls(streamId, "pause") == 0
+                    && flowHandler.calls(streamId, "void") == 0
+            ) {
+                // Calculate the streamed amount since the stream start time.
+                uint256 scaledStreamedAmount =
+                    (block.timestamp - flowStore.startTime(streamId)) * flow.getRatePerSecond(streamId).unwrap();
+                uint128 streamedAmount =
+                    getDescaledAmount(uint128(scaledStreamedAmount), flow.getTokenDecimals(streamId));
+                // Assert the invariant.
+                assertApproxEqAbs(
+                    flow.totalDebtOf(streamId),
+                    streamedAmount - flowStore.withdrawnAmounts(streamId),
+                    1,
+                    "Invariant violation: total debt != streamed amount - withdrawn amount"
+                );
+            }
+        }
+    }
 }

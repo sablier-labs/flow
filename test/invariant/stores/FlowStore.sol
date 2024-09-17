@@ -11,7 +11,7 @@ contract FlowStore {
 
     uint256 public lastStreamId;
     uint256[] public streamIds;
-
+    mapping(uint256 streamId => uint40 time) public startTime;
     mapping(uint256 streamId => uint128 depositedAmount) public depositedAmounts;
     mapping(uint256 streamId => uint128 refundedAmount) public refundedAmounts;
     mapping(uint256 streamId => uint128 withdrawnAmount) public withdrawnAmounts;
@@ -24,8 +24,9 @@ contract FlowStore {
     //////////////////////////////////////////////////////////////////////////*/
 
     function pushStreamId(uint256 streamId) external {
-        // Store the stream ids, the senders, and the recipients.
+        // Store the stream ids, and the start time.
         streamIds.push(streamId);
+        startTime[streamId] = uint40(block.timestamp);
 
         // Update the last stream id.
         lastStreamId = streamId;
