@@ -120,7 +120,7 @@ contract FlowHandler is BaseHandler {
         vm.assume(!flow.isVoided(currentStreamId));
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        uint128 upperBound = getDenormalizedAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
+        uint128 upperBound = getDescaledAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
 
         // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
         vm.assume(depositAmount >= 100 && depositAmount <= upperBound);

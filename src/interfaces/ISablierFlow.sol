@@ -93,17 +93,17 @@ interface ISablierFlow is
     /// @param to The address that received the withdrawn tokens.
     /// @param token The contract address of the ERC-20 token that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
-    /// @param protocolFeeAmount The amount of protocol fee deducted from the withdrawn amount, denoted in token's
-    /// decimals.
     /// @param withdrawAmount The amount withdrawn to the recipient after subtracting the protocol fee, denoted in
     /// token's decimals.
+    /// @param protocolFeeAmount The amount of protocol fee deducted from the withdrawn amount, denoted in token's
+    /// decimals.
     event WithdrawFromFlowStream(
         uint256 indexed streamId,
         address indexed to,
         IERC20 indexed token,
         address caller,
-        uint128 protocolFeeAmount,
-        uint128 withdrawAmount
+        uint128 withdrawAmount,
+        uint128 protocolFeeAmount
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -403,7 +403,7 @@ interface ISablierFlow is
     /// @param to The address receiving the withdrawn tokens.
     /// @param amount The amount to withdraw, denoted in token's decimals.
     /// @return amountWithdrawn The amount withdrawn to the recipient including protocol fee, denoted in token's
-    /// decimals. This may slightly differ from `amount` provided.
+    /// decimals. This may slightly differ from the `amount` provided.
     function withdraw(uint256 streamId, address to, uint128 amount) external returns (uint128 amountWithdrawn);
 
     /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
@@ -419,6 +419,6 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
     /// @return amountWithdrawn The amount withdrawn to the recipient including protocol fee, denoted in token's
-    /// decimals. This may slightly differ from `coveredDebt` amount.
+    /// decimals. This may slightly differ from the covered debt value.
     function withdrawMax(uint256 streamId, address to) external returns (uint128 amountWithdrawn);
 }

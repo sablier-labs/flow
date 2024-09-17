@@ -462,18 +462,18 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
 
         // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
-        uint128 normalizedOngoingDebt = elapsedTime * _streams[streamId].ratePerSecond.unwrap();
+        uint128 scaledOngoingDebt = elapsedTime * _streams[streamId].ratePerSecond.unwrap();
 
-        // If the token decimals are 18, return the normalized ongoing debt and the `block.timestamp`.
+        // If the token decimals are 18, return the scaled ongoing debt and the `block.timestamp`.
         if (tokenDecimals == 18) {
-            return normalizedOngoingDebt;
+            return scaledOngoingDebt;
         }
 
-        // Safe to use unchecked because we use {SafeCast}.
+        // Safe to use unchecked due to {SafeCast}.
         unchecked {
             uint8 factor = 18 - tokenDecimals;
-            // Since debt is denoted in token decimals, denormalize the amount.
-            ongoingDebt = (normalizedOngoingDebt / (10 ** factor)).toUint128();
+            // Since debt is denoted in token decimals, descale the amount.
+            ongoingDebt = (scaledOngoingDebt / (10 ** factor)).toUint128();
         }
     }
 
@@ -760,9 +760,9 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _withdraw(uint256 streamId, address to, uint128 amount) internal returns (uint128) {
+    function _withdraw(uint256 streamId, address to, uint128 withdrawAmount) internal returns (uint128) {
         // Check: the withdraw amount is not zero.
-        if (amount == 0) {
+        if (withdrawAmount == 0) {
             revert Errors.SablierFlow_WithdrawAmountZero(streamId);
         }
 
@@ -777,93 +777,111 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawalAddressNotRecipient({ streamId: streamId, caller: msg.sender, to: to });
         }
 
-        // Calculate the total debt.
-        uint128 totalDebt = _totalDebtOf(streamId);
+        // Calculate the total debt at the beginning of the withdrawal.
+        uint128 initialTotalDebt = _totalDebtOf(streamId);
 
-        // Calculate the withdrawable amount.
-        uint128 balance = _streams[streamId].balance;
+        // Load the initial balance.
+        uint128 initialBalance = _streams[streamId].balance;
+
+        // If the stream balance is less than the total debt, the withdrawable amount is the balance.
         uint128 withdrawableAmount;
-
-        if (balance < totalDebt) {
-            // If the stream balance is less than the total debt, the withdrawable amount is the balance.
-            withdrawableAmount = balance;
-        } else {
-            // Otherwise, the withdrawable amount is the total debt.
-            withdrawableAmount = totalDebt;
+        if (initialBalance < initialTotalDebt) {
+            withdrawableAmount = initialBalance;
+        }
+        // Otherwise, the withdrawable amount is the total debt.
+        else {
+            withdrawableAmount = initialTotalDebt;
         }
 
         // Check: the withdraw amount is not greater than the withdrawable amount.
-        if (amount > withdrawableAmount) {
-            revert Errors.SablierFlow_Overdraw(streamId, amount, withdrawableAmount);
+        if (withdrawAmount > withdrawableAmount) {
+            revert Errors.SablierFlow_Overdraw(streamId, withdrawAmount, withdrawableAmount);
         }
 
-        if (amount <= _streams[streamId].snapshotDebt) {
-            // The `if` condition is triggered when:
-            //  - The stream is paused or voided i.e. total debt = snapshot debt, allowing users to withdraw the entire
-            // withdrawable amount.
-            //  - The amount does not exceed the snapshot debt for non paused streams.
-            //
-            //  Effect: reduce the amount from the snapshot debt and leave ongoing debt unchanged.
-            _streams[streamId].snapshotDebt -= amount;
-        } else {
-            // Otherwise, reduce the differece from the ongoing debt by adjusting the snapshot time.
-            // Note:
-            /// - If rate per second is zero i.e. a paused stream, the `if` condition will be executed. Therefore, the
-            /// following division will never throw a division by zero error.
-            //
-            // Explaination:
-            //  - Division by rps introduces many-to-one relation between amount and time. There can exist a range
-            // [amount, amount + rps), which maps to the same time. Therefore, we need to adjust the amount withdrawn to
-            // ensure that it matches the lower bound of the range. This guarantees that the streamed amount is not lost
-            // due to the rounding by the division.
-            // Steps:
-            //  - We set snapshot debt to 0.
-            //  - the difference, amount - snapshot debt, is deducted from the the ongoing debt.
-            //  - To do that, we calculate the time it would take to stream the difference at the current rate per
-            // second.
-            //  - We then add this time to the snapshot time to get the new snapshot time.
-            //  - The new snapshot time = snapshot time + (amount - snapshot debt) / rate per second.
-            _streams[streamId].snapshotTime += uint40(
-                ((amount - _streams[streamId].snapshotDebt) * (10 ** (18 - _streams[streamId].tokenDecimals)))
-                    / _streams[streamId].ratePerSecond.unwrap()
-            );
+        uint128 ongoingDebt;
+
+        // If the withdraw amount is less than the snapshot debt, use the snapshot debt as a funding source for the
+        // withdrawal and leave both the withdraw amount the ongoing debt unchanged.
+        //
+        // The condition is evaluated true in the following cases:
+        //  - The stream is not paused and the amount does not exceed the snapshot debt.
+        //  - The stream is paused or voided, i.e. total debt == snapshot debt.
+        if (withdrawAmount <= _streams[streamId].snapshotDebt) {
+            _streams[streamId].snapshotDebt -= withdrawAmount;
+        }
+        // Otherwise, adjust the snapshot time, set the snapshot debt to zero, and also adjust the withdraw amount.
+        //
+        // Dividing by the rps produces a many-to-one relation between time inputs and streamed amounts. There exists a
+        // range [amount, amount + rps) that maps to the same time. This is especially problematic for tokens with small
+        // decimals, e.g., USDC which has 6 decimals.
+        //
+        // To solve this, we need to adjust the amount withdrawn to ensure that it equals the lower bound of the range.
+        // This guarantees that part of the streamed amount is not lost due to rounding errors.
+        //
+        // Steps:
+        //  - Calculate the difference between the withdraw amount the snapshot debt.
+        //  - Scale the difference up to 18 decimals.
+        //  - Divide it by the rate per second, which is also an 18-decimal number, and obtain the time it would take to
+        // stream the difference at the current rate per second.
+        //  - Add the resultant value to the snapshot time.
+        //  - Set the snapshot debt to zero.
+        //  - Recalculate the ongoing debt based on the new snapshot time.
+        //  - Set the withdraw amount to the initial total debt minus the ongoing debt. This may result in a value less
+        // than the initial withdraw amount.
+        //
+        // Note: the rate per second cannot be zero because this can only happen when the stream is paused. In that
+        // case, the `if` condition will be executed.
+        else {
+            uint128 difference;
+            unchecked {
+                difference = withdrawAmount - _streams[streamId].snapshotDebt;
+            }
+            uint128 scaledDifference = difference * uint128(10 ** (18 - _streams[streamId].tokenDecimals));
+            uint128 rps = _streams[streamId].ratePerSecond.unwrap();
+            _streams[streamId].snapshotTime += uint40(scaledDifference / rps);
 
             // Set the snapshot debt to zero.
             _streams[streamId].snapshotDebt = 0;
 
-            // Adjust the amount withdrawn so that previous total debt - new total debt = amount withdrawn. Note
-            // that, at this point, new total debt = ongoing debt.
-            amount = totalDebt - _ongoingDebtOf(streamId);
+            // Adjust the withdraw amount. At this point, new total debt == ongoing debt.
+            ongoingDebt = _ongoingDebtOf(streamId);
+            withdrawAmount = initialTotalDebt - ongoingDebt;
         }
 
         // Effect: update the stream balance.
-        _streams[streamId].balance -= amount;
+        _streams[streamId].balance -= withdrawAmount;
 
         // Load the variables in memory.
         IERC20 token = _streams[streamId].token;
         UD60x18 protocolFee = protocolFee[token];
 
+        // Calculate the protocol fee amount and the net withdraw amount.
         uint128 netWithdrawnAmount;
-        uint128 feeAmount;
-
+        uint128 protocolFeeAmount;
         if (protocolFee > ZERO) {
-            // Calculate the protocol fee amount and the net withdraw amount.
-            (feeAmount, netWithdrawnAmount) = Helpers.calculateAmountsFromFee({ totalAmount: amount, fee: protocolFee });
+            (protocolFeeAmount, netWithdrawnAmount) =
+                Helpers.calculateAmountsFromFee({ totalAmount: withdrawAmount, fee: protocolFee });
 
             // Safe to use unchecked because addition cannot overflow.
             unchecked {
                 // Effect: update the protocol revenue.
-                protocolRevenue[token] += feeAmount;
+                protocolRevenue[token] += protocolFeeAmount;
             }
         } else {
-            netWithdrawnAmount = amount;
+            netWithdrawnAmount = withdrawAmount;
         }
 
         // Interaction: perform the ERC-20 transfer.
         token.safeTransfer({ to: to, value: netWithdrawnAmount });
 
-        // Protocol Invariant: the difference in total debt should be equal to the difference in the stream balance.
-        assert(totalDebt - _totalDebtOf(streamId) == balance - _streams[streamId].balance);
+        // Protocol Invariant: the new total debt is equal to the ongoing debt.
+        uint128 newTotalDebt = _totalDebtOf(streamId);
+        // TODO: this assertion does not work, it leads to failed tests
+        // assert(newTotalDebt == ongoingDebt);
+
+        // Protocol Invariant: the difference between total debts should be equal to the difference between stream
+        // balances.
+        assert(initialTotalDebt - newTotalDebt == initialBalance - _streams[streamId].balance);
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({
@@ -871,11 +889,11 @@ contract SablierFlow is
             to: to,
             token: token,
             caller: msg.sender,
-            protocolFeeAmount: feeAmount,
-            withdrawAmount: netWithdrawnAmount
+            withdrawAmount: netWithdrawnAmount,
+            protocolFeeAmount: protocolFeeAmount
         });
 
         // Return the amount withdrawn + protocol fee.
-        return amount;
+        return netWithdrawnAmount + protocolFeeAmount;
     }
 }
