@@ -761,11 +761,6 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _withdraw(uint256 streamId, address to, uint128 withdrawAmount) internal returns (uint128) {
-        // Check: the withdraw amount is not zero.
-        if (withdrawAmount == 0) {
-            revert Errors.SablierFlow_WithdrawAmountZero(streamId);
-        }
-
         // Check: the withdrawal address is not zero.
         if (to == address(0)) {
             revert Errors.SablierFlow_WithdrawToZeroAddress(streamId);
@@ -848,6 +843,11 @@ contract SablierFlow is
             withdrawAmount = initialTotalDebt - ongoingDebt;
         }
 
+        // Check: the withdraw amount is not zero.
+        if (withdrawAmount == 0) {
+            revert Errors.SablierFlow_WithdrawAmountZero(streamId);
+        }
+
         // Effect: update the stream balance.
         _streams[streamId].balance -= withdrawAmount;
 
@@ -877,9 +877,11 @@ contract SablierFlow is
         // Calculate the total debt at the end of the withdrawal.
         uint128 newTotalDebt = _totalDebtOf(streamId);
 
-        // Protocol Invariant: the difference between total debts should be equal to the difference between stream
-        // balances.
-        assert(initialTotalDebt - newTotalDebt == initialBalance - _streams[streamId].balance);
+        unchecked {
+            // Protocol Invariant: the difference between total debts should be equal to the difference between stream
+            // balances.
+            assert(initialTotalDebt - newTotalDebt == initialBalance - _streams[streamId].balance);
+        }
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({
@@ -892,6 +894,6 @@ contract SablierFlow is
         });
 
         // Return the amount withdrawn + protocol fee.
-        return netWithdrawnAmount + protocolFeeAmount;
+        return withdrawAmount;
     }
 }
