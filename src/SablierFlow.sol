@@ -862,7 +862,7 @@ contract SablierFlow is
             (protocolFeeAmount, netWithdrawnAmount) =
                 Helpers.calculateAmountsFromFee({ totalAmount: withdrawAmount, fee: protocolFee });
 
-            // Safe to use unchecked because addition cannot overflow in practice.
+            // Safe to use unchecked because addition cannot overflow.
             unchecked {
                 // Effect: update the protocol revenue.
                 protocolRevenue[token] += protocolFeeAmount;
@@ -876,12 +876,12 @@ contract SablierFlow is
 
         // Protocol Invariant: the new total debt is equal to the ongoing debt.
         uint128 newTotalDebt = _totalDebtOf(streamId);
+        // TODO: this assertion does not work, it leads to failed tests
+        // assert(newTotalDebt == ongoingDebt);
 
         // Protocol Invariant: the difference between total debts should be equal to the difference between stream
         // balances.
-        unchecked {
-            assert(initialTotalDebt - newTotalDebt == initialBalance - _streams[streamId].balance);
-        }
+        assert(initialTotalDebt - newTotalDebt == initialBalance - _streams[streamId].balance);
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({
