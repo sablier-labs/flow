@@ -78,8 +78,8 @@ library Errors {
     /// @notice Thrown when trying to withdraw to an address other than the recipient's.
     error SablierFlow_WithdrawalAddressNotRecipient(uint256 streamId, address caller, address to);
 
-    /// @notice Thrown when trying to withdraw zero tokens from a stream.
-    error SablierFlow_WithdrawAmountZero(uint256 streamId);
+    /// @notice Thrown when trying to withdraw approximately zero tokens from a stream.
+    error SablierFlow_WithdrawAmountTooSmall(uint256 streamId);
 
     /// @notice Thrown when trying to withdraw to the zero address.
     error SablierFlow_WithdrawToZeroAddress(uint256 streamId);

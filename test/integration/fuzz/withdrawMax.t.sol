@@ -79,8 +79,11 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     // Shared private function.
     function _test_WithdrawMax(address withdrawTo, uint256 streamId) private {
-        // If the withdrawable amount is still zero, warp closely to depletion time.
-        if (flow.withdrawableAmountOf(streamId) == 0) {
+        uint128 scaleFactor = uint128(10 ** (18 - flow.getTokenDecimals(streamId)));
+        uint128 rps = flow.getRatePerSecond(streamId).unwrap();
+
+        // If the withdrawable amount is still less than rps, warp closely to depletion time.
+        if (flow.withdrawableAmountOf(streamId) <= rps / scaleFactor) {
             vm.warp({ newTimestamp: flow.depletionTimeOf(streamId) - 1 });
         }
 

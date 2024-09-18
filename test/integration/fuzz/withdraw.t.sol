@@ -145,8 +145,11 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             vm.warp({ newTimestamp: flow.depletionTimeOf(streamId) - 1 });
         }
 
-        // Bound the withdraw amount between the allowed range.
-        withdrawAmount = boundUint128(withdrawAmount, 1, flow.withdrawableAmountOf(streamId));
+        uint128 scaleFactor = uint128(10 ** (18 - flow.getTokenDecimals(streamId)));
+        uint128 rps = flow.getRatePerSecond(streamId).unwrap();
+
+        // Check that the withdraw amount is between the allowed range.
+        vm.assume(withdrawAmount > rps / scaleFactor && withdrawAmount <= flow.withdrawableAmountOf(streamId));
 
         vars.initialProtocolRevenue = flow.protocolRevenue(token);
         vars.initialSnapshotTime = flow.getSnapshotTime(streamId);
