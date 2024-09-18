@@ -48,7 +48,11 @@ contract FlowHandler is BaseHandler {
     /// @dev Picks a random stream from the store.
     /// @param streamIndex A fuzzed value to pick a stream from flowStore.
     modifier useFuzzedStream(uint256 streamIndex) {
-        vm.assume(streamIndex > 0 && streamIndex < flowStore.lastStreamId());
+        uint256 lastStreamId = flowStore.lastStreamId();
+        if (lastStreamId == 0) {
+            return;
+        }
+        vm.assume(streamIndex < lastStreamId);
         currentStreamId = flowStore.streamIds(streamIndex);
         _;
     }
