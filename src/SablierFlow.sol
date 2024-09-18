@@ -761,6 +761,14 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _withdraw(uint256 streamId, address to, uint128 withdrawAmount) internal returns (uint128) {
+        uint128 rps = _streams[streamId].ratePerSecond.unwrap();
+        uint128 scaleFactor = uint128(10 ** (18 - _streams[streamId].tokenDecimals));
+
+        // Check: the withdraw amount is greater than rps.
+        if (withdrawAmount * scaleFactor <= rps) {
+            revert Errors.SablierFlow_WithdrawAmountTooSmall(streamId);
+        }
+
         // Check: the withdrawal address is not zero.
         if (to == address(0)) {
             revert Errors.SablierFlow_WithdrawToZeroAddress(streamId);
@@ -831,8 +839,7 @@ contract SablierFlow is
             unchecked {
                 difference = withdrawAmount - _streams[streamId].snapshotDebt;
             }
-            uint128 scaledDifference = difference * uint128(10 ** (18 - _streams[streamId].tokenDecimals));
-            uint128 rps = _streams[streamId].ratePerSecond.unwrap();
+            uint128 scaledDifference = difference * scaleFactor;
             _streams[streamId].snapshotTime += uint40(scaledDifference / rps);
 
             // Set the snapshot debt to zero.
@@ -841,11 +848,6 @@ contract SablierFlow is
             // Adjust the withdraw amount. At this point, new total debt == ongoing debt.
             ongoingDebt = _ongoingDebtOf(streamId);
             withdrawAmount = initialTotalDebt - ongoingDebt;
-        }
-
-        // Check: the withdraw amount is not zero.
-        if (withdrawAmount == 0) {
-            revert Errors.SablierFlow_WithdrawAmountZero(streamId);
         }
 
         // Effect: update the stream balance.
@@ -874,13 +876,10 @@ contract SablierFlow is
         // Interaction: perform the ERC-20 transfer.
         token.safeTransfer({ to: to, value: netWithdrawnAmount });
 
-        // Calculate the total debt at the end of the withdrawal.
-        uint128 newTotalDebt = _totalDebtOf(streamId);
-
         unchecked {
             // Protocol Invariant: the difference between total debts should be equal to the difference between stream
             // balances.
-            assert(initialTotalDebt - newTotalDebt == initialBalance - _streams[streamId].balance);
+            assert(initialTotalDebt - _totalDebtOf(streamId) == initialBalance - _streams[streamId].balance);
         }
 
         // Log the withdrawal.
