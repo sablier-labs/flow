@@ -58,13 +58,13 @@ contract FlowHandler is BaseHandler {
     }
 
     modifier useFuzzedStreamRecipient() {
-        currentRecipient = flowStore.recipients(currentStreamId);
+        currentRecipient = flow.getRecipient(currentStreamId);
         resetPrank(currentRecipient);
         _;
     }
 
     modifier useFuzzedStreamSender() {
-        currentSender = flowStore.senders(currentStreamId);
+        currentSender = flow.getSender(currentStreamId);
         resetPrank(currentSender);
         _;
     }
@@ -131,7 +131,7 @@ contract FlowHandler is BaseHandler {
         flow.deposit({ streamId: currentStreamId, amount: depositAmount });
 
         // Update the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(currentStreamId, depositAmount);
+        flowStore.updateStreamDepositedAmountsSum(currentStreamId, token, depositAmount);
     }
 
     /// @dev A function that does nothing but warp the time into the future.
@@ -182,7 +182,7 @@ contract FlowHandler is BaseHandler {
         flow.refund(currentStreamId, refundAmount);
 
         // Update the refunded amount.
-        flowStore.updateStreamRefundedAmountsSum(currentStreamId, refundAmount);
+        flowStore.updateStreamRefundedAmountsSum(currentStreamId, flow.getToken(currentStreamId), refundAmount);
     }
 
     function restart(
@@ -255,8 +255,7 @@ contract FlowHandler is BaseHandler {
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.
-        address sender = flowStore.senders(currentStreamId);
-        if (sender == currentRecipient && to != currentRecipient) {
+        if (flow.getSender(currentStreamId) == currentRecipient && to != currentRecipient) {
             to = currentRecipient;
         }
 
@@ -264,6 +263,6 @@ contract FlowHandler is BaseHandler {
         flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
 
         // Update the withdrawn amount.
-        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, amount);
+        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, flow.getToken(currentStreamId), amount);
     }
 }
