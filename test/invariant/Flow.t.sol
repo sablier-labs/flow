@@ -262,4 +262,40 @@ contract Flow_Invariant_Test is Base_Test {
             }
         }
     }
+
+    function invariant_TotalDebtEqTotalStreamedMinusWithdrawn() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+
+            // Skip the voided streams.
+            if (!flow.isVoided(streamId)) {
+                uint256 totalStreamedAmount =
+                    calculateTotalStreamedAmount(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
+
+                assertEq(
+                    flow.totalDebtOf(streamId),
+                    totalStreamedAmount - flowStore.withdrawnAmounts(streamId),
+                    "Invariant violation: total debt != streamed amount - withdrawn amount"
+                );
+            }
+        }
+    }
+
+    /// @dev Calculates the total streamed amount iterating over each segment.
+    function calculateTotalStreamedAmount(uint256 streamId, uint8 decimals) public view returns (uint256) {
+        uint256 totalStreamedAmount = 0;
+        uint256 segmentsCount = flowStore.getSegments(streamId).length;
+
+        for (uint256 i = 0; i < segmentsCount; ++i) {
+            FlowStore.Segment memory segment = flowStore.getSegment(streamId, i);
+
+            // If end time is 0, it means the current segment is still active.
+            uint40 elapsed = segment.end > 0 ? segment.end - segment.start : uint40(block.timestamp) - segment.start;
+
+            totalStreamedAmount += (segment.ratePerSecond * elapsed) / 10 ** (18 - decimals);
+        }
+
+        return totalStreamedAmount;
+    }
 }

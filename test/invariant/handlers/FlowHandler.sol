@@ -48,11 +48,7 @@ contract FlowHandler is BaseHandler {
     /// @dev Picks a random stream from the store.
     /// @param streamIndex A fuzzed value to pick a stream from flowStore.
     modifier useFuzzedStream(uint256 streamIndex) {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        if (lastStreamId == 0) {
-            return;
-        }
-        vm.assume(streamIndex < lastStreamId);
+        vm.assume(streamIndex > 0 && streamIndex < flowStore.lastStreamId());
         currentStreamId = flowStore.streamIds(streamIndex);
         _;
     }
@@ -96,6 +92,8 @@ contract FlowHandler is BaseHandler {
 
         // Adjust the rate per second.
         flow.adjustRatePerSecond(currentStreamId, newRatePerSecond);
+
+        flowStore.updateSegments(currentStreamId, newRatePerSecond.unwrap());
     }
 
     function deposit(
@@ -153,6 +151,8 @@ contract FlowHandler is BaseHandler {
 
         // Pause the stream.
         flow.pause(currentStreamId);
+
+        flowStore.updateSegments(currentStreamId, 0);
     }
 
     function refund(
@@ -208,6 +208,8 @@ contract FlowHandler is BaseHandler {
 
         // Restart the stream.
         flow.restart(currentStreamId, ratePerSecond);
+
+        flowStore.updateSegments(currentStreamId, ratePerSecond.unwrap());
     }
 
     function void(
@@ -229,6 +231,8 @@ contract FlowHandler is BaseHandler {
 
         // Void the stream.
         flow.void(currentStreamId);
+
+        flowStore.updateSegments(currentStreamId, 0);
     }
 
     function withdraw(
