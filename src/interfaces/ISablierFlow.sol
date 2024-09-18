@@ -384,13 +384,14 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external;
 
-    /// @notice Withdraws the provided amount of tokens from the stream to the `to` address.
+    /// @notice Withdraws from the stream to the `to` address.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///
     /// Notes:
-    /// - It sets the snapshot time to the `block.timestamp` function.
-    /// - If the protocol fee is enabled for the streaming token, the amount withdrawn is adjusted by the protocol fee.
+    /// - It sets the snapshot time to `block.timestamp`.
+    /// - The withdraw amount may be adjusted to account for rounding errors.
+    /// - A protocol fee may be charged on the withdrawn amount if the protocol fee is enabled for the streaming token.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -402,8 +403,8 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
     /// @param amount The amount to withdraw, denoted in token's decimals.
-    /// @return amountWithdrawn The amount withdrawn to the recipient including protocol fee, denoted in token's
-    /// decimals. This may slightly differ from the `amount` provided due to rounding errors.
+    /// @return amountWithdrawn The amount withdrawn to the recipient plus the protocol fee, denoted in token's
+    /// decimals. Due to rounding errors, this may slightly differ from the `amount` provided.
     function withdraw(uint256 streamId, address to, uint128 amount) external returns (uint128 amountWithdrawn);
 
     /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
@@ -419,6 +420,6 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
     /// @return amountWithdrawn The amount withdrawn to the recipient including protocol fee, denoted in token's
-    /// decimals. This may slightly differ from the covered debt value.
+    /// decimals. Due to rounding errors, this may slightly differ from the expected withdrawable amount.
     function withdrawMax(uint256 streamId, address to) external returns (uint128 amountWithdrawn);
 }
