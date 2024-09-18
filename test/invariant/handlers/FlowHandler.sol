@@ -57,13 +57,13 @@ contract FlowHandler is BaseHandler {
         _;
     }
 
-    modifier useFuzzedStreamRecipient() {
+    modifier useStreamRecipient() {
         currentRecipient = flow.getRecipient(currentStreamId);
         resetPrank(currentRecipient);
         _;
     }
 
-    modifier useFuzzedStreamSender() {
+    modifier useStreamSender() {
         currentSender = flow.getSender(currentStreamId);
         resetPrank(currentSender);
         _;
@@ -80,7 +80,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamSender
+        useStreamSender
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "adjustRatePerSecond")
@@ -105,7 +105,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamSender
+        useStreamSender
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "deposit")
@@ -143,7 +143,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamSender
+        useStreamSender
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "pause")
@@ -162,7 +162,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamSender
+        useStreamSender
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "refund")
@@ -192,7 +192,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamSender
+        useStreamSender
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "restart")
@@ -216,7 +216,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamRecipient
+        useStreamRecipient
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "void")
@@ -239,7 +239,7 @@ contract FlowHandler is BaseHandler {
     )
         external
         useFuzzedStream(streamIndex)
-        useFuzzedStreamRecipient
+        useStreamRecipient
         adjustTimestamp(timeJump)
         updateFlowHandlerStates
         instrument(currentStreamId, "withdraw")
