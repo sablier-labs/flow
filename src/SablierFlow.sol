@@ -801,7 +801,7 @@ contract SablierFlow is
         uint128 ongoingDebt;
 
         // If the withdraw amount is less than the snapshot debt, use the snapshot debt as a funding source for the
-        // withdrawal and leave both the withdraw amount the ongoing debt unchanged.
+        // withdrawal and leave both the withdraw amount and the ongoing debt unchanged.
         //
         // The condition is evaluated true in the following cases:
         //  - The stream is not paused and the amount does not exceed the snapshot debt.
@@ -862,7 +862,7 @@ contract SablierFlow is
             (protocolFeeAmount, netWithdrawnAmount) =
                 Helpers.calculateAmountsFromFee({ totalAmount: withdrawAmount, fee: protocolFee });
 
-            // Safe to use unchecked because addition cannot overflow.
+            // Safe to use unchecked because addition cannot overflow in practice.
             unchecked {
                 // Effect: update the protocol revenue.
                 protocolRevenue[token] += protocolFeeAmount;
@@ -874,10 +874,8 @@ contract SablierFlow is
         // Interaction: perform the ERC-20 transfer.
         token.safeTransfer({ to: to, value: netWithdrawnAmount });
 
-        // Protocol Invariant: the new total debt is equal to the ongoing debt.
+        // Calculate the total debt at the end of the withdrawal.
         uint128 newTotalDebt = _totalDebtOf(streamId);
-        // TODO: this assertion does not work, it leads to failed tests
-        // assert(newTotalDebt == ongoingDebt);
 
         // Protocol Invariant: the difference between total debts should be equal to the difference between stream
         // balances.
