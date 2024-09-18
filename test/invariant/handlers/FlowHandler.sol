@@ -271,8 +271,11 @@ contract FlowHandler is BaseHandler {
         // Check if there is anything to withdraw.
         vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
 
-        // Make sure the withdraw amount is non-zero and it is less or equal to the maximum wihtdrawable amount.
-        vm.assume(amount >= 1 && amount <= flow.withdrawableAmountOf(currentStreamId));
+        uint128 rps = flow.getRatePerSecond(currentStreamId).unwrap();
+        uint128 scaleFactor = uint128(10 ** (18 - flow.getTokenDecimals(currentStreamId)));
+
+        // Make sure the withdraw amount is greter than rps but less or equal to the maximum wihtdrawable amount.
+        vm.assume(amount > rps / scaleFactor && amount <= flow.withdrawableAmountOf(currentStreamId));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.

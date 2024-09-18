@@ -32,7 +32,7 @@ contract Batch_Integration_Concrete_Test is Integration_Test {
         calls[0] = abi.encodeCall(flow.withdrawMax, (1, users.recipient));
 
         bytes memory expectedRevertData = abi.encodeWithSelector(
-            Errors.BatchError.selector, abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountZero.selector, 1)
+            Errors.BatchError.selector, abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountTooSmall.selector, 1)
         );
 
         vm.expectRevert(expectedRevertData);

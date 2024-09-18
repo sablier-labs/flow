@@ -29,7 +29,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_RevertWhen_AmountZero() external whenNoDelegateCall givenNotNull {
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountZero.selector, defaultStreamId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountTooSmall.selector, defaultStreamId));
         flow.withdraw({ streamId: defaultStreamId, to: users.recipient, amount: 0 });
     }
 
