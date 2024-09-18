@@ -276,7 +276,7 @@ contract Flow_Invariant_Test is Base_Test {
             ) {
                 // Calculate the streamed amount since the stream start time.
                 uint256 scaledStreamedAmount =
-                    (block.timestamp - flowStore.startTime(streamId)) * flow.getRatePerSecond(streamId).unwrap();
+                    (block.timestamp - flowStore.startTimes(streamId)) * flow.getRatePerSecond(streamId).unwrap();
                 uint128 streamedAmount =
                     getDescaledAmount(uint128(scaledStreamedAmount), flow.getTokenDecimals(streamId));
                 // Assert the invariant.
