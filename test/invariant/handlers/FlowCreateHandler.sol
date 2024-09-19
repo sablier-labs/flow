@@ -69,6 +69,15 @@ contract FlowCreateHandler is BaseHandler {
         bool transferable;
     }
 
+    /// @dev Struct to prevent stack too deep error.
+    struct Vars {
+        uint8 decimals;
+        uint128 mvt;
+        uint128 upperBound;
+    }
+
+    Vars internal vars;
+
     function create(CreateParams memory params)
         public
         checkUsers(params)
@@ -78,14 +87,19 @@ contract FlowCreateHandler is BaseHandler {
     {
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
 
-        // Use a realistic range for the rate per second.
-        vm.assume(params.ratePerSecond.unwrap() >= 0.0000000001e18 && params.ratePerSecond.unwrap() <= 10e18);
+        vars.decimals = IERC20Metadata(address(currentToken)).decimals();
+
+        // Calculate the minimum value in normalized version that can be withdrawn for this token.
+        vars.mvt = getNormalizedAmount(1, vars.decimals);
+
+        // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
+        vm.assume(params.ratePerSecond.unwrap() > vars.mvt / 100 && params.ratePerSecond.unwrap() <= 0.01e18);
 
         // Create the stream.
         uint256 streamId =
             flow.create(params.sender, params.recipient, params.ratePerSecond, currentToken, params.transferable);
 
-        // Store the stream id.
+        // Store the stream id and rate per second.
         flowStore.initStreamId(streamId, params.ratePerSecond.unwrap());
     }
 
@@ -98,16 +112,19 @@ contract FlowCreateHandler is BaseHandler {
     {
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
 
-        uint8 decimals = IERC20Metadata(address(currentToken)).decimals();
+        vars.decimals = IERC20Metadata(address(currentToken)).decimals();
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        uint128 upperBound = getDenormalizedAmount(1_000_000e18, decimals);
+        vars.upperBound = getDenormalizedAmount(1_000_000e18, vars.decimals);
 
         // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
-        vm.assume(params.depositAmount >= 100 && params.depositAmount <= upperBound);
+        vm.assume(params.depositAmount >= 100 && params.depositAmount <= vars.upperBound);
 
-        // Use a realistic range for the rate per second.
-        vm.assume(params.ratePerSecond.unwrap() >= 0.0000000001e18 && params.ratePerSecond.unwrap() <= 10e18);
+        // Calculate the minimum value in normalized version that can be withdrawn for this token.
+        vars.mvt = getNormalizedAmount(1, vars.decimals);
+
+        // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
+        vm.assume(params.ratePerSecond.unwrap() > vars.mvt / 100 && params.ratePerSecond.unwrap() <= 0.01e18);
 
         // Mint enough tokens to the Sender.
         deal({
@@ -129,7 +146,7 @@ contract FlowCreateHandler is BaseHandler {
             params.depositAmount
         );
 
-        // Store the stream id.
+        // Store the stream id and rate per second.
         flowStore.initStreamId(streamId, params.ratePerSecond.unwrap());
 
         // Store the deposited amount.

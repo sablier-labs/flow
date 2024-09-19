@@ -12,12 +12,12 @@ contract FlowStore {
     uint256 public lastStreamId;
     uint256[] public streamIds;
 
-    mapping(uint256 streamId => uint128 depositedAmount) public depositedAmounts;
-    mapping(uint256 streamId => uint128 refundedAmount) public refundedAmounts;
-    mapping(uint256 streamId => uint128 withdrawnAmount) public withdrawnAmounts;
-    mapping(IERC20 token => uint256 sum) public depositedAmountsSum;
-    mapping(IERC20 token => uint256 sum) public refundedAmountsSum;
-    mapping(IERC20 token => uint256 sum) public withdrawnAmountsSum;
+    mapping(uint256 streamId => uint128 amount) public depositedAmounts;
+    mapping(uint256 streamId => uint128 amount) public refundedAmounts;
+    mapping(uint256 streamId => uint128 amount) public withdrawnAmounts;
+    mapping(IERC20 token => uint256 amount) public depositedAmountsSum;
+    mapping(IERC20 token => uint256 amount) public refundedAmountsSum;
+    mapping(IERC20 token => uint256 amount) public withdrawnAmountsSum;
 
     /// @dev This struct represents a time period during which the rate per second remains constant.
     /// For example, if a stream is created at t0 and the rate per second is adjusted at t1, the first period will be:
@@ -30,8 +30,8 @@ contract FlowStore {
         uint40 end;
     }
 
-    /// @dev Each stream is mapped to a list of prediods representing the time ranges when rate per second is constant.
-    mapping(uint256 streamId => Period[]) public periods;
+    /// @dev Each stream is mapped to an array of periods. This is used to calculate the total streamed amount.
+    mapping(uint256 streamId => Period[] period) public periods;
 
     /*//////////////////////////////////////////////////////////////////////////
                                       HELPERS
@@ -46,9 +46,8 @@ contract FlowStore {
     }
 
     function initStreamId(uint256 streamId, uint128 ratePerSecond) external {
-        // Store the stream ids, the senders, and the recipients.
+        // Store the stream id and the period during which provided ratePerSecond applies.
         streamIds.push(streamId);
-
         periods[streamId].push(Period({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 }));
 
         // Update the last stream id.
@@ -56,9 +55,10 @@ contract FlowStore {
     }
 
     function updatePeriods(uint256 streamId, uint128 ratePerSecond) external {
-        // Update the end time of the last period.
+        // Update the end time of the previous period.
         periods[streamId][periods[streamId].length - 1].end = uint40(block.timestamp);
-        // Push the new period with the new rate per second.
+
+        // Push the new period with the provided rate per second.
         periods[streamId].push(Period({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 }));
     }
 

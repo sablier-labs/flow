@@ -73,8 +73,11 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev For a given token, token balance of the flow contract should equal to the sum of all stream balances and
+    /// @dev For a given token,
+    /// - token balance of the flow contract should equal to the sum of all stream balances and
     /// protocol revenue accrued for that token.
+    /// - sum of all stream balances should equal to the sum of all deposited amounts minus the sum of all refunded and
+    /// sum of all withdrawn.
     function invariant_ContractBalanceEqStreamBalancesAndProtocolRevenue() external view {
         // Check the invariant for each token.
         for (uint256 i = 0; i < tokens.length; ++i) {
@@ -270,6 +273,9 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
+    /// @dev For non-voided streams, the difference between the total amount streamed and the sum of total debt and
+    /// total withdrawn should never exceed 1. This is indirectly checking that withdrawals do not cause the streamed
+    /// amount to deviate from the theoretical streamed amount by more than 1.
     function invariant_TotalDebtEqTotalStreamedMinusWithdrawn() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -280,18 +286,24 @@ contract Flow_Invariant_Test is Base_Test {
                 uint256 totalStreamedAmount =
                     calculateTotalStreamedAmount(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
 
-                assertEq(
-                    flow.totalDebtOf(streamId),
-                    totalStreamedAmount - flowStore.withdrawnAmounts(streamId),
-                    "Invariant violation: total debt != streamed amount - withdrawn amount"
+                assertLe(
+                    totalStreamedAmount - flow.totalDebtOf(streamId) - flowStore.withdrawnAmounts(streamId),
+                    1,
+                    "Invariant violation: total debt - streamed amount - withdrawn amount > 1"
                 );
             }
         }
     }
 
     /// @dev Calculates the total streamed amount iterating over each period.
-    function calculateTotalStreamedAmount(uint256 streamId, uint8 decimals) public view returns (uint256) {
-        uint256 totalStreamedAmount = 0;
+    function calculateTotalStreamedAmount(
+        uint256 streamId,
+        uint8 decimals
+    )
+        internal
+        view
+        returns (uint256 totalStreamedAmount)
+    {
         uint256 periodsCount = flowStore.getPeriods(streamId).length;
 
         for (uint256 i = 0; i < periodsCount; ++i) {

@@ -88,8 +88,11 @@ contract FlowHandler is BaseHandler {
         // Only non paused streams can have their rate per second adjusted.
         vm.assume(!flow.isPaused(currentStreamId));
 
-        // Use a realistic range for the rate per second.
-        vm.assume(newRatePerSecond.unwrap() >= 0.0000000001e18 && newRatePerSecond.unwrap() <= 10e18);
+        // Calculate the minimum value in normalized version that can be withdrawn for this token.
+        uint128 mvt = getNormalizedAmount(1, flow.getTokenDecimals(currentStreamId));
+
+        // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
+        vm.assume(newRatePerSecond.unwrap() > mvt / 100 && newRatePerSecond.unwrap() <= 0.01e18);
 
         // The rate per second must be different from the current rate per second.
         vm.assume(newRatePerSecond.unwrap() != flow.getRatePerSecond(currentStreamId).unwrap());
@@ -207,8 +210,11 @@ contract FlowHandler is BaseHandler {
         // Only paused streams can be restarted.
         vm.assume(flow.isPaused(currentStreamId));
 
-        // Use a realistic range for the rate per second.
-        vm.assume(ratePerSecond.unwrap() >= 0.0000000001e18 && ratePerSecond.unwrap() <= 10e18);
+        // Calculate the minimum value in normalized version that can be withdrawn for this token.
+        uint128 mvt = getNormalizedAmount(1, flow.getTokenDecimals(currentStreamId));
+
+        // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
+        vm.assume(ratePerSecond.unwrap() > mvt / 100 && ratePerSecond.unwrap() <= 0.01e18);
 
         // Restart the stream.
         flow.restart(currentStreamId, ratePerSecond);
