@@ -255,7 +255,7 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev If the stream is voided, it should be paused, and refundable amount and uncovered debt should be zero.
-    function invariant_StreamVoided_StreamPaused_RefunadbleAmountZero_UncoveredDebtZero() external view {
+    function invariant_StreamVoided_StreamPaused_RefundableAmountZero_UncoveredDebtZero() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
@@ -276,7 +276,7 @@ contract Flow_Invariant_Test is Base_Test {
     /// @dev For non-voided streams, the difference between the total amount streamed and the sum of total debt and
     /// total withdrawn should never exceed 1. This is indirectly checking that withdrawals do not cause the streamed
     /// amount to deviate from the theoretical streamed amount by more than 1.
-    function invariant_TotalDebtEqTotalStreamedMinusWithdrawn() external view {
+    function invariant_TotalStreamedApproxEqTotalDebtPlusWithdrawn() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
@@ -312,9 +312,9 @@ contract Flow_Invariant_Test is Base_Test {
             // If end time is 0, it means the current period is still active.
             uint40 elapsed = period.end > 0 ? period.end - period.start : uint40(block.timestamp) - period.start;
 
-            totalStreamedAmount += (period.ratePerSecond * elapsed) / 10 ** (18 - decimals);
+            totalStreamedAmount += period.ratePerSecond * elapsed;
         }
 
-        return totalStreamedAmount;
+        return totalStreamedAmount / 10 ** (18 - decimals);
     }
 }

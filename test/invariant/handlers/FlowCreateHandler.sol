@@ -93,7 +93,11 @@ contract FlowCreateHandler is BaseHandler {
         vars.mvt = getNormalizedAmount(1, vars.decimals);
 
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
-        vm.assume(params.ratePerSecond.unwrap() > vars.mvt / 100 && params.ratePerSecond.unwrap() <= 0.01e18);
+        if (vars.decimals == 18) {
+            vm.assume(params.ratePerSecond.unwrap() > 0.00001e18 && params.ratePerSecond.unwrap() <= 1e18);
+        } else {
+            vm.assume(params.ratePerSecond.unwrap() > vars.mvt / 100 && params.ratePerSecond.unwrap() <= 1e18);
+        }
 
         // Create the stream.
         uint256 streamId =
@@ -124,7 +128,11 @@ contract FlowCreateHandler is BaseHandler {
         vars.mvt = getNormalizedAmount(1, vars.decimals);
 
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
-        vm.assume(params.ratePerSecond.unwrap() > vars.mvt / 100 && params.ratePerSecond.unwrap() <= 0.01e18);
+        if (vars.decimals == 18) {
+            vm.assume(params.ratePerSecond.unwrap() > 0.00001e18 && params.ratePerSecond.unwrap() <= 1e18);
+        } else {
+            vm.assume(params.ratePerSecond.unwrap() > vars.mvt / 100 && params.ratePerSecond.unwrap() <= 1e18);
+        }
 
         // Mint enough tokens to the Sender.
         deal({
