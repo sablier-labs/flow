@@ -97,7 +97,7 @@ contract FlowHandler is BaseHandler {
         // Adjust the rate per second.
         flow.adjustRatePerSecond(currentStreamId, newRatePerSecond);
 
-        flowStore.updateSegments(currentStreamId, newRatePerSecond.unwrap());
+        flowStore.updatePeriods(currentStreamId, newRatePerSecond.unwrap());
     }
 
     function deposit(
@@ -156,7 +156,7 @@ contract FlowHandler is BaseHandler {
         // Pause the stream.
         flow.pause(currentStreamId);
 
-        flowStore.updateSegments(currentStreamId, 0);
+        flowStore.updatePeriods(currentStreamId, 0);
     }
 
     function refund(
@@ -213,7 +213,7 @@ contract FlowHandler is BaseHandler {
         // Restart the stream.
         flow.restart(currentStreamId, ratePerSecond);
 
-        flowStore.updateSegments(currentStreamId, ratePerSecond.unwrap());
+        flowStore.updatePeriods(currentStreamId, ratePerSecond.unwrap());
     }
 
     function void(
@@ -236,7 +236,7 @@ contract FlowHandler is BaseHandler {
         // Void the stream.
         flow.void(currentStreamId);
 
-        flowStore.updateSegments(currentStreamId, 0);
+        flowStore.updatePeriods(currentStreamId, 0);
     }
 
     function withdraw(

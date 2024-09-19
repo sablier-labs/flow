@@ -19,47 +19,47 @@ contract FlowStore {
     mapping(IERC20 token => uint256 sum) public refundedAmountsSum;
     mapping(IERC20 token => uint256 sum) public withdrawnAmountsSum;
 
-    /// @dev A segment represents a time period during which the rate per second remains constant.
-    /// For example, if a stream is created at t0 and the rate per second is adjusted at t1, the first segment will be:
+    /// @dev This struct represents a time period during which the rate per second remains constant.
+    /// For example, if a stream is created at t0 and the rate per second is adjusted at t1, the first period will be:
     /// start = t0, end = t1, ratePerSecond = rate at creation.
-    /// The second segment will be:
+    /// The second period will be:
     /// start = t1, end = block.timestamp until next rate per second change, ratePerSecond = adjusted rate.
-    struct Segment {
+    struct Period {
         uint128 ratePerSecond;
         uint40 start;
         uint40 end;
     }
 
-    /// @dev Each stream is mapped to a list of segments representing the different periods of constant rate.
-    mapping(uint256 streamId => Segment[]) public segments;
+    /// @dev Each stream is mapped to a list of prediods representing the time ranges when rate per second is constant.
+    mapping(uint256 streamId => Period[]) public periods;
 
     /*//////////////////////////////////////////////////////////////////////////
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    function getSegment(uint256 streamId, uint256 index) public view returns (Segment memory) {
-        return segments[streamId][index];
+    function getPeriod(uint256 streamId, uint256 index) public view returns (Period memory) {
+        return periods[streamId][index];
     }
 
-    function getSegments(uint256 streamId) public view returns (Segment[] memory) {
-        return segments[streamId];
+    function getPeriods(uint256 streamId) public view returns (Period[] memory) {
+        return periods[streamId];
     }
 
-    function pushStreamId(uint256 streamId, uint128 ratePerSecond) external {
+    function initStreamId(uint256 streamId, uint128 ratePerSecond) external {
         // Store the stream ids, the senders, and the recipients.
         streamIds.push(streamId);
 
-        segments[streamId].push(Segment({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 }));
+        periods[streamId].push(Period({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 }));
 
         // Update the last stream id.
         lastStreamId = streamId;
     }
 
-    function updateSegments(uint256 streamId, uint128 ratePerSecond) external {
-        // Update the end time of the last segment.
-        segments[streamId][segments[streamId].length - 1].end = uint40(block.timestamp);
-        // Push the new segment with the new rate per second.
-        segments[streamId].push(Segment({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 }));
+    function updatePeriods(uint256 streamId, uint128 ratePerSecond) external {
+        // Update the end time of the last period.
+        periods[streamId][periods[streamId].length - 1].end = uint40(block.timestamp);
+        // Push the new period with the new rate per second.
+        periods[streamId].push(Period({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 }));
     }
 
     function updateStreamDepositedAmountsSum(uint256 streamId, IERC20 token, uint128 amount) external {

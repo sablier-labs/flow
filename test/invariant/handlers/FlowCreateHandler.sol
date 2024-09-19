@@ -86,7 +86,7 @@ contract FlowCreateHandler is BaseHandler {
             flow.create(params.sender, params.recipient, params.ratePerSecond, currentToken, params.transferable);
 
         // Store the stream id.
-        flowStore.pushStreamId(streamId, params.ratePerSecond.unwrap());
+        flowStore.initStreamId(streamId, params.ratePerSecond.unwrap());
     }
 
     function createAndDeposit(CreateParams memory params)
@@ -130,7 +130,7 @@ contract FlowCreateHandler is BaseHandler {
         );
 
         // Store the stream id.
-        flowStore.pushStreamId(streamId, params.ratePerSecond.unwrap());
+        flowStore.initStreamId(streamId, params.ratePerSecond.unwrap());
 
         // Store the deposited amount.
         flowStore.updateStreamDepositedAmountsSum(streamId, currentToken, params.depositAmount);

@@ -289,18 +289,18 @@ contract Flow_Invariant_Test is Base_Test {
         }
     }
 
-    /// @dev Calculates the total streamed amount iterating over each segment.
+    /// @dev Calculates the total streamed amount iterating over each period.
     function calculateTotalStreamedAmount(uint256 streamId, uint8 decimals) public view returns (uint256) {
         uint256 totalStreamedAmount = 0;
-        uint256 segmentsCount = flowStore.getSegments(streamId).length;
+        uint256 periodsCount = flowStore.getPeriods(streamId).length;
 
-        for (uint256 i = 0; i < segmentsCount; ++i) {
-            FlowStore.Segment memory segment = flowStore.getSegment(streamId, i);
+        for (uint256 i = 0; i < periodsCount; ++i) {
+            FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
 
-            // If end time is 0, it means the current segment is still active.
-            uint40 elapsed = segment.end > 0 ? segment.end - segment.start : uint40(block.timestamp) - segment.start;
+            // If end time is 0, it means the current period is still active.
+            uint40 elapsed = period.end > 0 ? period.end - period.start : uint40(block.timestamp) - period.start;
 
-            totalStreamedAmount += (segment.ratePerSecond * elapsed) / 10 ** (18 - decimals);
+            totalStreamedAmount += (period.ratePerSecond * elapsed) / 10 ** (18 - decimals);
         }
 
         return totalStreamedAmount;
