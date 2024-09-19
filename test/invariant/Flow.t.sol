@@ -102,10 +102,10 @@ contract Flow_Invariant_Test is Base_Test {
         );
 
         assertEq(
-            contractBalance,
+            streamBalancesSum,
             flowStore.depositedAmountsSum(token) - flowStore.refundedAmountsSum(token)
                 - flowStore.withdrawnAmountsSum(token),
-            unicode"Invariant violation: contract balance != depositedAmountsSum - refundedAmountsSum - withdrawnAmountsSum"
+            "Invariant violation: streamBalancesSum != depositedAmountsSum - refundedAmountsSum - withdrawnAmountsSum"
         );
     }
 
