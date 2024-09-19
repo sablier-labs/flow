@@ -134,7 +134,7 @@ abstract contract Modifiers {
         _;
     }
 
-    modifier whenAmountNotZero() {
+    modifier whenAmountNotTooSmall() {
         _;
     }
 
