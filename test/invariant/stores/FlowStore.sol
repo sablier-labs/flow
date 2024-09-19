@@ -19,11 +19,10 @@ contract FlowStore {
     mapping(IERC20 token => uint256 amount) public refundedAmountsSum;
     mapping(IERC20 token => uint256 amount) public withdrawnAmountsSum;
 
-    /// @dev This struct represents a time period during which the rate per second remains constant.
-    /// For example, if a stream is created at t0 and the rate per second is adjusted at t1, the first period will be:
-    /// start = t0, end = t1, ratePerSecond = rate at creation.
-    /// The second period will be:
-    /// start = t1, end = block.timestamp until next rate per second change, ratePerSecond = adjusted rate.
+    /// @dev This struct represents a time period during which given rate per second applies.
+    /// @param ratePerSecond The rate per second for this period.
+    /// @param start The start time of the period.
+    /// @param end The end time of the period.
     struct Period {
         uint128 ratePerSecond;
         uint40 start;
