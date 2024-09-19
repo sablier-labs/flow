@@ -100,6 +100,13 @@ contract Flow_Invariant_Test is Base_Test {
             streamBalancesSum + flow.protocolRevenue(token),
             unicode"Invariant violation: contract balance != Σ stream balances + protocol revenue"
         );
+
+        assertEq(
+            streamBalancesSum,
+            flowStore.depositedAmountsSum(token) - flowStore.refundedAmountsSum(token)
+                - flowStore.withdrawnAmountsSum(token),
+            "Invariant violation: streamBalancesSum != depositedAmountsSum - refundedAmountsSum - withdrawnAmountsSum"
+        );
     }
 
     /// @dev For any stream, the snapshot time should be greater than or equal to the previous snapshot time.
