@@ -86,7 +86,7 @@ contract FlowHandler is BaseHandler {
         uint8 decimals = flow.getTokenDecimals(currentStreamId);
 
         // Calculate the minimum value in normalized version that can be withdrawn for this token.
-        uint128 mvt = getNormalizedAmount(1, decimals);
+        uint128 mvt = getScaledAmount(1, decimals);
 
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
         if (decimals == 18) {
@@ -214,7 +214,7 @@ contract FlowHandler is BaseHandler {
         uint8 decimals = flow.getTokenDecimals(currentStreamId);
 
         // Calculate the minimum value in normalized version that can be withdrawn for this token.
-        uint128 mvt = getNormalizedAmount(1, decimals);
+        uint128 mvt = getScaledAmount(1, decimals);
 
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
         if (decimals == 18) {

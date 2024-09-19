@@ -28,12 +28,13 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         expectRevert_Null(callData);
     }
 
-    function test_RevertWhen_AmountZero() external whenNoDelegateCall givenNotNull {
+    function test_RevertWhen_AmountTooSmall() external whenNoDelegateCall givenNotNull {
+        uint128 withdrawAmount = uint128(RATE_PER_SECOND_U128 / 10 ** (18 - DECIMALS));
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountTooSmall.selector, defaultStreamId));
-        flow.withdraw({ streamId: defaultStreamId, to: users.recipient, amount: 0 });
+        flow.withdraw({ streamId: defaultStreamId, to: users.recipient, amount: withdrawAmount });
     }
 
-    function test_RevertWhen_WithdrawalAddressZero() external whenNoDelegateCall givenNotNull whenAmountNotZero {
+    function test_RevertWhen_WithdrawalAddressZero() external whenNoDelegateCall givenNotNull whenAmountNotTooSmall {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawToZeroAddress.selector, defaultStreamId));
         flow.withdraw({ streamId: defaultStreamId, to: address(0), amount: WITHDRAW_AMOUNT_6D });
     }
@@ -42,7 +43,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
@@ -60,7 +61,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
@@ -78,7 +79,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
@@ -90,7 +91,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
         whenAmountOverdraws
@@ -111,7 +112,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
         whenAmountOverdraws
@@ -129,7 +130,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
         whenAmountNotOverdraw
@@ -147,7 +148,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
         whenAmountNotOverdraw
@@ -176,7 +177,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
         whenAmountEqualTotalDebt
@@ -200,7 +201,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         external
         whenNoDelegateCall
         givenNotNull
-        whenAmountNotZero
+        whenAmountNotTooSmall
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
         whenAmountEqualTotalDebt
