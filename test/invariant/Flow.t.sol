@@ -288,7 +288,7 @@ contract Flow_Invariant_Test is Base_Test {
     /// @dev For non-voided streams, the difference between the total amount streamed and the sum of total debt and
     /// total withdrawn should never exceed 1. This is indirectly checking that withdrawals do not cause the streamed
     /// amount to deviate from the theoretical streamed amount by more than 1.
-    function invariant_TotalStreamedApproxEqTotalDebtPlusWithdrawn() external view {
+    function invariant_TotalStreamedEqTotalDebtPlusWithdrawn() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
@@ -298,10 +298,10 @@ contract Flow_Invariant_Test is Base_Test {
                 uint256 totalStreamedAmount =
                     calculateTotalStreamedAmount(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
 
-                assertLe(
-                    totalStreamedAmount - flow.totalDebtOf(streamId) - flowStore.withdrawnAmounts(streamId),
-                    1,
-                    "Invariant violation: total debt - streamed amount - withdrawn amount > 1"
+                assertEq(
+                    totalStreamedAmount,
+                    flow.totalDebtOf(streamId) + flowStore.withdrawnAmounts(streamId),
+                    "Invariant violation: total streamed amount = total debt + withdrawn amount"
                 );
             }
         }
@@ -322,11 +322,13 @@ contract Flow_Invariant_Test is Base_Test {
             FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
 
             // If end time is 0, it means the current period is still active.
-            uint40 elapsed = period.end > 0 ? period.end - period.start : uint40(block.timestamp) - period.start;
+            uint40 elapsed = period.end > 0
+                ? period.end - period.start - period.delay
+                : uint40(block.timestamp) - period.start - period.delay;
 
-            totalStreamedAmount += period.ratePerSecond * elapsed;
+            totalStreamedAmount += (period.ratePerSecond * elapsed) / 10 ** (18 - decimals);
         }
 
-        return totalStreamedAmount / 10 ** (18 - decimals);
+        return totalStreamedAmount;
     }
 }
