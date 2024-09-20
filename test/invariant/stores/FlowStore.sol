@@ -106,7 +106,7 @@ contract FlowStore {
             delay = blockTimestamp - start - uint40(rescaledStreamedAmount / ratePerSecond);
             // Since we are reverse engineering the delay, we need to subtract 1 from the delay, which would normally be
             // added in the constant interval calculation
-            delay = delay > 0 ? delay - 1 : 0;
+            delay = delay > 1 ? delay - 1 : 0;
         }
 
         periods[streamId][periodCount].delay += delay;
