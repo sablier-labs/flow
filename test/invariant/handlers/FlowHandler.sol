@@ -297,6 +297,7 @@ contract FlowHandler is BaseHandler {
         uint128 ratePerSecond = flow.getRatePerSecond(currentStreamId).unwrap();
         if (ratePerSecond > 0) {
             flowStore.updateDelay(currentStreamId, ratePerSecond, flow.getTokenDecimals(currentStreamId));
+            flowStore.pushPeriod(currentStreamId, ratePerSecond, "withdraw");
         }
     }
 }
