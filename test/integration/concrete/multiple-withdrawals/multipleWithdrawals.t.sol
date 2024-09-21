@@ -7,13 +7,12 @@ import { Integration_Test } from "../../Integration.t.sol";
 
 contract MultipleWithdrawals_Integration_Concrete_Test is Integration_Test {
     function test_AmountWithdrawn_MultipleWithdrawals() external {
-        // Minimum amount that can be transferred in USDC is 1. Therefore, 1e12 is the scaled value.
-        uint128 mvt = getScaledAmount(1, DECIMALS);
+        uint128 scaleFactor = getScaledAmount(1, DECIMALS);
 
-        // Choose an rps such that rps < mvt.
+        // Choose an rps such that rps < scaleFactor.
         UD21x18 rps = UD21x18.wrap(0.000000011574e18);
 
-        assertLt(rps.unwrap(), mvt, "rps must be less than mvt");
+        assertLt(rps.unwrap(), scaleFactor, "rps must be less than scaleFactor");
 
         // Create the stream.
         uint256 streamId = flow.createAndDeposit(users.sender, users.recipient, rps, usdc, TRANSFERABLE, 1000);
