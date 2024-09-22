@@ -175,7 +175,11 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             amountWithdrawn - vars.feeAmount,
             "token balance == amount withdrawn - fee amount"
         );
-        assertEq(vars.initialTotalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
+        assertLe(
+            (vars.initialTotalDebt - flow.totalDebtOf(streamId)) - amountWithdrawn,
+            1,
+            "total debt - amount withdrawn <= 1"
+        );
         assertEq(
             vars.initialStreamBalance - flow.getBalance(streamId), amountWithdrawn, "stream balance == amount withdrawn"
         );

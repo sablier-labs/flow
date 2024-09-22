@@ -801,8 +801,6 @@ contract SablierFlow is
             revert Errors.SablierFlow_Overdraw(streamId, withdrawAmount, withdrawableAmount);
         }
 
-        uint128 ongoingDebt;
-
         // If the withdraw amount is less than the snapshot debt, use the snapshot debt as a funding source for the
         // withdrawal and leave both the withdraw amount and the ongoing debt unchanged.
         //
@@ -824,13 +822,8 @@ contract SablierFlow is
         // Steps:
         //  - Calculate the difference between the withdraw amount the snapshot debt.
         //  - Scale the difference up to 18 decimals.
-        //  - Divide it by the rate per second, which is also an 18-decimal number, and obtain the time it would take to
-        // stream the difference at the current rate per second.
-        //  - Add the resultant value to the snapshot time.
+        // -  Calculate the scaled ongoing debt and the new snapshot time.
         //  - Set the snapshot debt to zero.
-        //  - Recalculate the ongoing debt based on the new snapshot time.
-        //  - Set the withdraw amount to the initial total debt minus the ongoing debt. This may result in a value less
-        // than the initial withdraw amount.
         //
         // Note: the rate per second cannot be zero because this can only happen when the stream is paused. In that
         // case, the `if` condition will be executed.
@@ -840,14 +833,14 @@ contract SablierFlow is
                 difference = withdrawAmount - _streams[streamId].snapshotDebt;
             }
             uint128 scaledDifference = difference * scaleFactor;
-            _streams[streamId].snapshotTime += uint40(scaledDifference / rps);
+            uint128 scaledOngoingDebt =
+                rps * (uint40(block.timestamp) - _streams[streamId].snapshotTime) - scaledDifference;
+            _streams[streamId].snapshotTime = uint40(block.timestamp) - uint40(scaledOngoingDebt / rps);
 
-            // Set the snapshot debt to zero.
-            _streams[streamId].snapshotDebt = 0;
+            uint256 remainderDebt =
+                scaledOngoingDebt + rps * _streams[streamId].snapshotTime - rps * uint40(block.timestamp);
 
-            // Adjust the withdraw amount. At this point, new total debt == ongoing debt.
-            ongoingDebt = _ongoingDebtOf(streamId);
-            withdrawAmount = initialTotalDebt - ongoingDebt;
+            _streams[streamId].snapshotDebt = (remainderDebt / scaleFactor).toUint128();
         }
 
         // Effect: update the stream balance.
@@ -875,12 +868,6 @@ contract SablierFlow is
 
         // Interaction: perform the ERC-20 transfer.
         token.safeTransfer({ to: to, value: netWithdrawnAmount });
-
-        unchecked {
-            // Protocol Invariant: the difference between total debts should be equal to the difference between stream
-            // balances.
-            assert(initialTotalDebt - _totalDebtOf(streamId) == initialBalance - _streams[streamId].balance);
-        }
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({

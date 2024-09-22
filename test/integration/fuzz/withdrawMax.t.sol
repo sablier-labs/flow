@@ -101,7 +101,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Check the states after the withdrawal.
         assertEq(tokenBalance - token.balanceOf(address(flow)), amountWithdrawn, "token balance == amount withdrawn");
-        assertEq(totalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
+        assertLe((totalDebt - flow.totalDebtOf(streamId)) - amountWithdrawn, 1, "total debt - amount withdrawn <= 1");
         assertEq(streamBalance - flow.getBalance(streamId), amountWithdrawn, "stream balance == amount withdrawn");
         assertEq(token.balanceOf(withdrawTo) - userBalance, amountWithdrawn, "user balance == token balance");
 

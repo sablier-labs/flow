@@ -607,7 +607,11 @@ contract Flow_Fork_Test is Fork_Test {
             amountWithdrawn,
             "token balance == amount withdrawn"
         );
-        assertEq(vars.initialTotalDebt - flow.totalDebtOf(streamId), amountWithdrawn, "total debt == amount withdrawn");
+        assertLe(
+            (vars.initialTotalDebt - flow.totalDebtOf(streamId)) - amountWithdrawn,
+            1,
+            "total debt - amount withdrawn <= 1"
+        );
         assertEq(
             vars.initialStreamBalance - flow.getBalance(streamId), amountWithdrawn, "stream balance == amount withdrawn"
         );

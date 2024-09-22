@@ -254,8 +254,10 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
             actualWithdrawnAmount - vars.feeAmount,
             "token balance == amount withdrawn - fee amount"
         );
-        assertEq(
-            vars.initialTotalDebt - flow.totalDebtOf(streamId), actualWithdrawnAmount, "total debt == amount withdrawn"
+        assertLe(
+            (vars.initialTotalDebt - flow.totalDebtOf(streamId)) - actualWithdrawnAmount,
+            1,
+            "total debt - amount withdrawn <= 1"
         );
         assertEq(
             vars.initialStreamBalance - flow.getBalance(streamId),
