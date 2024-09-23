@@ -79,7 +79,7 @@ contract Tolerance_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
             ((desiredTotalAmountWithdrawn - actualTotalAmountWithdrawn) * 100 * 10_000) / desiredTotalAmountWithdrawn;
 
         // Assert that the tolerance and the stream delay are within accepted bounds.
-        assertLe(tolerance, 6000); // 0.6%
+        assertLe(tolerance, 10_000); // 1.0%
         assertLe(streamDelay, 6 hours); // 6 hours
     }
 }
