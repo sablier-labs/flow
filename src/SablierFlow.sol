@@ -521,7 +521,7 @@ contract SablierFlow is
 
         // Check: the new rate per second is different from the current rate per second.
         if (newRatePerSecond.unwrap() == oldRatePerSecond.unwrap()) {
-            revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
+            revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond.unwrap());
         }
 
         //  Calculate the ongoing debt.
@@ -761,12 +761,12 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _withdraw(uint256 streamId, address to, uint128 withdrawAmount) internal returns (uint128) {
-        uint128 rps = _streams[streamId].ratePerSecond.unwrap();
+        uint128 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
         uint128 scaleFactor = uint128(10 ** (18 - _streams[streamId].tokenDecimals));
 
-        // Check: the withdraw amount is greater than rps.
-        if (withdrawAmount * scaleFactor <= rps) {
-            revert Errors.SablierFlow_WithdrawAmountTooSmall(streamId);
+        // Check: the withdraw amount is greater than ratePerSecond.
+        if (withdrawAmount * scaleFactor <= ratePerSecond) {
+            revert Errors.SablierFlow_WithdrawAmountTooSmall(streamId, withdrawAmount, ratePerSecond);
         }
 
         // Check: the withdrawal address is not zero.
@@ -812,8 +812,10 @@ contract SablierFlow is
         }
         // Otherwise, adjust the snapshot time, set the snapshot debt to zero, and also adjust the withdraw amount.
         //
-        // Dividing by the rps produces a many-to-one relation between time inputs and streamed amounts. There exists a
-        // range [amount, amount + rps) that maps to the same time. This is especially problematic for tokens with small
+        // Dividing by the ratePerSecond produces a many-to-one relation between time inputs and streamed amounts. There
+        // exists a
+        // range [amount, amount + ratePerSecond) that maps to the same time. This is especially problematic for tokens
+        // with small
         // decimals, e.g., USDC which has 6 decimals.
         //
         // To solve this, we need to adjust the amount withdrawn to ensure that it equals the lower bound of the range.
@@ -834,11 +836,11 @@ contract SablierFlow is
             }
             uint128 scaledDifference = difference * scaleFactor;
             uint128 scaledOngoingDebt =
-                rps * (uint40(block.timestamp) - _streams[streamId].snapshotTime) - scaledDifference;
-            _streams[streamId].snapshotTime = uint40(block.timestamp) - uint40(scaledOngoingDebt / rps);
+                ratePerSecond * (uint40(block.timestamp) - _streams[streamId].snapshotTime) - scaledDifference;
+            _streams[streamId].snapshotTime = uint40(block.timestamp) - uint40(scaledOngoingDebt / ratePerSecond);
 
-            uint256 remainderDebt =
-                scaledOngoingDebt + rps * _streams[streamId].snapshotTime - rps * uint40(block.timestamp);
+            uint256 remainderDebt = scaledOngoingDebt + ratePerSecond * _streams[streamId].snapshotTime
+                - ratePerSecond * uint40(block.timestamp);
 
             _streams[streamId].snapshotDebt = (remainderDebt / scaleFactor).toUint128();
         }

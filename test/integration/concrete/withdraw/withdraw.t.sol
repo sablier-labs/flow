@@ -30,7 +30,14 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
 
     function test_RevertWhen_AmountTooSmall() external whenNoDelegateCall givenNotNull {
         uint128 withdrawAmount = uint128(RATE_PER_SECOND_U128 / 10 ** (18 - DECIMALS));
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_WithdrawAmountTooSmall.selector, defaultStreamId));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.SablierFlow_WithdrawAmountTooSmall.selector,
+                defaultStreamId,
+                withdrawAmount,
+                RATE_PER_SECOND_U128
+            )
+        );
         flow.withdraw({ streamId: defaultStreamId, to: users.recipient, amount: withdrawAmount });
     }
 
