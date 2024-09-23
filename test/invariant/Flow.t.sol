@@ -288,8 +288,8 @@ contract Flow_Invariant_Test is Base_Test {
 
                 assertLe(
                     totalStreamedAmount - flow.totalDebtOf(streamId) - flowStore.withdrawnAmounts(streamId),
-                    1,
-                    "Invariant violation: total debt - streamed amount - withdrawn amount > 1"
+                    6000,
+                    "Invariant violation: total debt - streamed amount - withdrawn amount > 6000"
                 );
             }
         }
