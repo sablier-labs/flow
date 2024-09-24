@@ -295,35 +295,34 @@ contract Flow_Invariant_Test is Base_Test {
 
             // Skip the voided streams.
             if (!flow.isVoided(streamId)) {
-                uint256 totalStreamedAmount =
-                    calculateTotalStreamedAmount(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
-                uint256 totalStreamedAmountWithDelay =
-                    calculateTotalStreamedAmountWithDelay(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
+                (uint256 totalStreamedAmount, uint256 totalStreamedAmountWithDelay) =
+                    calculateTotalStreamedAmounts(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
 
                 assertGe(
                     totalStreamedAmount,
                     totalStreamedAmountWithDelay,
-                    "Invariant violation: total streamed amount >= total streamed amount with delay"
+                    "Invariant violation: total streamed amount without delay >= total streamed amount with delay"
                 );
 
                 assertEq(
                     totalStreamedAmountWithDelay,
                     flow.totalDebtOf(streamId) + flowStore.withdrawnAmounts(streamId),
-                    "Invariant violation: total streamed amount = total debt + withdrawn amount"
+                    "Invariant violation: total streamed amount with delay = total debt + withdrawn amount"
                 );
             }
         }
     }
 
-    /// @dev Calculates the total streamed amount iterating over each period.
-    function calculateTotalStreamedAmount(
+    /// @dev Calculates the total streamed amounts by iterating over each period.
+    function calculateTotalStreamedAmounts(
         uint256 streamId,
         uint8 decimals
     )
         internal
         view
-        returns (uint256 totalStreamedAmount)
+        returns (uint256 totalStreamedAmount, uint256 totalStreamedAmountWithDelay)
     {
+        uint256 totalDelayedAmount;
         uint256 periodsCount = flowStore.getPeriods(streamId).length;
 
         for (uint256 i = 0; i < periodsCount; ++i) {
@@ -332,32 +331,14 @@ contract Flow_Invariant_Test is Base_Test {
             // If end time is 0, it means the current period is still active.
             uint40 elapsed = period.end > 0 ? period.end - period.start : uint40(block.timestamp) - period.start;
 
-            totalStreamedAmount += getDenormalizedAmount(period.ratePerSecond * elapsed, decimals);
+            // Calculate the total streamed amount for the current period.
+            totalStreamedAmount += getDescaledAmount(period.ratePerSecond * elapsed, decimals);
+
+            // Calculate the total delayed amount for the current period.
+            totalDelayedAmount += getDescaledAmount(period.delay * period.ratePerSecond, decimals);
         }
 
-        return totalStreamedAmount;
-    }
-
-    /// @dev Calculates the total streamed amount iterating over each period.
-    function calculateTotalStreamedAmountWithDelay(
-        uint256 streamId,
-        uint8 decimals
-    )
-        internal
-        view
-        returns (uint256 totalStreamedAmountWithDelay)
-    {
-        totalStreamedAmountWithDelay = calculateTotalStreamedAmount(streamId, decimals);
-
-        uint256 periodsCount = flowStore.getPeriods(streamId).length;
-        uint256 totalDelayedAmount;
-
-        for (uint256 i = 0; i < periodsCount; ++i) {
-            FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
-
-            totalDelayedAmount += getDenormalizedAmount(period.delay * period.ratePerSecond, decimals);
-        }
-
-        totalStreamedAmountWithDelay -= totalDelayedAmount;
+        // Calculate the total streamed amount with delay.
+        totalStreamedAmountWithDelay = totalStreamedAmount - totalDelayedAmount;
     }
 }
