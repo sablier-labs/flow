@@ -183,3 +183,10 @@ Currently, it's not possible to address this precision problem entirely.
 13. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
 
 14. if $isVoided = false \implies \text{amount streamed} - (td + \text{amount withdrawn}) \le 1$.
+
+## References for withdraw implementation in this branch
+
+1. https://github.com/sablier-labs/flow/discussions/259
+2. https://github.com/sablier-labs/flow/pull/240
+3. https://docs.google.com/spreadsheets/d/1qt8TO2UzN9rzC4Ikj2n1cViYUGXDeZpCJtSkMa78G5M/edit?gid=1249258944#gid=1249258944
+4. https://gist.github.com/smol-ninja/b26585e5514250f4b6099e8bd951112a
