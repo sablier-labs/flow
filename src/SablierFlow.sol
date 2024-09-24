@@ -89,7 +89,8 @@ contract SablierFlow is
             if (tokenDecimals == 18) {
                 solvencyAmount = (balance - snapshotDebt + 1);
             } else {
-                solvencyAmount = ((balance - snapshotDebt + 1) * (10 ** (18 - tokenDecimals))).toUint128();
+                uint128 scaleFactor = (10 ** (18 - tokenDecimals)).toUint128();
+                solvencyAmount = (balance - snapshotDebt + 1) * scaleFactor;
             }
             uint128 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond.unwrap();
             return _streams[streamId].snapshotTime + uint40(solvencyPeriod);
@@ -470,9 +471,9 @@ contract SablierFlow is
 
         // Safe to use unchecked because we use {SafeCast}.
         unchecked {
-            uint8 factor = 18 - tokenDecimals;
+            uint128 scaleFactor = (10 ** (18 - tokenDecimals)).toUint128();
             // Since debt is denoted in token decimals, descale the amount.
-            ongoingDebt = (scaledOngoingDebt / (10 ** factor)).toUint128();
+            ongoingDebt = scaledOngoingDebt / scaleFactor;
         }
     }
 
