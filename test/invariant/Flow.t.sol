@@ -297,9 +297,17 @@ contract Flow_Invariant_Test is Base_Test {
             if (!flow.isVoided(streamId)) {
                 uint256 totalStreamedAmount =
                     calculateTotalStreamedAmount(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
+                uint256 totalStreamedAmountWithDelay =
+                    calculateTotalStreamedAmountWithDelay(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
+
+                assertGe(
+                    totalStreamedAmount,
+                    totalStreamedAmountWithDelay,
+                    "Invariant violation: total streamed amount >= total streamed amount with delay"
+                );
 
                 assertEq(
-                    totalStreamedAmount,
+                    totalStreamedAmountWithDelay,
                     flow.totalDebtOf(streamId) + flowStore.withdrawnAmounts(streamId),
                     "Invariant violation: total streamed amount = total debt + withdrawn amount"
                 );
@@ -322,13 +330,34 @@ contract Flow_Invariant_Test is Base_Test {
             FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
 
             // If end time is 0, it means the current period is still active.
-            uint40 elapsed = period.end > 0
-                ? period.end - period.start - period.delay
-                : uint40(block.timestamp) - period.start - period.delay;
+            uint40 elapsed = period.end > 0 ? period.end - period.start : uint40(block.timestamp) - period.start;
 
-            totalStreamedAmount += (period.ratePerSecond * elapsed) / 10 ** (18 - decimals);
+            totalStreamedAmount += getDenormalizedAmount(period.ratePerSecond * elapsed, decimals);
         }
 
         return totalStreamedAmount;
+    }
+
+    /// @dev Calculates the total streamed amount iterating over each period.
+    function calculateTotalStreamedAmountWithDelay(
+        uint256 streamId,
+        uint8 decimals
+    )
+        internal
+        view
+        returns (uint256 totalStreamedAmountWithDelay)
+    {
+        totalStreamedAmountWithDelay = calculateTotalStreamedAmount(streamId, decimals);
+
+        uint256 periodsCount = flowStore.getPeriods(streamId).length;
+        uint256 totalDelayedAmount;
+
+        for (uint256 i = 0; i < periodsCount; ++i) {
+            FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
+
+            totalDelayedAmount += getDenormalizedAmount(period.delay * period.ratePerSecond, decimals);
+        }
+
+        totalStreamedAmountWithDelay -= totalDelayedAmount;
     }
 }
