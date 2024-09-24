@@ -620,8 +620,10 @@ contract SablierFlow is
         // Effect: update the stream balance.
         _streams[streamId].balance += amount;
 
-        // Effect: update the aggregate balance.
-        aggregateBalance[token] += amount;
+        unchecked {
+            // Effect: update the aggregate balance.
+            aggregateBalance[token] += amount;
+        }
 
         // Interaction: transfer the amount.
         token.safeTransferFrom({ from: msg.sender, to: address(this), value: amount });
