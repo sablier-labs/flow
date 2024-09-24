@@ -24,6 +24,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         withdrawCount = _bound(withdrawCount, 10, 100);
 
+        // Deposit the sufficient amount.
         uint128 sufficientDepositAmount = uint128(rps * 1 days * withdrawCount / SCALE_FACTOR);
         deposit(streamId, sufficientDepositAmount);
 
