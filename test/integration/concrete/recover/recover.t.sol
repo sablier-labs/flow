@@ -7,11 +7,13 @@ import { Errors } from "src/libraries/Errors.sol";
 import { Integration_Test } from "./../../Integration.t.sol";
 
 contract Recover_Integration_Concrete_Test is Integration_Test {
+    uint256 internal surplusAmount = 1e6;
+
     function setUp() public override {
         Integration_Test.setUp();
 
-        // Make an accidental deposit to the flow contract in order to increase the surplus.
-        deal({ token: address(usdc), to: address(flow), give: 1e6 });
+        // Increase the flow contract balance in order to have a surplus.
+        deal({ token: address(usdc), to: address(flow), give: surplusAmount });
     }
 
     function test_RevertWhen_CallerNotAdmin() external {
@@ -27,13 +29,13 @@ contract Recover_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenTokenBalanceExceedAggregateAmount() external whenCallerAdmin {
-        uint256 expectedSurplusAmount = 1e6;
+        assertEq(usdc.balanceOf(address(flow)), surplusAmount + flow.aggregateBalance(usdc));
 
         // It should emit {Recover} and {Transfer} events.
         vm.expectEmit({ emitter: address(usdc) });
-        emit IERC20.Transfer({ from: address(flow), to: users.admin, value: expectedSurplusAmount });
+        emit IERC20.Transfer({ from: address(flow), to: users.admin, value: surplusAmount });
         vm.expectEmit({ emitter: address(flow) });
-        emit Recover(users.admin, usdc, users.admin, expectedSurplusAmount);
+        emit Recover(users.admin, usdc, users.admin, surplusAmount);
 
         // Recover the surplus.
         flow.recover(usdc, users.admin);

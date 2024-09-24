@@ -189,10 +189,10 @@ contract Refund_Integration_Concrete_Test is Integration_Test {
         uint128 expectedStreamBalance = depositedAmount - refundAmount;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should decrease the aggregate amount.
-        assertEq(flow.aggregateBalance(token), previousAggregateAmount - refundAmount, "aggregate amount");
-
         // Assert that the refund amounts equal.
         assertEq(refundAmount, refundAmount);
+
+        // It should decrease the aggregate amount.
+        assertEq(flow.aggregateBalance(token), previousAggregateAmount - refundAmount, "aggregate amount");
     }
 }

@@ -52,14 +52,14 @@ contract CollectProtocolRevenue_Integration_Concrete_Test is Integration_Test {
 
         flow.collectProtocolRevenue(tokenWithProtocolFee, users.admin);
 
-        // It should set protocol revenue to zero.
-        assertEq(flow.protocolRevenue(tokenWithProtocolFee), 0, "protocol revenue");
-
-        // It should reduce the aggregate amount.
+        // It should     reduce the aggregate amount.
         assertEq(
             flow.aggregateBalance(tokenWithProtocolFee),
             previousAggregateAmount - PROTOCOL_FEE_AMOUNT_6D,
             "aggregate amount"
         );
+
+        // It should set protocol revenue to zero.
+        assertEq(flow.protocolRevenue(tokenWithProtocolFee), 0, "protocol revenue");
     }
 }

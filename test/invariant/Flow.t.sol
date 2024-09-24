@@ -114,7 +114,7 @@ contract Flow_Invariant_Test is Base_Test {
 
     /// @dev For a given token, token balance of the flow contract should equal to the stored value of aggregate
     /// balance.
-    function invariant_contractBalanceEqAggregateBalance() external view {
+    function invariant_ContractBalanceEqAggregateBalance() external view {
         for (uint256 i = 0; i < tokens.length; ++i) {
             assertEq(
                 tokens[i].balanceOf(address(flow)),

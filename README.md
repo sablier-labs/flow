@@ -156,7 +156,7 @@ Currently, it's not possible to address this precision problem entirely.
    - token.balanceOf(SablierFlow) = $\sum$ stream balances + flow.protocolRevenue(token)
    - $\sum$ stream balances = $\sum$ deposited amount - $\sum$ refunded amount - $\sum$ withdrawn amount
 
-3. for a given token, token.balanceOf(SablierFlow) = flow.aggregateBalance(token)
+3. for a given token, token.balanceOf(SablierFlow) $\ge$ flow.aggregateBalance(token)
 
    Note: In the code, the invariant 2 and 3 are tested with equality, as we don't implement the `ERC20.transferFrom` and
    `flow.collectProtocolRevenue` handlers. In real life, someone can transfer tokens to the contract or admin can
