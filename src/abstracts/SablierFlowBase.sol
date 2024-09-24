@@ -217,7 +217,7 @@ abstract contract SablierFlowBase is
         protocolRevenue[token] = 0;
 
         unchecked {
-            // Effect: update the aggregate amount.
+            // Effect: update the aggregate balance.
             aggregateBalance[token] -= revenue;
         }
 
