@@ -1,3 +1,9 @@
+> [!NOTE]
+>
+> Above sections assumes you gone through the
+> [abbreviations table](https://github.com/sablier-labs/flow/?tab=readme-ov-file#abbreviations) and
+> [core components](https://github.com/sablier-labs/flow/?tab=readme-ov-file#core-components)
+
 ## Statuses
 
 ### Types
@@ -63,10 +69,10 @@ stateDiagram-v2
 
 **Notes:**
 
-1. The arrows point to the status on which the function can be called
-2. The "update" comments refer only to the internal state
-3. `st` is always updated to `block.timestamp`, except for `withdraw`
-4. Red lines refers to the function that are doing an ERC-20 transfer
+1. The arrows point to the status on which the function can be called.
+2. The "update" comments refer only to the internal state.
+3. `st` is always updated to `block.timestamp`.
+4. Red lines refers to the function that are doing an `ERC-20` transfer
 
 ```mermaid
 flowchart LR
@@ -160,11 +166,11 @@ flowchart LR
     classDef red fill:#ff4e4e,stroke:#333,stroke-width:2px;
 ```
 
+$~$
+
 ## Amount Calculations
 
 ### Ongoing Debt
-
-**Notes:** `now` refers to `block.timestamp`.
 
 ```mermaid
 flowchart TD
@@ -173,13 +179,13 @@ di0{ }:::green0
 di1{ }:::green0
 res_00([0 ]):::green1
 res_01([0 ]):::green1
-res_rca(["rps*(now - st)"]):::green1
+res_rca(["rps * elt"]):::green1
 
 rca --> di0
 di0 -- "streaming" --> di1
 di0 -- "paused" --> res_00
-di1 -- "now < st" --> res_01
-di1 -- "now >= st" --> res_rca
+di1 -- "now <= st" --> res_01
+di1 -- "now > st" --> res_rca
 
 classDef green0 fill:#98FB98,stroke:#333,stroke-width:2px;
 classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;

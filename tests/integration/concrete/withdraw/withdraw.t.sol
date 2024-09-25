@@ -161,7 +161,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         whenAmountEqualTotalDebt
     {
         // Go back to the starting point.
-        vm.warp({ newTimestamp: MAY_1_2024 });
+        vm.warp({ newTimestamp: OCT_1_2024 });
 
         resetPrank({ msgSender: users.sender });
 
@@ -196,7 +196,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         givenProtocolFeeZero
     {
         // Go back to the starting point.
-        vm.warp({ newTimestamp: MAY_1_2024 });
+        vm.warp({ newTimestamp: OCT_1_2024 });
 
         // Create the stream and make a deposit.
         uint256 streamId = createDefaultStream(dai);
