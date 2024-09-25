@@ -5,11 +5,9 @@ receiving the desired streamed amount over a specific time interval.
 
 ### Initial problem:
 
-Initially, we have introduced the `rps` as an 18-decimal number to avoid precision issues, which is explained
-[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues). The funds won't be stuck in the
-contract, but delayed to be fully withdrawn.
-
-We can deduct the delay formula:
+The reason why we have introduced the `rps` as an 18-decimal number is to avoid precision issues, which is explained
+[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues). Here we will go into more details, so
+we can deduct the delay formula:
 
 ```math
 \text{delay} = \frac{ \left( rps_{18} - rps_{\text{deci}}) \cdot \right(T_{\text{range}}) }{rps_{\text{deci}}}
@@ -52,7 +50,7 @@ We have the conditions under a problem appears (continuing with the USDC example
 2. token has less than 18 decimals
 3. `rps` has non-zero digits to the right of `mvt` [^1]
 
-Having a low `rps` results in a range of time $`[t_0,t_1] `$ where the ongoing debt would be constant.
+Having a low `rps` results in a range of time $`[t_0,t_1] `$ where the ongoing debt would be _constant_.
 
 Let's consider the `rps = 0.000000_011574e18`. Rate for 10 tokens streamed per day.
 
@@ -89,6 +87,9 @@ been unlocked, the ongoing debt will return the same amount.
 ```math
 \Rightarrow \text{constant\_time}_\text{solidity} = \text{unlock\_time}_\text{solidity} - 1 = \{85, 86\}
 ```
+
+Below, we have a python test, that verifies the above calculations: $`\text{unlock\_time}`$ is no less than 86 seconds,
+and no more than 87 seconds.
 
 <details><summary> Press to see the test script</summary>
 <p>
@@ -151,24 +152,26 @@ $~$
 
 > [!NOTE]  
 > From now on, when we say unlock or constant time, it is in context of solidity, i.e.
-> $`\text{unlock\_time}_\text{solidity}`$ and $`\text{constant\_time}_\text{solidity}`$.
+> $`\text{unlock\_time}_\text{solidity}`$ and $`\text{constant\_time}_\text{solidity}`$ (which means two possible values
+> implicitly).
 
-From this, we can conclude that the ongoing debt will no longer be _continuous relative_ to its `rps` but instead occur
-in discrete intervals, with `mvt` unlocking every $`\text{unlock\_time}_\text{solidity}`$. As shown below, the red line
-represents the ongoing debt for a token with 6 decimals, while the blue line shows the same for a token with 18
+From this, we can conclude that the ongoing debt will no longer be _continuous relative_ to its `rps` but will instead
+occur in discrete intervals, with `mvt` unlocking every $`\text{unlock\_time}_\text{solidity}`$. As shown below, the red
+line represents the ongoing debt for a token with 6 decimals, while the blue line shows the same for a token with 18
 decimals:
 
-<img src="https://gist.github.com/user-attachments/assets/7497b757-0ff5-44a6-b0dd-1b5d7cae1041" width="600" />
+| <img src="https://gist.github.com/user-attachments/assets/7497b757-0ff5-44a6-b0dd-1b5d7cae1041" width="600" /> |
+| :------------------------------------------------------------------------------------------------------------: |
+|                                                  **Figure 1**                                                  |
 
-To calculate the time range $`[t_0,t_1]`$, is important to understand how
+To calculate the time values $`[t_0,t_1]`$, it is important to understand how
 [snapshot time](https://github.com/sablier-labs/flow/?tab=readme-ov-file#how-it-works) works (it is updated to
-`block.timestamp` on specific functions), and how
+`block.timestamp` on specific functions) and how
 [ongoing debt](https://github.com/sablier-labs/flow/?tab=readme-ov-file#2-ongoing-debt) is calculated.
 
-For example, assume a stream was created on October 1st, i.e. `unix = 1727740800`, for the _first token unlocked_, we
-will have $`t_0 = \text{unix} = 1727740800`$ and $`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$
-
-This means we can use the following algorithm to find each unlock time, given the rate per second and the elapsed time:
+Additionally, since we have two possible solutions for the unlock time, we need to implement an algorithm to find them.
+Below is a Python function that takes the rate per second and the elapsed time as input and returns all the unlock times
+within that elapsed time:
 
 ```python
 def find_unlock_times(rps, elt):
@@ -181,45 +184,76 @@ def find_unlock_times(rps, elt):
     return unlock_times
 ```
 
-If we call the function with `rps = 0.000000011574e18` and `elt = 300`, the function will return `[87, 173, 260]`, which
-represents the specific seconds at which new tokens are unlocked.
+<a name="unlock-time-results"></a> If we call the function with `rps = 0.000000011574e18` and `elt = 300`, the function
+will return `[87, 173, 260]`, which represents the exact seconds at which new tokens are unlocked.
 
-#### The problem with discrete release
+<a name="t-calculations"></a> For example, assume a stream was created on October 1st, i.e. `st = 1727740800`, for the
+_first token unlocked_, we will have $`t_0 = \text{unix} = 1727740800`$ and
+$`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$
 
-The issue arises because we store a snapshot time within the contract to calculate the ongoing debt between an action
-performed on the stream and the next action, i.e. the elapsed time.
+#### Discrete Release Problem in Detail
 
-$od = rps \cdot elt$ where $elt = now - snapshotTime$
+The problem arises when we have a moment in time `t`, which is bounded by the time range $`[t_0,t_1]`$. When any of the
+following three functions are called, a delay occurs (causing a right shift in the ongoing debt function) because they
+all update the snapshot time internally:
 
-In the interval $`[t_0,t_1] `$ we have these possible scenarios:
+1. `adjustRatePerSecond`
+2. `pause`
+3. `withdraw`
 
-1. $`t = t_0 `$
-2. $`t = t_1 `$
-3. $`t_0 < t < t_1 `$
+We will focus on the `withdraw` function. Within the interval $`[t_0,t_1]`$, we encounter the following possible
+scenarios:
 
-For scenario 1, the snapshot time is updated to $`t_0`$, which is the best-case scenario because one token has just been
-unlocked, and the discrete release is in sync with the initially "scheduled" streaming period. We will explain this
-further below.
+1. $`t = t_0`$
+2. $`t = t_1`$
+3. $`t_0 < t < t_1`$
 
-<img src="https://gist.github.com/user-attachments/assets/4acca66a-17d3-4cb4-a495-5689694d3dea" width="600" />
+In **Scenario 1**, the snapshot time is updated to $`t_0`$, which is the best-case scenario because one token has just
+been unlocked. In this case, the discrete release is synchronized with the initial "scheduled" streaming period (Figure
+3). Below, we see the ongoing debt function for the first token unlocked, with an immediate `withdraw` called. The red
+line represents the ongoing debt before the `withdraw` function, and the green line shows the ongoing debt after the
+`withdraw` function is executed.
 
-For scenario 2, the snapshot time is updated to a value between $`t_0`$ and $`t_1`$, resulting in a delay of $`t - t_0`$
-for the initially "scheduled" streaming period. Why? Suppose we are at second $`t = 100`$, and the recipient wants to
-withdraw the maximum value possible, which in this case is 1, i.e. $`1 \cdot 10^{-6} \, \text{USDC}`$. The snapshot time
-is updated to $` t `$, meaning there is a delay of $`100 - 87 = 13 \, \text{seconds}`$ . Please refer to the yellow line
-in the graph below, which represents the new ongoing debt function. As we can see, the function shifts to the right.
+| <img src="https://gist.github.com/user-attachments/assets/4acca66a-17d3-4cb4-a495-5689694d3dea" width="600" /> |
+| :------------------------------------------------------------------------------------------------------------: |
+|                                                  **Figure 2**                                                  |
 
-<img src="https://gist.github.com/user-attachments/assets/f80c10ec-a1fd-4e34-8619-d1e107d7bef3" width="600" />
+To check, the contract works as expected, we have the `test_Withdraw_NoDelay` Solidity test for the above graph
+[here](./test/integration/concrete/withdraw-delay/withdrawDelay.t.sol).
 
-<img src="https://gist.github.com/user-attachments/assets/95707004-35c8-4d1c-a872-5749e23c9ba9" width="600" />
+In **Scenario 2**, the snapshot time is updated to $`t_1`$, which is the worst-case scenario, resulting in the longest
+delay in the initial "scheduled" streaming period. According to the $`t_0`$ and $`t_1`$ calculations from
+[here](#t-calculations) and the second unlock time results from [here](#unlock-time-results), we will have a delay of
+$`\text{delay} = \text{constant\_time} = \text{unlock\_time} - 1 = 85 \, \text{seconds}`$, which is highlighted at two
+points in the graphs below, marking the moment when the third token is unlocked.
 
-We can deduct the formula (including a tolerance of 1):
+The figure below illustrates the initial scheduled streaming period:
+
+| <img src="https://gist.github.com/user-attachments/assets/f80c10ec-a1fd-4e34-8619-d1e107d7bef3" width="600" /> |
+| :------------------------------------------------------------------------------------------------------------: |
+|                                                  **Figure 3**                                                  |
+
+In the following graph, we represent the right shift of the ongoing debt after the `withdraw` function is called:
+
+| <img src="https://gist.github.com/user-attachments/assets/95707004-35c8-4d1c-a872-5749e23c9ba9" width="600" /> |
+| :------------------------------------------------------------------------------------------------------------: |
+|                                                  **Figure 4**                                                  |
+
+To check, the contract works as expected, we have the `test_Withdraw_LongestDelay` Solidity test for the above graph
+[here](./test/integration/concrete/withdraw-delay/withdrawDelay.t.sol).
+
+In **Scenario 3**, the result is similar to Scenario 2, but with a shorter delay.
+
+We can derive the formula as follows:
 
 ```math
-\text{delay} = t - \sum{\text{constant\_time} - st - 1}
+\text{delay} = t - (\text{last\_constant\_time} + st)
 ```
 
-To determine the delay without calculating the constant time, we can reverse engineer it from the rescaled ongoing debt:
+The last constant time is the time prior to `t`, when the ongoing debt has unlocked a token.
+
+To determine the delay without calculating the constant time, we can reverse engineer it from the _rescaled_ ongoing
+debt:
 
 ```math
 
@@ -231,18 +265,6 @@ delay &= t - st - \frac{Rod_t}{rps} - 1 \\
 \end{aligned}
 
 ```
-
-<details><summary>Demonstrative solidity test</summary>
-<p>
-
-Test run on [this commit](https://github.com/sablier-labs/flow/tree/b67f34c57ba161a25d0f83ac221a91a73f09bc86), `main`
-might change in the future.
-
-</p>
-</details>
-
-For scenario 3, the situation is similar to scenario 2, but it represents the worst-case scenario, as the delay time is
-maximized.
 
 [^1]:
     By non-zero values right to `mvt` refers to an `rps` that would not exist if it were not scaled 1.

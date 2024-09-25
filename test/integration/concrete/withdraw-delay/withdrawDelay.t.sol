@@ -5,8 +5,61 @@ import { ud21x18 } from "@prb/math/src/UD21x18.sol";
 
 import { Integration_Test } from "../../Integration.t.sol";
 
-/// @dev A series of tests that
+/// @dev A series of demonstrative tests that help to understand the precision and delay problem detailed in
+/// `precision.md` file.
 contract WithdrawDelay_Integration_Concrete_Test is Integration_Test {
+    function test_Withdraw_NoDelay() external {
+        // 0.001e6 USDC per day
+        uint128 rps = 0.000000011574e18;
+
+        vm.warp(OCT_1_2024);
+
+        uint256 streamId = flow.createAndDeposit(users.sender, users.recipient, ud21x18(rps), usdc, true, 0.001e6);
+
+        uint40 initialSnapshotTime = OCT_1_2024;
+        assertEq(flow.getSnapshotTime(streamId), initialSnapshotTime, "snapshot time");
+
+        // Assert that one token has been unlocked.
+        vm.warp(initialSnapshotTime + 87 seconds);
+        assertEq(flow.ongoingDebtOf(streamId), 1);
+
+        // Withdraw the token.
+        uint128 withdrawnAmount = flow.withdrawMax(streamId, users.recipient);
+        assertEq(withdrawnAmount, 1, "withdrawn amount");
+
+        // Now warp to the expected third token unlock.
+        vm.warp(initialSnapshotTime + 260 seconds);
+        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 3);
+    }
+
+    function test_Withdraw_LongestDelay() external {
+        // 0.001e6 USDC per day
+        uint128 rps = 0.000000011574e18;
+
+        vm.warp(OCT_1_2024);
+
+        uint256 streamId = flow.createAndDeposit(users.sender, users.recipient, ud21x18(rps), usdc, true, 0.001e6);
+
+        uint40 initialSnapshotTime = OCT_1_2024;
+        assertEq(flow.getSnapshotTime(streamId), initialSnapshotTime, "snapshot time");
+
+        // Assert that there is still only one token unlocked.
+        vm.warp(initialSnapshotTime + 172 seconds);
+        assertEq(flow.ongoingDebtOf(streamId), 1);
+
+        // Withdraw the token.
+        uint128 withdrawnAmount = flow.withdrawMax(streamId, users.recipient);
+        assertEq(withdrawnAmount, 1, "withdrawn amount");
+
+        // Warp to initial third token unlock, which should still be 2. Proves the delay.
+        vm.warp(initialSnapshotTime + 260 seconds);
+        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 2);
+
+        // Warp to the expected third token unlock.
+        vm.warp(initialSnapshotTime + 345 seconds);
+        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 3);
+    }
+
     /// @dev A test that demonstrates there is no delay when the rate per second is greater than the scale scaleFactor,
     /// and has a reasonable number of withdrawals made.
     function test_MonthlyWithdraw_NoDelay() external {
@@ -54,57 +107,5 @@ contract WithdrawDelay_Integration_Concrete_Test is Integration_Test {
 
         assertEq(amount, flow.withdrawableAmountOf(streamId) + sumWithdrawn);
         assertEq(flow.withdrawableAmountOf(streamId), amount - sumWithdrawn);
-    }
-
-    function test_Withdraw_NoDelay() public {
-        // 0.001e6 USDC per day
-        uint128 rps = 0.000000011574e18;
-
-        vm.warp(OCT_1_2024);
-
-        uint256 streamId = flow.createAndDeposit(users.sender, users.recipient, ud21x18(rps), usdc, true, 0.001e6);
-
-        uint40 initialSnapshotTime = OCT_1_2024;
-        assertEq(flow.getSnapshotTime(streamId), initialSnapshotTime, "snapshot time");
-
-        // Assert that one token has been unlocked.
-        vm.warp(initialSnapshotTime + 87 seconds);
-        assertEq(flow.ongoingDebtOf(streamId), 1);
-
-        // Withdraw the token.
-        uint128 withdrawnAmount = flow.withdrawMax(streamId, users.recipient);
-        assertEq(withdrawnAmount, 1, "withdrawn amount");
-
-        // Now warp to the expected third token unlock.
-        vm.warp(initialSnapshotTime + 260 seconds);
-        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 3);
-    }
-
-    function test_Withdraw_LongestDelay() public {
-        // 0.001e6 USDC per day
-        uint128 rps = 0.000000011574e18;
-
-        vm.warp(OCT_1_2024);
-
-        uint256 streamId = flow.createAndDeposit(users.sender, users.recipient, ud21x18(rps), usdc, true, 0.001e6);
-
-        uint40 initialSnapshotTime = OCT_1_2024;
-        assertEq(flow.getSnapshotTime(streamId), initialSnapshotTime, "snapshot time");
-
-        // Assert that there is still only one token unlocked.
-        vm.warp(initialSnapshotTime + 172 seconds);
-        assertEq(flow.ongoingDebtOf(streamId), 1);
-
-        // Withdraw the token.
-        uint128 withdrawnAmount = flow.withdrawMax(streamId, users.recipient);
-        assertEq(withdrawnAmount, 1, "withdrawn amount");
-
-        // Warp to initial third token unlock, which should still be 2. Proves the delay.
-        vm.warp(initialSnapshotTime + 260 seconds);
-        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 2);
-
-        // Warp to the expected third token unlock.
-        vm.warp(initialSnapshotTime + 345 seconds);
-        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 3);
     }
 }
