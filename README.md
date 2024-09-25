@@ -11,7 +11,7 @@ One of the most requested features from users is the ability to create streams w
 the protocol to manage _"debt"_, which is the amount the sender owes the recipient but is not yet available in the
 stream. The following struct defines a Flow stream:
 
-https://github.com/sablier-labs/flow/blob/3d2602a2086a7485fcafebee5b970a65550e1c40/src/types/DataTypes.sol#L41-L78
+https://github.com/sablier-labs/flow/blob/main/src/types/DataTypes.sol#L41-L78
 
 ## Features
 
