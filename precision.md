@@ -160,9 +160,9 @@ occur in discrete intervals, with `mvt` unlocking every $`\text{unlock\_time}_\t
 line represents the ongoing debt for a token with 6 decimals, while the blue line shows the same for a token with 18
 decimals:
 
-| <img src="https://gist.github.com/user-attachments/assets/7497b757-0ff5-44a6-b0dd-1b5d7cae1041" width="600" /> |
-| :------------------------------------------------------------------------------------------------------------: |
-|                                                  **Figure 1**                                                  |
+| <img src="./images/continuous_vs_discrete.png" width="700" /> |
+| :-----------------------------------------------------------: |
+|                         **Figure 1**                          |
 
 To calculate the time values $`[t_0,t_1]`$, it is important to understand how
 [snapshot time](https://github.com/sablier-labs/flow/?tab=readme-ov-file#how-it-works) works (it is updated to
@@ -214,9 +214,9 @@ been unlocked. In this case, the discrete release is synchronized with the initi
 line represents the ongoing debt before the `withdraw` function, and the green line shows the ongoing debt after the
 `withdraw` function is executed.
 
-| <img src="https://gist.github.com/user-attachments/assets/4acca66a-17d3-4cb4-a495-5689694d3dea" width="600" /> |
-| :------------------------------------------------------------------------------------------------------------: |
-|                                                  **Figure 2**                                                  |
+| <img src="./images/no_delay.png" width="700" /> |
+| :---------------------------------------------: |
+|                  **Figure 2**                   |
 
 To check, the contract works as expected, we have the `test_Withdraw_NoDelay` Solidity test for the above graph
 [here](./test/integration/concrete/withdraw-delay/withdrawDelay.t.sol).
@@ -229,15 +229,15 @@ points in the graphs below, marking the moment when the third token is unlocked.
 
 The figure below illustrates the initial scheduled streaming period:
 
-| <img src="https://gist.github.com/user-attachments/assets/f80c10ec-a1fd-4e34-8619-d1e107d7bef3" width="600" /> |
-| :------------------------------------------------------------------------------------------------------------: |
-|                                                  **Figure 3**                                                  |
+| <img src="./images/initial_function.png" width="700" /> |
+| :-----------------------------------------------------: |
+|                      **Figure 3**                       |
 
 In the following graph, we represent the right shift of the ongoing debt after the `withdraw` function is called:
 
-| <img src="https://gist.github.com/user-attachments/assets/95707004-35c8-4d1c-a872-5749e23c9ba9" width="600" /> |
-| :------------------------------------------------------------------------------------------------------------: |
-|                                                  **Figure 4**                                                  |
+| <img src="./images/longest_delay.png" width="700" /> |
+| :--------------------------------------------------: |
+|                     **Figure 4**                     |
 
 To check, the contract works as expected, we have the `test_Withdraw_LongestDelay` Solidity test for the above graph
 [here](./test/integration/concrete/withdraw-delay/withdrawDelay.t.sol).
