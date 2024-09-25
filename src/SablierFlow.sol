@@ -813,15 +813,20 @@ contract SablierFlow is
 
         // Safe to use unchecked, the balance or total debt cannot be less than `amount` at this point.
         unchecked {
+            if (amount <= _streams[streamId].snapshotDebt) {
+                // If the amount is not greater than the snapshot debt, reduce it from the snapshot debt and leave the
+                // snapshot time unchanged.
+                _streams[streamId].snapshotDebt -= amount;
+            } else {
+                _streams[streamId].snapshotDebt = totalDebt - amount;
+
+                // Effect: update the stream time.
+                _streams[streamId].snapshotTime = uint40(block.timestamp);
+            }
+
             // Effect: update the stream balance.
             _streams[streamId].balance -= amount;
-
-            // Effect: update the snapshot debt.
-            _streams[streamId].snapshotDebt = totalDebt - amount;
         }
-
-        // Effect: update the stream time.
-        _streams[streamId].snapshotTime = uint40(block.timestamp);
 
         // Load the variables in memory.
         IERC20 token = _streams[streamId].token;
