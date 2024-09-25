@@ -224,8 +224,8 @@ To check, the contract works as expected, we have the `test_Withdraw_NoDelay` So
 In **Scenario 2**, the snapshot time is updated to $`t_1`$, which is the worst-case scenario, resulting in the longest
 delay in the initial "scheduled" streaming period. According to the $`t_0`$ and $`t_1`$ calculations from
 [here](#t-calculations) and the second unlock time results from [here](#unlock-time-results), we will have a delay of
-$`\text{delay} = \text{constant\_time} = \text{unlock\_time} - 1 = 85 \, \text{seconds}`$, which is highlighted at two
-points in the graphs below, marking the moment when the third token is unlocked.
+$`\text{delay} = \text{unlock\_time}_\text{2} - \text{unlock\_time}_\text{1} - 1 = 85 \, \text{seconds}`$, which is
+highlighted at two points in the graphs below, marking the moment when the third token is unlocked.
 
 The figure below illustrates the initial scheduled streaming period:
 
@@ -247,10 +247,10 @@ In **Scenario 3**, the result is similar to Scenario 2, but with a shorter delay
 We can derive the formula as follows:
 
 ```math
-\text{delay} = t - (\text{last\_constant\_time} + st)
+\text{delay} = t - st - \text{unlock\_time}_\text{i}
 ```
 
-The last constant time is the time prior to `t`, when the ongoing debt has unlocked a token.
+The $`\text{unlock\_time}_\text{i}`$ is the time prior to `t`, when the ongoing debt has unlocked a token.
 
 To determine the delay without calculating the constant time, we can reverse engineer it from the _rescaled_ ongoing
 debt:
