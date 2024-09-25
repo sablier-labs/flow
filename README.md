@@ -131,6 +131,8 @@ $0.000115740740740740 \cdot (\text{seconds in one day} + 1 second) = 10.00011574
 
 Currently, it's not possible to address this precision problem entirely.
 
+To see a in depth explanation of the precision issue, please refer to the [Precision File](./precision.md)
+
 ### Limitations
 
 - ERC-20 tokens with decimals higher than 18 are not supported.

@@ -187,8 +187,8 @@ def find_unlock_times(rps, elt):
 <a name="unlock-time-results"></a> If we call the function with `rps = 0.000000011574e18` and `elt = 300`, the function
 will return `[87, 173, 260]`, which represents the exact seconds at which new tokens are unlocked.
 
-<a name="t-calculations"></a> For example, assume a stream was created on October 1st, i.e. `st = 1727740800`, for the
-_first token unlocked_, we will have $`t_0 = \text{unix} = 1727740800`$ and
+<a name="t-calculations"></a> For example, assume a stream was created on October 1st, i.e. `st = 1727740800`, until the
+first token is unlocked, we will have $`t_0 = \text{unix} = 1727740800`$ and
 $`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$
 
 #### Discrete Release Problem in Detail
