@@ -11,7 +11,9 @@ contract, but delayed to be fully withdrawn.
 
 We can deduct the delay formula:
 
-$$ \text{delay} = \frac{ \left( rps*{18} - rps*{\text{deci}}) \cdot \right(T*{\text{range}}) }{rps*{\text{deci}}} $$
+```math
+\text{delay} = \frac{ \left( rps_{18} - rps_{\text{deci}}) \cdot \right(T_{\text{range}}) }{rps_{\text{deci}}}
+```
 
 Using the `rps` with 6 decimals for 10 USDC per day ( $rps_{18} = 0.000115740740740740$ and
 $rps_{\text{deci}} = 0.000115$), we would have the delays:
@@ -35,37 +37,35 @@ the minimum value that `rps` could hold is `0.000001e6` which leads to `0.0864WB
 
 For the reasons above, we can fairly say, that using 18-decimals format for `rps` is the correct choice.
 
-However, this made us realize that the process of denormalization and normalization of `rps`, can also lead to precision
-issues. A more nuanced one, as it requires an `rps` smaller than than `mvt = 0.000001e6` - miminimum value transferable
-, which **wouldn't have been possible** if we were to keep the `rps` in token's decimals.
+However, this made us realize that the process of scaling and descaling of `rps`, can also lead to precision issues. A
+more nuanced one, as it requires an `rps` smaller than than `mvt = 0.000001e6` - miminimum value transferable , which
+**wouldn't have been possible** if we were to keep the `rps` in token's decimals.
 
-### About normalization
+### About scaling
 
 > [!IMPORTANT]  
 > Third condition is crucial in this problem.
 
 We have the conditions under a problem appears (continuing with the USDC example):
 
-1. `rps` is normalized to 18 decimals
+1. `rps` is scaled to 18 decimals
 2. token has less than 18 decimals
 3. `rps` has non-zero digits to the right of `mvt` [^1]
 
-### First example
-
 Having a low `rps` results in a range of time $`[t_0,t_1] `$ where the ongoing debt would be constant.
 
-Let's consider the `rps = 0.000000_011574e18`.
+Let's consider the `rps = 0.000000_011574e18`. Rate for 10 tokens streamed per day.
 
-We need to find the number of seconds $`t_1 - t_0 `$ at which the ongoing debt remains constant:
+We need to find the number of seconds at which the ongoing debt is increasing:
 
 ```math
 \left.
 \begin{aligned}
 
-\text{rps} &= 1.11574 \cdot 10^{-8} \cdot 10^{18} &= 1.11574 \cdot 10^{10} \\
-\text{factor} &= 10^{18 - \text{decimals}} &= 10^{12} \\
-\text{factor} > \text{rps} \\
-\text{constant\_interval} &= \frac{\text{factor}}{\text{rps}} \\
+\text{rps} &= 1.11574 \cdot 10^{-8} \cdot 10^{18} = 1.11574 \cdot 10^{10} \\
+\text{factor} &= 10^{18 - \text{decimals}} = 10^{12} \\
+\text{factor} &> \text{rps} \\
+\text{unlock\_time} &= \frac{\text{factor}}{\text{rps}} \\
 
 \end{aligned}
 \right\}
@@ -73,14 +73,22 @@ We need to find the number of seconds $`t_1 - t_0 `$ at which the ongoing debt r
 ```
 
 ```math
-\text{constant\_interval} = \frac{10^{12}}{1.11574 \cdot 10^{10}} \approx 86.4 \, \text{seconds}
+\text{unlock\_time} = \frac{10^{12}}{1.11574 \cdot 10^{10}} \approx 86.4 \, \text{seconds}
 ```
 
-As, the smallest unit of time in Solidity are seconds, we would have the
-$`\left \lfloor{\text{constant\_interval}}\right \rfloor = 86 \, seconds`$ .
+**Important:** As the smallest unit of time in Solidity are seconds, and there are _no rational numbers_, we would have
+_two possible_ unlock times, in order to get one token unlocked:
 
-**Note:** In practice, this means that in order to stream one unit of the token, a constant interval or constant
-interval + 1 seconds must pass—no more, no less. Below is a Python script that tests this.
+```math
+\text{unlock\_time}_\text{solidity} \in \left\{ \left\lfloor \text{unlocked\_time} \right\rfloor, \left\lceil \text{unlocked\_time} \right\rceil \right\} = \{86, 87\}
+```
+
+From this, we can calculate the constant time, which represents the maximum number of seconds that, if a token has just
+been unlocked, the ongoing debt will return the same amount.
+
+```math
+\Rightarrow \text{constant\_time}_\text{solidity} = \text{unlock\_time}_\text{solidity} - 1 = \{85, 86\}
+```
 
 <details><summary> Press to see the test script</summary>
 <p>
@@ -90,29 +98,24 @@ interval + 1 seconds must pass—no more, no less. Below is a Python script that
 rps = 0.000000011574e18
 sf = 1e12
 
-
-# the ongoing debt will be unlocking 1 token per [constant_interval, constant_interval + 1] seconds
-constant_interval = sf // rps
+# the ongoing debt will be unlocking 1 token per [unlock_time, unlock_time + 1] seconds
+# i.e. floor(sf / rps) && ceil(sf / rps)
+unlock_time = sf // rps
 
 
 def ongoing_debt(elt):
     return elt * rps // sf
 
 
-arr_curr_od = []
-arr_prev_od = []
-
-
 # track the seconds when ongoing debt increases and the intervals between those seconds
 seconds_with_od_increase = []
-interval_between_increases = []
+time_between_increases = []
 
+# test run for 30 days, which should be suffice
 for i in range(1, 86400 * 30):
     curr_od = ongoing_debt(i)
     prev_od = ongoing_debt(i - 1)
 
-    arr_curr_od.append(curr_od)
-    arr_prev_od.append(prev_od)
     diff = curr_od - prev_od
     assert diff in [0, 1]
 
@@ -120,80 +123,66 @@ for i in range(1, 86400 * 30):
     if diff > 0:
         seconds_with_od_increase.append(i)
         if len(seconds_with_od_increase) > 1:
-            interval_between_increases.append(
+            time_between_increases.append(
                 seconds_with_od_increase[-1] - seconds_with_od_increase[-2]
             )
 
-            assert interval_between_increases[-1] in [
-                constant_interval,
-                constant_interval + 1,
+            assert time_between_increases[-1] in [
+                unlock_time,
+                unlock_time + 1,
             ]
 
 
 print(
-    "interval_between_increases 86 seconds",
-    interval_between_increases.count(constant_interval),
+    "time_between_increases 86 seconds",
+    time_between_increases.count(unlock_time),
 )
 print(
-    "interval_between_increases 87 seconds",
-    interval_between_increases.count(constant_interval + 1),
+    "time_between_increases 87 seconds",
+    time_between_increases.count(unlock_time + 1),
 )
 
 ```
 
 </p>
 </details>
+
+$~$
+
+> [!NOTE]  
+> From now on, when we say unlock or constant time, it is in context of solidity, i.e.
+> $`\text{unlock\_time}_\text{solidity}`$ and $`\text{constant\_time}_\text{solidity}`$.
 
 From this, we can conclude that the ongoing debt will no longer be _continuous relative_ to its `rps` but instead occur
-in discrete intervals, with `mvt` unlocking every `[constant_interval, constant_interval + 1]`. As shown below, the red
-line represents the ongoing debt amount for a token with 6 decimals, while the blue line shows the same for a token with
-18 decimals:
+in discrete intervals, with `mvt` unlocking every $`\text{unlock\_time}_\text{solidity}`$. As shown below, the red line
+represents the ongoing debt for a token with 6 decimals, while the blue line shows the same for a token with 18
+decimals:
 
-<img src="https://gist.github.com/user-attachments/assets/a54b3bc7-3c84-47fa-8558-e76fe101813b" width="600" />
+<img src="https://gist.github.com/user-attachments/assets/7497b757-0ff5-44a6-b0dd-1b5d7cae1041" width="600" />
 
-<details> <summary> Press to see the plot script </summary>
-<p>
+To calculate the time range $`[t_0,t_1]`$, is important to understand how
+[snapshot time](https://github.com/sablier-labs/flow/?tab=readme-ov-file#how-it-works) works (it is updated to
+`block.timestamp` on specific functions), and how
+[ongoing debt](https://github.com/sablier-labs/flow/?tab=readme-ov-file#2-ongoing-debt) is calculated.
+
+For example, assume a stream was created on October 1st, i.e. `unix = 1727740800`, for the _first token unlocked_, we
+will have $`t_0 = \text{unix} = 1727740800`$ and $`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$
+
+This means we can use the following algorithm to find each unlock time, given the rate per second and the elapsed time:
 
 ```python
-import matplotlib.pyplot as plt
-import numpy as np
-
-rps = 0.0000000115741
-sf = 1e12
-constant_interval = sf // (rps * 1e18)
-
-time = np.arange(0, 300, 1)
-
-# Continuous release every second for 18 decimals (each second adds rps)
-continuous_release = rps * time
-
-# Discrete release every 86 seconds for 6 decimals (discrete steps)
-discrete_release = np.floor(time / constant_interval) * rps * constant_interval
-plt.figure(figsize=(12, 6))
-
-plt.plot(
-    time, continuous_release, label="Continuous Release (18 decimals)", color="blue"
-)
-
-plt.step(
-    time,
-    discrete_release,
-    label="Discrete Release (6 decimals)",
-    color="red",
-    where="post",
-)
-
-plt.title("Comparison: Continuous vs Discrete Release for 18 vs 6 Decimal Tokens")
-plt.xlabel("Time (seconds)")
-plt.ylabel("Amount Released")
-plt.legend()
-plt.grid(True)
-
-plt.savefig("plot.png")
+def find_unlock_times(rps, elt):
+    unlock_times = []
+    for i in range(1, elt):
+        curr_od = od(rps, i)
+        prev_od = od(rps, i-1)
+        if curr_od > prev_od:
+            unlock_times.append(i)
+    return unlock_times
 ```
 
-</p>
-</details>
+If we call the function with `rps = 0.000000011574e18` and `elt = 300`, the function will return `[87, 173, 260]`, which
+represents the specific seconds at which new tokens are unlocked.
 
 #### The problem with discrete release
 
@@ -205,12 +194,14 @@ $od = rps \cdot elt$ where $elt = now - snapshotTime$
 In the interval $`[t_0,t_1] `$ we have these possible scenarios:
 
 1. $`t = t_0 `$
-2. $`t_0 < t < t_1 `$
-3. $`t = t_1 `$
+2. $`t = t_1 `$
+3. $`t_0 < t < t_1 `$
 
-For scenario 1, the snapshot time is updated to $`t_0`$, which is the best-case scenario because the previous unlock
-interval has just ended, and the discrete release is in sync with the initially "scheduled" streaming period. We will
-explain this further below.
+For scenario 1, the snapshot time is updated to $`t_0`$, which is the best-case scenario because one token has just been
+unlocked, and the discrete release is in sync with the initially "scheduled" streaming period. We will explain this
+further below.
+
+<img src="https://gist.github.com/user-attachments/assets/4acca66a-17d3-4cb4-a495-5689694d3dea" width="600" />
 
 For scenario 2, the snapshot time is updated to a value between $`t_0`$ and $`t_1`$, resulting in a delay of $`t - t_0`$
 for the initially "scheduled" streaming period. Why? Suppose we are at second $`t = 100`$, and the recipient wants to
@@ -218,129 +209,17 @@ withdraw the maximum value possible, which in this case is 1, i.e. $`1 \cdot 10^
 is updated to $` t `$, meaning there is a delay of $`100 - 87 = 13 \, \text{seconds}`$ . Please refer to the yellow line
 in the graph below, which represents the new ongoing debt function. As we can see, the function shifts to the right.
 
-<img src="https://gist.github.com/user-attachments/assets/a54b3bc7-3c84-47fa-8558-e76fe101813b" width="600" />
+<img src="https://gist.github.com/user-attachments/assets/f80c10ec-a1fd-4e34-8619-d1e107d7bef3" width="600" />
 
-<details> <summary>Press to see the plot script </summary>
-
-<p>
-
-```python
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Given parameters
-rps = 0.0000000115741  # rate per second
-sf = 1e12  # scaling factor
-constant_interval = sf // (rps * 1e18)
-
-# Time range for the plot
-time = np.arange(0, 300 + constant_interval, 1)
-
-# Discrete release for 6 decimals (steps happening every 86 seconds)
-discrete_release = np.floor(time / constant_interval) * rps * constant_interval
-
-plt.figure(figsize=(12, 6))
-
-# Time of withdrawal at 171 seconds (86 * 2 - 1)
-withdraw_time = constant_interval * 2 - 1
-withdraw_amount = discrete_release[withdraw_time]
-
-# Plotting the discrete release before withdrawal (in red)
-# We limit the red line to only go up to the withdraw time
-time_before_withdraw = time[time <= withdraw_time]
-discrete_release_before = discrete_release[time <= withdraw_time]
-
-plt.step(
-    time_before_withdraw,
-    discrete_release_before,
-    label="Ongoing debt before withdraw",
-    color="red",
-    where="post",
-)
-
-# Marking the withdrawal point with a red dot
-plt.plot(
-    withdraw_time,
-    withdraw_amount,
-    "ro",
-    label="t - withdraw time",
-)
-
-# Annotating the red dot with the withdrawal time on the X axis, using vertical alignment
-plt.text(
-    withdraw_time,
-    withdraw_amount,
-    f"{withdraw_time}s",
-    color="red",
-    ha="center",
-    va="bottom",
-)
-
-# Shifted green line representing ongoing debt after the withdrawal, starting just after withdraw_time
-discrete_release_after = (
-    withdraw_amount
-    + np.floor((time - withdraw_time) / constant_interval) * rps * constant_interval
-)
-
-# Plotting the ongoing debt after withdraw
-time_after_withdraw = time[time >= withdraw_time + 1]
-discrete_release_after = discrete_release_after[time >= withdraw_time + 1]
-
-plt.step(
-    time_after_withdraw,
-    discrete_release_after,
-    label="Ongoing debt after withdraw",
-    color="green",
-    where="post",
-)
-
-# Adding a green point when the 3rd token gets unlocked
-third_token_time = (
-    withdraw_time + 2 * constant_interval
-third_token_amount = discrete_release_after[
-    np.where(time_after_withdraw == third_token_time)
-]
-
-plt.plot(
-    third_token_time,
-    third_token_amount,
-    "go",
-    label="3rd token unlock",
-)
-
-# Annotating the green dot with the third token unlock time on the X axis, using vertical alignment
-plt.text(
-    third_token_time,
-    third_token_amount,
-    f"{int(third_token_time)}s",
-    color="green",
-    ha="center",
-    va="bottom",
-)
-
-
-plt.title("Discrete Release with Transition after withdraw")
-plt.xlabel("Time (seconds)")
-plt.ylabel("Amount Released")
-plt.legend()
-plt.grid(True)
-
-plt.savefig("plot.png")
-
-```
-
-</p>
-
-</details>
+<img src="https://gist.github.com/user-attachments/assets/95707004-35c8-4d1c-a872-5749e23c9ba9" width="600" />
 
 We can deduct the formula (including a tolerance of 1):
 
 ```math
-\text{delay} = t - \sum{\text{constant\_interval} - st - 1}
+\text{delay} = t - \sum{\text{constant\_time} - st - 1}
 ```
 
-To determine the delay without calculating the constant interval, we can reverse engineer it from the rescaled ongoing
-debt:
+To determine the delay without calculating the constant time, we can reverse engineer it from the rescaled ongoing debt:
 
 ```math
 
@@ -359,83 +238,12 @@ delay &= t - st - \frac{Rod_t}{rps} - 1 \\
 Test run on [this commit](https://github.com/sablier-labs/flow/tree/b67f34c57ba161a25d0f83ac221a91a73f09bc86), `main`
 might change in the future.
 
-```solidity
-function testDelayUsdc_OngoingDebt() public {
-    uint128 rps = 0.000000011574e18; // 0.001e6 USDC per day, less than smallest value of USDC 0.00000001e6
-    uint128 depositAmount = 0.001e6;
-
-    uint128 factor = uint128(10 ** (18 - 6));
-
-    uint40 constantInterval = uint40(factor / rps); // 10^12 / (1.1574 * 10^10)
-    assertEq(constantInterval, 86, "constant interval");
-
-    uint256 streamId = flow.createAndDeposit(users.sender, users.recipient, ud21x18(rps), usdc, true, depositAmount);
-
-    uint40 initialSnapshotTime = MAY_1_2024;
-    assertEq(flow.getSnapshotTime(streamId), initialSnapshotTime, "snapshot time");
-
-    // rps * 1 days = 0.000999e6 due to how the rational numbers work in math
-    // so we need to warp one more second in the future to get the deposit amount
-    vm.warp(initialSnapshotTime + 1 days + 1 seconds);
-    assertEq(flow.ongoingDebtOf(streamId), depositAmount, "ongoing debt vs deposit amount");
-
-    // rps * 87 seconds = 0.000001e6 - mvt
-
-    // the first discrete release is at constantInterval + 1 second
-    // after that, it is periodic to constantInterval
-
-    // warp to a timestamp that withdrawable amount is greater than zero
-    vm.warp(initialSnapshotTime + constantInterval + 1);
-    assertEq(flow.withdrawableAmountOf(streamId), 1, "withdrawable amount vs first discrete release");
-
-    // warp to a timestamp that withdrawable amount is greater than zero
-    vm.warp(initialSnapshotTime + constantInterval + 1);
-    assertEq(flow.withdrawableAmountOf(streamId), 1, "withdrawable amount vs first discrete release");
-
-    // now, since everything has work as expected, let's go back in time to withdraw
-
-    // the t = 100 seconds example
-    // delay = t - ∑ constantInterval
-    uint40 t = 100;
-    uint40 delay = t - (constantInterval + 1);
-
-    vm.warp(initialSnapshotTime + t);
-    assertEq(flow.withdrawableAmountOf(streamId), 1, "withdrawable amount vs delay"); // same as before
-    uint128 withdrawnAmount = flow.withdrawMax(streamId, users.recipient);
-
-    assertEq(withdrawnAmount, 1, "withdrawn amount");
-
-    // now, let's go again at the time we've tested ongoingDebt == depositAmount
-    vm.warp(initialSnapshotTime + 1 days + 1 seconds);
-
-    // theoretically, it needs to be depositAmount - withdrawnAmount, but it is not
-    // as we have discrete intervals, the full initial deposited amount gets released now after the delay
-
-    assertFalse(
-        flow.ongoingDebtOf(streamId) == depositAmount - withdrawnAmount,
-        "ongoing debt vs deposit amount - withdrawn amount first warp"
-    );
-
-    vm.warp(initialSnapshotTime + 1 days + 1 seconds + delay + 1);
-    assertEq(
-        flow.ongoingDebtOf(streamId),
-        depositAmount - withdrawnAmount,
-        "ongoing debt vs deposit amount - withdrawn amount second warp"
-    );
-}
-
-```
-
 </p>
 </details>
 
 For scenario 3, the situation is similar to scenario 2, but it represents the worst-case scenario, as the delay time is
 maximized.
 
-### Example two (WIP)
-
-### The best solution we found (WIP)
-
 [^1]:
-    By non-zero values right to `mvt` refers to an `rps` that would not exist if it were not normalized 1.
+    By non-zero values right to `mvt` refers to an `rps` that would not exist if it were not scaled 1.
     `0.000000_123123e18 < mvt` 2. `0.100000_123123e18 > mvt`
