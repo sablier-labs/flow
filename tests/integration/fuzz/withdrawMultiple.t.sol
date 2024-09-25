@@ -16,8 +16,8 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple values for realistic rps.
     /// - Multiple withdrawal counts on the same stream at multiple points in time.
     function testFuzz_WithdrawMultiple_Delay(uint128 rps, uint256 withdrawCount, uint40 timeJump) external {
-        // Bound the rps to a reasonable range [$100/month, $1000/month].
-        rps = boundUint128(rps, 38_580_246_913_580, 385_802_469_135_800);
+        // Bound the rps to a reasonable range [$77/month, $7700/month].
+        rps = boundUint128(rps, 0.00003e18, 0.003e18);
 
         IERC20 token = createToken(DECIMALS);
         uint256 streamId = createDefaultStream(ud21x18(rps), token);
