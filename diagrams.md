@@ -1,6 +1,6 @@
 > [!NOTE]
 >
-> Above sections assumes you gone through the
+> Below sections assume you've gone through the
 > [abbreviations table](https://github.com/sablier-labs/flow/?tab=readme-ov-file#abbreviations) and
 > [core components](https://github.com/sablier-labs/flow/?tab=readme-ov-file#core-components)
 

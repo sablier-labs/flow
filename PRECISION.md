@@ -29,14 +29,14 @@ Using the rps with 18 decimals:
 - 1 year: ~0.000000000414 seconds
 
 Besides the delay problem, other issue for `rps` in token decimals would be, for tokens with a very high price to USD
-(and ofc. if it has 6 decimals), the sender wouldn't be able to pay a resonable amount. Let's say WBTC with 6 decimals,
+(and ofc. if it has 6 decimals), the sender wouldn't be able to pay a reasonable amount. Let's say WBTC with 6 decimals,
 the minimum value that `rps` could hold is `0.000001e6` which leads to `0.0864WBTC = 5184$` per day (price taken at
 60000$ for one BTC). Which is a lot of money.
 
 For the reasons above, we can fairly say, that using 18-decimals format for `rps` is the correct choice.
 
 However, this made us realize that the process of scaling and descaling of `rps`, can also lead to precision issues. A
-more nuanced one, as it requires an `rps` smaller than than `mvt = 0.000001e6` - miminimum value transferable , which
+more nuanced one, as it requires an `rps` smaller than than `mvt = 0.000001e6` - minimum value transferable , which
 **wouldn't have been possible** if we were to keep the `rps` in token's decimals.
 
 ### About scaling
@@ -50,7 +50,8 @@ We have the conditions under a problem appears (continuing with the USDC example
 2. token has less than 18 decimals
 3. `rps` has non-zero digits to the right of `mvt` [^1]
 
-Having a low `rps` results in a range of time $`[t_0,t_1] `$ where the ongoing debt would be _constant_.
+Having a low `rps` results in a range of time $`[t_0,t_1]`$, where the ongoing debt remains _constant_, with $`t_0`$ and
+$`t_1`$ representing timestamps.
 
 Let's consider the `rps = 0.000000_011574e18`. Rate for 10 tokens streamed per day.
 
@@ -153,12 +154,11 @@ $~$
 > [!NOTE]  
 > From now on, when we say unlock or constant time, it is in context of solidity, i.e.
 > $`\text{unlock\_time}_\text{solidity}`$ and $`\text{constant\_time}_\text{solidity}`$ (which means two possible values
-> implicitly).
+> implicitly). We will use the abbreviation $`\text{uts}`$.
 
 From this, we can conclude that the ongoing debt will no longer be _continuous relative_ to its `rps` but will instead
-occur in discrete intervals, with `mvt` unlocking every $`\text{unlock\_time}_\text{solidity}`$. As shown below, the red
-line represents the ongoing debt for a token with 6 decimals, while the blue line shows the same for a token with 18
-decimals:
+occur in discrete intervals, with `mvt` unlocking every $`uts`$. As shown below, the red line represents the ongoing
+debt for a token with 6 decimals, while the blue line shows the same for a token with 18 decimals:
 
 | <img src="./images/continuous_vs_discrete.png" width="700" /> |
 | :-----------------------------------------------------------: |
@@ -224,8 +224,8 @@ To check, the contract works as expected, we have the `test_Withdraw_NoDelay` So
 In **Scenario 2**, the snapshot time is updated to $`t_1`$, which is the worst-case scenario, resulting in the longest
 delay in the initial "scheduled" streaming period. According to the $`t_0`$ and $`t_1`$ calculations from
 [here](#t-calculations) and the second unlock time results from [here](#unlock-time-results), we will have a delay of
-$`\text{delay} = \text{unlock\_time}_\text{2} - \text{unlock\_time}_\text{1} - 1 = 85 \, \text{seconds}`$, which is
-highlighted at two points in the graphs below, marking the moment when the third token is unlocked.
+$`\text{delay} = uts_2 - uts_1 - 1 = 85 \, \text{seconds}`$, which is highlighted at two points in the graphs below,
+marking the moment when the third token is unlocked.
 
 The figure below illustrates the initial scheduled streaming period:
 
@@ -247,10 +247,10 @@ In **Scenario 3**, the result is similar to Scenario 2, but with a shorter delay
 We can derive the formula as follows:
 
 ```math
-\text{delay} = t - st - \text{unlock\_time}_\text{i}
+\text{delay} = t - st - uts_i
 ```
 
-The $`\text{unlock\_time}_\text{i}`$ is the time prior to `t`, when the ongoing debt has unlocked a token.
+The $`\text{unlock\,time}_\text{i}`$ is the time prior to `t`, when the ongoing debt has unlocked a token.
 
 To determine the delay without calculating the constant time, we can reverse engineer it from the _rescaled_ ongoing
 debt:
