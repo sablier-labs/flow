@@ -75,10 +75,10 @@ We need to find the number of seconds at which the ongoing debt is increasing:
 ```
 
 **Important:** As the smallest unit of time in Solidity are seconds, and there are _no rational numbers_, we would have
-_two possible_ unlock times, in order to get one token unlocked:
+_two possible_ solutions for our unlock time, in order to get one token unlocked:
 
 ```math
-\text{unlock\_time}_\text{solidity} \in \left\{ \left\lfloor \text{unlocked\_time} \right\rfloor, \left\lceil \text{unlocked\_time} \right\rceil \right\} = \{86, 87\}
+\text{unlock\_time}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_time} \right\rfloor, \left\lceil \text{unlock\_time} \right\rceil \right\} = \{86, 87\}
 ```
 
 From this, we can calculate the constant time, which represents the maximum number of seconds that, if a token has just
@@ -188,8 +188,8 @@ def find_unlock_times(rps, elt):
 will return `[87, 173, 260]`, which represents the exact seconds at which new tokens are unlocked.
 
 <a name="t-calculations"></a> For example, assume a stream was created on October 1st, i.e. `st = 1727740800`, until the
-first token is unlocked, we will have $`t_0 = \text{unix} = 1727740800`$ and
-$`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$
+first token is unlocked (87 seconds in the future), we will have $`t_0 = \text{unix} = 1727740800`$ and
+$`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$.
 
 #### Discrete Release Problem in Detail
 
