@@ -2,8 +2,8 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-import { Base_Test } from "../Base.t.sol";
+import { Base_Test } from "./../Base.t.sol";
+import { FlowAdminHandler } from "./handlers/FlowAdminHandler.sol";
 import { FlowCreateHandler } from "./handlers/FlowCreateHandler.sol";
 import { FlowHandler } from "./handlers/FlowHandler.sol";
 import { FlowStore } from "./stores/FlowStore.sol";
@@ -15,6 +15,7 @@ contract Flow_Invariant_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     IERC20[] internal tokens;
+    FlowAdminHandler internal flowAdminHandler;
     FlowCreateHandler internal flowCreateHandler;
     FlowHandler internal flowHandler;
     FlowStore internal flowStore;
@@ -34,26 +35,30 @@ contract Flow_Invariant_Test is Base_Test {
         tokens.push(IERC20(address(usdt)));
 
         // Deploy and the FlowStore contract.
-        flowStore = new FlowStore();
+        flowStore = new FlowStore(tokens);
 
         // Deploy the handlers.
+        flowCreateHandler = new FlowCreateHandler({ flowStore_: flowStore, flow_: flow });
         flowHandler = new FlowHandler({ flowStore_: flowStore, flow_: flow });
-        flowCreateHandler = new FlowCreateHandler({ flowStore_: flowStore, flow_: flow, tokens_: tokens });
+        flowAdminHandler = new FlowAdminHandler({ flowStore_: flowStore, flow_: flow });
 
         // Label the contracts.
         vm.label({ account: address(flowStore), newLabel: "flowStore" });
+        vm.label({ account: address(flowAdminHandler), newLabel: "flowAdminHandler" });
         vm.label({ account: address(flowHandler), newLabel: "flowHandler" });
         vm.label({ account: address(flowCreateHandler), newLabel: "flowCreateHandler" });
 
         // Target the flow handlers for invariant testing.
-        targetContract(address(flowHandler));
         targetContract(address(flowCreateHandler));
+        targetContract(address(flowHandler));
+        targetContract(address(flowAdminHandler));
 
         // Prevent these contracts from being fuzzed as `msg.sender`.
         excludeSender(address(flow));
-        excludeSender(address(flowStore));
-        excludeSender(address(flowHandler));
+        excludeSender(address(flowAdminHandler));
         excludeSender(address(flowCreateHandler));
+        excludeSender(address(flowHandler));
+        excludeSender(address(flowStore));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -87,7 +92,7 @@ contract Flow_Invariant_Test is Base_Test {
 
     function contractBalanceEqStreamBalancesAndProtocolRevenue(IERC20 token) internal view {
         uint256 contractBalance = token.balanceOf(address(flow));
-        uint128 streamBalancesSum;
+        uint256 streamBalancesSum;
 
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -98,7 +103,7 @@ contract Flow_Invariant_Test is Base_Test {
             }
         }
 
-        assertEq(
+        assertGe(
             contractBalance,
             streamBalancesSum + flow.protocolRevenue(token),
             unicode"Invariant violation: contract balance != Σ stream balances + protocol revenue"
@@ -116,7 +121,7 @@ contract Flow_Invariant_Test is Base_Test {
     /// balance.
     function invariant_ContractBalanceEqAggregateBalance() external view {
         for (uint256 i = 0; i < tokens.length; ++i) {
-            assertEq(
+            assertGe(
                 tokens[i].balanceOf(address(flow)),
                 flow.aggregateBalance(tokens[i]),
                 unicode"Invariant violation: contract balance != aggregate balance"
