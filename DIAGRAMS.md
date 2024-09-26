@@ -8,17 +8,18 @@
 
 ### Types
 
-| Type      | Statuses                                   | Description           |
-| :-------- | :----------------------------------------- | :-------------------- |
-| Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT` | Debt is accruing.     |
-| Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`       | Debt is not accruing. |
+| Type      | Statuses                                       | Description           |
+| :-------- | :--------------------------------------------- | :-------------------- |
+| Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT`     | Debt is accruing.     |
+| Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`, `VOIDED` | Debt is not accruing. |
 
-| Status                | Description                                       |
-| --------------------- | ------------------------------------------------- |
-| `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt. |
-| `STREAMING_INSOLVENT` | Streaming stream when there is no uncovered debt. |
-| `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.    |
-| `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.       |
+| Status                | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt.                |
+| `STREAMING_INSOLVENT` | Streaming stream when there is no uncovered debt.                |
+| `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.                   |
+| `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.                      |
+| `VOIDED`              | Paused stream with no uncovered debt and it cannot be restarted. |
 
 ### Statuses diagram
 
@@ -39,13 +40,15 @@ stateDiagram-v2
         # direction BT
         PAUSED_SOLVENT
         PAUSED_INSOLVENT
-         PAUSED_INSOLVENT --> PAUSED_SOLVENT : deposit || void
+        PAUSED_INSOLVENT --> PAUSED_SOLVENT : deposit
+        PAUSED_INSOLVENT --> VOIDED : void
+        VOIDED
     }
 
     STREAMING_SOLVENT --> PAUSED_SOLVENT : pause
     STREAMING_INSOLVENT --> PAUSED_INSOLVENT : pause
-    STREAMING_INSOLVENT --> PAUSED_SOLVENT : void
     PAUSED_SOLVENT --> STREAMING_SOLVENT : restart
+    STREAMING_INSOLVENT --> VOIDED : void
     PAUSED_INSOLVENT --> STREAMING_INSOLVENT : restart
 
     NULL --> STREAMING_SOLVENT : create
@@ -57,6 +60,7 @@ stateDiagram-v2
     STREAMING_INSOLVENT:::intenseGreen
     PAUSED_INSOLVENT:::intenseYellow
     PAUSED_SOLVENT:::intenseYellow
+    VOIDED:::intenseYellow
 
     classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
     classDef lightGreen fill:#98FB98,color:#000,font-weight:bold;
@@ -70,7 +74,7 @@ stateDiagram-v2
 **Notes:**
 
 1. The arrows point to the status on which the function can be called.
-2. The "update" comments refer only to the internal state.
+2. The "update" comments refer only to the stream internal state.
 3. `st` is always updated to `block.timestamp`.
 4. Red lines refers to the function that are doing an `ERC-20` transfer
 
@@ -80,45 +84,49 @@ flowchart LR
         NULL((NULL)):::grey
         STR((STREAMING)):::green
         PSED((PAUSED)):::yellow
+        VOID((VOIDED)):::red
     end
-
 
     subgraph Functions
         CR([CREATE])
         ADJRPS([ADJUST_RPS])
         DP([DEPOSIT])
-        WTD([WITHDRAW])
         RFD([REFUND])
-        RST([RESTART])
         PS([PAUSE])
+        RST([RESTART])
         VD([VOID])
+        WTD([WITHDRAW])
     end
 
     BOTH((  )):::black
 
-    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px;
-    classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
-    classDef yellow fill:#ffff99,stroke:#333,stroke-width:2px;
-    classDef black fill:#000000,stroke:#333,stroke-width:2px;
 
-    CR -- "update rps\nupdate st" --> NULL
-    ADJRPS -- "update sd (+od)\nupdate rps\nupdate st" -->  STR
+    classDef black fill:#000000,stroke:#333,stroke-width:2px;
+    classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
+    classDef grey fill:#b0b0b0,stroke:#333,stroke-width:2px;
+    classDef yellow fill:#ffff99,stroke:#333,stroke-width:2px;
+    classDef red fill:#ff4e4e,stroke:#333,stroke-width:2px;
+
+    CR -- "update rps<br/>update st" --> NULL
+
+    ADJRPS -- "update sd (+od)<br/>update rps<br/>update st" -->  STR
 
     DP -- "update bal (+)" --> BOTH
 
     RFD -- "update bal (-)" --> BOTH
 
-    WTD -- "update sd (-) \nupdate st\nupdate bal (-)" --> BOTH
-
-    VD -- "update sd (bal)\nupdate rps (0)" --> BOTH
-
-    PS -- "update sd (+od)\nupdate rps (0)" --> STR
+    PS -- "update sd (+od)<br/>update rps (0)" --> STR
 
     BOTH --> STR & PSED
 
-    RST -- "update rps \nupdate st" --> PSED
+    RST -- "update rps<br/>update st" --> PSED
 
-    linkStyle 2,3,4 stroke:#ff0000,stroke-width:2px
+    VD -- "update sd (bal)<br/>update rps (0)" --> BOTH
+
+    WTD -- "update sd (-)<br/>update st<br/>update bal (-)" --> BOTH
+    WTD -- "update sd (-)" --> VOID
+
+    linkStyle 2,3,9,10 stroke:#ff0000,stroke-width:2px
 ```
 
 ## Access Control
@@ -136,6 +144,9 @@ flowchart LR
 
 ### Internal State
 
+The [stream struct](https://github.com/sablier-labs/flow/?tab=readme-ov-file#motivation) has more fields than the ones
+shown here, but these are the most relevant ones.
+
 ```mermaid
 flowchart LR
     stream[(Stream Internal State)]:::green
@@ -151,6 +162,8 @@ flowchart LR
 
     classDef green fill:#32cd32,stroke:#333,stroke-width:2px;
 ```
+
+### ERC-20 Transfer Actions
 
 ```mermaid
 flowchart LR
@@ -207,7 +220,7 @@ flowchart TD
     res_0([0 ]):::blue1
     res_bal([bal]):::blue1
     res_sd([sd]):::blue1
-    res_sum([od + sd]):::blue1
+    res_sum([td]):::blue1
 
 
     cd --> di0
@@ -242,12 +255,12 @@ flowchart TD
 flowchart TD
     di0{ }:::red1
     sd([Uncovered Debt - ud]):::red0
-    res_sd(["od + sd - bal"]):::red1
+    res_sd(["td- bal"]):::red1
     res_zero([0]):::red1
 
     sd --> di0
-    di0 -- "bal < od + sd" --> res_sd
-    di0 -- "bal >= od + sd" --> res_zero
+    di0 -- "bal < td" --> res_sd
+    di0 -- "bal >= td" --> res_zero
 
     classDef red0 fill:#EA6B66,stroke:#333,stroke-width:2px;
     classDef red1 fill:#FFCCCC,stroke:#333,stroke-width:2px;
