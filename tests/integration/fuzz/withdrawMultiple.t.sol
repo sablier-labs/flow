@@ -16,7 +16,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed for USDC:
     /// - Multiple values for realistic rps.
     /// - Multiple withdrawal counts on the same stream at multiple points in time.
-    function testFuzz_WithdrawMultiple_Usdc_Delay(uint128 rps, uint256 withdrawCount, uint40 timeJump) external {
+    function testFuzz_WithdrawMultiple_Usdc_SmallDelay(uint128 rps, uint256 withdrawCount, uint40 timeJump) external {
         rps = boundRatePerSecond(ud21x18(rps)).unwrap();
 
         IERC20 token = createToken(DECIMALS);
@@ -73,7 +73,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple values for decimals
     /// - Multiple values for wide ranged rps.
     /// - Multiple withdrawal counts on the same stream at multiple points in time.
-    function testFuzz_WithdrawMaxMultiple_WideRange(
+    function testFuzz_WithdrawMaxMultiple_RpsWideRange(
         uint128 rps,
         uint256 withdrawCount,
         uint40 timeJump,
@@ -93,7 +93,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// - Multiple values for wide ranged rps.
     /// - Multiple amounts to withdraw.
     /// - Multiple withdrawal counts on the same stream at multiple points in time.
-    function testFuzz_WithdrawMultiple_WideRange(
+    function testFuzz_WithdrawMultiple_RpsWideRange(
         uint128 rps,
         uint128 withdrawAmount,
         uint256 withdrawCount,
@@ -155,8 +155,6 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
             // ISablierFlow.withdrawMax
             else if (selector == ISablierFlow.withdrawMax.selector) {
                 withdrawAmount = flow.withdrawMax(streamId, users.recipient);
-            } else {
-                revert("Invalid selector");
             }
 
             // Update the actual total amount withdrawn.
