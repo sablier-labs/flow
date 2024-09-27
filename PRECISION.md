@@ -3,11 +3,11 @@
 **Note:** none of these issues should lead to a loss of funds, but they may result in a better or worse experience in
 receiving the desired streamed amount over a specific time interval.
 
-### Initial problem:
+### Why we define rps as 18-decimal number
 
 The reason why we have introduced the `rps` as an 18-decimal number is to avoid precision issues, which is explained
-[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues). Here we will go into more details, so
-we can deduct the delay formula:
+[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues). In this file we will go into more
+details, so we can deduct the delay formula:
 
 ```math
 \text{delay} = \frac{ \left( rps_{18} - rps_{\text{deci}}) \cdot \right(T_{\text{range}}) }{rps_{\text{deci}}}
@@ -33,13 +33,16 @@ Besides the delay problem, other issue for `rps` in token decimals would be, for
 the minimum value that `rps` could hold is `0.000001e6` which leads to `0.0864WBTC = 5184$` per day (price taken at
 60000$ for one BTC). Which is a lot of money.
 
-For the reasons above, we can fairly say, that using 18-decimals format for `rps` is the correct choice.
+For the reasons mentioned above, we can say that using the 18-decimal format for `rps` is the correct choice.
 
-However, this made us realize that the process of scaling and descaling of `rps`, can also lead to precision issues. A
-more nuanced one, as it requires an `rps` smaller than than `mvt = 0.000001e6` - minimum value transferable , which
-**wouldn't have been possible** if we were to keep the `rps` in token's decimals.
+To properly transfer tokens after calculations in 18 decimals, we need to descale it back to the token's native
+decimals. The process of descaling involves dividing the amount calculated in 18 decimals by $`10^{18 - decimals}`$.
 
-### About scaling
+However, we realized that descaling can introduce a precision issue—a more nuanced one, since it requires an `rps`
+smaller than `mvt = 0.000001e6` (the minimum value transferable), which **wouldn't have been possible** if we had kept
+the `rps` in the token's native decimals.
+
+### About descaling problem
 
 > [!IMPORTANT]  
 > Third condition is crucial in this problem.
@@ -191,7 +194,7 @@ will return `[87, 173, 260]`, which represents the exact seconds at which new to
 first token is unlocked (87 seconds in the future), we will have $`t_0 = \text{unix} = 1727740800`$ and
 $`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$.
 
-#### Discrete Release Problem in Detail
+#### Specific example
 
 The problem arises when we have a moment in time `t`, which is bounded by the time range $`[t_0,t_1]`$. When any of the
 following three functions are called, a delay occurs (causing a right shift in the ongoing debt function) because they
@@ -259,7 +262,7 @@ debt:
 
 \begin{aligned}
 od_t &= \frac{rps \cdot (t - st)}{s_f} \\
-Rod_t &= \frac{od \cdot s_f}{s_f}  \\
+Rod_t &= od \cdot s_f \\
 delay &= t - st - \frac{Rod_t}{rps} - 1 \\
 
 \end{aligned}
