@@ -67,7 +67,7 @@ We need to find the number of seconds at which the ongoing debt is increasing:
 \text{rps} &= 1.11574 \cdot 10^{-8} \cdot 10^{18} = 1.11574 \cdot 10^{10} \\
 \text{factor} &= 10^{18 - \text{decimals}} = 10^{12} \\
 \text{factor} &> \text{rps} \\
-\text{unlock\_time} &= \frac{\text{factor}}{\text{rps}} \\
+\text{unlock\_interval} &= \frac{\text{factor}}{\text{rps}} \\
 
 \end{aligned}
 \right\}
@@ -75,25 +75,25 @@ We need to find the number of seconds at which the ongoing debt is increasing:
 ```
 
 ```math
-\text{unlock\_time} = \frac{10^{12}}{1.11574 \cdot 10^{10}} \approx 86.4 \, \text{seconds}
+\text{unlock\_interval} = \frac{10^{12}}{1.11574 \cdot 10^{10}} \approx 86.4 \, \text{seconds}
 ```
 
 **Important:** As the smallest unit of time in Solidity are seconds, and there are _no rational numbers_, we would have
-_two possible_ solutions for our unlock time, in order to get one token unlocked:
+_two possible_ solutions for our unlock interval, in order to get one token unlocked:
 
 ```math
-\text{unlock\_time}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_time} \right\rfloor, \left\lceil \text{unlock\_time} \right\rceil \right\} = \{86, 87\}
+\text{unlock\_interval}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_interval} \right\rfloor, \left\lceil \text{unlock\_interval} \right\rceil \right\} = \{86, 87\}
 ```
 
-From this, we can calculate the constant time, which represents the maximum number of seconds that, if a token has just
-been unlocked, the ongoing debt will return the same amount.
+From this, we can calculate the constant interval, which represents the maximum number of seconds that, if a token has
+just been unlocked, the ongoing debt will return the same amount.
 
 ```math
-\Rightarrow \text{constant\_time}_\text{solidity} = \text{unlock\_time}_\text{solidity} - 1 = \{85, 86\}
+\Rightarrow \text{constant\_interval}_\text{solidity} = \text{unlock\_interval}_\text{solidity} - 1 = \{85, 86\}
 ```
 
-Below, we have a python test, that verifies the above calculations: $`\text{unlock\_time}`$ is no less than 86 seconds,
-and no more than 87 seconds.
+Below, we have a python test, that verifies the above calculations: $`\text{unlock\_interval}`$ is no less than 86
+seconds, and no more than 87 seconds.
 
 <details><summary> Press to see the test script</summary>
 <p>
@@ -155,12 +155,12 @@ print(
 $~$
 
 > [!NOTE]  
-> From now on, when we say unlock or constant time, it is in context of solidity, i.e.
-> $`\text{unlock\_time}_\text{solidity}`$ and $`\text{constant\_time}_\text{solidity}`$ (which means two possible values
-> implicitly). We will use the abbreviation $`\text{uts}`$.
+> From now on, when we say unlock or constant interval, it is in context of solidity, i.e.
+> $`\text{unlock\_interval}_\text{solidity}`$ and $`\text{constant\_interval}_\text{solidity}`$ (which means two
+> possible values implicitly). We will use the abbreviation $`\text{uis}`$.
 
 From this, we can conclude that the ongoing debt will no longer be _continuous relative_ to its `rps` but will instead
-occur in discrete intervals, with `mvt` unlocking every $`uts`$. As shown below, the red line represents the ongoing
+occur in discrete intervals, with `mvt` unlocking every $`uis`$. As shown below, the red line represents the ongoing
 debt for a token with 6 decimals, while the blue line shows the same for a token with 18 decimals:
 
 | <img src="./images/continuous_vs_discrete.png" width="700" /> |
@@ -172,9 +172,9 @@ To calculate the time values $`[t_0,t_1]`$, it is important to understand how
 `block.timestamp` on specific functions) and how
 [ongoing debt](https://github.com/sablier-labs/flow/?tab=readme-ov-file#2-ongoing-debt) is calculated.
 
-Additionally, since we have two possible solutions for the unlock time, we need to implement an algorithm to find them.
-Below is a Python function that takes the rate per second and the elapsed time as input and returns all the unlock times
-within that elapsed time:
+Additionally, since we have two possible solutions for the unlock interval, we need to implement an algorithm to find
+them. Below is a Python function that takes the rate per second and the elapsed time as input and returns all the unlock
+intervals within that elapsed time:
 
 ```python
 def find_unlock_times(rps, elt):
@@ -192,7 +192,7 @@ will return `[87, 173, 260]`, which represents the exact seconds at which new to
 
 <a name="t-calculations"></a> For example, assume a stream was created on October 1st, i.e. `st = 1727740800`, until the
 first token is unlocked (87 seconds in the future), we will have $`t_0 = \text{unix} = 1727740800`$ and
-$`t_1 = \text{unix} = t_0 + \text{constant\_time} = 1727740886`$.
+$`t_1 = \text{unix} = t_0 + \text{constant\_interval} = 1727740886`$.
 
 #### Specific example
 
@@ -226,8 +226,8 @@ To check, the contract works as expected, we have the `test_Withdraw_NoDelay` So
 
 In **Scenario 2**, the snapshot time is updated to $`t_1`$, which is the worst-case scenario, resulting in the longest
 delay in the initial "scheduled" streaming period. According to the $`t_0`$ and $`t_1`$ calculations from
-[here](#t-calculations) and the second unlock time results from [here](#unlock-time-results), we will have a delay of
-$`\text{delay} = uts_2 - uts_1 - 1 = 85 \, \text{seconds}`$, which is highlighted at two points in the graphs below,
+[here](#t-calculations) and the second unlock interval results from [here](#unlock-time-results), we will have a delay
+of $`\text{delay} = uis_2 - uis_1 - 1 = 85 \, \text{seconds}`$, which is highlighted at two points in the graphs below,
 marking the moment when the third token is unlocked.
 
 The figure below illustrates the initial scheduled streaming period:
@@ -250,12 +250,12 @@ In **Scenario 3**, the result is similar to Scenario 2, but with a shorter delay
 We can derive the formula as follows:
 
 ```math
-\text{delay} = t - st - uts_i
+\text{delay} = t - st - uis_i
 ```
 
 The $`\text{unlock\,time}_\text{i}`$ is the time prior to `t`, when the ongoing debt has unlocked a token.
 
-To determine the delay without calculating the constant time, we can reverse engineer it from the _rescaled_ ongoing
+To determine the delay without calculating the constant interval, we can reverse engineer it from the _rescaled_ ongoing
 debt:
 
 ```math
