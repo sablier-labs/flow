@@ -57,11 +57,11 @@ contract FlowAdminHandler is BaseHandler {
     }
 
     /// @dev Function to increase the flow contract balance for the fuzzed token.
-    function randomTransfer(uint256 tokenIndex, uint256 amount) external useFuzzedToken(tokenIndex) setCallerAdmin {
-        vm.assume(amount > 0 && amount < 100);
+    function randomTransfer(uint256 tokenIndex, uint256 amount) external useFuzzedToken(tokenIndex) {
+        vm.assume(amount > 0 && amount < 100e18);
         amount *= 10 ** IERC20Metadata(address(currentToken)).decimals();
 
-        deal({ token: address(currentToken), to: flow.admin(), give: currentToken.balanceOf(address(flow)) + amount });
+        deal({ token: address(currentToken), to: address(flow), give: currentToken.balanceOf(address(flow)) + amount });
     }
 
     function recover(uint256 tokenIndex)
@@ -71,7 +71,7 @@ contract FlowAdminHandler is BaseHandler {
         useFuzzedToken(tokenIndex)
         setCallerAdmin
     {
-        vm.assume(currentToken.balanceOf(address(flow)) - flow.aggregateBalance(currentToken) > 0);
+        vm.assume(currentToken.balanceOf(address(flow)) > flow.aggregateBalance(currentToken));
 
         flow.recover(currentToken, flow.admin());
     }

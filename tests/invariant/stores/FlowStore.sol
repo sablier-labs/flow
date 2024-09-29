@@ -9,7 +9,6 @@ contract FlowStore {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Tokens
     IERC20[] public tokens;
 
     // Stream IDs

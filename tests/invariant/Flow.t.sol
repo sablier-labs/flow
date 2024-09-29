@@ -38,20 +38,20 @@ contract Flow_Invariant_Test is Base_Test {
         flowStore = new FlowStore(tokens);
 
         // Deploy the handlers.
+        flowAdminHandler = new FlowAdminHandler({ flowStore_: flowStore, flow_: flow });
         flowCreateHandler = new FlowCreateHandler({ flowStore_: flowStore, flow_: flow });
         flowHandler = new FlowHandler({ flowStore_: flowStore, flow_: flow });
-        flowAdminHandler = new FlowAdminHandler({ flowStore_: flowStore, flow_: flow });
 
         // Label the contracts.
-        vm.label({ account: address(flowStore), newLabel: "flowStore" });
         vm.label({ account: address(flowAdminHandler), newLabel: "flowAdminHandler" });
         vm.label({ account: address(flowHandler), newLabel: "flowHandler" });
         vm.label({ account: address(flowCreateHandler), newLabel: "flowCreateHandler" });
+        vm.label({ account: address(flowStore), newLabel: "flowStore" });
 
         // Target the flow handlers for invariant testing.
+        targetContract(address(flowAdminHandler));
         targetContract(address(flowCreateHandler));
         targetContract(address(flowHandler));
-        targetContract(address(flowAdminHandler));
 
         // Prevent these contracts from being fuzzed as `msg.sender`.
         excludeSender(address(flow));
@@ -79,7 +79,7 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev For a given token,
-    /// - token balance of the flow contract should equal to the sum of all stream balances and
+    /// - token balance of the flow contract should be greater or equal to the sum of all stream balances and
     /// protocol revenue accrued for that token.
     /// - sum of all stream balances should equal to the sum of all deposited amounts minus the sum of all refunded and
     /// sum of all withdrawn.
@@ -106,7 +106,7 @@ contract Flow_Invariant_Test is Base_Test {
         assertGe(
             contractBalance,
             streamBalancesSum + flow.protocolRevenue(token),
-            unicode"Invariant violation: contract balance != Σ stream balances + protocol revenue"
+            unicode"Invariant violation: contract balance >= Σ stream balances + protocol revenue"
         );
 
         assertEq(
@@ -124,7 +124,7 @@ contract Flow_Invariant_Test is Base_Test {
             assertGe(
                 tokens[i].balanceOf(address(flow)),
                 flow.aggregateBalance(tokens[i]),
-                unicode"Invariant violation: contract balance != aggregate balance"
+                unicode"Invariant violation: contract balance >= aggregate balance"
             );
         }
     }
