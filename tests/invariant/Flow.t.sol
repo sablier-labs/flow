@@ -65,6 +65,32 @@ contract Flow_Invariant_Test is Base_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @dev For any token, the sum of all stream balances plus the protocol revenue should equal the aggregate balance.
+    function invariant_BalancesSumPlusRevenueEqAggregateBalance() external view {
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            tokens[i];
+        }
+    }
+
+    function balancesSumPlusRevenueEqAggregateBalance(IERC20 token) internal view {
+        uint256 streamBalancesSum;
+
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+
+            if (flow.getToken(streamId) == token) {
+                streamBalancesSum += flow.getBalance(streamId);
+            }
+        }
+
+        assertEq(
+            streamBalancesSum + flow.protocolRevenue(token),
+            flow.aggregateBalance(token),
+            unicode"Invariant violation: balance sum + revenue sum != aggregate balance"
+        );
+    }
+
     /// @dev For any stream, `snapshotTime` should never exceed the current block timestamp.
     function invariant_BlockTimestampGeSnapshotTime() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
