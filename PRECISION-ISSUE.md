@@ -5,38 +5,39 @@ receiving the desired streamed amount over a specific time interval.
 
 ### Why we define rps as 18-decimal number
 
-The reason why we have introduced the `rps` as an 18-decimal number is to avoid precision issues, which is explained
-[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues). In this file we will go into more
-details, so we can deduct the delay formula:
+The reason we introduced the `rps` as an 18-decimal number is to avoid precision issues. Please go through the section
+in the [README](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues) first. In this file, we will
+go into more details and examples. From the `README` section, we can deduce the comparison delay formula, which
+calculates the number of seconds within an interval of time that the rate per second in 18 decimals "streams" _more_
+compared to a rate per second in the token’s native decimals.
 
 ```math
-\text{delay} = \frac{ \left( rps_{18} - rps_{\text{deci}}) \cdot \right(T_{\text{range}}) }{rps_{\text{deci}}}
+\text{comparison\_delay} = \frac{ ( rps_{18} - rps_{\text{deci}}) \cdot T_{\text{interval}} }{rps_{\text{deci}}}
 ```
 
-Using the `rps` with 6 decimals for 10 USDC per day ( $rps_{18} = 0.000115740740740740$ and
-$rps_{\text{deci}} = 0.000115$), we would have the delays:
+Using the same `rps` values from the `README` example $`rps_{18}$ and $rps_{6}`$, we would have the delay for one day:
 
-- 1 day: 10 - 9.936 = 0.064 ~9.3 minutes
+```math
+\text{comparison\_delay} = \frac{ (0.000115740740740740 - 0.000115)\cdot 86400}{0.000115} \approx 556 \, \text{seconds}
+```
+
+So, we would have these delays for these different time intervals:
+
+- 1 day: ~9.3 minutes
 - 7 days: ~1 hour, 5 minutes
 - 30 days: ~4 hours, 38 minutes
 - 1 year: ~2 days, 8 hours
 
-Using the rps with 18 decimals:
-
-- 1 day: ~0.0000000000005536 seconds
-- 7 days: ~0.000000000003872 seconds
-- 30 days: ~0.000000000012168 seconds
-- 1 year: ~0.000000000414 seconds
-
-Besides the delay problem, other issue for `rps` in token decimals would be, for tokens with a very high price to USD
-(and ofc. if it has 6 decimals), the sender wouldn't be able to pay a reasonable amount. Let's say WBTC with 6 decimals,
-the minimum value that `rps` could hold is `0.000001e6` which leads to `0.0864WBTC = 5184$` per day (price taken at
-60000$ for one BTC). Which is a lot of money.
+Besides the delay issue, another problem with using `rps` in token's decimals is that for tokens with a very high price
+relative to USD (and ofc. if they have 6 decimals), the sender wouldn’t be able to pay a reasonable amount. For example,
+take `WBTC` with 6 decimals—the minimum value that rps could hold is `0.000001e6`, which leads to `0.0864 WBTC = $5184`
+per day (assuming a price of 60,000 USD for one BTC). Which is a lot of money.
 
 For the reasons mentioned above, we can say that using the 18-decimal format for `rps` is the correct choice.
 
 To properly transfer tokens after calculations in 18 decimals, we need to descale it back to the token's native
-decimals. The process of descaling involves dividing the amount calculated in 18 decimals by $`10^{18 - decimals}`$.
+decimals. The process of descaling involves dividing the amount streamed calculated in 18 decimals by
+$`10^{18 - deci}`$.
 
 However, we realized that descaling can introduce a precision issue—a more nuanced one, since it requires an `rps`
 smaller than `mvt = 0.000001e6` (the minimum value transferable), which **wouldn't have been possible** if we had kept
@@ -255,7 +256,7 @@ We can derive the formula as follows:
 
 The $`\text{unlock\,time}_\text{i}`$ is the time prior to `t`, when the ongoing debt has unlocked a token.
 
-To determine the delay without calculating the constant interval, we can reverse engineer it from the _rescaled_ ongoing
+To determine the delay without calculating the unlock interval, we can reverse engineer it from the _rescaled_ ongoing
 debt:
 
 ```math
