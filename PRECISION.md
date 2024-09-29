@@ -1,64 +1,66 @@
 ## About precision
 
-**Note:** none of these issues should lead to a loss of funds, but they may result in a better or worse experience in
-receiving the desired streamed amount over a specific time interval.
+**Note:** none of these issues should lead to a loss of funds, but they may affect the streaming experience (i.e. receiving a certain sum of money over a certain amount of time) for better or worse.
 
 ### Why we define rps as 18-decimal number
 
-The reason why we have introduced the `rps` as an 18-decimal number is to avoid precision issues, which is explained
-[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues). In this file we will go into more
-details, so we can deduct the delay formula:
+The motivation for having the `rps` as an 18-decimal number is to minimize the precision-related issues (explained
+[here](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues)). In what follows, we will go into more
+details, explaining the reasoning behind the delay formula:
+
+**Suggestion**: *give more info about what the formula represents*
 
 ```math
-\text{delay} = \frac{ \left( rps_{18} - rps_{\text{deci}}) \cdot \right(T_{\text{range}}) }{rps_{\text{deci}}}
+\text{delay} = \frac{ \left( rps_{18} - rps_{\text{6}}) \cdot \right(T_{\text{range}}) }{rps_{\text{6}}}
 ```
 
-Using the `rps` with 6 decimals for 10 USDC per day ( $rps_{18} = 0.000115740740740740$ and
-$rps_{\text{deci}} = 0.000115$), we would have the delays:
+**Suggestion**: *annotate the formula terms*
+
+When streaming an amount of 10 USDC/day, representing the `rps` internally with 6 decimals (i.e. $rps_{\text{6}} = 0.000115$) would produce/result in the following delays (i.e. the extra amount of time *t* that will need to pass in order for the whole amount allocated for the respective time *T* to have been fully streamed):
 
 - 1 day: 10 - 9.936 = 0.064 ~9.3 minutes
 - 7 days: ~1 hour, 5 minutes
 - 30 days: ~4 hours, 38 minutes
 - 1 year: ~2 days, 8 hours
 
-Using the rps with 18 decimals:
+Streaming the same amount per day, while representing the `rps` internally with 18 decimals (i.e. $rps_{18} = 0.000115740740740740$), however, would result in way smaller "delays":
 
 - 1 day: ~0.0000000000005536 seconds
 - 7 days: ~0.000000000003872 seconds
 - 30 days: ~0.000000000012168 seconds
 - 1 year: ~0.000000000414 seconds
 
-Besides the delay problem, other issue for `rps` in token decimals would be, for tokens with a very high price to USD
-(and ofc. if it has 6 decimals), the sender wouldn't be able to pay a reasonable amount. Let's say WBTC with 6 decimals,
-the minimum value that `rps` could hold is `0.000001e6` which leads to `0.0864WBTC = 5184$` per day (price taken at
-60000$ for one BTC). Which is a lot of money.
+**Suggestion:** *refer to the "delay" as "finality delay"?*
 
-For the reasons mentioned above, we can say that using the 18-decimal format for `rps` is the correct choice.
+Besides the delay problem, going for a 6-decimal `rps` would also result in a poor UX when streaming a high-value token. This is due to the fact that the minimum streamable amount (per second) would be `0.000001e6` (i.e. the smallest non-zero number representable via 6 decimals). If we take `WBTC`, for example, and peg it to $60,000, then, the former would translate into a system that doesn't support streaming *any less than* `$60,000 * 0.000001 = $0.06` per second, or `5184$` per day. Clearly not the most inclusive product offering.
 
-To properly transfer tokens after calculations in 18 decimals, we need to descale it back to the token's native
-decimals. The process of descaling involves dividing the amount calculated in 18 decimals by $`10^{18 - decimals}`$.
+For the reasons above, we can say that the 18-decimal `rps` format is better than the 6-decimal one.
 
-However, we realized that descaling can introduce a precision issue—a more nuanced one, since it requires an `rps`
-smaller than `mvt = 0.000001e6` (the minimum value transferable), which **wouldn't have been possible** if we had kept
-the `rps` in the token's native decimals.
+**Suggestion:** *encapsulate the 2 paragraphs below into a separate chapter*
 
-### About descaling problem
+To properly stream the tokens - given the 18-decimal-based inner calculations - we need to descale the amount back to the token's native decimals (i.e. divide the 18-decimals-based amount by $`10^{18 - decimals}`$).
 
-> [!IMPORTANT]  
-> Third condition is crucial in this problem.
+The descaling, however, introduces another (and a more nuanced) precision issue, since it involves going from a higher-precision number representation - to a lower-precision one. As a result, if the streamed amount (i.e. the `rps`) isn't perfectly divisible by the minimum non-zero value that can be represented by the native decimals of the token (i.e. $`10^{-decimals}), then, the remainder amount resulting from the aforementioned division will not be available to the Stream recipient at this time. However, as the time passes and more tokens are being streamed, that remainder amount will have been fully streamed to the recipient.
 
-We have the conditions under a problem appears (continuing with the USDC example):
+Notably, this problem may occur multiple times throughout the lifetime of a Flow Stream, but, nonetheless, the following 2 statements hold true:
+1. the entirety of the streamed amount will be available to the recipient by the end of the Stream's lifetime and
+2. the maximum amount by which the recipient may be temporarily "understreamed" is $`10^{-decimals}` - `10^{-(decimals+1)}`$
 
+### About the descaling problem
+
+The problem described above appears when the following 3 conditions are met:
 1. `rps` is scaled to 18 decimals
-2. token has less than 18 decimals
+2. the streamed token has less than 18 decimals
 3. `rps` has non-zero digits to the right of `mvt` [^1]
 
-Having a low `rps` results in a range of time $`[t_0,t_1]`$, where the ongoing debt remains _constant_, with $`t_0`$ and
-$`t_1`$ representing timestamps.
+> [!IMPORTANT]  
+> The third condition above is the crucial part.
 
-Let's consider the `rps = 0.000000_011574e18`. Rate for 10 tokens streamed per day.
+Having a "small" `rps` results in a range of time $`[t_0,t_1]`$ ($`t_0`$ and $`t_1`$ representing timestamps) during which the "ongoing debt" remains _constant_ (i.e. doesn't increase).
 
-We need to find the number of seconds at which the ongoing debt is increasing:
+Continuing with `USDC` as the streamed token, let's consider a Stream with `rps = 0.000000_011574e18` (the rate per second for 0.0009999936 tokens streamed per day).
+
+Here's how to determine the period number of seconds that need to pass for the "ongoing debt" of our Stream to increase in terms of the decimals of the streamed token (and not just our inner 18-decimals calculations):
 
 ```math
 \left.
@@ -78,12 +80,14 @@ We need to find the number of seconds at which the ongoing debt is increasing:
 \text{unlock\_time} = \frac{10^{12}}{1.11574 \cdot 10^{10}} \approx 86.4 \, \text{seconds}
 ```
 
-**Important:** As the smallest unit of time in Solidity are seconds, and there are _no rational numbers_, we would have
-_two possible_ solutions for our unlock time, in order to get one token unlocked:
+**Important:** As the smallest unit of time in Solidity is a second, and there are _no rational numbers_, we would have
+_two possible_ candidates for our "unlock time" (as the time at which the 6-decimal `mvt` of `0.000001e6` tokens is unlocked):
 
 ```math
 \text{unlock\_time}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_time} \right\rfloor, \left\lceil \text{unlock\_time} \right\rceil \right\} = \{86, 87\}
 ```
+
+**Finding:** *why doesn't the "constant time" equal to the "unlock time"?
 
 From this, we can calculate the constant time, which represents the maximum number of seconds that, if a token has just
 been unlocked, the ongoing debt will return the same amount.
