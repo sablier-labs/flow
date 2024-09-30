@@ -153,31 +153,32 @@ Currently, it's not possible to address this precision problem entirely.
 
 2. for a given token:
 
+   - $\sum$ stream balances + protocol revenue = aggregate balance
    - token.balanceOf(SablierFlow) $`\ge \sum`$ stream balances + flow.protocolRevenue(token)
    - $\sum$ stream balances = $\sum$ deposited amount - $\sum$ refunded amount - $\sum$ withdrawn amount
-   - $\sum$ stream balances + protocol revenue = aggregate balance
-   - `token.balanceOf(SablierFlow)` $\ge$ flow.aggregateBalance(token)
 
-3. snapshot time should never decrease
+3. For a given token, token.balanceOf(SablierFlow) $\ge$ flow.aggregateBalance(token)
 
-4. for any stream, if $ud > 0 \implies cd = bal$
+4. snapshot time should never decrease
 
-5. if $rps \gt 0$ and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
+5. for any stream, if $ud > 0 \implies cd = bal$
 
-6. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
+6. if $rps \gt 0$ and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
 
-7. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
+7. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
 
-8. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
+8. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
-9. next stream id = current stream id + 1
+9. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
 
-10. if $` ud = 0 \implies cd = td`$
+10. next stream id = current stream id + 1
 
-11. $bal = ra + cd$
+11. if $` ud = 0 \implies cd = td`$
 
-12. if $isPaused = true \implies rps = 0$
+12. $bal = ra + cd$
 
-13. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
+13. if $isPaused = true \implies rps = 0$
 
-14. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.
+14. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
+
+15. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.

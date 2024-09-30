@@ -65,32 +65,6 @@ contract Flow_Invariant_Test is Base_Test {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For any token, the sum of all stream balances plus the protocol revenue should equal the aggregate balance.
-    function invariant_BalancesSumPlusRevenueEqAggregateBalance() external view {
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            tokens[i];
-        }
-    }
-
-    function balancesSumPlusRevenueEqAggregateBalance(IERC20 token) internal view {
-        uint256 streamBalancesSum;
-
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-
-            if (flow.getToken(streamId) == token) {
-                streamBalancesSum += flow.getBalance(streamId);
-            }
-        }
-
-        assertEq(
-            streamBalancesSum + flow.protocolRevenue(token),
-            flow.aggregateBalance(token),
-            unicode"Invariant violation: balance sum + revenue sum != aggregate balance"
-        );
-    }
-
     /// @dev For any stream, `snapshotTime` should never exceed the current block timestamp.
     function invariant_BlockTimestampGeSnapshotTime() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
@@ -105,18 +79,19 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev For a given token,
+    /// - the sum of all stream balances plus the protocol revenue should equal the aggregate balance.
     /// - token balance of the flow contract should be greater or equal to the sum of all stream balances and
     /// protocol revenue accrued for that token.
     /// - sum of all stream balances should equal to the sum of all deposited amounts minus the sum of all refunded and
     /// sum of all withdrawn.
-    function invariant_ContractBalanceEqStreamBalancesAndProtocolRevenue() external view {
+    function invariant_ContractBalanceStreamBalancesProtocolRevenue() external view {
         // Check the invariant for each token.
         for (uint256 i = 0; i < tokens.length; ++i) {
-            contractBalanceEqStreamBalancesAndProtocolRevenue(tokens[i]);
+            contractBalanceStreamBalancesProtocolRevenue(tokens[i]);
         }
     }
 
-    function contractBalanceEqStreamBalancesAndProtocolRevenue(IERC20 token) internal view {
+    function contractBalanceStreamBalancesProtocolRevenue(IERC20 token) internal view {
         uint256 contractBalance = token.balanceOf(address(flow));
         uint256 streamBalancesSum;
 
@@ -129,6 +104,12 @@ contract Flow_Invariant_Test is Base_Test {
             }
         }
 
+        assertEq(
+            streamBalancesSum + flow.protocolRevenue(token),
+            flow.aggregateBalance(token),
+            unicode"Invariant violation: balance sum + revenue sum == aggregate balance"
+        );
+
         assertGe(
             contractBalance,
             streamBalancesSum + flow.protocolRevenue(token),
@@ -139,13 +120,13 @@ contract Flow_Invariant_Test is Base_Test {
             streamBalancesSum,
             flowStore.depositedAmountsSum(token) - flowStore.refundedAmountsSum(token)
                 - flowStore.withdrawnAmountsSum(token),
-            "Invariant violation: streamBalancesSum != depositedAmountsSum - refundedAmountsSum - withdrawnAmountsSum"
+            "Invariant violation: streamBalancesSum == depositedAmountsSum - refundedAmountsSum - withdrawnAmountsSum"
         );
     }
 
-    /// @dev For a given token, token balance of the flow contract should equal to the stored value of aggregate
-    /// balance.
-    function invariant_ContractBalanceEqAggregateBalance() external view {
+    /// @dev For a given token, token balance of the flow contract should be greater than or equal to the stored value
+    /// of aggregate balance.
+    function invariant_ContractBalanceGeAggregateBalance() external view {
         for (uint256 i = 0; i < tokens.length; ++i) {
             assertGe(
                 tokens[i].balanceOf(address(flow)),
@@ -177,7 +158,7 @@ contract Flow_Invariant_Test is Base_Test {
                 assertEq(
                     flow.coveredDebtOf(streamId),
                     flow.getBalance(streamId),
-                    "Invariant violation: covered debt != balance"
+                    "Invariant violation: covered debt == balance"
                 );
             }
         }
@@ -223,7 +204,7 @@ contract Flow_Invariant_Test is Base_Test {
             assertGe(
                 flowStore.depositedAmounts(streamId),
                 flowStore.refundedAmounts(streamId) + flowStore.withdrawnAmounts(streamId),
-                "Invariant violation: deposited amount < refunded amount + withdrawn amount"
+                "Invariant violation: deposited amount >= refunded amount + withdrawn amount"
             );
         }
     }
@@ -239,7 +220,7 @@ contract Flow_Invariant_Test is Base_Test {
             assertGe(
                 depositedAmountsSum,
                 refundedAmountsSum + withdrawnAmountsSum,
-                "Invariant violation: deposited amounts sum < refunded amounts sum + withdrawn amounts sum"
+                "Invariant violation: deposited amounts sum >= refunded amounts sum + withdrawn amounts sum"
             );
         }
     }
@@ -263,7 +244,7 @@ contract Flow_Invariant_Test is Base_Test {
                 assertEq(
                     flow.coveredDebtOf(streamId),
                     flow.totalDebtOf(streamId),
-                    "Invariant violation: paused stream covered debt != snapshot debt"
+                    "Invariant violation: paused stream covered debt == snapshot debt"
                 );
             }
         }
@@ -277,7 +258,7 @@ contract Flow_Invariant_Test is Base_Test {
             assertEq(
                 flow.getBalance(streamId),
                 flow.coveredDebtOf(streamId) + flow.refundableAmountOf(streamId),
-                "Invariant violation: stream balance != covered debt + refundable amount"
+                "Invariant violation: stream balance == covered debt + refundable amount"
             );
         }
     }
