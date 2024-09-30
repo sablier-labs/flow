@@ -446,7 +446,7 @@ contract SablierFlow is
         uint40 blockTimestamp = uint40(block.timestamp);
         uint40 snapshotTime = _streams[streamId].snapshotTime;
 
-        // Check: if the stream is paused or the `block.timestamp` is less than the `snapshotTime`.
+        // Check: if the stream has zero rps or the `block.timestamp` is less than the `snapshotTime`.
         if (_streams[streamId].ratePerSecond.unwrap() == 0 || blockTimestamp <= snapshotTime) {
             return 0;
         }
@@ -708,7 +708,7 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _restart(uint256 streamId, UD21x18 ratePerSecond) internal {
-        // Check: the stream is paused.
+        // Check: the stream is not paused.
         if (_streams[streamId].ratePerSecond.unwrap() != 0) {
             revert Errors.SablierFlow_StreamNotPaused(streamId);
         }
