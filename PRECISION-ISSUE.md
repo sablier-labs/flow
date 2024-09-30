@@ -15,7 +15,8 @@ compared to a rate per second in the token’s native decimals.
 \text{comparison\_delay} = \frac{ ( rps_{18} - rps_{\text{deci}}) \cdot T_{\text{interval}} }{rps_{\text{deci}}}
 ```
 
-Using the same `rps` values from the `README` example $`rps_{18}$ and $rps_{6}`$, we would have the delay for one day:
+Using the same `rps` values from the `README` example $`rps_{18} \, and \, rps_{6}`$, we would have the delay for one
+day:
 
 ```math
 \text{comparison\_delay} = \frac{ (0.000115740740740740 - 0.000115)\cdot 86400}{0.000115} \approx 556 \, \text{seconds}
