@@ -17,7 +17,6 @@ struct Stream {
   UD21x18 ratePerSecond;
   address sender;
   uint40 snapshotTime;
-  bool isPaused;
   bool isStream;
   bool isTransferable;
   IERC20 token;
@@ -177,8 +176,11 @@ Currently, it's not possible to address this precision problem entirely.
 
 12. $bal = ra + cd$
 
-13. if $isPaused = true \implies rps = 0$
+13. for any non-voided stream, if $rps = 0 \implies isPaused = 0$ and Flow.Status is either PAUSED_SOLVENT or
+    PAUSED_INSOLVENT.
 
-14. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
+14. if $isPaused = true \implies rps = 0$
 
-15. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.
+15. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
+
+16. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.

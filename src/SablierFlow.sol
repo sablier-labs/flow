@@ -123,7 +123,7 @@ contract SablierFlow is
         // See whether the stream has uncovered debt.
         bool hasDebt = _uncoveredDebtOf(streamId) > 0;
 
-        if (_streams[streamId].isPaused) {
+        if (_streams[streamId].ratePerSecond.unwrap() == 0) {
             // If the stream is paused and has uncovered debt, return PAUSED_INSOLVENT.
             if (hasDebt) {
                 return Flow.Status.PAUSED_INSOLVENT;
@@ -447,7 +447,7 @@ contract SablierFlow is
         uint40 snapshotTime = _streams[streamId].snapshotTime;
 
         // Check: if the stream is paused or the `block.timestamp` is less than the `snapshotTime`.
-        if (_streams[streamId].isPaused || blockTimestamp <= snapshotTime) {
+        if (_streams[streamId].ratePerSecond.unwrap() == 0 || blockTimestamp <= snapshotTime) {
             return 0;
         }
 
@@ -579,7 +579,6 @@ contract SablierFlow is
         // Effect: create the stream.
         _streams[streamId] = Flow.Stream({
             balance: 0,
-            isPaused: false,
             isStream: true,
             isTransferable: transferable,
             isVoided: false,
@@ -650,15 +649,13 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
-        // Effect: update the snapshot debt.
+        // Effect: update the snapshot debt and snapshot time.
         uint128 ongoingDebt = _ongoingDebtOf(streamId);
         _streams[streamId].snapshotDebt += ongoingDebt;
+        _streams[streamId].snapshotTime = uint40(block.timestamp);
 
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = ud21x18(0);
-
-        // Effect: set the stream as paused.
-        _streams[streamId].isPaused = true;
 
         // Log the pause.
         emit ISablierFlow.PauseFlowStream({
@@ -712,7 +709,7 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _restart(uint256 streamId, UD21x18 ratePerSecond) internal {
         // Check: the stream is paused.
-        if (!_streams[streamId].isPaused) {
+        if (_streams[streamId].ratePerSecond.unwrap() != 0) {
             revert Errors.SablierFlow_StreamNotPaused(streamId);
         }
 
@@ -723,9 +720,6 @@ contract SablierFlow is
 
         // Effect: set the rate per second.
         _streams[streamId].ratePerSecond = ratePerSecond;
-
-        // Effect: set the stream as not paused.
-        _streams[streamId].isPaused = false;
 
         // Effect: update the snapshot time.
         _streams[streamId].snapshotTime = uint40(block.timestamp);
@@ -753,11 +747,11 @@ contract SablierFlow is
         // Effect: update the total debt by setting snapshot debt to the stream balance.
         _streams[streamId].snapshotDebt = balance;
 
+        // Effect: update the snapshot time.
+        _streams[streamId].snapshotTime = uint40(block.timestamp);
+
         // Effect: set the rate per second to zero.
         _streams[streamId].ratePerSecond = ud21x18(0);
-
-        // Effect: set the stream as paused. This also sets the ongoing debt to zero.
-        _streams[streamId].isPaused = true;
 
         // Effect: set the stream as voided.
         _streams[streamId].isVoided = true;
