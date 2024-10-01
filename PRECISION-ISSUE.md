@@ -190,7 +190,7 @@ def find_unlock_times(rps, elt):
 ```
 
 <a name="unlock-time-results"></a> If we call the function with `rps = 0.000000011574e18` and `elt = 300`, the function
-will return `[87, 173, 260]`, which represents the exact seconds at which new tokens are unlocked.
+will return $`uts_3 = \{87, 173, 260\}`$, which represents the exact seconds at which new tokens are unlocked.
 
 <a name="t-calculations"></a> For example, assume a stream was created on October 1st, i.e. `st = 1727740800`, until the
 first token is unlocked (87 seconds in the future), we will have $`t_0 = \text{unix} = 1727740800`$ and

@@ -38,19 +38,19 @@ recipient can only withdraw the available balance.
 
 ## Abbreviations
 
-| Variable         | Abbreviation |
-| ---------------- | ------------ |
-| totalDebt        | td           |
-| ongoingDebt      | od           |
-| snapshotDebt     | sd           |
-| snapshotTime     | st           |
-| uncoveredDebt    | ud           |
-| refundableAmount | ra           |
-| coveredDebt      | cd           |
-| balance          | bal          |
-| block.timestamp  | now          |
-| ratePerSecond    | rps          |
-| elapsedTime      | elt          |
+| Terms                       | Abbreviation |
+| --------------------------- | ------------ |
+| Total Debt                  | td           |
+| Ongoing Debt                | od           |
+| Snapshot Debt               | sd           |
+| Snapshot Time               | st           |
+| Uncovered Debt              | ud           |
+| Refundable Amount           | ra           |
+| Covered Debt                | cd           |
+| Stream Balance              | bal          |
+| block timestamp             | now          |
+| Rate per second             | rps          |
+| Time elapsed since snapshot | elt          |
 
 ## Core components
 
