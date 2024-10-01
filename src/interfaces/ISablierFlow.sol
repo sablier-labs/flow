@@ -184,7 +184,6 @@ interface ISablierFlow is
     /// - Must not be delegate called.
     /// - `sender` must not be the zero address.
     /// - `recipient` must not be the zero address.
-    /// - `ratePerSecond` must be greater than zero.
     /// - The `token`'s decimals must be less than or equal to 18.
     ///
     /// @param sender The address streaming the tokens, which is able to adjust and pause the stream. It doesn't

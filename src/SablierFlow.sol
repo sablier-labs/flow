@@ -561,11 +561,6 @@ contract SablierFlow is
             revert Errors.SablierFlow_SenderZeroAddress();
         }
 
-        // Check: the rate per second is not zero.
-        if (ratePerSecond.unwrap() == 0) {
-            revert Errors.SablierFlow_RatePerSecondZero();
-        }
-
         uint8 tokenDecimals = IERC20Metadata(address(token)).decimals();
 
         // Check: the token decimals are not greater than 18.
