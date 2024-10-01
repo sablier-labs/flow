@@ -13,13 +13,13 @@
 | Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT`     | Debt is accruing.     |
 | Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`, `VOIDED` | Debt is not accruing. |
 
-| Status                | Description                                                      |
-| --------------------- | ---------------------------------------------------------------- |
-| `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt.                |
-| `STREAMING_INSOLVENT` | Streaming stream when there is no uncovered debt.                |
-| `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.                   |
-| `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.                      |
-| `VOIDED`              | Paused stream with no uncovered debt and it cannot be restarted. |
+| Status                | Description                                                             |
+| --------------------- | ----------------------------------------------------------------------- |
+| `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt.                       |
+| `STREAMING_INSOLVENT` | Streaming stream when there is uncovered debt.                          |
+| `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.                          |
+| `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.                             |
+| `VOIDED`              | Paused stream with forfeited uncovered debt and it cannot be restarted. |
 
 ### Statuses diagram
 
@@ -115,13 +115,13 @@ flowchart LR
 
     RFD -- "update bal (-)" --> BOTH
 
-    PS -- "update sd (+od)<br/>update rps (0)" --> STR
+    PS -- "update sd (+od)<br/>update rps (0)<br/>update st" --> STR
 
     BOTH --> STR & PSED
 
     RST -- "update rps<br/>update st" --> PSED
 
-    VD -- "update sd (bal)<br/>update rps (0)" --> BOTH
+    VD -- "update sd (bal)<br/>update rps (0)<br/>update st" --> BOTH
 
     WTD -- "update sd (-)<br/>update st<br/>update bal (-)" --> BOTH
     WTD -- "update sd (-)" --> VOID
@@ -169,8 +169,8 @@ flowchart LR
 flowchart LR
     erc_transfers[(ERC20 Transfer Actions)]:::red
     dep([Deposit - add]):::red
-    ref([Refund - extract]):::red
-    wtd([Withdraw - extract]):::red
+    ref([Refund - remove]):::red
+    wtd([Withdraw - remove]):::red
 
     erc_transfers --> dep
     erc_transfers --> ref
@@ -195,8 +195,8 @@ res_01([0 ]):::green1
 res_rca(["rps * elt"]):::green1
 
 rca --> di0
-di0 -- "streaming" --> di1
-di0 -- "paused" --> res_00
+di0 -- "rps > 0" --> di1
+di0 -- "rps == 0" --> res_00
 di1 -- "now <= st" --> res_01
 di1 -- "now > st" --> res_rca
 
@@ -204,12 +204,29 @@ classDef green0 fill:#98FB98,stroke:#333,stroke-width:2px;
 classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
 ```
 
+### Uncovered Debt
+
+**Notes:** A non-zero uncovered debt implies:
+
+1. `bal < sd` when the status is `PAUSED`
+2. `bal < sd + od` when the status is `STREAMING`
+
+```mermaid
+flowchart TD
+    di0{ }:::red1
+    sd([Uncovered Debt - ud]):::red0
+    res_sd(["td- bal"]):::red1
+    res_zero([0]):::red1
+
+    sd --> di0
+    di0 -- "bal < td" --> res_sd
+    di0 -- "bal >= td" --> res_zero
+
+    classDef red0 fill:#EA6B66,stroke:#333,stroke-width:2px;
+    classDef red1 fill:#FFCCCC,stroke:#333,stroke-width:2px;
+```
+
 ### Covered debt
-
-**Notes:** Uncovered debt greater than zero means:
-
-1. `sd > bal` when the status is `PAUSED`
-2. `sd + od > bal` when the status is `STREAMING`
 
 ```mermaid
 flowchart TD
@@ -246,23 +263,5 @@ flowchart TD
 
     classDef orange0 fill:#FFA500,stroke:#333,stroke-width:2px;
     classDef orange1 fill:#FFCD28,stroke:#333,stroke-width:2px;
-
-```
-
-### Uncovered Debt
-
-```mermaid
-flowchart TD
-    di0{ }:::red1
-    sd([Uncovered Debt - ud]):::red0
-    res_sd(["td- bal"]):::red1
-    res_zero([0]):::red1
-
-    sd --> di0
-    di0 -- "bal < td" --> res_sd
-    di0 -- "bal >= td" --> res_zero
-
-    classDef red0 fill:#EA6B66,stroke:#333,stroke-width:2px;
-    classDef red1 fill:#FFCCCC,stroke:#333,stroke-width:2px;
 
 ```
