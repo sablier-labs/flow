@@ -43,6 +43,14 @@ abstract contract Modifiers {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
+                               ADJUST-RATE-PER-SECOND
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier whenNewRatePerSecondNotEqualsCurrentRatePerSecond() {
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
                                        CREATE
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -55,6 +63,10 @@ abstract contract Modifiers {
     }
 
     modifier whenTokenImplementsDecimals() {
+        _;
+    }
+
+    modifier whenRecipientNotAddressZero() {
         _;
     }
 

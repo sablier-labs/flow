@@ -15,7 +15,10 @@ Create_Integration_Concrete_Test
             ├── when recipient address zero
             │  └── it should revert
             └── when recipient not address zero
-               ├── it should create the stream
-               ├── it should bump the next stream id
-               ├── it should mint the NFT
-               └── it should emit 1 {MetadataUpdate}, 1 {CreateFlowStream} and 1 {Transfer} events
+               ├── when rate per second zero
+               │  └── it should create a paused stream
+               └── when rate per second not zero
+                  ├── it should create a streaming stream
+                  ├── it should bump the next stream id
+                  ├── it should mint the NFT
+                  └── it should emit 1 {MetadataUpdate}, 1 {CreateFlowStream} and 1 {Transfer} events
