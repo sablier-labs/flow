@@ -69,12 +69,10 @@ contract SablierFlow is
             return 0;
         }
 
-        uint128 ongoingDebt = _ongoingDebtOf(streamId);
         uint128 snapshotDebt = _streams[streamId].snapshotDebt;
-        uint128 totalDebt = snapshotDebt + ongoingDebt;
 
         // If the stream has debt, return zero.
-        if (totalDebt >= balance) {
+        if (snapshotDebt + _ongoingDebtOf(streamId) >= balance) {
             return 0;
         }
 
@@ -186,8 +184,18 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
+        UD21x18 oldRatePerSecond = _streams[streamId].ratePerSecond;
+
         // Effects and Interactions: adjust the rate per second.
         _adjustRatePerSecond(streamId, newRatePerSecond);
+
+        // Log the adjustment.
+        emit ISablierFlow.AdjustFlowStream({
+            streamId: streamId,
+            totalDebt: _streams[streamId].snapshotDebt,
+            oldRatePerSecond: oldRatePerSecond,
+            newRatePerSecond: newRatePerSecond
+        });
     }
 
     /// @inheritdoc ISablierFlow
@@ -446,8 +454,10 @@ contract SablierFlow is
         uint40 blockTimestamp = uint40(block.timestamp);
         uint40 snapshotTime = _streams[streamId].snapshotTime;
 
-        // Check: if the stream has zero rps or the `block.timestamp` is less than the `snapshotTime`.
-        if (_streams[streamId].ratePerSecond.unwrap() == 0 || blockTimestamp <= snapshotTime) {
+        uint128 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
+
+        // Check:if the rate per second is zero or the `block.timestamp` is less than the `snapshotTime`.
+        if (ratePerSecond == 0 || blockTimestamp <= snapshotTime) {
             return 0;
         }
 
@@ -462,7 +472,7 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
 
         // Calculate the ongoing debt accrued by multiplying the elapsed time by the rate per second.
-        uint128 scaledOngoingDebt = elapsedTime * _streams[streamId].ratePerSecond.unwrap();
+        uint128 scaledOngoingDebt = elapsedTime * ratePerSecond;
 
         // If the token decimals are 18, return the scaled ongoing debt and the `block.timestamp`.
         if (tokenDecimals == 18) {
@@ -486,11 +496,8 @@ contract SablierFlow is
     /// @dev The total debt is the sum of the snapshot debt and the ongoing debt. This value is independent of the
     /// stream's balance.
     function _totalDebtOf(uint256 streamId) internal view returns (uint128) {
-        // Calculate the ongoing debt streamed since last snapshot.
-        uint128 ongoingDebt = _ongoingDebtOf(streamId);
-
         // Calculate the total debt.
-        return _streams[streamId].snapshotDebt + ongoingDebt;
+        return _streams[streamId].snapshotDebt + _ongoingDebtOf(streamId);
     }
 
     /// @dev Calculates the uncovered debt.
@@ -512,37 +519,24 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _adjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) internal {
-        // Check: the new rate per second is not zero.
-        if (newRatePerSecond.unwrap() == 0) {
-            revert Errors.SablierFlow_RatePerSecondZero();
-        }
-
-        UD21x18 oldRatePerSecond = _streams[streamId].ratePerSecond;
-
         // Check: the new rate per second is different from the current rate per second.
-        if (newRatePerSecond.unwrap() == oldRatePerSecond.unwrap()) {
+        if (newRatePerSecond.unwrap() == _streams[streamId].ratePerSecond.unwrap()) {
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        //  Calculate the ongoing debt.
         uint128 ongoingDebt = _ongoingDebtOf(streamId);
 
-        // Effect: update the snapshot debt.
-        _streams[streamId].snapshotDebt += ongoingDebt;
+        // Update the snapshot debt only if the stream has ongoing debt.
+        if (ongoingDebt > 0) {
+            // Effect: update the snapshot debt.
+            _streams[streamId].snapshotDebt += ongoingDebt;
+        }
 
         // Effect: update the snapshot time.
         _streams[streamId].snapshotTime = uint40(block.timestamp);
 
         // Effect: set the new rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
-
-        // Log the adjustment.
-        emit ISablierFlow.AdjustFlowStream({
-            streamId: streamId,
-            totalDebt: _streams[streamId].snapshotDebt,
-            oldRatePerSecond: oldRatePerSecond,
-            newRatePerSecond: newRatePerSecond
-        });
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
@@ -644,13 +638,7 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
-        // Effect: update the snapshot debt and snapshot time.
-        uint128 ongoingDebt = _ongoingDebtOf(streamId);
-        _streams[streamId].snapshotDebt += ongoingDebt;
-        _streams[streamId].snapshotTime = uint40(block.timestamp);
-
-        // Effect: set the rate per second to zero.
-        _streams[streamId].ratePerSecond = ud21x18(0);
+        _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ud21x18(0) });
 
         // Log the pause.
         emit ISablierFlow.PauseFlowStream({
@@ -708,16 +696,8 @@ contract SablierFlow is
             revert Errors.SablierFlow_StreamNotPaused(streamId);
         }
 
-        // Check: the rate per second is not zero.
-        if (ratePerSecond.unwrap() == 0) {
-            revert Errors.SablierFlow_RatePerSecondZero();
-        }
-
-        // Effect: set the rate per second.
-        _streams[streamId].ratePerSecond = ratePerSecond;
-
-        // Effect: update the snapshot time.
-        _streams[streamId].snapshotTime = uint40(block.timestamp);
+        // Checks and Effects: update the rate per second and the snapshot time.
+        _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ratePerSecond });
 
         // Log the restart.
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);

@@ -168,7 +168,7 @@ interface ISablierFlow is
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null or a paused stream.
     /// - `msg.sender` must be the stream's sender.
-    /// - `newRatePerSecond` must be greater than zero and not equal to the current rate per second.
+    /// - `newRatePerSecond` must not equal to the current rate per second.
     ///
     /// @param streamId The ID of the stream to adjust.
     /// @param newRatePerSecond The new payment rate per second, denoted as a fixed-point number where 1e18 is 1 token

@@ -42,8 +42,7 @@ stateDiagram-v2
     PAUSED_SOLVENT --> STREAMING_SOLVENT : restart
     PAUSED_INSOLVENT --> STREAMING_INSOLVENT : restart
 
-    NULL --> STREAMING_SOLVENT : create (rps > 0)
-    NULL --> PAUSED_SOLVENT : create (rps = 0)
+    NULL --> STREAMING_SOLVENT : create
 
     NULL:::grey
     Streaming:::lightGreen

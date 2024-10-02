@@ -176,11 +176,14 @@ Currently, it's not possible to address this precision problem entirely.
 
 12. $bal = ra + cd$
 
-13. for any non-voided stream, if $rps = 0 \implies isPaused = 0$ and Flow.Status is either PAUSED_SOLVENT or
+13. for any non-voided stream, if $rps \gt 0 \implies isPaused = false$ and Flow.Status is either STREAMING_SOLVENT or
+    STREAMING_INSOLVENT.
+
+14. for any non-voided stream, if $rps = 0 \implies isPaused = true$ and Flow.Status is either PAUSED_SOLVENT or
     PAUSED_INSOLVENT.
 
-14. if $isPaused = true \implies rps = 0$
+15. if $isPaused = true \implies rps = 0$
 
-15. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
+16. if $isVoided = true \implies isPaused = true$, $ra = 0$ and $ud = 0$
 
-16. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.
+17. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.
