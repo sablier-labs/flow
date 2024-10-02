@@ -266,15 +266,14 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev For non-voided streams, if the rate per second is non-zero, then it must imply that the status must be
-    /// STREAMING_SOLVENT or STREAMING_INSOLVENT.
+    /// either `STREAMING_SOLVENT` or `STREAMING_INSOLVENT`.
     function invariant_RatePerSecondNotZero_Streaming_Status() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             if (!flow.isVoided(streamId) && flow.getRatePerSecond(streamId).unwrap() > 0) {
                 assertTrue(
-                    flow.isPaused(streamId) == false,
-                    "Invariant violation: rate per second not zero but stream not paused"
+                    flow.isPaused(streamId) == false, "Invariant violation: rate per second not zero but stream paused"
                 );
                 assertTrue(
                     flow.statusOf(streamId) == Flow.Status.STREAMING_SOLVENT
@@ -286,7 +285,7 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev For non-voided streams, if the rate per second is zero, then it must imply that the stream is paused and
-    /// the status must be either PAUSED_SOLVENT or PAUSED_INSOLVENT .
+    /// the status must be either `PAUSED_SOLVENT` or `PAUSED_INSOLVENT`.
     function invariant_RatePerSecondZero_StreamPaused_Status() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {

@@ -524,8 +524,13 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        // Effect: update the snapshot debt.
-        _streams[streamId].snapshotDebt += _ongoingDebtOf(streamId);
+        uint128 ongoingDebt = _ongoingDebtOf(streamId);
+
+        // Update the snapshot debt only if the stream has ongoing debt.
+        if (ongoingDebt > 0) {
+            // Effect: update the snapshot debt.
+            _streams[streamId].snapshotDebt += ongoingDebt;
+        }
 
         // Effect: update the snapshot time.
         _streams[streamId].snapshotTime = uint40(block.timestamp);
@@ -633,7 +638,7 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
-        _adjustRatePerSecond(streamId, ud21x18(0));
+        _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ud21x18(0) });
 
         // Log the pause.
         emit ISablierFlow.PauseFlowStream({
@@ -691,7 +696,8 @@ contract SablierFlow is
             revert Errors.SablierFlow_StreamNotPaused(streamId);
         }
 
-        _adjustRatePerSecond(streamId, ratePerSecond);
+        // Checks and Effects: update the rate per second and the snapshot time.
+        _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ratePerSecond });
 
         // Log the restart.
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);

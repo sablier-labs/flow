@@ -340,6 +340,7 @@ interface ISablierFlow is
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null, or a voided stream.
     /// - `msg.sender` must be the stream's sender.
+    /// - `ratePerSecond` must be greater than zero.
     ///
     /// @param streamId The ID of the stream to restart.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
