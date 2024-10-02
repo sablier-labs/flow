@@ -520,7 +520,7 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _adjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) internal {
         // Check: the new rate per second is different from the current rate per second.
-        if (newRatePerSecond.unwrap() == _streams[streamId].ratePerSecond.unwrap()) {
+        if (_streams[streamId].isStream && newRatePerSecond.unwrap() == _streams[streamId].ratePerSecond.unwrap()) {
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
@@ -566,18 +566,12 @@ contract SablierFlow is
         streamId = nextStreamId;
 
         // Effect: create the stream.
-        _streams[streamId] = Flow.Stream({
-            balance: 0,
-            isStream: true,
-            isTransferable: transferable,
-            isVoided: false,
-            ratePerSecond: ratePerSecond,
-            sender: sender,
-            snapshotDebt: 0,
-            snapshotTime: uint40(block.timestamp),
-            token: token,
-            tokenDecimals: tokenDecimals
-        });
+        _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ratePerSecond });
+        _streams[streamId].isStream = true;
+        _streams[streamId].isTransferable = transferable;
+        _streams[streamId].sender = sender;
+        _streams[streamId].token = token;
+        _streams[streamId].tokenDecimals = tokenDecimals;
 
         // Using unchecked arithmetic because this calculation can never realistically overflow.
         unchecked {
