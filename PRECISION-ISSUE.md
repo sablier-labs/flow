@@ -175,7 +175,7 @@ To calculate the time values $`[t_0,t_1]`$, it is important to understand how
 
 Additionally, since we have two possible solutions for the unlock interval, we need to implement an algorithm to find
 them. Below is a Python function that takes the rate per second and the elapsed time as input and returns all the unlock
-intervals within that elapsed time.:
+intervals within that elapsed time:
 
 ```python
 def find_unlock_intervals(rps, elt):
@@ -189,7 +189,7 @@ def find_unlock_intervals(rps, elt):
 ```
 
 <a name="unlock-time-results"></a> If we call the function with `rps = 0.000000011574e18` and `elt = 300`, the function
-will return $`uis_3 = \{87, 173, 260\}`$, which represent the exact seconds at which new tokens are unlocked.
+will return $`uis_3 = \{87, 173, 260\}`$, which represent the exact number of seconds at which new tokens are unlocked.
 
 <a name="t-calculations"></a> For example, assume a stream was created on October 1st, with `st = 1727740800`. Until the
 first token is unlocked (87 seconds later), we will have $`t_0 = \text{unix} = 1727740800`$ and
@@ -197,9 +197,9 @@ $`t_1 = \text{unix} = t_0 + \text{constant\_interval}_1 = 1727740886`$.
 
 #### Specific example
 
-The problem arises when we have a moment in time `t`, which is bounded by the time range $`[t_0, t_1]`$. When any of the
-following three functions are called, a delay occurs (causing a right shift in the ongoing debt function) because they
-all internally update the snapshot time:
+The issue that occurs is a delay in receiving the same amount of tokens at the expected time, as compared to before any
+of the functions below are called at a specific moment $`t`$, within the time range $`[t_0, t_1]`$. This delay results
+in a right shift in the ongoing debt function (Figure 4), as all of these functions internally update the snapshot time.
 
 1. `adjustRatePerSecond`
 2. `pause`
