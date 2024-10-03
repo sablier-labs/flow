@@ -12,11 +12,17 @@ abstract contract BaseScript is Script {
     using Strings for uint256;
     using stdJson for string;
 
+    /// @dev The address of the Sablier deployer.
+    address internal constant SABLIER_DEPLOYER = 0xb1bEF51ebCA01EB12001a639bDBbFF6eEcA12B9F;
+
     /// @dev Included to enable compilation of the script without a $MNEMONIC environment variable.
     string internal constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
 
     /// @dev Needed for the deterministic deployments.
     bytes32 internal constant ZERO_SALT = bytes32(0);
+
+    /// @dev Admin address mapped by the chain Id.
+    mapping(uint256 chainId => address admin) internal adminMap;
 
     /// @dev The address of the transaction broadcaster.
     address internal broadcaster;
@@ -39,6 +45,11 @@ abstract contract BaseScript is Script {
             mnemonic = vm.envOr({ name: "MNEMONIC", defaultValue: TEST_MNEMONIC });
             (broadcaster,) = deriveRememberKey({ mnemonic: mnemonic, index: 0 });
         }
+
+        // If there is no admin set for a specific chain, use the Sablier deployer.
+        if (adminMap[block.chainid] == address(0)) {
+            adminMap[block.chainid] = SABLIER_DEPLOYER;
+        }
     }
 
     modifier broadcast() {
@@ -53,12 +64,30 @@ abstract contract BaseScript is Script {
     /// Notes:
     /// - The salt format is "ChainID <chainid>, Version <version>".
     /// - The version is obtained from `package.json`.
-    function constructCreate2Salt() public view returns (bytes32) {
+    function constructCreate2Salt() internal view returns (bytes32) {
         string memory chainId = block.chainid.toString();
-        string memory json = vm.readFile("package.json");
-        string memory version = json.readString(".version");
+        string memory version = getVersion();
         string memory create2Salt = string.concat("ChainID ", chainId, ", Version ", version);
         console2.log("The CREATE2 salt is %s", create2Salt);
         return bytes32(abi.encodePacked(create2Salt));
+    }
+
+    function getVersion() internal view returns (string memory) {
+        string memory json = vm.readFile("package.json");
+        return json.readString(".version");
+    }
+
+    /// @dev Populates the admin map.
+    function populateAdminMap() internal {
+        adminMap[42_161] = 0xF34E41a6f6Ce5A45559B1D3Ee92E141a3De96376; // Arbitrum
+        adminMap[43_114] = 0x4735517616373c5137dE8bcCDc887637B8ac85Ce; // Avalanche
+        adminMap[8453] = 0x83A6fA8c04420B3F9C7A4CF1c040b63Fbbc89B66; // Base
+        adminMap[56] = 0x6666cA940D2f4B65883b454b7Bc7EEB039f64fa3; // BNB
+        adminMap[100] = 0x72ACB57fa6a8fa768bE44Db453B1CDBa8B12A399; // Gnosis
+        adminMap[1] = 0x79Fb3e81aAc012c08501f41296CCC145a1E15844; // Mainnet
+        adminMap[59_144] = 0x72dCfa0483d5Ef91562817C6f20E8Ce07A81319D; // Linea
+        adminMap[10] = 0x43c76FE8Aec91F63EbEfb4f5d2a4ba88ef880350; // Optimism
+        adminMap[137] = 0x40A518C5B9c1d3D6d62Ba789501CE4D526C9d9C6; // Polygon
+        adminMap[534_352] = 0x0F7Ad835235Ede685180A5c611111610813457a9; // Scroll
     }
 }
