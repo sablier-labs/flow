@@ -173,9 +173,8 @@ print(
 
 $~$
 
-> [!NOTE] From now on, "unlock interval" and "constant interval" will be used in context of solidity, i.e.
-> $\text{unlock\_interval}_\text{solidity}$ and $\text{constant\_interval}_\text{solidity}$ (which means two possible
-> values implicitly). The abbreviation "$\text{uis}$" will be used for $\text{unlock\_interval}_\text{solidity}$.
+> [!NOTE] From now on, "unlock interval" and "constant interval" will be used in context of solidity. The abbreviation
+> "$\text{uis}$" will be used to represent unlock interval.
 
 ### Ongoing debt as a discrete function of time
 
