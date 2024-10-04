@@ -16,7 +16,7 @@ N-decimal rps system would require to stream the same amount of tokens that the 
 \text{relative\_delay}_N = \frac{ (rps_{18} - rps_N) }{rps_N} \cdot T_{\text{interval}}
 ```
 
-For example, in a 6-decimal rps system, to stream 10e6 tokens, the correspondong $rps_{18}$ and $rps_6$ would be
+For example, in a 6-decimal rps system, to stream 10e6 tokens, the corresponding $rps_{18}$ and $rps_6$ would be
 $0.000115740740740740$ and $0.000115$, respectively. And therefore, we can calculate the relative delay for a one day
 period as follows:
 
@@ -56,27 +56,24 @@ $10^{18 - N}$. This expression is called as $\text{ongoing debt}$.
 \text{ongoing debt} = \frac{rps_{18} \cdot \text{elapsed time}}{10^{18-N}}
 ```
 
-Descaling, thereforem can re-introduces a delay as described in the previous section. However, note that this problem
-can only be seen when the following conditions are met:
+Descaling, therefore can re-introduces a delay as described in the previous section. However, note that this problem can
+only be seen when the following conditions are met:
 
 1. Streamed token has less than 18 decimals; and
 2. `rps` has more significant digits than `mvt` [^1]
 
 > [!IMPORTANT] $2^{nd}$ condition is crucial in this problem.
 
-A simple example to demonstrate the problem can be found by choosing an `rps` such that it is less than the `mvt`, such
-as rps = 0.000000_011574e18 (i.e. ~ `0.000010e6` tokens / day).
+A simple example to demonstrate the issue can be found by choosing an `rps` such that it is less than the `mvt`, such as
+`rps = 0.000000_011574e18` (i.e. ~ `0.000010e6` tokens / day).
 
-### Unlock and Constant Interval
+### Unlock Interval
 
-Ongoing debt is defined as the product of rps and the elapsed time, divided by the scaling factor (i.e. $10^{18-N}$). It
-is the amount of
+In case of above example, we have a time range $[t_0,t_1]$ during which the ongoing debt remains _constant_. These
+values are _timestamps_.
 
-In case of above example, because of the delay caused by descaling and the mvt, there exists a time range, $[t_0,t_1]$,
-during which the ongoing debt remains _constant_.
-
-So, we define the **unlock interval** as the time period (in seconds) it would take for ongoing debt to incerement by
-`mvt` i.e. the number of seconds at which it "unlocks" one unit of token.
+So, we define the **unlock interval** as the number of seconds that would need to pass for ongoing debt to increment by
+`mvt`.
 
 Using the same example, we can calculate `unlock_interval` as follows:
 
@@ -98,21 +95,14 @@ Using the same example, we can calculate `unlock_interval` as follows:
 ```
 
 **Note:** Because the smallest unit of time in Solidity is seconds and it has no concept of _rational numbers_, there
-exist two possible solutions for values of unlock interval:
+exist two possible solutions for unlock interval:
 
 ```math
 \text{unlock\_interval}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_interval} \right\rfloor, \left\lceil \text{unlock\_interval} \right\rceil \right\} = \{86, 87\}
 ```
 
-Therefore, constant interval, defined as the maximum number of seconds that the ongoing debt remains constant after
-newly unlocked tokens, can be calculated as:
-
-```math
-\Rightarrow \text{constant\_interval}_\text{solidity} = \text{unlock\_interval}_\text{solidity} - 1 = \{85, 86\}
-```
-
-The following Python code can be used to calculate the above mentioned `unlock_interval` as a value not than 86 seconds
-and no more than 87 seconds.
+The following Python code can be used to calculate the above mentioned `unlock_interval` as a value not less than 86
+seconds and not greater than 87 seconds.
 
 <details><summary> Click to expand Python code</summary>
 <p>
@@ -179,7 +169,7 @@ $~$
 ### Ongoing debt as a discrete function of time
 
 By now, it is clear that the ongoing debt is no longer a _continuous_ function with respect to time. Rather, it displays
-a discrete behaviour that changes its value after every $\text{unlock intervals}$ or "$uis$".
+a discrete behaviour that changes its value after every $\text{unlock intervals}$.
 
 As can be seen in the graph below, the red line represents the ongoing debt for a token with 6 decimals, whereas the
 blue line represents the same for a token with 18 decimals.
@@ -188,8 +178,8 @@ blue line represents the same for a token with 18 decimals.
 | :-----------------------------------------------------------: |
 |                         **Figure 1**                          |
 
-The following Python function takes rps and elapsed time as inputs and returns all the unlock intervals for that elapsed
-period:
+The following Python function takes `rps` and elapsed time as inputs and returns all the unlock intervals for that
+elapsed period:
 
 ```python
 def find_unlock_intervals(rps, elt):
@@ -198,17 +188,16 @@ def find_unlock_intervals(rps, elt):
         curr_od = od(rps, i)
         prev_od = od(rps, i-1)
         if curr_od > prev_od:
-            intervals.append(i)
-    return intervals
+            unlock_intervals.append(i)
+    return unlock_intervals
 ```
 
-<a name="unlock-time-results"></a> For rps = 0.000000011574e18 and elt = 300, it returns uis_3 = {87, 173, 260}, which
-are the exact number of seconds at which new tokens would be unlocked.
+<a name="unlock-interval-results"></a> For `rps = 0.000000011574e18` and `elt = 300`, it returns
+$`uis_3 =  \{87, 173, 260\}`$, which are the exact number of seconds, that need to pass, to unlock a token.
 
 ### Understanding delay with a concrete example
 
-The following functions cause delay in the calculation of streamed amount. This is due to the fact that they calculate
-ongoing debt (which introduces delay due to descaling) and update them to snapshot debt along with snapshot time.
+The following functions cause delay due to the fact that they update the snapshot time.
 
 1. `adjustRatePerSecond`
 2. `pause`
@@ -217,14 +206,12 @@ ongoing debt (which introduces delay due to descaling) and update them to snapsh
 For this section, we will only focus on `withdraw` function.
 
 Using the same notation for time range during which ongoing debt remains constant, $[t_0,t_1]$, we will have three cases
-for updating snapshot debt:
-
-3. $t = t_1$
+for updating snapshot time:
 
 #### Case 1: $t = t_0$
 
-In this case, the snapshot time is updated to $t_0 = 87$, which is a no-delay scenario, because a token is unlocked at
-$t_0$. Therefore, the point on the streamed curve is synchronized with the continuous streaming period (Figure 3).
+In this case, the snapshot time is updated to $t_0$, which is a no-delay scenario, because a token is unlocked at $t_0$,
+i.e. after 87 seconds. Therefore, the ongoing debt is synchronized with the initial "scheduled" ongoing debt (Figure 3).
 
 | <img src="./images/no_delay.png" width="700" /> |
 | :---------------------------------------------: |
@@ -233,10 +220,10 @@ $t_0$. Therefore, the point on the streamed curve is synchronized with the conti
 An example test contract,`test_Withdraw_NoDelay`, can be found
 [here](./tests/integration/concrete/withdraw-delay/withdrawDelay.t.sol) that represents the above graph.
 
-#### Case 2: $t_0 < t < t_1$
+#### Case 2: $t = t_1$
 
-In case 2, the snapshot time is updated to $t_1 - 1$, which is a maximum-delay scenario. According to the calculations
-from [here](#t-calculations) and [here](#unlock-time-results), we would have a delay of
+In case 2, the snapshot time is updated to $t_1$, which is a maximum-delay scenario. According to the calculations from
+[here](#t-calculations) and [here](#unlock-interval-results), we would have a delay of
 $uis_2 - uis_1 - 1 = 85 \, \text{seconds}$, which is highlighted at two points in the graphs below, marking the moment
 when the third token is unlocked.
 
@@ -255,7 +242,7 @@ In the following graph, we represent the right shift of the ongoing debt after t
 To check, the contract works as expected, we have the `test_Withdraw_LongestDelay` Solidity test for the above graph
 [here](./tests/integration/concrete/withdraw-delay/withdrawDelay.t.sol).
 
-#### Case 3: $t = t_1$
+#### Case 3: $t_0 < t < t_1$
 
 In case 3, the result is similar to case 2, but with a shorter delay.
 
