@@ -65,7 +65,7 @@ can only be seen when the following conditions are met:
 > [!IMPORTANT] $2^{nd}$ condition is crucial in this problem.
 
 A simple example to demonstrate the problem can be found by choosing an `rps` such that it is less than the `mvt`, such
-as $rps = \text{0.000000\_011574e18}$ (i.e. ~ `0.000010e6` tokens / day).
+as rps = 0.000000_011574e18 (i.e. ~ `0.000010e6` tokens / day).
 
 ### Unlock and Constant Interval
 
