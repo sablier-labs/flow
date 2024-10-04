@@ -16,7 +16,8 @@ it must adhere to the following assumptions:
 - An address' ERC-20 balance can only change as a result of a `transfer` call by the sender or a `transferFrom` call by
   an approved address. This excludes rebase tokens and interest-bearing tokens.
 - The token contract does not allow callbacks (e.g. ERC-777 is not supported).
-- As defined in [PRECISION-ISSUE](https://github.com/sablier-labs/flow/blob/main/PRECISION-ISSUE.md), there could be
-  delays in streamed amounts if rps is extremely small. For USDC, an extremely small rps would be defined as a value
-  that streams less than 50 USDC a month. The definition is subjective and can vary depending on the token. For
-  exanpple, for WBTC, an extremely small rps would be defined as a value that streams less than 0.001 WBTC a month.
+- As explained in [PRECISION-ISSUE](https://github.com/sablier-labs/flow/blob/main/PRECISION-ISSUE.md), there could be
+  delays in streamed amounts if rps is extremely small. The definition of "extremely small rps" is subjective and
+  depends on the token decimal and its dollar value. For example, a streams of USDC less than 50 USDC per month would be
+  considered to have extremely small rps. for WBTC, it would be defined as a value that streams less than 0.001 WBTC a
+  month. Any rps value that takes more than 1 second to stream 1 wei of token is also considered extremely small.
