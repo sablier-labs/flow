@@ -1,8 +1,9 @@
 ## About precision
 
-**Note:** none of these issues should lead to a loss of funds, but they may affect the streaming experience
+**Note:** none of the issues described in this file should lead to a loss of funds, but they may have an effect on the
+streaming experience.
 
-### Why we define rps as 18-decimal number
+### Why `rps` is defined with 18 decimal places
 
 The reason we introduced `rps` as an 18-decimal number is to avoid precision issues. Please review the section in the
 [README](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues) first. In this file, we will provide
@@ -21,7 +22,7 @@ for one day:
 \text{relative\_delay} = \frac{ (0.000115740740740740 - 0.000115)\cdot 86400}{0.000115} \approx 556 \, \text{seconds}
 ```
 
-So, we would have the following delays for these different time intervals:
+Similarly, we can calculate relative delays for other time intervals, resulting in the following breakdown:
 
 - 1 day: ~9.3 minutes
 - 7 days: ~1 hour, 5 minutes
@@ -29,37 +30,37 @@ So, we would have the following delays for these different time intervals:
 - 1 year: ~2 days, 8 hours
 
 Besides the delay issue, another problem with using `rps` in token’s native decimals (6) is the smallest value it could
-hold is `0.000001e6`, which results in `0.0864` per day. Assuming a high price token, this could be a significant amount
-of money, for example, `WBTC` with 6 decimals would stream `0.0864 WBTC = $5184` per day (price taken at $60,000 per
-BTC).
+hold is `0.000001e6` (we will call it `mvt` - minimum transferable value), which results in `0.0864e6` per day. Assuming
+a high price token, this could be a significant amount of money, for example, `WBTC` with 6 decimals would stream
+`0.0864e6 WBTC = $5184` per day (price taken at $60,000 per BTC).
 
 For the reasons mentioned above, we can fairly say that using the 18-decimal format for `rps` is the correct choice.
 
-To properly transfer tokens after performing calculations in 18 decimals, we need to descale the amount back to the
-token’s native decimals. Descaling involves dividing the streamed amount calculated in 18 decimals, by $10^{18 - deci}$.
-
-However, we realized that descaling can introduce a subtle precision issue, particularly when `rps` is smaller than
-`mvt = 0.000001e6` (minimum transferable value), which wouldn’t have been possible if we had kept the `rps` in the
-token’s native decimals.
-
 ### About descaling problem
+
+Now, to properly transfer tokens after performing calculations in 18 decimals using the `rps`, we need to descale the
+amount back to the token’s native decimals. Descaling involves dividing the streamed amount calculated in 18 decimals,
+by $10^{18 - deci}$.
+
+Descaling, however, can reintroduce the delay issue, though in a more nuanced way, as it requires an `rps` that **would
+not have been possible** to represent in token's native decimals.
+
+The problem mentioned above appears when the following 3 conditions are met:
+
+1. the streamed token has less than 18 decimals
+2. `rps` is scaled to 18 decimals
+3. `rps` has non-zero digits to the right of `mvt` [^1]
 
 > [!IMPORTANT]  
 > Third condition is crucial in this problem.
 
-We have the conditions under a problem appears (continuing with the USDC example):
+The easiest way to illustrate the problem is by having an `rps` lower than `mvt`. In this case we will have a range of
+time $`[t_0,t_1]`$, where the ongoing debt remains _constant_, with $`t_0`$ and $`t_1`$ representing timestamps.
 
-1. `rps` is scaled to 18 decimals
-2. token has less than 18 decimals
-3. `rps` has non-zero digits to the right of `mvt` [^1]
+Let's consider the `rps = 0.000000_011574e18` (i.e. rate for `0.000010e6` tokens per day).
 
-Having a low `rps` results in a range of time $`[t_0,t_1]`$, where the ongoing debt remains _constant_, with $`t_0`$ and
-$`t_1`$ representing timestamps.
-
-Let's consider the `rps = 0.000000_011574e18`. Rate for 10 tokens streamed per day.
-
-We need to find the number of seconds at which the ongoing debt is increasing, so we will define the number of seconds
-at which it "unlocks" one token as `unlock_interval`:
+We need to find the number of seconds at which the ongoing debt is increasing (i.e. incrementing by `mvt`), so we will
+define the number of seconds at which it "unlocks" one unit of token as `unlock_interval`:
 
 ```math
 \left.
