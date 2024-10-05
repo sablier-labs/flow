@@ -182,22 +182,23 @@ blue line represents the same for a token with 18 decimals.
 | :-----------------------------------------------------------: |
 |                         **Figure 1**                          |
 
-The following Python function takes `rps` and elapsed time as inputs and returns all the unlock intervals for that
-elapsed period:
+The following Python function takes `rps` and elapsed time as inputs and returns all the subsequent timestamps, during
+the provided elapsed period, at which tokens are unlocked.
 
 ```python
-def find_unlock_intervals(rps, elt):
-    unlock_intervals = []
+def find_unlock_timestamp(rps, elt):
+    unlock_timestamps = []
     for i in range(1, elt):
         curr_od = od(rps, i)
         prev_od = od(rps, i-1)
         if curr_od > prev_od:
-            unlock_intervals.append(i)
-    return unlock_intervals
+            unlock_timestamps.append(st + i)
+    return unlock_timestamps
 ```
 
 <a name="unlock-interval-results"></a> For `rps = 0.000000011574e18` and `elt = 300`, it returns three subsequent
-timestamps $\{87, 173, 260\}$ at which tokens are unlocked.
+timestamps $\{st + 87, st + 173, st + 260\}$ at which tokens are unlocked, where $st$ is the timestamp when last
+snapshot was taken.
 
 ### Understanding delay with a concrete example
 
@@ -207,18 +208,22 @@ In the Flow contract, the following functions update the snapshot debt and snaps
 2. `pause`
 3. `withdraw`
 
-We will now explain delay using an example of `withdraw` function. Lets define an arbitrary time range, $[t_0,t_1]$,
-during which ongoing debt remains constant. $t_0$ represents timestamp when new tokens become available to withdraw. Let
-$t$ be the time at which the `withdraw` function is called.
+We will now explain delay using an example of `withdraw` function. As defined previously, $[t_0,t_1]$ represents the
+timestamps during which ongoing debt remains constant. Let $t$ be the time at which the `withdraw` function is called.
 
-For [this example](#unlock-interval-results), The first set for constant ongoing dbet would be $[87, 172]$ and the
-second set would be $[173, 259]$.
+For [this example](#unlock-interval-results), the first set of timestamps for constant ongoing debt would be
+$[st + 87, st + 172]$ and the second set would be $[st + 173, st + 259]$. The unlock intervals for these two sets are:
 
-#### Case 1: when $t = t_0$
+```math
+  ui_{solidity_1} = (st + 172 + 1) - (st + 87) = 86 \\
+  ui_{solidity_2} = (st + 259 + 1) - (st + 173) = 87
+```
 
-In this case, the snapshot time is updated to $t_0$, which is a no-delay scenario, because a token is unlocked at $t_0$,
-i.e. at 87 seconds since the last snapshot. Therefore, the ongoing debt is synchronized with the initial "scheduled"
-ongoing debt (Figure 2).
+#### Case 1: when $t = st + 87$
+
+In this case, the snapshot time is updated to $(st + 87)$, which is a no-delay scenario, because a token is unlocked
+after an elapsed time of 87 seconds. Therefore, the ongoing debt is synchronized with the initial "scheduled" ongoing
+debt (Figure 2).
 
 | <img src="./images/no_delay.png" width="700" /> |
 | :---------------------------------------------: |
@@ -228,12 +233,10 @@ An example test contract, `test_Withdraw_NoDelay`, can be found
 [here](./tests/integration/concrete/withdraw-delay/withdrawDelay.t.sol) that can be used to validate the results used in
 the above graph.
 
-#### Case 2: when $t = t_1$
+#### Case 2: when $t = st + 172$
 
-In case 2, the snapshot time is updated to $t_1$, which is a maximum-delay scenario since its 1 second less than the
-next unlock. According to these calculations from [here](#unlock-interval-results), we would have a delay of
-$uis_2 - uis_1 - 1 = 85 \, \text{seconds}$, which is highlighted at two points in the graphs below, marking the moment
-when the third token is unlocked.
+In case 2, the snapshot time is updated to $(st + 172)$, which is a maximum-delay scenario since its 1 second less than
+the next unlock. In this case, user would experience a delay of $172 - 87 = 85 \, \text{seconds}$.
 
 The figure below illustrates the initial scheduled streaming period:
 
@@ -250,17 +253,15 @@ In the following graph, we represent the right shift of the ongoing debt after t
 To check, the contract works as expected, we have the `test_Withdraw_LongestDelay` Solidity test for the above graph
 [here](./tests/integration/concrete/withdraw-delay/withdrawDelay.t.sol).
 
-#### Case 3: $t_0 < t < t_1$
+#### Case 3: $st + 87 < t < st + 172$
 
-In case 3, the result is similar to case 2, but with a shorter delay.
+This case is similar to case 2, where a user would experience a delay less than the longest delay described in case 2.
 
-We can derive the formula as follow:
+Using the above explaination, We can derive the formula as follow:
 
 ```math
-\text{delay} = t - st - uis_i
+delay_t = t - t_0
 ```
-
-The $\text{unlock\,time}_\text{i}$ is the time prior to `t`, when the ongoing debt has unlocked a token.
 
 ### Reverse engineering the delay from the rescaled ongoing debt
 
