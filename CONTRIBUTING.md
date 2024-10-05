@@ -46,7 +46,6 @@ $ bun run
 When making a pull request, ensure that:
 
 - All tests pass.
-  - Fork testing requires environment variables to be set up in the forked repo.
 - Code coverage remains the same or greater.
 - All new code adheres to the style guide:
   - All lint checks pass.

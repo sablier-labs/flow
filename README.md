@@ -11,7 +11,8 @@
 
 This repository contains the smart contracts for Sablier Flow. Streams created with Sablier Flow have no end time and
 require no upfront deposit. This is ideal for regular payments such as salaries and subscriptions, where an end time is
-not specified. For vesting or airdrops, refer to the [Sablier Flow](https://github.com/sablier-labs/flow/) protocol.
+not specified. For vesting or airdrops, refer to the [Sablier Lockup](https://github.com/sablier-labs/v2-core/)
+protocol.
 
 ## Motivation
 
