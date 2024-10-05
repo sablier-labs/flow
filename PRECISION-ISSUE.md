@@ -36,47 +36,42 @@ Using an 18-decimal rps system would not cause relative delay to the streamed am
 
 ### Problem 2: Minimum Transferable Value
 
-**Minimum Transferable Value (MVT)** is defined as the smallest amount of tokens that can be streamed in one second. In
-an N-decimal rps system, the MVT cannot be less than 1 token. For example, in USDC, the MVT is `0.000001e6` USDC, which
-is equivalent to streaming `0.0864e6` USDC per day. If we were to stream a high priced token, such as a wrapped Bitcoin
+**Minimum Transferable Value (MVT)** is defined as the smallest amount of tokens that can be transferred. In an
+N-decimal `rps` system, the MVT cannot be less than 1 token. For example, in case of USDC, the MVT is `0.000001e6`,
+which is would to stream `0.0864e6` USDC per day. If we were to stream a high priced token, such as a wrapped Bitcoin
 with 6 decimals, then such system could not allow users to stream less than `0.0864e6 WBTC = $5184` per day (price taken
 at $60,000 per BTC).
 
-By using an 18-decimal rps system, we can allow streaming of amount less than Minimum Transferable Value.
+By using an 18-decimal `rps` system, we can allow streaming of amount less than Minimum Transferable Value.
 
 The above issues are inherent to **all** decimal systems, and get worse as the number of decimals used to represent rps
 decreases. Therefore, we took the decision to define `rps` as an 18-decimal number so that it can minimize, if not
 rectify, the above two problems.
 
-## Delay due to Descaling
+## Delay due to Descaling (unlock interval)
 
-Even though `rps` is defined as an 18-decimal number, transfer functions require descaling of the debt amount back to
-the token decimals. The descaling involves dividing the streamed amount calculated using 18-decimal rps by
-$10^{18 - N}$. This expression is called as $\text{ongoing debt}$.
+Even though `rps` is defined as an 18-decimal number, to properly transfer tokens, the amount calculated in the ongoing
+debt function must be descaled by dividing by $`10^{18 - N}`$. This means the function becomes:
 
 ```math
-\text{ongoing debt} = \frac{rps_{18} \cdot \text{elapsed time}}{10^{18-N}}
+\text{od} = \frac{rps_{18} \cdot \text{elt}}{10^{18-N}}
 ```
 
-Descaling, therefore, can re-introduces a delay as described in the previous section. However, note that this problem
-can only be seen when the following conditions are met:
+Descaling, therefore, reintroduces the delay problem mentioned in the previous section, but to a much lesser extent, and
+only when the following conditions are met:
 
-1. Streamed token has less than 18 decimals; and
-2. `rps` has more significant digits than `mvt`. For example, in case of USDC, relative delay exists when
-   $rps_{18} =
-   0.000000\_123123e18$. Since $mvt = 0.000001e6$, $rps_{18}$ has more significant digits than $mvt$.
+1. Streamed token has less than 18 decimals.
+2. `rps` has more significant digits than `mvt`. [^1]
 
 <!-- prettier-ignore -->
 > [!NOTE]
 > $2^{nd}$ condition is crucial in this problem.
 
-A simple example to demonstrate the issue can be found by choosing an `rps` such that it is less than the `mvt`, such as
+A simple example to demonstrate the issue is to choose an `rps` such that it is less than the `mvt`:
 `rps = 0.000000_011574e18` (i.e. ~ `0.000010e6` tokens / day).
 
-### Unlock Interval
-
-Because of the delay caused by descaling, there can exist time ranges $[t_0,t_1]$ during which the ongoing debt remains
-_constant_. These values of $t_0$ and $t_1$ are represented as _unix timestamps_.
+For this `rps` we will have time ranges $`[t_0,t_1]`$ during which the ongoing debt remains _constant_. These values of
+$t_0$ and $t_1$ are represented as _UNIX timestamps_.
 
 Thus, we can now define the **unlock interval** as the number of seconds that would need to pass for ongoing debt to
 increment by `mvt`.
@@ -105,14 +100,14 @@ Let us now calculate `unlock_interval` for the previous example:
 ```
 
 Because the smallest unit of time in Solidity is seconds and it has no concept of _rational numbers_, for this example,
-there exist two possible solutions for unlock interval in solidity:
+there exist two possible solutions for unlock interval:
 
 ```math
 \text{unlock\_intervals}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_interval} \right\rfloor, \left\lceil \text{unlock\_interval} \right\rceil \right\} = \{86, 87\}
 ```
 
-The following Python code can be used to calculate the above mentioned `unlock_intervals` as a value not less than 86
-seconds and not greater than 87 seconds.
+The following Python code can be used to test the above calculation for `unlock_interval`, as its values are not less
+than 86 seconds and not greater than 87 seconds.
 
 <details><summary> Click to expand Python code</summary>
 <p>
@@ -173,22 +168,22 @@ print(
 
 <!-- prettier-ignore -->
 > [!NOTE]
-> From now on, "unlock intervals" will be used only in the context of solidity. The abbreviation $ui_{solidity}$ will be used to represent the same.
+> From now on, "unlock interval" will be used only in the context of solidity. The abbreviation $uis$ will be used to represent it.
 
 ### Ongoing debt as a discrete function of time
 
 By now, it should be clear that the ongoing debt is no longer a _continuous_ function with respect to time. Rather, it
-displays a discrete behaviour that changes its value after only after $\text{unlock interval}$'s of time.
+displays a discrete behaviour that changes its value after only after $uis$ has passed.
 
-As can be seen in the graph below, the red line represents the ongoing debt for a token with 6 decimals, whereas the
-blue line represents the same for a token with 18 decimals.
+As can be seen in the graph below, for the same `rps`, the red line represents the ongoing debt for a token with 6
+decimals, whereas the blue line represents the same for a token with 18 decimals.
 
 | <img src="./images/continuous_vs_discrete.png" width="700" /> |
 | :-----------------------------------------------------------: |
 |                         **Figure 1**                          |
 
-The following Python function takes `rps` and elapsed time as inputs and returns all the consecutive timestamps, during
-the provided elapsed period, at which tokens are unlocked.
+The following Python function takes rate per second and elapsed time as inputs and returns all the consecutive
+timestamps, during the provided elapsed period, at which tokens are unlocked.
 
 ```python
 def find_unlock_timestamp(rps, elt):
@@ -206,7 +201,8 @@ timestamps $(st + 87), (st + 173), (st + 260)$ at which tokens are unlocked.
 
 ### Understanding delay with a concrete example
 
-In the Flow contract, the following functions update the snapshot debt and snapshot time and therefore can cause delay.
+In the Flow contract, the following functions update the snapshot time to `block.timestamp` therefore can cause the
+delay.
 
 1. `adjustRatePerSecond`
 2. `pause`
@@ -215,14 +211,17 @@ In the Flow contract, the following functions update the snapshot debt and snaps
 We will now explain delay using an example of `withdraw` function. As defined previously, $[t_0,t_1]$ represents the
 timestamps during which ongoing debt remains constant. Let $t$ be the time at which the `withdraw` function is called.
 
-For [this example](#unlock-interval-results), the first set of timestamps for constant ongoing debt would be
-$[st + 87, st + 172]$ and the second set would be $[st + 173, st + 259]$.
+For [this example](#unlock-interval-results), we will have the following constant intervals for ongoing debt:
+
+1. $[st, st + 86]$
+2. $[st + 87, st + 172]$
+3. $[st + 173, st + 259]$
 
 #### Case 1: when $t = t_0$
 
-In this case, the snapshot time is updated to $(st + 87)$, which is a no-delay scenario, because a token is unlocked
-after an elapsed time of 87 seconds. Similarly, $(st + 173)$ would also be a no-delay scenario. In both these cases, the
-ongoing debt is synchronized with the initial "scheduled" ongoing debt (Figure 3).
+In this case, the snapshot time is updated to $(st + 87)$, which represents a no-delay scenario. This is because the
+first token is unlocked exactly after 87 seconds of elapsed time. Therefore, we can say that the ongoing debt is
+synchronized with the initial "scheduled" ongoing debt (Figure 3).
 
 | <img src="./images/no_delay.png" width="700" /> |
 | :---------------------------------------------: |
@@ -238,11 +237,24 @@ the above graph.
 
 #### Case 2: when $t = t_1$
 
-In case 2, the snapshot time is updated to $(st + 172)$, which is a maximum-delay scenario since its 1 second less than
-the next unlock. In this case, user would experience a delay of $172 - 87 = 85$ seconds.
+In case 2, the snapshot time is updated to $(st + 172)$, which represents a maximum-delay scenario, as it is 1 second
+less than the unlock interval from its time range. In this case, the user would experience a delay of
+$`uis - 1 = \{85, 86\}`$.
 
-In this graph, the streaming curve is therefore right shifted by 85 seconds due to withdraw triggered at $t_1$. The next
-two unlocks will now happen at $t = 258$ and $t = 345$ seconds.
+As a result, the ongoing debt function is shifted to the right, so that the unlock intervals occur in the same sequence
+as the initial ones. If the first unlock occurred after 87 seconds, after withdrawal, the next unlock will also occur
+after 87 seconds.
+
+This is illustrated in the following graph, where the red line represents the ongoing debt before the withdrawal, and
+the green line represents the ongoing debt function after the withdrawal. Additionally, notice the green points, which
+indicate the new unlocks.
+
+```math
+\begin{align*}
+\text{withdraw\_time} + uis_1 &= 172 + 87 = 259 \\
+\text{withdraw\_time} + uis_2 &= 172 + 173 = 345
+\end{align*}
+```
 
 | <img src="./images/longest_delay.png" width="700" /> |
 | :--------------------------------------------------: |
@@ -255,14 +267,12 @@ To check the contract works as expected, we have the `test_Withdraw_LongestDelay
 
 This case is similar to case 2, where a user would experience a delay but less than the longest delay.
 
-Using the above explainations, we can now say that for a given interval $[t_0, t_1]$ where $t_0$ and $(t_1 + 1)$ are
-"timestamps for the two consecutive unlocks", if `withdraw` is called at a time $t$ where $t_0 \le t \le t_1$, then
-delay can be calculated as:
+Using the above explanations, we can now say that for any given interval $[t_0, t_1]$ , where $t \le t_1$ the delay can
+be calculated as:
 
 ```math
 \begin{aligned}
-delay_t = t - t_0 \\
-delay_t = t - (st + ui_{solidity})
+delay = t - (st + uis_i - 1)
 \end{aligned}
 ```
 
@@ -272,8 +282,12 @@ We can also reverse engineer the delay from the _rescaled_ ongoing debt:
 
 ```math
 \begin{aligned}
-\text{ongoing\_debt} &= \frac{rps \cdot (t - \text{snapshot\_time})}{\text{scaling\_factor}} \\
-\text{rescaled\_ongoing\_debt} &= \text{ongoing\_debt} \cdot \text{scaling\_factor} \\
-delay &= t - \text{snapshot\_time} - \frac{\text{rescaled\_ongoing\_debt}}{rps} - 1 \\
+\text{od} &= \frac{rps \cdot (t - \text{st})}{sf} \\
+R_\text{od} &= od \cdot sf \\
+delay &= t - st - \frac{R_\text{od}}{rps} - 1 \\
 \end{aligned}
 ```
+
+[^1]:
+    By more significant digits, we mean that `rps` has non-zero digits right to the `mvt`. For example 1.
+    `0.000000_011574e18` and 2. `0.100000_011574e18`. (notice the digits after underscore "\_")

@@ -6,20 +6,15 @@
 
 ## Statuses
 
-### Types
+There are two types of streams: `STREAMING`, when debt is actively accruing, and `PAUSED`, when debt is not accruing:
 
-| Type      | Statuses                                       | Description           |
-| :-------- | :--------------------------------------------- | :-------------------- |
-| Streaming | `STREAMING_SOLVENT`, `STREAMING_INSOLVENT`     | Debt is accruing.     |
-| Paused    | `PAUSED_SOLVENT`, `PAUSED_INSOLVENT`, `VOIDED` | Debt is not accruing. |
-
-| Status                | Description                                                             |
-| --------------------- | ----------------------------------------------------------------------- |
-| `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt.                       |
-| `STREAMING_INSOLVENT` | Streaming stream when there is uncovered debt.                          |
-| `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.                          |
-| `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.                             |
-| `VOIDED`              | Paused stream with forfeited uncovered debt and it cannot be restarted. |
+| Type        | Status                | Description                                                             |
+| ----------- | --------------------- | ----------------------------------------------------------------------- |
+| `STREAMING` | `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt.                       |
+| `STREAMING` | `STREAMING_INSOLVENT` | Streaming stream when there is uncovered debt.                          |
+| `PAUSED`    | `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.                          |
+| `PAUSED`    | `PAUSED_INSOLVENT`    | Paused stream when there is uncovered debt.                             |
+| `PAUSED`    | `VOIDED`              | Paused stream with forfeited uncovered debt and it cannot be restarted. |
 
 ### Statuses diagram
 
