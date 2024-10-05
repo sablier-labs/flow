@@ -222,7 +222,10 @@ For [this example](#unlock-interval-results), the first set of timestamps for co
 $[st + 87, st + 172]$ and the second set would be $[st + 173, st + 259]$. The unlock intervals for these two sets are:
 
 ```math
-ui_{solidity_1} = (st + 172 + 1) - (st + 87) = 86 \\
+ui_{solidity_1} = (st + 172 + 1) - (st + 87) = 86
+```
+
+```math
 ui_{solidity_2} = (st + 259 + 1) - (st + 173) = 87
 ```
 
