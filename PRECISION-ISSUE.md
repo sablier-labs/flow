@@ -64,8 +64,7 @@ can only be seen when the following conditions are met:
 1. Streamed token has less than 18 decimals; and
 2. `rps` has more significant digits than `mvt`. For example, in case of USDC, relative delay exists when
    $rps_{18} =
-   \text{0.000000\_123123e18}$. Since $mvt = 0.000001e6$, $rps_{18}$ has more significant digits than
-   $mvt$.
+   0.000000\_123123e18$. Since $mvt = 0.000001e6$, $rps_{18}$ has more significant digits than $mvt$.
 
 <!-- prettier-ignore -->
 > [!NOTE]
@@ -176,7 +175,7 @@ $~$
 
 <!-- prettier-ignore -->
 > [!NOTE]
-> From now on, "unlock intervals" will be used in the context of solidity. The abbreviation "$ui_{solidity}$" will be used to represent the same.
+> From now on, "unlock intervals" will be used in the context of solidity. The abbreviation $ui_{solidity}$ will be used to represent the same.
 
 ### Ongoing debt as a discrete function of time
 
