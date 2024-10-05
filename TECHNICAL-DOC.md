@@ -1,18 +1,25 @@
 # Technical documentation
 
-## How it works
+## How Flow works
 
-When a stream is created, no deposit is required, so the initial stream balance is zero. The sender can deposit any
-amount into the stream at any time. To improve experience for some users, a `createAndDeposit` function has been
-implemented to allow both create and deposit operations in a single transaction.
+One can create a flow stream without any upfront deposit, so the initial stream balance begins at zero. The sender can
+later deposit any amount into the stream at any time. To improve the experience, a `createAndDeposit` function has also
+been implemented to allow both create and deposit in a single transaction.
 
-Streams begin streaming as soon as the transaction is confirmed on the blockchain. They have no end date, but the sender
-can pause the stream at any time. This stops the streaming of tokens but retains the record of the accrued debt up to
-that point.
+One can also start a stream without setting an rps. If rps is set to non-zero at the beginning, it begins streaming as
+soon as the transaction is confirmed on the blockchain. These streams have no end date, but it allows the sender to
+pause it or void it at a later date.
 
-The `snapshotTime` value, set to `block.timestamp` when the stream is created, is crucial for tracking the debt over
-time. The recipient can withdraw the streamed amount at any point. However, if there aren't sufficient funds, the
-recipient can only withdraw the available balance.
+A stream is represented by a struct that can be found in
+[Datatypes.sol](https://github.com/sablier-labs/flow/blob/docs/move-readme-content/src/types/DataTypes.sol#L61-L76).
+
+The debt is tracked using `snapshotDebt` and `snapshotTime`. At snapshot, the following events are taking place:
+
+1. `snapshotDebt` is incremented by `ongoingDebt` where `ongoingDebt = rps * (block.timestamp - snapshotTime)`.
+2. `snapshotTime` is updated to `block.timestamp`.
+
+The recipient can withdraw the streamed amount at any point. However, if there aren't sufficient funds, the recipient
+can only withdraw the available balance.
 
 ## Abbreviations
 
