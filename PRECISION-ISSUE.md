@@ -3,7 +3,9 @@
 Please review the [corresponding section](https://github.com/sablier-labs/flow/?tab=readme-ov-file#precision-issues) in
 the README first, as here, we will build on top of that information.
 
-**Note:** The issues described below would not lead to loss of funds, but can affect the streaming experience for users.
+<!-- prettier-ignore -->
+> [!IMPORTANT]
+> The issues described below would not lead to loss of funds, but can affect the streaming experience for users.
 
 ## Defining rps as 18 decimal number
 
@@ -62,7 +64,9 @@ can only be seen when the following conditions are met:
 1. Streamed token has less than 18 decimals; and
 2. `rps` has more significant digits than `mvt` [^1]
 
-> [!IMPORTANT] $2^{nd}$ condition is crucial in this problem.
+<!-- prettier-ignore -->
+> [!NOTE]
+> $2^{nd}$ condition is crucial in this problem.
 
 A simple example to demonstrate the issue can be found by choosing an `rps` such that it is less than the `mvt`, such as
 `rps = 0.000000_011574e18` (i.e. ~ `0.000010e6` tokens / day).
@@ -98,8 +102,8 @@ Let us now calculate `unlock_interval` for the previous example:
 \text{unlock\_interval} = \frac{10^{12}}{1.11574 \cdot 10^{10}} \approx 86.4 \, \text{seconds}
 ```
 
-**Note:** Because the smallest unit of time in Solidity is seconds and it has no concept of _rational numbers_, for this
-example, there exist two possible solutions for unlock interval in solidity:
+Because the smallest unit of time in Solidity is seconds and it has no concept of _rational numbers_, for this example,
+there exist two possible solutions for unlock interval in solidity:
 
 ```math
 \text{unlock\_intervals}_\text{solidity} \in \left\{ \left\lfloor \text{unlock\_interval} \right\rfloor, \left\lceil \text{unlock\_interval} \right\rceil \right\} = \{86, 87\}
@@ -167,8 +171,9 @@ print(
 
 $~$
 
-> [!NOTE] From now on, "unlock intervals" will be used in the context of solidity. The abbreviation "$ui_{solidity}$"
-> will be used to represent the same.
+<!-- prettier-ignore -->
+> [!NOTE]
+> From now on, "unlock intervals" will be used in the context of solidity. The abbreviation "$ui_{solidity}$" will be used to represent the same.
 
 ### Ongoing debt as a discrete function of time
 
@@ -197,7 +202,7 @@ def find_unlock_timestamp(rps, elt):
 ```
 
 <a name="unlock-interval-results"></a> For `rps = 0.000000011574e18` and `elt = 300`, it returns three subsequent
-timestamps $\{st + 87, st + 173, st + 260\}$ at which tokens are unlocked, where $st$ is the timestamp when last
+timestamps $(st + 87), (st + 173), (st + 260)$ at which tokens are unlocked, where $st$ is the timestamp when last
 snapshot was taken.
 
 ### Understanding delay with a concrete example
@@ -215,8 +220,8 @@ For [this example](#unlock-interval-results), the first set of timestamps for co
 $[st + 87, st + 172]$ and the second set would be $[st + 173, st + 259]$. The unlock intervals for these two sets are:
 
 ```math
-  ui_{solidity_1} = (st + 172 + 1) - (st + 87) = 86 \\
-  ui_{solidity_2} = (st + 259 + 1) - (st + 173) = 87
+ui_{solidity_1} = (st + 172 + 1) - (st + 87) = 86 \\
+ui_{solidity_2} = (st + 259 + 1) - (st + 173) = 87
 ```
 
 #### Case 1: when $t = st + 87$
@@ -268,14 +273,12 @@ delay_t = t - t_0
 We can also reverse engineer the delay from the _rescaled_ ongoing debt:
 
 ```math
-
 \begin{aligned}
 \text{ongoing\_debt} &= \frac{rps \cdot (t - \text{snapshot\_time})}{\text{scaling\_factor}} \\
 \text{rescaled\_ongoing\_debt} &= \text{ongoing\_debt} \cdot \text{scaling\_factor} \\
 delay &= t - \text{snapshot\_time} - \frac{\text{rescaled\_ongoing\_debt}}{rps} - 1 \\
 
 \end{aligned}
-
 ```
 
 [^1]:
