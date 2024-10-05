@@ -62,7 +62,10 @@ Descaling, therefore, can re-introduces a delay as described in the previous sec
 can only be seen when the following conditions are met:
 
 1. Streamed token has less than 18 decimals; and
-2. `rps` has more significant digits than `mvt` [^1]
+2. `rps` has more significant digits than `mvt`. For example, in case of USDC, relative delay exists when
+   $rps_{18} =
+   \text{0.000000\_123123e18}$. Since $mvt = 0.000001e6$, $rps_{18}$ has more significant digits than
+   $mvt$.
 
 <!-- prettier-ignore -->
 > [!NOTE]
@@ -280,7 +283,3 @@ delay &= t - \text{snapshot\_time} - \frac{\text{rescaled\_ongoing\_debt}}{rps} 
 
 \end{aligned}
 ```
-
-[^1]:
-    For example, in case of USDC, relative delay exists when $rps_{18} = \text{0.000000\_123123e18}$. Since
-    $mvt = 0.000001e6$, $rps_{18}$ has more significant digits than $mvt$.
