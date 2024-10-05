@@ -51,8 +51,12 @@ contract WithdrawDelay_Integration_Concrete_Test is Integration_Test {
         uint128 withdrawnAmount = flow.withdrawMax(streamId, users.recipient);
         assertEq(withdrawnAmount, 1, "withdrawn amount");
 
-        // Warp to initial third token unlock, which should still be 2. Proves the delay.
-        vm.warp(initialSnapshotTime + 260 seconds);
+        // Warp to a second before second token unlock so that we prove the delay.
+        vm.warp(initialSnapshotTime + 258 seconds);
+        assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 1);
+
+        // Warp to the expected second token unlock.
+        vm.warp(initialSnapshotTime + 259 seconds);
         assertEq(withdrawnAmount + flow.ongoingDebtOf(streamId), 2);
 
         // Warp to the expected third token unlock.
