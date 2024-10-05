@@ -256,8 +256,8 @@ To check the contract works as expected, we have the `test_Withdraw_LongestDelay
 This case is similar to case 2, where a user would experience a delay but less than the longest delay.
 
 Using the above explainations, we can now say that for a given interval $[t_0, t_1]$ where $t_0$ and $(t_1 + 1)$ are
-$\text{timestamps for the two consecutive unlocks}$, if `withdraw` is called at a time $t$ where $t_0 \le t \le t_1$,
-then delay can be calculated as:
+"timestamps for the two consecutive unlocks", if `withdraw` is called at a time $t$ where $t_0 \le t \le t_1$, then
+delay can be calculated as:
 
 ```math
 delay_t = t - t_0
