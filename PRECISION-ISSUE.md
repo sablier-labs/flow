@@ -171,11 +171,9 @@ print(
 </p>
 </details>
 
-$~$
-
 <!-- prettier-ignore -->
 > [!NOTE]
-> From now on, "unlock intervals" will be used in the context of solidity. The abbreviation $ui_{solidity}$ will be used to represent the same.
+> From now on, "unlock intervals" will be used only in the context of solidity. The abbreviation $ui_{solidity}$ will be used to represent the same.
 
 ### Ongoing debt as a discrete function of time
 
