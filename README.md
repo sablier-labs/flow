@@ -9,27 +9,29 @@
 [foundry]: https://getfoundry.sh
 [foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
 
-This repository contains the smart contracts for Sablier Flow. Streams created with Sablier Flow have no end time and
-require no upfront deposit. This is ideal for regular payments such as salaries and subscriptions, where an end time is
-not specified. For vesting or airdrops, refer to the [Sablier Lockup](https://github.com/sablier-labs/v2-core/)
-protocol.
+This repository contains the smart contracts for Sablier Flow protocol. Flow is a debt tracking protocol that tracks
+tokens owed between two parties, enabling indefinite token streaming. A Flow stream is characterized by its rate per
+second (rps). The relationship between the amount owed and time elapsed is linear and can be defined as:
 
-## Motivation
+```math
+\text{amount owed} = rps \times \text{elapsed time}
+```
 
-One of the most requested features from users is the ability to create streams without an upfront deposit. This requires
-the protocol to manage _"debt"_, which is the amount the sender owes the recipient but is not yet available in the
-stream. The following struct defines a Flow stream:
-
-https://github.com/sablier-labs/flow/blob/main/src/types/DataTypes.sol#L41-L76
+Flow protocol can be used in several areas of everyday finance, such as payroll, distributing grants, insurance
+premiums, loans interest, token ESOPs etc. If you are looking for vesting and airdrops, please refer to our
+[Lockup](https://github.com/sablier-labs/v2-core/) protocol.
 
 ## Features
 
-- Streams can be created indefinitely.
-- No deposits are required at creation; thus, creation and deposit are separate operations.
-- Anyone can deposit into a stream, allowing others to fund your streams.
-- No limit on deposits; any amount can be deposited or refunded if not yet streamed to recipients.
-- Streams without sufficient balance will accumulate debt until paused or sufficiently funded.
-- Senders can pause and restart streams without losing track of previously accrued debt.
+1. **Flexible deposit:** A stream can be funded with any amount, at any time, by anyone, in full or in parts.
+2. **Flexible duration:** A stream can be created with no specific start or end time. It can run indefinitely.
+3. **Pause:** A stream can be paused by the sender and can later be restarted without losing track of previously accrued
+   debt.
+4. **Refund:** Unstreamed amount can be refunded back to the sender at any time.
+5. **Void:** Voiding a stream forfeits the uncovered debt and, thus, cannot be restarted anymore. Only streams with
+   non-zero uncovered debt can be voided by any part (either the sender or the recipient).
+6. **Withdraw:** it is publicly callable as long as `to` is set to the recipient. However, a stream’s recipient is
+   allowed to withdraw funds to any address.
 
 ## Install
 
@@ -55,13 +57,13 @@ Then, if you are using Foundry, you need to add these to your `remappings.txt` f
 
 This installation method is not recommended, but it is available for those who prefer it.
 
-First, install the submodule using Forge:
+Install the submodule using Forge:
 
 ```shell
 forge install --no-commit sablier-labs/flow
 ```
 
-Second, install the project's dependencies:
+Then, install the project's dependencies:
 
 ```shell
 forge install --no-commit OpenZeppelin/openzeppelin-contracts@v5.0.2 PaulRBerg/prb-math#95f00b2
@@ -83,9 +85,9 @@ This is just a glimpse of Sablier Flow. For more guides and examples, see the [d
 import { ISablierFlow } from "@sablier/flow/src/interfaces/ISablierFlow.sol";
 
 contract MyContract {
-  ISablierFlow flow;
+  ISablierFlow immutable flow;
 
-  function buildSomethingWithFlow() external {
+  function StreamWithFlow() external {
     // ...
   }
 }
@@ -94,18 +96,18 @@ contract MyContract {
 ## Contributing
 
 Feel free to dive in! [Open](https://github.com/sablier-labs/flow/issues/new) an issue,
-[start](https://github.com/sablier-labs/flow/discussions/new) a discussion or submit a PR. For any informal concerns or
-feedback, please join our [Discord server](https://discord.gg/bSwRCwWRsT).
+[start](https://github.com/sablier-labs/flow/discussions/new) a discussion or submit
+[a PR](https://github.com/sablier-labs/flow/compare). For any concerns or feedback, please join our
+[Discord server](https://discord.gg/bSwRCwWRsT).
 
-For guidance on how to create PRs, see the [CONTRIBUTING](./CONTRIBUTING.md) guide.
+Refer to [CONTRIBUTING](./CONTRIBUTING.md) guidelines if you wish to create a PR.
 
 ## License
 
 The primary license for Sablier Flow is the Business Source License 1.1 (`BUSL-1.1`), see [`LICENSE.md`](./LICENSE.md).
 However, there are exceptions:
 
-- All files in `src/interfaces/` and `src/types` are licensed under `GPL-3.0-or-later`, see
-  [`LICENSE-GPL.md`](./LICENSE-GPL.md).
-- Several files in `src`, `script`, and `test` are licensed under `GPL-3.0-or-later`, see
-  [`LICENSE-GPL.md`](./LICENSE-GPL.md).
-- Many files in `test/` remain unlicensed (as indicated in their SPDX headers).
+- All files in `src/` with the exception of `SablierFlow.sol` are licensed under `GPL-3.0-or-later`. Refer to
+  [`LICENSE-GPL.md`](./LICENSE-GPL.md) for preamble.
+- All files in `script/` are licensed under `GPL-3.0-or-later`.
+- All files in `tests/` are unlicensed (as indicated in their SPDX headers).
