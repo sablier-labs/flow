@@ -260,11 +260,10 @@ Using the above explainations, we can now say that for a given interval $[t_0, t
 delay can be calculated as:
 
 ```math
-delay_t = t - t_0
-```
-
-```math
+\begin{aligned}
+delay_t = t - t_0 \\
 delay_t = t - (st + ui_{solidity})
+\end{aligned}
 ```
 
 ### Reverse engineering the delay from the rescaled ongoing debt
@@ -276,6 +275,5 @@ We can also reverse engineer the delay from the _rescaled_ ongoing debt:
 \text{ongoing\_debt} &= \frac{rps \cdot (t - \text{snapshot\_time})}{\text{scaling\_factor}} \\
 \text{rescaled\_ongoing\_debt} &= \text{ongoing\_debt} \cdot \text{scaling\_factor} \\
 delay &= t - \text{snapshot\_time} - \frac{\text{rescaled\_ongoing\_debt}}{rps} - 1 \\
-
 \end{aligned}
 ```
