@@ -30,6 +30,7 @@ can only withdraw the available balance.
 | Ongoing Debt                | od            |
 | Rate per second             | rps           |
 | Refundable Amount           | ra            |
+| Scale Factor                | sf            |
 | Snapshot Debt               | sd            |
 | Snapshot Time               | st            |
 | Stream Balance              | bal           |
@@ -146,12 +147,13 @@ But since USDC only has 6 decimals, the _rps_ would be limited to $0.000115$, le
 $0.000115 \cdot \text{seconds in one day} = 9.936000$ USDC streamed in one day. This results in a shortfall of
 $0.064000$ USDC per day, which is problematic.
 
-### Solution
+## Defining rps as 18 decimal number
 
 In the contracts, we scale the rate per second to 18 decimals. While this doesn't completely solve the issue, it
 significantly minimizes it.
 
-Using the same example (streaming 10 USDC per day), if _rps_ has 18 decimals, the end-of-day result would be:
+<a name="10-per-day-example"></a> Using the same example (streaming 10 USDC per day), if _rps_ has 18 decimals, the
+end-of-day result would be:
 
 $0.000115740740740740 \cdot \text{seconds in one day} = 9.999999999999936000$
 
@@ -159,10 +161,9 @@ The difference would be:
 
 $10.000000000000000000 - 9.999999999999936000 = 0.000000000000006400$
 
-This is an improvement by $\approx 10^{11}$. While not perfect, it is clearly much better.
-
-The funds will never be stuck in the contract; the recipient may have to wait a bit longer to receive the full 10 USDC
-per day. Using the 18 decimals format would delay it by just 1 more second:
+This is an improvement by $\approx 10^{11}$. While not perfect, it is clearly much better as the recipient may have to
+wait just a bit longer to receive the full 10 USDC per day. Using the 18 decimals format would delay it by just 1 more
+second:
 
 $0.000115740740740740 \cdot (\text{seconds in one day} + 1 second) = 10.000115740740677000$
 
@@ -170,22 +171,21 @@ Currently, it's not possible to address this precision problem entirely.
 
 <!-- prettier-ignore -->
 > [!IMPORTANT]
-> The issues described below would not lead to loss of funds, but can affect the streaming experience for users.
-
-## Defining rps as 18 decimal number
+> The issues described in this section, as well as those discussed below,
+> will not lead to a loss of funds but may affect the streaming experience for users.
 
 ### Problem 1: Relative delay
 
-We define the **Relative Delay** as the minimum period (in seconds) that a N-decimal rps system would require to stream
-the same amount of tokens that the 18-decimal rps system would.
+From the previous section, we can define the **Relative Delay** as the minimum period (in seconds) that a N-decimal
+`rps` system would require to stream the same amount of tokens that the 18-decimal `rps` system would.
 
 ```math
 \text{relative\_delay}_N = \frac{ (rps_{18} - rps_N) }{rps_N} \cdot T_{\text{interval}}
 ```
 
-For example, in a 6-decimal rps system, to stream 10e6 tokens, the corresponding $rps_{18}$ and $rps_6$ would be
-$0.000115740740740740$ and $0.000115$, respectively. And therefore, we can calculate the relative delay for a one day
-period as follows:
+In a 6-decimal `rps` system, for the example provided [above](#10-per-day-example), the corresponding $rps_{18}$ and
+$rps_6$ would be $0.000115740740740740$ and $0.000115$, respectively. And therefore, we can calculate the relative delay
+for a one day period as follows:
 
 ```math
 \text{relative\_delay}_6 = \frac{ (0.000115740740740740 - 0.000115)}{0.000115} \cdot 86400 \approx 556 \, \text{seconds}
@@ -196,8 +196,6 @@ Similarly, relative delays for other time intervals can be calculated:
 - 7 days: ~1 hour, 5 minutes
 - 30 days: ~4 hours, 38 minutes
 - 1 year: ~2 days, 8 hours
-
-Using an 18-decimal rps system would not cause relative delay to the streamed amount.
 
 ### Problem 2: Minimum Transferable Value
 
@@ -216,10 +214,10 @@ rectify, the above two problems.
 ## Delay due to Descaling (unlock interval)
 
 Even though `rps` is defined as an 18-decimal number, to properly transfer tokens, the amount calculated in the ongoing
-debt function must be descaled by dividing by $`10^{18 - N}`$. This means the function becomes:
+debt function must be descaled by dividing by $` sf = 10^{18 - N}`$. This means the function becomes:
 
 ```math
-\text{od} = \frac{rps_{18} \cdot \text{elt}}{10^{18-N}}
+\text{od} = \frac{rps_{18} \cdot \text{elt}}{sf}
 ```
 
 Descaling, therefore, reintroduces the delay problem mentioned in the previous section, but to a much lesser extent, and
@@ -230,7 +228,7 @@ only when the following conditions are met:
 
 <!-- prettier-ignore -->
 > [!NOTE]
-> $2^{nd}$ condition is crucial in this problem.
+> 2nd condition is crucial in this problem.
 
 A simple example to demonstrate the issue is to choose an `rps` such that it is less than the `mvt`:
 `rps = 0.000000_011574e18` (i.e. ~ `0.000010e6` tokens / day).
@@ -251,9 +249,9 @@ Let us now calculate `unlock_interval` for the previous example:
 \left.
 \begin{aligned}
 
-\text{rps} &= 1.11574 \cdot 10^{-8} \cdot 10^{18} = 1.11574 \cdot 10^{10} \\
-\text{factor} &= 10^{18 - \text{decimals}} = 10^{12} \\
-\text{unlock\_interval} &= \frac{\text{factor}}{\text{rps}} \\
+rps &= 1.11574 \cdot 10^{-8} \cdot 10^{18} = 1.11574 \cdot 10^{10} \\
+sf &= 10^{18 - \text{decimals}} = 10^{12} \\
+\text{unlock\_interval} &= \frac{sf}{rps} \\
 
 \end{aligned}
 \right\}
@@ -406,9 +404,9 @@ In case 2, the snapshot time is updated to $(st + 172)$, which represents a maxi
 less than the unlock interval from its time range. In this case, the user would experience a delay of
 $`uis - 1 = \{85, 86\}`$.
 
-As a result, the ongoing debt function is shifted to the right, so that the unlock intervals occur in the same sequence
-as the initial ones. If the first unlock occurred after 87 seconds, after withdrawal, the next unlock will also occur
-after 87 seconds.
+As a result, the ongoing debt function is _shifted to the right_, so that the unlock intervals occur in the same
+sequence as the initial ones. If the first unlock occurred after 87 seconds, after withdrawal, the next unlock will also
+occur after 87 seconds.
 
 This is illustrated in the following graph, where the red line represents the ongoing debt before the withdrawal, and
 the green line represents the ongoing debt function after the withdrawal. Additionally, notice the green points, which
@@ -416,8 +414,8 @@ indicate the new unlocks.
 
 ```math
 \begin{align*}
-\text{withdraw\_time} + uis_1 &= 172 + 87 = 259 \\
-\text{withdraw\_time} + uis_2 &= 172 + 173 = 345
+\text{withdraw\_time} + uis_1 &= 172 + 87 &= 259 \\
+\text{withdraw\_time} + uis_2 &= 172 + 173 &= 345
 \end{align*}
 ```
 
