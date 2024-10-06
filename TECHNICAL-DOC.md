@@ -183,9 +183,8 @@ From the previous section, we can define the **Relative Delay** as the minimum p
 \text{relative\_delay}_N = \frac{ (rps_{18} - rps_N) }{rps_N} \cdot T_{\text{interval}}
 ```
 
-In a 6-decimal `rps` system, for the example provided [above](#10-per-day-example), the corresponding $rps_{18}$ and
-$rps_6$ would be $0.000115740740740740$ and $0.000115$, respectively. And therefore, we can calculate the relative delay
-for a one day period as follows:
+In a 6-decimal `rps` system, for the `rps` values provided in the example [above](#10-per-day-example), we can calculate
+the relative delay over a one-day period as follows:
 
 ```math
 \text{relative\_delay}_6 = \frac{ (0.000115740740740740 - 0.000115)}{0.000115} \cdot 86400 \approx 556 \, \text{seconds}
