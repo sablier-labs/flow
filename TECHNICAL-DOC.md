@@ -213,7 +213,7 @@ rectify, the above two problems.
 ## Delay due to Descaling (unlock interval)
 
 Even though `rps` is defined as an 18-decimal number, to properly transfer tokens, the amount calculated in the ongoing
-debt function must be descaled by dividing by $` sf = 10^{18 - N}`$. This means the function becomes:
+debt function must be descaled by dividing by $` sf = 10^{18 - N}`$. This means the [function](#1-ongoing-debt) becomes:
 
 ```math
 \text{od} = \frac{rps_{18} \cdot \text{elt}}{sf}
