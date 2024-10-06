@@ -79,53 +79,59 @@ can only withdraw the available balance.
 
 17. if $isVoided = false \implies \text{amount streamed with delay} = td + \text{amount withdrawn}$.
 
-## Limitations
+## Limitation
 
 - ERC-20 tokens with decimals higher than 18 are not supported.
 
 ## Core components
 
-### 1. Total debt
+### 1. Ongoing debt
+
+The ongoing debt (od) is the debt accrued since the last snapshot. It is defined as the rate per second (rps) multiplied
+by the time elapsed since the snapshot time.
+
+$od = rps \cdot elt = rps \cdot (now - st)$
+
+### 2. Snapshot debt
+
+The snapshot debt (sd) is the amount that the sender owed to the recipient at the snapshot time. During a snapshot, the
+snapshot debt increases by the ongoing debt.
+
+$sd = sd + od$
+
+### 3. Total debt
 
 The total debt (td) is the total amount the sender owes to the recipient. It is calculated as the sum of the snapshot
 debt and the ongoing debt.
 
 $td = sd + od$
 
-### 2. Ongoing debt
+### 4. Covered debt
 
-The ongoing debt (od) is calculated as the rate per second (rps) multiplied by the delta between the current time and
-`snapshotTime`.
+The part of the total debt that covered by the stream balance. This is the same as the withdrawable amount, which is an
+alias.
 
-$od = rps \cdot (now - st) = rps \cdot elt$
+The covered debt (cd) is defined as the minimum of the total debt and the stream balance.
 
-### 3. Snapshot debt
+$`cd = \begin{cases} td & \text{if } td \le bal \\ bal & \text{if } td \gt bal \end{cases}`$
 
-The snapshot debt (sd) is the amount that the sender owed the recipient at snapshot time. When `snapshotTime` is
-updated, the snapshot debt increases by the ongoing debt.
+### 5. Uncovered debt
 
-$sd = \sum od_t$
+The part of the total debt that is not covered by the stream balance. This is what the sender owes to the stream.
 
-### 4. Uncovered debt
-
-The uncovered debt (ud) is the difference between the total debt and the actual balance, applicable when the total debt
-exceeds the balance.
+The uncovered debt (ud) is defined as the difference between the total debt and the stream balance, applicable only when
+the total debt exceeds the balance.
 
 $`ud = \begin{cases} td - bal & \text{if } td \gt bal \\ 0 & \text{if } td \le bal \end{cases}`$
 
-### 5. Refundable amount
+Together, covered debt and uncovered debt make up the total debt.
 
-The refundable amount (ra) is the amount that the sender can be refunded. It is the difference between the stream
-balance and the total debt.
+### 6. Refundable amount
+
+The refundable amount (ra) is the amount that can be refunded to the sender. It is defined as the difference between the
+stream balance and the total debt.
 
 $`ra = \begin{cases} bal - td & \text{if } ud = 0 \\ 0 & \text{if } ud > 0 \end{cases}`$
-
-### 6. Covered debt
-
-The covered debt (cd) is the total debt when there is no uncovered debt. But if there is uncovered debt, the covered
-debt is capped to the stream balance.
-
-$`cd = \begin{cases} td & \text{if } ud = 0 \\ bal & \text{if } ud \gt 0 \end{cases}`$
 
 ## About precision
 
