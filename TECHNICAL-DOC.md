@@ -23,19 +23,19 @@ can only withdraw the available balance.
 
 ## Abbreviations
 
-| Terms                       | Abbreviation |
-| --------------------------- | ------------ |
-| Total Debt                  | td           |
-| Ongoing Debt                | od           |
-| Snapshot Debt               | sd           |
-| Snapshot Time               | st           |
-| Uncovered Debt              | ud           |
-| Refundable Amount           | ra           |
-| Covered Debt                | cd           |
-| Stream Balance              | bal          |
-| block timestamp             | now          |
-| Rate per second             | rps          |
-| Time elapsed since snapshot | elt          |
+| Terms                       | Abbreviations |
+| --------------------------- | ------------- |
+| Block Timestamp             | now           |
+| Covered Debt                | cd            |
+| Ongoing Debt                | od            |
+| Rate per second             | rps           |
+| Refundable Amount           | ra            |
+| Snapshot Debt               | sd            |
+| Snapshot Time               | st            |
+| Stream Balance              | bal           |
+| Time elapsed since snapshot | elt           |
+| Total Debt                  | td            |
+| Uncovered Debt              | ud            |
 
 ## Invariants
 
