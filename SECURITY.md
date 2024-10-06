@@ -52,10 +52,11 @@ it must adhere to the following assumptions:
   an approved address. This excludes rebase tokens and interest-bearing tokens.
 - The token contract does not allow callbacks (e.g. ERC-777 is not supported).
 - As explained in [Technical Documentation](https://github.com/sablier-labs/flow/blob/main/TECHNICAL-DOC.md), there
-  could be delays in streamed amounts if rps is extremely small. The definition of "extremely small rps" is subjective
-  and depends on the token decimal and its dollar value. For example, a streams of USDC less than 50 USDC per month
-  would be considered to have extremely small rps. for WBTC, it would be defined as a value that streams less than 0.001
-  WBTC a month. Any rps value that takes more than 1 second to stream 1 wei of token is also considered extremely small.
+  could be delays in streamed amounts if `rps` is extremely small. The definition of "extremely small rps" is subjective
+  and depends on the token decimals and its dollar value. For example, a streams of USDC less than 50 USDC per month
+  would be considered to have extremely small `rps`, but for WBTC, it would be defined as a value that streams less than
+  0.001 WBTC a month. Any `rps` value that takes more than 1 second to stream 1 unit of token is also considered
+  extremely small.
 
 ### Rewards
 
