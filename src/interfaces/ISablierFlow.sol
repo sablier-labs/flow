@@ -364,16 +364,15 @@ interface ISablierFlow is
     /// @param amount The deposit amount, denoted in token's decimals.
     function restartAndDeposit(uint256 streamId, UD21x18 ratePerSecond, uint128 amount) external;
 
-    /// @notice Voids a stream.
+    /// @notice Voids a stream and ends the stream.
     ///
     /// @dev Emits a {VoidFlowStream} event.
     ///
     /// Notes:
     /// - It sets snapshot time to the `block.timestamp`
-    /// - Voiding an insolvent stream sets the snapshot debt to the stream's balance making the uncovered debt to become
-    /// zero.
+    /// - Voiding an insolvent stream sets the snapshot debt to the stream's balance making the uncovered debt zero.
     /// - Voiding a solvent stream updates the snapshot debt by adding up ongoing debt.
-    /// - It sets the rate per second to zero.
+    /// - It sets the rate per second to zero if the status is streaming.
     /// - A voided stream cannot be restarted.
     ///
     /// Requirements:

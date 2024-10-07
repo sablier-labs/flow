@@ -701,36 +701,29 @@ contract SablierFlow is
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
     }
 
-    /// @dev Voids a stream.
+    /// @dev See the documentation for the user-facing functions that call this internal function.
     function _void(uint256 streamId) internal {
-        uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
-
         // Check: `msg.sender` is either the stream's sender, recipient or an approved third party.
         if (msg.sender != _streams[streamId].sender && !_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized({ streamId: streamId, caller: msg.sender });
         }
 
-        uint128 balance = _streams[streamId].balance;
+        uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
 
-        // If the stream is solvent, update the total debt normally.
-        if (debtToWriteOff == 0) {
-            uint128 ongoingDebt = _ongoingDebtOf(streamId);
-            if (ongoingDebt > 0) {
-                // Effect: Update the snapshot debt by adding the ongoing debt.
-                _streams[streamId].snapshotDebt += ongoingDebt;
-            }
+        // If the stream is not paused, update the rate per second, snapshot debt and time.
+        if (_streams[streamId].ratePerSecond.unwrap() > 0) {
+            _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ud21x18(0) });
         }
-        // If the stream is insolvent, write off the uncovered debt.
+        // Otherwise, if the stream is paused, update only the snapshot time.
         else {
-            // Effect: update the total debt by setting snapshot debt to the stream balance.
-            _streams[streamId].snapshotDebt = balance;
+            // Effect: update the snapshot time.
+            _streams[streamId].snapshotTime = uint40(block.timestamp);
         }
 
-        // Effect: update the snapshot time.
-        _streams[streamId].snapshotTime = uint40(block.timestamp);
-
-        // Effect: set the rate per second to zero.
-        _streams[streamId].ratePerSecond = ud21x18(0);
+        // If the stream has uncovered debt, set the snapshot debt to the balance.
+        if (debtToWriteOff > 0) {
+            _streams[streamId].snapshotDebt = _streams[streamId].balance;
+        }
 
         // Effect: set the stream as voided.
         _streams[streamId].isVoided = true;
