@@ -532,10 +532,6 @@ contract Flow_Fork_Test is Fork_Test {
 
         resetPrank({ msgSender: sender });
 
-        if (flow.isPaused(streamId)) {
-            flow.restart(streamId, RATE_PER_SECOND);
-        }
-
         if (uncoveredDebt > 0) {
             expectedTotalDebt = flow.getBalance(streamId);
         } else {

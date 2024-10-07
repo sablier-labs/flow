@@ -702,16 +702,14 @@ contract SablierFlow is
         emit ISablierFlow.RestartFlowStream(streamId, msg.sender, ratePerSecond);
     }
 
-    /// @dev Voids a stream.
+    /// @dev See the documentation for the user-facing functions that call this internal function.
     function _void(uint256 streamId) internal {
-        uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
-
         // Check: `msg.sender` is either the stream's sender, recipient or an approved third party.
         if (msg.sender != _streams[streamId].sender && !_isCallerStreamRecipientOrApproved(streamId)) {
             revert Errors.SablierFlow_Unauthorized({ streamId: streamId, caller: msg.sender });
         }
 
-        uint128 balance = _streams[streamId].balance;
+        uint128 debtToWriteOff = _uncoveredDebtOf(streamId);
 
         // If the stream is solvent, update the total debt normally.
         if (debtToWriteOff == 0) {
@@ -724,7 +722,7 @@ contract SablierFlow is
         // If the stream is insolvent, write off the uncovered debt.
         else {
             // Effect: update the total debt by setting snapshot debt to the stream balance.
-            _streams[streamId].snapshotDebt = balance;
+            _streams[streamId].snapshotDebt = _streams[streamId].balance;
         }
 
         // Effect: update the snapshot time.
