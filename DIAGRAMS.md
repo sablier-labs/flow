@@ -25,27 +25,26 @@ stateDiagram-v2
     direction LR
 
     state Streaming {
+        direction LR
         STREAMING_SOLVENT
         STREAMING_INSOLVENT --> STREAMING_SOLVENT : deposit
         STREAMING_SOLVENT --> STREAMING_INSOLVENT : time
     }
 
     state Paused {
-        # direction BT
+        direction RL
         PAUSED_SOLVENT
-        PAUSED_INSOLVENT
         PAUSED_INSOLVENT --> PAUSED_SOLVENT : deposit
+        PAUSED_INSOLVENT
     }
 
-    STREAMING_SOLVENT --> PAUSED_SOLVENT : pause
-    STREAMING_INSOLVENT --> PAUSED_INSOLVENT : pause
-    PAUSED_SOLVENT --> STREAMING_SOLVENT : restart
+    Streaming --> Paused : pause
+    Paused --> Streaming : restart
     Paused --> VOIDED : void
     Streaming --> VOIDED : void
-    PAUSED_INSOLVENT --> STREAMING_INSOLVENT : restart
 
-    NULL --> STREAMING_SOLVENT : create (rps > 0)
-    NULL --> PAUSED_SOLVENT : create (rps = 0)
+    NULL --> Streaming : create (rps > 0)
+    NULL --> Paused : create (rps = 0)
 
     NULL:::grey
     Paused:::lightYellow
@@ -117,12 +116,12 @@ flowchart LR
 
     RST -- "update rps<br/>update st" --> PSED
 
-    VD -- "update sd (bal)<br/>update rps (0)<br/>update st" --> BOTH
+    VD -- "update sd (bal || +od)<br/>update rps (0)<br/>update st" --> BOTH
 
     WTD -- "update sd (-)<br/>update st<br/>update bal (-)" --> BOTH
     WTD -- "update sd (-)" --> VOID
 
-    linkStyle 2,3,9,10 stroke:#ff0000,stroke-width:2px
+    linkStyle 2,3,4,10,11 stroke:#ff0000,stroke-width:2px
 ```
 
 ## Access Control
@@ -212,7 +211,7 @@ classDef green1 fill:#32cd32,stroke:#333,stroke-width:2px;
 flowchart TD
     di0{ }:::red1
     sd([Uncovered Debt - ud]):::red0
-    res_sd(["td- bal"]):::red1
+    res_sd(["td - bal"]):::red1
     res_zero([0]):::red1
 
     sd --> di0
