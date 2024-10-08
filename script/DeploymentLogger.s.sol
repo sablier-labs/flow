@@ -6,11 +6,22 @@ import { stdJson } from "forge-std/src/StdJson.sol";
 
 import { BaseScript } from "./Base.s.sol";
 
-contract TableCreator is BaseScript {
+/// @dev This contract appends to the `deployments` directory, which is assumed to be already created before running the
+/// deployment script.
+contract DeploymentLogger is BaseScript {
     using stdJson for string;
     using Strings for address;
     using Strings for string;
     using Strings for uint256;
+
+    /// @dev The address of the default Sablier admin.
+    address internal constant DEFAULT_SABLIER_ADMIN = 0xb1bEF51ebCA01EB12001a639bDBbFF6eEcA12B9F;
+
+    /// @dev Admin address mapped by the chain Id.
+    mapping(uint256 chainId => address admin) internal adminMap;
+
+    /// @dev Chain names mapped by the chain Id.
+    mapping(uint256 chainId => string name) internal chainNameMap;
 
     /// @dev The path to the file where the deployment addresses are stored.
     string internal deploymentFile;
@@ -18,36 +29,36 @@ contract TableCreator is BaseScript {
     /// @dev Explorer URL mapped by the chain Id.
     mapping(uint256 chainId => string explorerUrl) internal explorerMap;
 
-    /// @dev Chain names mapped by the chain Id.
-    mapping(uint256 chainId => string name) internal nameMap;
-
     constructor(string memory deterministicOrNot) {
+        // Populate the admin map.
+        populateAdminMap();
+
         // Populate the chain name map.
         populateChainNameMap();
 
         // Populate the explorer URLs.
         populateExplorerMap();
 
-        // If there is no admin set for a specific chain, use the Sablier deployer.
+        // If there is no admin set for a specific chain, use the default Sablier admin.
         if (adminMap[block.chainid] == address(0)) {
-            adminMap[block.chainid] = SABLIER_DEPLOYER;
+            adminMap[block.chainid] = DEFAULT_SABLIER_ADMIN;
         }
 
         // If there is no explorer URL set for a specific chain, use a placeholder.
         if (explorerMap[block.chainid].equal("")) {
-            explorerMap[block.chainid] = "<explorer_url_missing>";
+            explorerMap[block.chainid] = "N/A";
         }
 
         // If there is no chain name set for a specific chain, use the chain ID.
-        if (nameMap[block.chainid].equal("")) {
-            nameMap[block.chainid] = block.chainid.toString();
+        if (chainNameMap[block.chainid].equal("")) {
+            chainNameMap[block.chainid] = string.concat("Chain ID: ", block.chainid.toString());
         }
 
         // Set the deployment file path.
         deploymentFile = string.concat("deployments/", deterministicOrNot, ".md");
 
         // Append the chain name to the deployment file.
-        _appendToFile(string.concat("## ", nameMap[block.chainid], "\n\n"));
+        _appendToFile(string.concat("## ", chainNameMap[block.chainid], "\n"));
     }
 
     /// @dev Function to append the deployed addresses to the deployment file.
@@ -61,35 +72,51 @@ contract TableCreator is BaseScript {
         string memory flowNFTDescriptorLine =
             _getContractLine({ contractName: "FlowNFTDescriptor", contractAddress: flowNFTDescriptor.toHexString() });
         _appendToFile(flowNFTDescriptorLine);
+
+        _appendToFile("\n");
+    }
+
+    /// @dev Populates the admin map.
+    function populateAdminMap() internal {
+        adminMap[42_161] = 0xF34E41a6f6Ce5A45559B1D3Ee92E141a3De96376; // Arbitrum
+        adminMap[43_114] = 0x4735517616373c5137dE8bcCDc887637B8ac85Ce; // Avalanche
+        adminMap[8453] = 0x83A6fA8c04420B3F9C7A4CF1c040b63Fbbc89B66; // Base
+        adminMap[56] = 0x6666cA940D2f4B65883b454b7Bc7EEB039f64fa3; // BNB
+        adminMap[100] = 0x72ACB57fa6a8fa768bE44Db453B1CDBa8B12A399; // Gnosis
+        adminMap[1] = 0x79Fb3e81aAc012c08501f41296CCC145a1E15844; // Mainnet
+        adminMap[59_144] = 0x72dCfa0483d5Ef91562817C6f20E8Ce07A81319D; // Linea
+        adminMap[10] = 0x43c76FE8Aec91F63EbEfb4f5d2a4ba88ef880350; // Optimism
+        adminMap[137] = 0x40A518C5B9c1d3D6d62Ba789501CE4D526C9d9C6; // Polygon
+        adminMap[534_352] = 0x0F7Ad835235Ede685180A5c611111610813457a9; // Scroll
     }
 
     /// @dev Populates the chain name map.
     function populateChainNameMap() internal {
-        nameMap[42_161] = "Arbitrum";
-        nameMap[43_114] = "Avalanche";
-        nameMap[8453] = "Base";
-        nameMap[84_532] = "Base Sepolia";
-        nameMap[80_084] = "Berachain Bartio";
-        nameMap[81_457] = "Blast";
-        nameMap[168_587_773] = "Blast Sepolia";
-        nameMap[56] = "BNB Smart Chain";
-        nameMap[100] = "Gnosis";
-        nameMap[1890] = "Lightlink";
-        nameMap[59_144] = "Linea";
-        nameMap[59_141] = "Linea Sepolia";
-        nameMap[1] = "Mainnet";
-        nameMap[333_000_333] = "Meld";
-        nameMap[34_443] = "Mode";
-        nameMap[919] = "Mode Sepolia";
-        nameMap[2810] = "Morph Holesky";
-        nameMap[10] = "Optimism";
-        nameMap[11_155_420] = "Optimism Sepolia";
-        nameMap[137] = "Polygon";
-        nameMap[534_352] = "Scroll";
-        nameMap[11_155_111] = "Sepolia";
-        nameMap[53_302] = "Superseed Sepolia";
-        nameMap[167_009] = "Taiko Hekla";
-        nameMap[167_000] = "Taiko Mainnet";
+        chainNameMap[42_161] = "Arbitrum";
+        chainNameMap[43_114] = "Avalanche";
+        chainNameMap[8453] = "Base";
+        chainNameMap[84_532] = "Base Sepolia";
+        chainNameMap[80_084] = "Berachain Bartio";
+        chainNameMap[81_457] = "Blast";
+        chainNameMap[168_587_773] = "Blast Sepolia";
+        chainNameMap[56] = "BNB Smart Chain";
+        chainNameMap[100] = "Gnosis";
+        chainNameMap[1890] = "Lightlink";
+        chainNameMap[59_144] = "Linea";
+        chainNameMap[59_141] = "Linea Sepolia";
+        chainNameMap[1] = "Mainnet";
+        chainNameMap[333_000_333] = "Meld";
+        chainNameMap[34_443] = "Mode";
+        chainNameMap[919] = "Mode Sepolia";
+        chainNameMap[2810] = "Morph Holesky";
+        chainNameMap[10] = "Optimism";
+        chainNameMap[11_155_420] = "Optimism Sepolia";
+        chainNameMap[137] = "Polygon";
+        chainNameMap[534_352] = "Scroll";
+        chainNameMap[11_155_111] = "Sepolia";
+        chainNameMap[53_302] = "Superseed Sepolia";
+        chainNameMap[167_009] = "Taiko Hekla";
+        chainNameMap[167_000] = "Taiko Mainnet";
     }
 
     /// @dev Populates the explorer map.
