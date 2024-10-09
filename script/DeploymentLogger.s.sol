@@ -75,7 +75,8 @@ contract DeploymentLogger is BaseScript {
         _appendToFile("\n");
     }
 
-    /// @dev Populates the admin map.
+    /// @dev Populates the admin map. The reason the chain IDs configured for the admin map do not match the other
+    /// maps is that we only have multisigs for the chains listed below, otherwise, the default admin is used.​
     function populateAdminMap() internal {
         adminMap[42_161] = 0xF34E41a6f6Ce5A45559B1D3Ee92E141a3De96376; // Arbitrum
         adminMap[43_114] = 0x4735517616373c5137dE8bcCDc887637B8ac85Ce; // Avalanche
