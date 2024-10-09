@@ -3,7 +3,6 @@ artifacts
 broadcast
 cache
 coverage
-deployments
 docs
 node_modules
 out
