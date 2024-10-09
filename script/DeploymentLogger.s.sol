@@ -6,8 +6,7 @@ import { stdJson } from "forge-std/src/StdJson.sol";
 
 import { BaseScript } from "./Base.s.sol";
 
-/// @dev This contract appends to the `deployments` directory, which is assumed to be already created before running the
-/// deployment script.
+/// @dev This contract appends to the `script` directory a markdown file with the deployed addresses.
 contract DeploymentLogger is BaseScript {
     using stdJson for string;
     using Strings for address;
@@ -55,7 +54,7 @@ contract DeploymentLogger is BaseScript {
         }
 
         // Set the deployment file path.
-        deploymentFile = string.concat("deployments/", deterministicOrNot, ".md");
+        deploymentFile = string.concat("script/", deterministicOrNot, ".md");
 
         // Append the chain name to the deployment file.
         _appendToFile(string.concat("## ", chainNameMap[block.chainid], "\n"));
