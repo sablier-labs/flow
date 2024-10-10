@@ -53,7 +53,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 actualStreamBalance;
         uint256 actualStreamId;
         uint256 actualTokenBalance;
-        uint128 actualTotalDebt;
+        uint256 actualTotalDebt;
         // Expected values.
         uint256 expectedAggregateAmount;
         UD21x18 expectedRatePerSecond;
@@ -62,7 +62,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint128 expectedStreamBalance;
         uint256 expectedStreamId;
         uint256 expectedTokenBalance;
-        uint128 expectedTotalDebt;
+        uint256 expectedTotalDebt;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -252,8 +252,8 @@ contract Flow_Fork_Test is Fork_Test {
         }
 
         uint128 beforeSnapshotAmount = flow.getSnapshotDebt(streamId);
-        uint128 totalDebt = flow.totalDebtOf(streamId);
-        uint128 ongoingDebt = flow.ongoingDebtOf(streamId);
+        uint256 totalDebt = flow.totalDebtOf(streamId);
+        uint256 ongoingDebt = flow.ongoingDebtOf(streamId);
 
         // Compute the snapshot time that will be stored post withdraw.
         vars.expectedSnapshotTime = getBlockTimestamp();
@@ -274,7 +274,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // It should update snapshot debt.
         vars.actualSnapshotDebt = flow.getSnapshotDebt(streamId);
-        vars.expectedSnapshotDebt = ongoingDebt + beforeSnapshotAmount;
+        vars.expectedSnapshotDebt = uint128(ongoingDebt) + beforeSnapshotAmount;
         assertEq(vars.actualSnapshotDebt, vars.expectedSnapshotDebt, "AdjustRatePerSecond: snapshot debt");
 
         // It should set the new rate per second
@@ -443,7 +443,7 @@ contract Flow_Fork_Test is Fork_Test {
         // If the refundable amount less than 1, deposit some funds.
         if (flow.refundableAmountOf(streamId) <= 1) {
             uint128 depositAmount =
-                flow.uncoveredDebtOf(streamId) + getDefaultDepositAmount(flow.getTokenDecimals(streamId));
+                uint128(flow.uncoveredDebtOf(streamId)) + getDefaultDepositAmount(flow.getTokenDecimals(streamId));
             depositOnStream(streamId, depositAmount);
         }
 
@@ -527,8 +527,8 @@ contract Flow_Fork_Test is Fork_Test {
         // Make sure the requirements are respected.
         address sender = flow.getSender(streamId);
         address recipient = flow.getRecipient(streamId);
-        uint128 uncoveredDebt = flow.uncoveredDebtOf(streamId);
-        uint128 expectedTotalDebt;
+        uint256 uncoveredDebt = flow.uncoveredDebtOf(streamId);
+        uint256 expectedTotalDebt;
 
         resetPrank({ msgSender: sender });
 
@@ -583,7 +583,7 @@ contract Flow_Fork_Test is Fork_Test {
         );
 
         uint256 initialTokenBalance = token.balanceOf(address(flow));
-        uint128 totalDebt = flow.totalDebtOf(streamId);
+        uint256 totalDebt = flow.totalDebtOf(streamId);
 
         vars.expectedSnapshotTime =
             withdrawAmount <= flow.getSnapshotDebt(streamId) ? flow.getSnapshotTime(streamId) : getBlockTimestamp();

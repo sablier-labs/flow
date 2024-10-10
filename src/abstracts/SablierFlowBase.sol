@@ -181,7 +181,7 @@ abstract contract SablierFlowBase is
     }
 
     /// @inheritdoc ISablierFlowBase
-    function isTransferable(uint256 streamId) external view override returns (bool result) {
+    function isTransferable(uint256 streamId) external view override notNull(streamId) returns (bool result) {
         result = _streams[streamId].isTransferable;
     }
 

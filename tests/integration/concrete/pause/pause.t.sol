@@ -66,7 +66,7 @@ contract Pause_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_Pause() internal {
-        uint128 initialTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint256 initialTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {PauseFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });

@@ -137,11 +137,11 @@ contract FlowCreateHandler is BaseHandler {
 
         // For 18 decimal, check the rate per second is within a realistic range.
         if (decimals == 18) {
-            vm.assume(params.ratePerSecond > 0.00001e18 && params.ratePerSecond <= 1e18);
+            vm.assume(params.ratePerSecond > 0.00001e18 && params.ratePerSecond <= UINT128_MAX / 30 days);
         }
         // For all other decimals, choose the minimum rps such that it takes 100 seconds to stream 1 token.
         else {
-            vm.assume(params.ratePerSecond > mvt / 100 && params.ratePerSecond <= 1e18);
+            vm.assume(params.ratePerSecond > mvt / 100 && params.ratePerSecond <= UINT128_MAX / 30 days);
         }
     }
 }

@@ -54,7 +54,7 @@ contract RefundAndPause_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_WhenCallerSender() external whenNoDelegateCall givenNotNull givenNotPaused {
-        uint128 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint256 previousTotalDebt = flow.totalDebtOf(defaultStreamId);
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events
         vm.expectEmit({ emitter: address(usdc) });
