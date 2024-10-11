@@ -16,14 +16,14 @@ contract DepletionTimeOf_Integration_Concrete_Test is Integration_Test {
 
     function test_GivenBalanceZero() external view givenNotNull givenNotPaused {
         // It should return 0
-        uint40 depletionTime = uint40(flow.depletionTimeOf(defaultStreamId));
+        uint256 depletionTime = flow.depletionTimeOf(defaultStreamId);
         assertEq(depletionTime, 0, "depletion time");
     }
 
     function test_GivenUncoveredDebt() external givenNotNull givenNotPaused givenBalanceNotZero {
         vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
         // It should return 0
-        uint40 depletionTime = uint40(flow.depletionTimeOf(defaultStreamId));
+        uint256 depletionTime = flow.depletionTimeOf(defaultStreamId);
         assertEq(depletionTime, 0, "depletion time");
     }
 
