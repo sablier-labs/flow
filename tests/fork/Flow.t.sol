@@ -49,7 +49,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 actualAggregateAmount;
         UD21x18 actualRatePerSecond;
         uint40 actualSnapshotTime;
-        uint128 actualSnapshotDebt;
+        uint256 actualSnapshotDebt;
         uint128 actualStreamBalance;
         uint256 actualStreamId;
         uint256 actualTokenBalance;
@@ -58,7 +58,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 expectedAggregateAmount;
         UD21x18 expectedRatePerSecond;
         uint40 expectedSnapshotTime;
-        uint128 expectedSnapshotDebt;
+        uint256 expectedSnapshotDebt;
         uint128 expectedStreamBalance;
         uint256 expectedStreamId;
         uint256 expectedTokenBalance;
@@ -251,7 +251,7 @@ contract Flow_Fork_Test is Fork_Test {
             newRatePerSecond = ud21x18(newRatePerSecond.unwrap() + 1);
         }
 
-        uint128 beforeSnapshotAmount = flow.getSnapshotDebt(streamId);
+        uint256 beforeSnapshotAmount = flow.getSnapshotDebt(streamId);
         uint256 totalDebt = flow.totalDebtOf(streamId);
         uint256 ongoingDebt = flow.ongoingDebtOf(streamId);
 
@@ -274,7 +274,7 @@ contract Flow_Fork_Test is Fork_Test {
 
         // It should update snapshot debt.
         vars.actualSnapshotDebt = flow.getSnapshotDebt(streamId);
-        vars.expectedSnapshotDebt = uint128(ongoingDebt) + beforeSnapshotAmount;
+        vars.expectedSnapshotDebt = ongoingDebt + beforeSnapshotAmount;
         assertEq(vars.actualSnapshotDebt, vars.expectedSnapshotDebt, "AdjustRatePerSecond: snapshot debt");
 
         // It should set the new rate per second

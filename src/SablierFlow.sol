@@ -69,10 +69,10 @@ contract SablierFlow is
             return 0;
         }
 
-        uint128 snapshotDebt = _streams[streamId].snapshotDebt;
+        uint256 snapshotDebt = _streams[streamId].snapshotDebt;
 
         // If the stream has uncovered debt, return zero.
-        if (snapshotDebt + _ongoingDebtOf(streamId) >= balance) {
+        if (snapshotDebt + _ongoingDebtOf(streamId) > balance) {
             return 0;
         }
 
@@ -524,7 +524,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        uint128 ongoingDebt = _ongoingDebtOf(streamId).toUint128();
+        uint256 ongoingDebt = _ongoingDebtOf(streamId);
 
         // Update the snapshot debt only if the stream has ongoing debt.
         if (ongoingDebt > 0) {
@@ -715,7 +715,7 @@ contract SablierFlow is
         // If the stream is solvent, update the total debt normally.
         if (debtToWriteOff == 0) {
             // It is safe to downcast because if there is no uncovered debt, the ongoing debt fits within `uint128`.
-            uint128 ongoingDebt = _ongoingDebtOf(streamId).toUint128();
+            uint256 ongoingDebt = _ongoingDebtOf(streamId);
             if (ongoingDebt > 0) {
                 // Effect: Update the snapshot debt by adding the ongoing debt.
                 _streams[streamId].snapshotDebt += ongoingDebt;
@@ -795,7 +795,7 @@ contract SablierFlow is
             // Else reduce the amount from the ongoing debt by setting snapshot time to `block.timestamp` and set the
             // snapshot debt to the remaining total debt.
             else {
-                _streams[streamId].snapshotDebt = totalDebt.toUint128() - amount;
+                _streams[streamId].snapshotDebt = totalDebt - amount;
 
                 // Effect: update the stream time.
                 _streams[streamId].snapshotTime = uint40(block.timestamp);

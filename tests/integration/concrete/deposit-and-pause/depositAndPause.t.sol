@@ -98,7 +98,7 @@ contract DepositAndPause_Integration_Concrete_Test is Integration_Test {
         assertEq(actualRatePerSecond, 0, "rate per second");
 
         // It should update the snapshot debt
-        uint128 actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
+        uint256 actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
         assertEq(actualSnapshotDebt, previousTotalDebt, "snapshot debt");
     }
 }

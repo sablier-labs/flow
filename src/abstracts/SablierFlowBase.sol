@@ -139,7 +139,7 @@ abstract contract SablierFlowBase is
         view
         override
         notNull(streamId)
-        returns (uint128 snapshotDebt)
+        returns (uint256 snapshotDebt)
     {
         snapshotDebt = _streams[streamId].snapshotDebt;
     }
