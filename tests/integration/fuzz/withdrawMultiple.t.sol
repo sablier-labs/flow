@@ -40,7 +40,8 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
             vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
             // Withdraw the tokens.
-            actualTotalAmountWithdrawn += flow.withdrawMax(streamId, users.recipient);
+            (uint128 amountWithdrawn,) = flow.withdrawMax(streamId, users.recipient);
+            actualTotalAmountWithdrawn += amountWithdrawn;
         }
 
         // Calculate the total stream period.
@@ -154,7 +155,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
             }
             // ISablierFlow.withdrawMax
             else if (selector == ISablierFlow.withdrawMax.selector) {
-                withdrawAmount = flow.withdrawMax(streamId, users.recipient);
+                (withdrawAmount,) = flow.withdrawMax(streamId, users.recipient);
             }
 
             // Update the actual total amount withdrawn.

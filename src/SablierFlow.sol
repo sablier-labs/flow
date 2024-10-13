@@ -401,9 +401,10 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
+        returns (uint128 amountWithdrawn, uint128 feeAmount)
     {
         // Checks, Effects, and Interactions: make the withdrawal.
-        _withdraw(streamId, to, amount);
+        (amountWithdrawn, feeAmount) = _withdraw(streamId, to, amount);
     }
 
     /// @inheritdoc ISablierFlow
@@ -416,12 +417,12 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
-        returns (uint128 amountWithdrawn)
+        returns (uint128 amountWithdrawn, uint128 feeAmount)
     {
-        amountWithdrawn = _coveredDebtOf(streamId);
+        uint128 coveredDebt = _coveredDebtOf(streamId);
 
         // Checks, Effects, and Interactions: make the withdrawal.
-        _withdraw(streamId, to, amountWithdrawn);
+        (amountWithdrawn, feeAmount) = _withdraw(streamId, to, coveredDebt);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -747,7 +748,14 @@ contract SablierFlow is
     }
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
-    function _withdraw(uint256 streamId, address to, uint128 amount) internal {
+    function _withdraw(
+        uint256 streamId,
+        address to,
+        uint128 amount
+    )
+        internal
+        returns (uint128 amountWithdrawn, uint128 feeAmount)
+    {
         // Check: the withdraw amount is not zero.
         if (amount == 0) {
             revert Errors.SablierFlow_WithdrawAmountZero(streamId);
@@ -807,7 +815,6 @@ contract SablierFlow is
         // Load the variables in memory.
         IERC20 token = _streams[streamId].token;
         UD60x18 protocolFee = protocolFee[token];
-        uint128 feeAmount;
 
         if (protocolFee > ZERO) {
             // Calculate the protocol fee amount and the net withdraw amount.
@@ -840,5 +847,7 @@ contract SablierFlow is
             withdrawAmount: amount,
             protocolFeeAmount: feeAmount
         });
+
+        return (amount, feeAmount);
     }
 }

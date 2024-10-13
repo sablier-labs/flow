@@ -7,6 +7,7 @@ import { ud, UD60x18, ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
+import { Vars } from "../../utils/Vars.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
@@ -121,30 +122,6 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         _test_Withdraw(caller, users.recipient, streamId, timeJump, withdrawAmount);
     }
 
-    /// @dev A struct to hold the variables used in the test below, this prevents stack error.
-    struct Vars {
-        uint128 feeAmount;
-        uint256 previousAggregateAmount;
-        uint256 previousTokenBalance;
-        uint256 previousOngoingDebt;
-        uint256 previousTotalDebt;
-        uint128 previousStreamBalance;
-        uint256 actualAggregateAmount;
-        uint256 expectedAggregateAmount;
-        uint128 actualProtocolRevenue;
-        uint128 expectedProtocolRevenue;
-        uint40 actualSnapshotTime;
-        uint40 expectedSnapshotTime;
-        uint256 actualTotalDebt;
-        uint256 expectedTotalDebt;
-        uint128 actualStreamBalance;
-        uint128 expectedStreamBalance;
-        uint256 actualTokenBalance;
-        uint256 expectedTokenBalance;
-    }
-
-    Vars internal vars;
-
     /// @dev Shared private function.
     function _test_Withdraw(
         address caller,
@@ -155,6 +132,8 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     )
         private
     {
+        Vars memory vars;
+
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 0 seconds, 100 weeks);
 
@@ -202,7 +181,11 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC4906.MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the tokens.
-        flow.withdraw(streamId, to, withdrawAmount);
+        (vars.actualAmountWithdrawn, vars.actualProtocolFeeTaken) = flow.withdraw(streamId, to, withdrawAmount);
+
+        // Check the returned values.
+        assertEq(vars.actualAmountWithdrawn, withdrawAmount - vars.feeAmount, "withdrawn amount");
+        assertEq(vars.actualProtocolFeeTaken, vars.feeAmount, "protocol fee taken");
 
         assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 

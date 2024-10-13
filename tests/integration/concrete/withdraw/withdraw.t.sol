@@ -7,6 +7,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
+import { Vars } from "../../../utils/Vars.sol";
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract Withdraw_Integration_Concrete_Test is Integration_Test {
@@ -264,19 +265,6 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    struct Vars {
-        IERC20 token;
-        uint40 previousSnapshotTime;
-        uint256 previousTotalDebt;
-        uint256 previousAggregateAmount;
-        uint128 expectedProtocolRevenue;
-        uint256 initialTokenBalance;
-        uint40 expectedSnapshotTime;
-        uint256 expectedTotalDebt;
-        uint128 expectedStreamBalance;
-        uint256 expectedTokenBalance;
-    }
-
     function _test_Withdraw(
         uint256 streamId,
         address to,
@@ -287,6 +275,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         private
     {
         Vars memory vars;
+
         vars.token = flow.getToken(streamId);
         vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
         vars.previousTotalDebt = flow.totalDebtOf(streamId);
@@ -314,9 +303,14 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         // It should perform the ERC-20 transfer.
         expectCallToTransfer({ token: vars.token, to: to, amount: withdrawAmount - feeAmount });
 
-        vars.initialTokenBalance = vars.token.balanceOf(address(flow));
+        vars.previousTokenBalance = vars.token.balanceOf(address(flow));
 
-        flow.withdraw({ streamId: streamId, to: to, amount: withdrawAmount });
+        (uint128 amountWithdrawn, uint128 feeTaken) =
+            flow.withdraw({ streamId: streamId, to: to, amount: withdrawAmount });
+
+        // Check the returned values.
+        assertEq(feeTaken, feeAmount, "fee taken");
+        assertEq(amountWithdrawn, withdrawAmount - feeAmount, "amount withdrawn");
 
         // Assert the protocol revenue.
         assertEq(flow.protocolRevenue(vars.token), vars.expectedProtocolRevenue, "protocol revenue");
@@ -334,7 +328,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         assertEq(flow.getBalance(streamId), vars.expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.
-        vars.expectedTokenBalance = vars.initialTokenBalance - (withdrawAmount - feeAmount);
+        vars.expectedTokenBalance = vars.previousTokenBalance - (withdrawAmount - feeAmount);
         assertEq(vars.token.balanceOf(address(flow)), vars.expectedTokenBalance, "token balance");
 
         // It should decrease the aggregate amount.
