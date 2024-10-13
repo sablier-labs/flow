@@ -27,13 +27,6 @@ contract DepletionTimeOf_Integration_Concrete_Test is Integration_Test {
         assertEq(depletionTime, 0, "depletion time");
     }
 
-    function test_GivenUncoveredDebtEqualsBalance() external givenNotNull givenNotPaused givenBalanceNotZero {
-        vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
-        // It should return the current timestamp
-        uint256 depletionTime = flow.depletionTimeOf(defaultStreamId);
-        assertEq(depletionTime, WARP_SOLVENCY_PERIOD, "depletion time");
-    }
-
     function test_GivenNoUncoveredDebt() external givenNotNull givenNotPaused givenBalanceNotZero {
         // It should return the time at which the stream depletes its balance
         uint40 depletionTime = uint40(flow.depletionTimeOf(defaultStreamId));

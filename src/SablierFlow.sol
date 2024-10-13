@@ -714,7 +714,6 @@ contract SablierFlow is
 
         // If the stream is solvent, update the total debt normally.
         if (debtToWriteOff == 0) {
-            // It is safe to downcast because if there is no uncovered debt, the ongoing debt fits within `uint128`.
             uint256 ongoingDebt = _ongoingDebtOf(streamId);
             if (ongoingDebt > 0) {
                 // Effect: Update the snapshot debt by adding the ongoing debt.
