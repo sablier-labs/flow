@@ -277,6 +277,9 @@ abstract contract SablierFlowBase is
             oldProtocolFee: oldProtocolFee,
             newProtocolFee: newProtocolFee
         });
+
+        // Refresh the NFT metadata for all streams.
+        emit BatchMetadataUpdate({ _fromTokenId: 1, _toTokenId: nextStreamId - 1 });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

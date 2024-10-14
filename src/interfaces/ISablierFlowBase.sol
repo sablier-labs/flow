@@ -176,7 +176,7 @@ interface ISablierFlowBase is
 
     /// @notice Sets a new NFT descriptor contract, which produces the URI describing the Sablier stream NFTs.
     ///
-    /// @dev Emits a {SetNFTDescriptor} and {BatchMetadataUpdate} event.
+    /// @dev Emits {SetNFTDescriptor} and {BatchMetadataUpdate} events.
     ///
     /// Notes:
     /// - Does not revert if the NFT descriptor is the same.
@@ -190,7 +190,7 @@ interface ISablierFlowBase is
     /// @notice Sets a new protocol fee that will be charged on all the withdrawals from streams created with the
     /// provided ERC-20 token.
     ///
-    /// @dev Emits a {SetProtocolFee} event.
+    /// @dev Emits {SetProtocolFee} and {BatchMetadataUpdate} events.
     ///
     /// Notes:
     /// - Does not revert if the fee is the same.
