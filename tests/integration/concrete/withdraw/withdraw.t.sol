@@ -148,7 +148,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
             to: users.recipient,
             depositAmount: DEPOSIT_AMOUNT_6D,
             protocolFeeAmount: 0,
-            withdrawAmount: flow.totalDebtOf(defaultStreamId) - 1
+            withdrawAmount: uint128(flow.totalDebtOf(defaultStreamId)) - 1
         });
     }
 
