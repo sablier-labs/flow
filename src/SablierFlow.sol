@@ -401,10 +401,10 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
-        returns (uint128 amountWithdrawn, uint128 feeAmount)
+        returns (uint128 withdrawnAmount, uint128 protocolFeeAmount)
     {
         // Checks, Effects, and Interactions: make the withdrawal.
-        (amountWithdrawn, feeAmount) = _withdraw(streamId, to, amount);
+        (withdrawnAmount, protocolFeeAmount) = _withdraw(streamId, to, amount);
     }
 
     /// @inheritdoc ISablierFlow
@@ -417,12 +417,12 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         updateMetadata(streamId)
-        returns (uint128 amountWithdrawn, uint128 feeAmount)
+        returns (uint128 withdrawnAmount, uint128 protocolFeeAmount)
     {
         uint128 coveredDebt = _coveredDebtOf(streamId);
 
         // Checks, Effects, and Interactions: make the withdrawal.
-        (amountWithdrawn, feeAmount) = _withdraw(streamId, to, coveredDebt);
+        (withdrawnAmount, protocolFeeAmount) = _withdraw(streamId, to, coveredDebt);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -754,7 +754,7 @@ contract SablierFlow is
         uint128 amount
     )
         internal
-        returns (uint128 amountWithdrawn, uint128 feeAmount)
+        returns (uint128 withdrawnAmount, uint128 protocolFeeAmount)
     {
         // Check: the withdraw amount is not zero.
         if (amount == 0) {
@@ -818,12 +818,12 @@ contract SablierFlow is
 
         if (protocolFee > ZERO) {
             // Calculate the protocol fee amount and the net withdraw amount.
-            (feeAmount, amount) = Helpers.calculateAmountsFromFee({ totalAmount: amount, fee: protocolFee });
+            (protocolFeeAmount, amount) = Helpers.calculateAmountsFromFee({ totalAmount: amount, fee: protocolFee });
 
             // Safe to use unchecked because addition cannot overflow.
             unchecked {
                 // Effect: update the protocol revenue.
-                protocolRevenue[token] += feeAmount;
+                protocolRevenue[token] += protocolFeeAmount;
             }
         }
 
@@ -845,9 +845,9 @@ contract SablierFlow is
             token: token,
             caller: msg.sender,
             withdrawAmount: amount,
-            protocolFeeAmount: feeAmount
+            protocolFeeAmount: protocolFeeAmount
         });
 
-        return (amount, feeAmount);
+        return (amount, protocolFeeAmount);
     }
 }

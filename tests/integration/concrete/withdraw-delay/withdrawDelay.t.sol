@@ -103,8 +103,8 @@ contract WithdrawDelay_Integration_Concrete_Test is Integration_Test {
                 diff = flow.ongoingDebtOf(streamId) - beforeWarpOd;
             }
 
-            (uint128 amountWithdrawn,) = flow.withdrawMax(streamId, users.recipient);
-            sumWithdrawn += amountWithdrawn;
+            (uint128 withdrawnAmount,) = flow.withdrawMax(streamId, users.recipient);
+            sumWithdrawn += withdrawnAmount;
         }
 
         // Warp again to 1 month + 1 second to check if there is a delay that occured.

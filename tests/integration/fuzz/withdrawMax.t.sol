@@ -119,11 +119,11 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         emit IERC4906.MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the tokens.
-        (vars.actualAmountWithdrawn, vars.actualProtocolFeeTaken) = flow.withdrawMax(streamId, withdrawTo);
+        (vars.actualWithdrawnAmount, vars.actualProtocolFeeAmount) = flow.withdrawMax(streamId, withdrawTo);
 
         // Check the return values.
-        assertEq(vars.actualAmountWithdrawn, withdrawAmount, "withdrawn amount");
-        assertEq(vars.actualProtocolFeeTaken, 0, "protocol fee taken");
+        assertEq(vars.actualWithdrawnAmount, withdrawAmount, "withdrawn amount");
+        assertEq(vars.actualProtocolFeeAmount, 0, "protocol fee amount");
 
         assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 

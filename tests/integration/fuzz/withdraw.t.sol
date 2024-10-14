@@ -156,8 +156,8 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         vars.expectedProtocolRevenue = flow.protocolRevenue(token);
         if (flow.protocolFee(token) > ZERO) {
-            vars.feeAmount = ud(withdrawAmount).mul(flow.protocolFee(token)).intoUint128();
-            vars.expectedProtocolRevenue += vars.feeAmount;
+            vars.protocolFeeAmount = ud(withdrawAmount).mul(flow.protocolFee(token)).intoUint128();
+            vars.expectedProtocolRevenue += vars.protocolFeeAmount;
         }
 
         // Compute the snapshot time that will be stored post withdraw.
@@ -165,7 +165,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(token) });
-        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount - vars.feeAmount });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount - vars.protocolFeeAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.WithdrawFromFlowStream({
@@ -173,19 +173,19 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             to: to,
             token: token,
             caller: caller,
-            protocolFeeAmount: vars.feeAmount,
-            withdrawAmount: withdrawAmount - vars.feeAmount
+            protocolFeeAmount: vars.protocolFeeAmount,
+            withdrawAmount: withdrawAmount - vars.protocolFeeAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit IERC4906.MetadataUpdate({ _tokenId: streamId });
 
         // Withdraw the tokens.
-        (vars.actualAmountWithdrawn, vars.actualProtocolFeeTaken) = flow.withdraw(streamId, to, withdrawAmount);
+        (vars.actualWithdrawnAmount, vars.actualProtocolFeeAmount) = flow.withdraw(streamId, to, withdrawAmount);
 
         // Check the returned values.
-        assertEq(vars.actualAmountWithdrawn, withdrawAmount - vars.feeAmount, "withdrawn amount");
-        assertEq(vars.actualProtocolFeeTaken, vars.feeAmount, "protocol fee taken");
+        assertEq(vars.actualWithdrawnAmount, withdrawAmount - vars.protocolFeeAmount, "withdrawn amount");
+        assertEq(vars.actualProtocolFeeAmount, vars.protocolFeeAmount, "protocol fee amount");
 
         assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
 
@@ -209,12 +209,12 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // It should reduce the token balance of stream by the net withdrawn amount.
         vars.actualTokenBalance = token.balanceOf(address(flow));
-        vars.expectedTokenBalance = vars.previousTokenBalance - withdrawAmount + vars.feeAmount;
+        vars.expectedTokenBalance = vars.previousTokenBalance - withdrawAmount + vars.protocolFeeAmount;
         assertEq(vars.actualTokenBalance, vars.expectedTokenBalance, "token balance");
 
         // Assert that aggregate amount has been updated.
         vars.actualAggregateAmount = flow.aggregateBalance(token);
-        vars.expectedAggregateAmount = vars.previousAggregateAmount - withdrawAmount + vars.feeAmount;
+        vars.expectedAggregateAmount = vars.previousAggregateAmount - withdrawAmount + vars.protocolFeeAmount;
         assertEq(vars.actualAggregateAmount, vars.expectedAggregateAmount, "aggregate amount");
     }
 }
