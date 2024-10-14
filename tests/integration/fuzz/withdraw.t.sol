@@ -7,7 +7,6 @@ import { ud, UD60x18, ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
-import { Vars } from "../../utils/Vars.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
@@ -132,8 +131,6 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     )
         private
     {
-        Vars memory vars;
-
         // Bound the time jump to provide a realistic time frame.
         timeJump = boundUint40(timeJump, 0 seconds, 100 weeks);
 

@@ -6,7 +6,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
-import { Vars } from "../../utils/Vars.sol";
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
 contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
@@ -85,8 +84,6 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
     // Shared private function.
     function _test_WithdrawMax(address caller, address withdrawTo, uint256 streamId) private {
-        Vars memory vars;
-
         // If the withdrawable amount is still zero, warp closely to depletion time.
         if (flow.withdrawableAmountOf(streamId) == 0) {
             vm.warp({ newTimestamp: uint40(flow.depletionTimeOf(streamId)) - 1 });

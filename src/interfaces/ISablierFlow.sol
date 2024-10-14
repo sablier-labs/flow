@@ -384,7 +384,7 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external;
 
-    /// @notice Withdraws the provided amount of tokens from the stream to the `to` address.
+    /// @notice Withdraws the provided `amount` minus the protocol fee to the provided `to` address.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///
@@ -413,7 +413,7 @@ interface ISablierFlow is
         external
         returns (uint128 withdrawnAmount, uint128 protocolFeeAmount);
 
-    /// @notice Withdraws the entire withdrawable amount from the stream to the provided address `to`.
+    /// @notice Withdraws the entire withdrawable amount minus the protocol fee to the provided `to` address.
     ///
     /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
     ///

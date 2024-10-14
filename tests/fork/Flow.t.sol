@@ -10,14 +10,11 @@ import { ud21x18, UD21x18 } from "@prb/math/src/UD21x18.sol";
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { Flow } from "src/types/DataTypes.sol";
 
-import { Vars } from "../utils/Vars.sol";
 import { Fork_Test } from "./Fork.t.sol";
 
 contract Flow_Fork_Test is Fork_Test {
     /// @dev Total number of streams to create for each token.
     uint256 internal constant TOTAL_STREAMS = 20;
-
-    Vars internal vars;
 
     /// @dev An enum to represent functions from the Flow contract.
     enum FlowFunc {

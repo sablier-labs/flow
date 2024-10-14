@@ -6,7 +6,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
-import { Vars } from "../../../utils/Vars.sol";
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
@@ -41,8 +40,6 @@ contract WithdrawMax_Integration_Concrete_Test is Integration_Test {
     }
 
     function _test_WithdrawMax() private {
-        Vars memory vars;
-
         vars.expectedWithdrawAmount = ONE_MONTH_DEBT_6D;
         vars.previousAggregateAmount = flow.aggregateBalance(usdc);
 

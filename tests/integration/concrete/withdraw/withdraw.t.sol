@@ -7,7 +7,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { Errors } from "src/libraries/Errors.sol";
 
-import { Vars } from "../../../utils/Vars.sol";
 import { Integration_Test } from "../../Integration.t.sol";
 
 contract Withdraw_Integration_Concrete_Test is Integration_Test {
@@ -274,8 +273,6 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
     )
         private
     {
-        Vars memory vars;
-
         vars.token = flow.getToken(streamId);
         vars.previousSnapshotTime = flow.getSnapshotTime(streamId);
         vars.previousTotalDebt = flow.totalDebtOf(streamId);
