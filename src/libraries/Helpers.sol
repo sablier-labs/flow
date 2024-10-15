@@ -50,12 +50,9 @@ library Helpers {
         (brokerFeeAmount, depositAmount) = calculateAmountsFromFee(totalAmount, broker.fee);
     }
 
-    /// @notice Descales the provided `amount` to be denoted in the token's decimals.
-    /// @dev The following logic is used to denormalize the amount:
-    /// - If the token has exactly 18 decimals, the amount is returned as is.
-    /// - if the token has fewer than 18 decimals, the amount is divided by $10^(18 - tokenDecimals)$.
+    /// @notice Descales the provided `amount` from 18 decimals fixed-point number to token's decimals number.
     function descaleAmount(uint256 amount, uint8 decimals) internal pure returns (uint256) {
-        if (decimals > 18) {
+        if (decimals == 18) {
             return amount;
         }
 
@@ -65,12 +62,9 @@ library Helpers {
         }
     }
 
-    /// @notice Scales the provided `amount` to be denoted in 18 decimals.
-    /// @dev The following logic is used to normalize the amount:
-    /// - If the token has exactly 18 decimals, the amount is returned as is.
-    /// - If the token has fewer than 18 decimals, the amount is multiplied by $10^(18 - tokenDecimals)$.
+    /// @notice Scales the provided `amount` from 18 decimals fixed-point number to token's decimals number.
     function scaleAmount(uint256 amount, uint8 decimals) internal pure returns (uint256) {
-        if (decimals > 18) {
+        if (decimals == 18) {
             return amount;
         }
 
