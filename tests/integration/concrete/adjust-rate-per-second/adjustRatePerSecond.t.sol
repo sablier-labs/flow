@@ -119,7 +119,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Integration_Test {
 
         // It should update snapshot debt.
         actualSnapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        expectedSnapshotDebt = ONE_MONTH_DEBT_6D;
+        expectedSnapshotDebt = ONE_MONTH_DEBT_18D;
         assertEq(actualSnapshotDebt, expectedSnapshotDebt, "snapshot debt");
 
         // It should set the new rate per second

@@ -148,7 +148,8 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vars.previousAggregateAmount = flow.aggregateBalance(token);
         vars.previousTokenBalance = token.balanceOf(address(flow));
         vars.previousOngoingDebt = flow.totalDebtOf(streamId);
-        vars.previousTotalDebt = flow.getSnapshotDebt(streamId) + vars.previousOngoingDebt;
+        vars.previousTotalDebt = getDescaledAmount(flow.getSnapshotDebt(streamId), flow.getTokenDecimals(streamId))
+            + vars.previousOngoingDebt;
         vars.previousStreamBalance = flow.getBalance(streamId);
 
         vars.expectedProtocolRevenue = flow.protocolRevenue(token);

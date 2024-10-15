@@ -49,6 +49,12 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return uint8(_bound(uint256(x), uint256(min), uint256(max)));
     }
 
+    /// @dev A function that mirrors the internal logic from {SablierFlow._scaledOngoingDebt}.
+    function calculateScaledOngoingDebt(uint128 ratePerSecond, uint40 snapshotTime) internal view returns (uint256) {
+        uint256 elapsedTime = getBlockTimestamp() - snapshotTime;
+        return ratePerSecond * elapsedTime;
+    }
+
     /// @dev Retrieves the current block timestamp as an `uint40`.
     function getBlockTimestamp() internal view returns (uint40) {
         return uint40(block.timestamp);
@@ -60,22 +66,22 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
     }
 
     /// @dev Descales the amount to denote it in token's decimals.
-    function getDescaledAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+    function getDescaledAmount(uint256 amount, uint8 decimals) internal pure returns (uint256) {
         if (decimals == 18) {
             return amount;
         }
 
-        uint128 scaleFactor = (10 ** (18 - decimals)).toUint128();
+        uint256 scaleFactor = (10 ** (18 - decimals));
         return amount / scaleFactor;
     }
 
     /// @dev Scales the amount to denote it in 18 decimals.
-    function getScaledAmount(uint128 amount, uint8 decimals) internal pure returns (uint128) {
+    function getScaledAmount(uint256 amount, uint8 decimals) internal pure returns (uint256) {
         if (decimals == 18) {
             return amount;
         }
 
-        uint128 scaleFactor = (10 ** (18 - decimals)).toUint128();
+        uint256 scaleFactor = (10 ** (18 - decimals));
         return amount * scaleFactor;
     }
 

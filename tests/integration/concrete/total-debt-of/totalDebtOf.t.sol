@@ -15,9 +15,8 @@ contract TotalDebtOf_Integration_Concrete_Test is Integration_Test {
         flow.pause(defaultStreamId);
 
         uint256 snapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        uint256 totalDebt = flow.totalDebtOf(defaultStreamId);
 
-        assertEq(totalDebt, snapshotDebt, "total debt");
+        assertEq(ONE_MONTH_DEBT_18D, snapshotDebt, "total debt");
     }
 
     function test_WhenCurrentTimeEqualsSnapshotTime() external givenNotNull givenNotPaused {
@@ -25,16 +24,15 @@ contract TotalDebtOf_Integration_Concrete_Test is Integration_Test {
         flow.adjustRatePerSecond(defaultStreamId, ud21x18(RATE_PER_SECOND_U128 * 2));
 
         uint256 snapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        uint256 totalDebt = flow.totalDebtOf(defaultStreamId);
 
-        assertEq(totalDebt, snapshotDebt, "total debt");
+        assertEq(ONE_MONTH_DEBT_18D, snapshotDebt, "total debt");
     }
 
     function test_WhenCurrentTimeGreaterThanSnapshotTime() external view givenNotNull givenNotPaused {
         uint256 snapshotDebt = flow.getSnapshotDebt(defaultStreamId);
-        uint256 ongoingDebt = flow.ongoingDebtOf(defaultStreamId);
-        uint256 totalDebt = flow.totalDebtOf(defaultStreamId);
+        uint256 scaledOngoingDebt =
+            calculateScaledOngoingDebt(RATE_PER_SECOND_U128, flow.getSnapshotTime(defaultStreamId));
 
-        assertEq(snapshotDebt + ongoingDebt, totalDebt, "total debt");
+        assertEq(snapshotDebt + scaledOngoingDebt, ONE_MONTH_DEBT_18D, "total debt");
     }
 }

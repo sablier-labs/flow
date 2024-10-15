@@ -84,7 +84,7 @@ interface ISablierFlowBase is
     /// @param streamId The stream ID for the query.
     function getSender(uint256 streamId) external view returns (address sender);
 
-    /// @notice Retrieves the snapshot debt of the stream, denoted in token's decimals.
+    /// @notice Retrieves the snapshot debt of the stream, denoted as a fixed-point number where 1e18 is 1 token.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function getSnapshotDebt(uint256 streamId) external view returns (uint256 snapshotDebt);
