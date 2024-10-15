@@ -148,7 +148,7 @@ interface ISablierFlowBase is
 
     /// @notice Collect the protocol revenue accrued for the provided ERC-20 token.
     ///
-    /// @dev Emits a {CollectProtocolRevenue} event.
+    /// @dev Emits {CollectProtocolRevenue} event.
     ///
     /// Requirements:
     /// - `msg.sender` must be the contract admin.
@@ -160,7 +160,7 @@ interface ISablierFlowBase is
 
     /// @notice Recover the surplus amount of tokens.
     ///
-    /// @dev Emits a {Recover} event.
+    /// @dev Emits {Recover} event.
     ///
     /// Notes:
     /// - The surplus amount is defined as the difference between the total balance of the contract for the provided

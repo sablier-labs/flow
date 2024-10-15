@@ -178,7 +178,7 @@ interface ISablierFlow is
     /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
     ///
-    /// @dev Emits a {CreateFlowStream} event.
+    /// @dev Emits {CreateFlowStream} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -285,7 +285,7 @@ interface ISablierFlow is
 
     /// @notice Pauses the stream.
     ///
-    /// @dev Emits a {PauseFlowStream} event.
+    /// @dev Emits {PauseFlowStream} event.
     ///
     /// Notes:
     /// - It does not set the snapshot time to the current block timestamp.
@@ -330,7 +330,7 @@ interface ISablierFlow is
 
     /// @notice Restarts the stream with the provided rate per second.
     ///
-    /// @dev Emits a {RestartFlowStream} event.
+    /// @dev Emits {RestartFlowStream} event.
     /// - This function updates stream's `snapshotTime` to the current block timestamp.
     ///
     /// Notes:
@@ -366,7 +366,7 @@ interface ISablierFlow is
 
     /// @notice Voids a stream.
     ///
-    /// @dev Emits a {VoidFlowStream} event.
+    /// @dev Emits {VoidFlowStream} event.
     ///
     /// Notes:
     /// - It sets snapshot time to the `block.timestamp`
