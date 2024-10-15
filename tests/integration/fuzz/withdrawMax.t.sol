@@ -122,7 +122,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         assertEq(vars.actualWithdrawnAmount, withdrawAmount, "withdrawn amount");
         assertEq(vars.actualProtocolFeeAmount, 0, "protocol fee amount");
 
-        assertEq(flow.ongoingDebtOf(streamId), 0, "ongoing debt");
+        assertEq(flow.ongoingDebtScaledOf(streamId), 0, "ongoing debt");
 
         // It should update snapshot time.
         assertEq(flow.getSnapshotTime(streamId), vars.expectedSnapshotTime, "snapshot time");
@@ -140,8 +140,10 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Assert that total debt equals snapshot debt and ongoing debt
         assertEq(
             flow.totalDebtOf(streamId),
-            getDescaledAmount(flow.getSnapshotDebt(streamId), flow.getTokenDecimals(streamId))
-                + flow.ongoingDebtOf(streamId),
+            getDescaledAmount(
+                flow.getSnapshotDebtScaled(streamId) + flow.ongoingDebtScaledOf(streamId),
+                flow.getTokenDecimals(streamId)
+            ),
             "snapshot debt"
         );
 

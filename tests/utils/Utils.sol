@@ -49,12 +49,6 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return uint8(_bound(uint256(x), uint256(min), uint256(max)));
     }
 
-    /// @dev A function that mirrors the internal logic from {SablierFlow._scaledOngoingDebt}.
-    function calculateScaledOngoingDebt(uint128 ratePerSecond, uint40 snapshotTime) internal view returns (uint256) {
-        uint256 elapsedTime = getBlockTimestamp() - snapshotTime;
-        return ratePerSecond * elapsedTime;
-    }
-
     /// @dev Retrieves the current block timestamp as an `uint40`.
     function getBlockTimestamp() internal view returns (uint40) {
         return uint40(block.timestamp);

@@ -227,14 +227,13 @@ contract Flow_Fork_Test is Fork_Test {
             newRatePerSecond = ud21x18(newRatePerSecond.unwrap() + 1);
         }
 
-        uint256 beforeSnapshotAmount = flow.getSnapshotDebt(streamId);
+        uint256 beforeSnapshotAmount = flow.getSnapshotDebtScaled(streamId);
         uint256 totalDebt = flow.totalDebtOf(streamId);
 
         // Compute the snapshot time that will be stored post withdraw.
         vars.expectedSnapshotTime = getBlockTimestamp();
 
-        uint256 scaledOngoingDebt =
-            calculateScaledOngoingDebt(flow.getRatePerSecond(streamId).unwrap(), flow.getSnapshotTime(streamId));
+        uint256 ongoingDebtScaled = flow.ongoingDebtScaledOf(streamId);
 
         // It should emit 1 {AdjustFlowStream}, 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
@@ -251,8 +250,8 @@ contract Flow_Fork_Test is Fork_Test {
         flow.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });
 
         // It should update snapshot debt.
-        vars.actualSnapshotDebt = flow.getSnapshotDebt(streamId);
-        vars.expectedSnapshotDebt = scaledOngoingDebt + beforeSnapshotAmount;
+        vars.actualSnapshotDebt = flow.getSnapshotDebtScaled(streamId);
+        vars.expectedSnapshotDebt = ongoingDebtScaled + beforeSnapshotAmount;
         assertEq(vars.actualSnapshotDebt, vars.expectedSnapshotDebt, "AdjustRatePerSecond: snapshot debt");
 
         // It should set the new rate per second
@@ -304,7 +303,7 @@ contract Flow_Fork_Test is Fork_Test {
             isTransferable: transferable,
             snapshotTime: getBlockTimestamp(),
             ratePerSecond: ratePerSecond,
-            snapshotDebt: 0,
+            snapshotDebtScaled: 0,
             sender: sender,
             token: token,
             tokenDecimals: IERC20Metadata(address(token)).decimals()
@@ -564,7 +563,7 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 totalDebt = flow.totalDebtOf(streamId);
 
         vars.expectedSnapshotTime = withdrawAmount
-            <= getDescaledAmount(flow.getSnapshotDebt(streamId), flow.getTokenDecimals(streamId))
+            <= getDescaledAmount(flow.getSnapshotDebtScaled(streamId), flow.getTokenDecimals(streamId))
             ? flow.getSnapshotTime(streamId)
             : getBlockTimestamp();
 
