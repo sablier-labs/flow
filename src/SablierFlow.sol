@@ -242,13 +242,16 @@ contract SablierFlow is
     /// @inheritdoc ISablierFlow
     function deposit(
         uint256 streamId,
-        uint128 amount
+        uint128 amount,
+        address sender,
+        address recipient
     )
         external
         override
         noDelegateCall
         notNull(streamId)
         notVoided(streamId)
+        notDifferentActors(streamId, sender, recipient)
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream.
@@ -279,6 +282,8 @@ contract SablierFlow is
     function depositViaBroker(
         uint256 streamId,
         uint128 totalAmount,
+        address sender,
+        address recipient,
         Broker calldata broker
     )
         external
@@ -286,6 +291,7 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         notVoided(streamId)
+        notDifferentActors(streamId, sender, recipient)
         updateMetadata(streamId)
     {
         // Checks, Effects, and Interactions: deposit on stream through broker.
