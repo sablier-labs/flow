@@ -70,12 +70,12 @@ contract SablierFlow is
         }
 
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
-        uint256 scaledBalance = Helpers.scaleAmount({ amount: balance, decimals: tokenDecimals });
+        uint256 balanceScaled = Helpers.scaleAmount({ amount: balance, decimals: tokenDecimals });
 
         uint256 snapshotDebtScaled = _streams[streamId].snapshotDebtScaled;
 
         // If the stream has uncovered debt, return zero.
-        if (snapshotDebtScaled + _ongoingDebtScaledOf(streamId) > scaledBalance) {
+        if (snapshotDebtScaled + _ongoingDebtScaledOf(streamId) > balanceScaled) {
             return 0;
         }
 
@@ -85,7 +85,7 @@ contract SablierFlow is
         // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
             uint256 solvencyAmount =
-                scaledBalance - snapshotDebtScaled + Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
+                balanceScaled - snapshotDebtScaled + Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
             uint256 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond.unwrap();
 
             depletionTime = _streams[streamId].snapshotTime + solvencyPeriod;
@@ -473,7 +473,7 @@ contract SablierFlow is
             elapsedTime = blockTimestamp - snapshotTime;
         }
 
-        // Calculate the scaled ongoing debt accrued by multiplying the elapsed time by the rate per second.
+        // Calculate the ongoing debt scaled accrued by multiplying the elapsed time by the rate per second.
         return elapsedTime * ratePerSecond;
     }
 
@@ -485,8 +485,8 @@ contract SablierFlow is
     /// @dev The total debt is the sum of the snapshot debt and the ongoing debt descaled to token's decimal. This
     /// value is independent of the stream's balance.
     function _totalDebtOf(uint256 streamId) internal view returns (uint256) {
-        uint256 scaledTotalDebt = _ongoingDebtScaledOf(streamId) + _streams[streamId].snapshotDebtScaled;
-        return Helpers.descaleAmount({ amount: scaledTotalDebt, decimals: _streams[streamId].tokenDecimals });
+        uint256 totalDebtScaled = _ongoingDebtScaledOf(streamId) + _streams[streamId].snapshotDebtScaled;
+        return Helpers.descaleAmount({ amount: totalDebtScaled, decimals: _streams[streamId].tokenDecimals });
     }
 
     /// @dev Calculates the uncovered debt.
@@ -513,12 +513,12 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        uint256 scaledOngoingDebt = _ongoingDebtScaledOf(streamId);
+        uint256 ongoingDebtScaled = _ongoingDebtScaledOf(streamId);
 
         // Update the snapshot debt only if the stream has ongoing debt.
-        if (scaledOngoingDebt > 0) {
+        if (ongoingDebtScaled > 0) {
             // Effect: update the snapshot debt.
-            _streams[streamId].snapshotDebtScaled += scaledOngoingDebt;
+            _streams[streamId].snapshotDebtScaled += ongoingDebtScaled;
         }
 
         // Effect: update the snapshot time.
@@ -703,10 +703,10 @@ contract SablierFlow is
 
         // If the stream is solvent, update the total debt normally.
         if (debtToWriteOff == 0) {
-            uint256 scaledOngoingDebt = _ongoingDebtScaledOf(streamId);
-            if (scaledOngoingDebt > 0) {
+            uint256 ongoingDebtScaled = _ongoingDebtScaledOf(streamId);
+            if (ongoingDebtScaled > 0) {
                 // Effect: Update the snapshot debt by adding the ongoing debt.
-                _streams[streamId].snapshotDebtScaled += scaledOngoingDebt;
+                _streams[streamId].snapshotDebtScaled += ongoingDebtScaled;
             }
         }
         // If the stream is insolvent, write off the uncovered debt.
@@ -764,8 +764,8 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
 
         // Calculate the total debt.
-        uint256 scaledTotalDebt = _ongoingDebtScaledOf(streamId) + _streams[streamId].snapshotDebtScaled;
-        uint256 totalDebt = Helpers.descaleAmount(scaledTotalDebt, tokenDecimals);
+        uint256 totalDebtScaled = _ongoingDebtScaledOf(streamId) + _streams[streamId].snapshotDebtScaled;
+        uint256 totalDebt = Helpers.descaleAmount(totalDebtScaled, tokenDecimals);
 
         // Calculate the withdrawable amount.
         uint128 balance = _streams[streamId].balance;
@@ -785,19 +785,19 @@ contract SablierFlow is
         }
 
         // Calculate the amount scaled.
-        uint256 scaledAmount = Helpers.scaleAmount(amount, tokenDecimals);
+        uint256 amountScaled = Helpers.scaleAmount(amount, tokenDecimals);
 
         // Safe to use unchecked, `amount` cannot be greater than the balance or total debt at this point.
         unchecked {
             // If the amount is less than the snapshot debt, reduce it from the snapshot debt and leave the snapshot
             // time unchanged.
-            if (scaledAmount <= _streams[streamId].snapshotDebtScaled) {
-                _streams[streamId].snapshotDebtScaled -= scaledAmount;
+            if (amountScaled <= _streams[streamId].snapshotDebtScaled) {
+                _streams[streamId].snapshotDebtScaled -= amountScaled;
             }
             // Else reduce the amount from the ongoing debt by setting snapshot time to `block.timestamp` and set the
             // snapshot debt to the remaining total debt.
             else {
-                _streams[streamId].snapshotDebtScaled = scaledTotalDebt - scaledAmount;
+                _streams[streamId].snapshotDebtScaled = totalDebtScaled - amountScaled;
 
                 // Effect: update the stream time.
                 _streams[streamId].snapshotTime = uint40(block.timestamp);
