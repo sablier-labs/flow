@@ -249,7 +249,6 @@ interface ISablierFlow is
     ///
     /// @param streamId The ID of the stream to deposit to.
     /// @param amount The deposit amount, denoted in token's decimals.
-    /// @param amount The deposit amount, in token decimals.
     /// @param sender The stream's sender address.
     /// @param recipient The stream's recipient address.
     function deposit(uint256 streamId, uint128 amount, address sender, address recipient) external;
