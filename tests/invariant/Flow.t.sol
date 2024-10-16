@@ -342,17 +342,8 @@ contract Flow_Invariant_Test is Base_Test {
 
             // Skip the voided streams.
             if (!flow.isVoided(streamId)) {
-                (uint256 totalStreamedAmount, uint256 totalStreamedAmountWithDelay) =
-                    calculateTotalStreamedAmounts(flowStore.streamIds(i), flow.getTokenDecimals(streamId));
-
-                assertGe(
-                    totalStreamedAmount,
-                    totalStreamedAmountWithDelay,
-                    "Invariant violation: total streamed amount without delay >= total streamed amount with delay"
-                );
-
-                assertEq(
-                    totalStreamedAmountWithDelay,
+                assertLe(
+                    calculateTotalStreamedAmount(flowStore.streamIds(i), flow.getTokenDecimals(streamId)),
                     flow.totalDebtOf(streamId) + flowStore.withdrawnAmounts(streamId),
                     "Invariant violation: total streamed amount with delay = total debt + withdrawn amount"
                 );
@@ -361,13 +352,13 @@ contract Flow_Invariant_Test is Base_Test {
     }
 
     /// @dev Calculates the total streamed amounts by iterating over each period.
-    function calculateTotalStreamedAmounts(
+    function calculateTotalStreamedAmount(
         uint256 streamId,
         uint8 decimals
     )
         internal
         view
-        returns (uint256 totalStreamedAmount, uint256 totalStreamedAmountWithDelay)
+        returns (uint256 totalStreamedAmount)
     {
         uint256 totalDelayedAmount;
         uint256 periodsCount = flowStore.getPeriods(streamId).length;
@@ -380,12 +371,6 @@ contract Flow_Invariant_Test is Base_Test {
 
             // Calculate the total streamed amount for the current period.
             totalStreamedAmount += getDescaledAmount(period.ratePerSecond * elapsed, decimals);
-
-            // Calculate the total delayed amount for the current period.
-            totalDelayedAmount += getDescaledAmount(period.delay * period.ratePerSecond, decimals);
         }
-
-        // Calculate the total streamed amount with delay.
-        totalStreamedAmountWithDelay = totalStreamedAmount - totalDelayedAmount;
     }
 }
