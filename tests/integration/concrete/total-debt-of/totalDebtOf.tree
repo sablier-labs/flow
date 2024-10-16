@@ -3,7 +3,7 @@ TotalDebtOf_Integration_Concrete_Test
 │  └── it should revert
 └── given not null
    ├── given paused
-   │  └── it should return snapshot debt
+   │  └── it should return the
    └── given not paused
       ├── when current time equals snapshot time
       │  └── it should return snapshot debt

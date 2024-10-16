@@ -250,9 +250,9 @@ contract Flow_Fork_Test is Fork_Test {
         flow.adjustRatePerSecond({ streamId: streamId, newRatePerSecond: newRatePerSecond });
 
         // It should update snapshot debt.
-        vars.actualSnapshotDebt = flow.getSnapshotDebtScaled(streamId);
-        vars.expectedSnapshotDebt = ongoingDebtScaled + beforeSnapshotAmount;
-        assertEq(vars.actualSnapshotDebt, vars.expectedSnapshotDebt, "AdjustRatePerSecond: snapshot debt");
+        vars.actualSnapshotDebtScaled = flow.getSnapshotDebtScaled(streamId);
+        vars.expectedSnapshotDebtScaled = ongoingDebtScaled + beforeSnapshotAmount;
+        assertEq(vars.actualSnapshotDebtScaled, vars.expectedSnapshotDebtScaled, "AdjustRatePerSecond: snapshot debt");
 
         // It should set the new rate per second
         vars.actualRatePerSecond = flow.getRatePerSecond(streamId);

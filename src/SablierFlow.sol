@@ -482,9 +482,8 @@ contract SablierFlow is
         return _streams[streamId].balance - _coveredDebtOf(streamId);
     }
 
-    /// @notice Calculates the total debt.
-    /// @dev The total debt is the sum of the snapshot debt and the ongoing debt. This value is independent of the
-    /// stream's balance.
+    /// @dev The total debt is the sum of the snapshot debt and the ongoing debt descaled to token's decimal. This
+    /// value is independent of the stream's balance.
     function _totalDebtOf(uint256 streamId) internal view returns (uint256) {
         uint256 scaledTotalDebt = _ongoingDebtScaledOf(streamId) + _streams[streamId].snapshotDebtScaled;
         return Helpers.descaleAmount({ amount: scaledTotalDebt, decimals: _streams[streamId].tokenDecimals });
