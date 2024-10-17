@@ -89,12 +89,11 @@ contract SablierFlow is
             uint256 solvencyAmount = balanceScaled - snapshotDebtScaled + oneWeiScaled;
             uint256 solvencyPeriod = solvencyAmount / ratePerSecond;
 
-            uint256 carry = solvencyAmount % ratePerSecond;
-
-            if (carry == 0) {
+            // If the division is exact, return the depletion time.
+            if (solvencyAmount % ratePerSecond == 0) {
                 depletionTime = _streams[streamId].snapshotTime + solvencyPeriod;
             }
-            // Rounding up before returning since the division by the rate per second has round down the result.
+            // Otherwise, round up before returning since the division by rate per second has round down the result.
             else {
                 depletionTime = _streams[streamId].snapshotTime + solvencyPeriod + 1;
             }
