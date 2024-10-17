@@ -287,11 +287,5 @@ contract FlowHandler is BaseHandler {
 
         // Update the withdrawn amount.
         flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, flow.getToken(currentStreamId), amount);
-
-        // If the stream isn't paused, update the delay:
-        uint128 ratePerSecond = flow.getRatePerSecond(currentStreamId).unwrap();
-        if (ratePerSecond > 0) {
-            flowStore.pushPeriod(currentStreamId, ratePerSecond, "withdraw");
-        }
     }
 }

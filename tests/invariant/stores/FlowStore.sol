@@ -29,12 +29,12 @@ contract FlowStore {
     mapping(uint256 streamId => uint256 amount) public previousUncoveredDebtOf;
 
     /// @dev This struct represents a time period during which rate per second remains constant.
-    /// @param typeOfPeriod The type of the period, which is the function name.
+    /// @param funcName The name of the function updating the struct.
     /// @param ratePerSecond The rate per second for this period.
     /// @param start The start time of the period.
     /// @param end The end time of the period.
     struct Period {
-        string typeOfPeriod;
+        string funcName;
         uint128 ratePerSecond;
         uint40 start;
         uint40 end;
@@ -73,20 +73,20 @@ contract FlowStore {
         // Store the stream id and the period during which provided ratePerSecond applies.
         streamIds.push(streamId);
         periods[streamId].push(
-            Period({ typeOfPeriod: "create", ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 })
+            Period({ funcName: "create", ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 })
         );
 
         // Update the last stream id.
         lastStreamId = streamId;
     }
 
-    function pushPeriod(uint256 streamId, uint128 ratePerSecond, string memory typeOfPeriod) external {
+    function pushPeriod(uint256 streamId, uint128 newRatePerSecond, string memory typeOfPeriod) external {
         // Update the end time of the previous period.
         periods[streamId][periods[streamId].length - 1].end = uint40(block.timestamp);
 
         // Push the new period with the provided rate per second.
         periods[streamId].push(
-            Period({ ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0, typeOfPeriod: typeOfPeriod })
+            Period({ funcName: typeOfPeriod, ratePerSecond: newRatePerSecond, start: uint40(block.timestamp), end: 0 })
         );
     }
 
