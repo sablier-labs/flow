@@ -74,21 +74,30 @@ contract SablierFlow is
 
         uint256 snapshotDebtScaled = _streams[streamId].snapshotDebtScaled;
 
-        // If the stream has uncovered debt, return zero.
-        if (snapshotDebtScaled + _ongoingDebtScaledOf(streamId) > balanceScaled) {
+        uint256 oneWeiScaled = Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
+        // If the total debt exceeds balance, return zero.
+        if (snapshotDebtScaled + _ongoingDebtScaledOf(streamId) >= balanceScaled + oneWeiScaled) {
             return 0;
         }
 
-        // Depletion time is defined as the UNIX timestamp beyond which the total debt exceeds stream balance.
-        // So we calculate it by solving: debt at depletion time = stream balance + 1. This ensures that we find the
-        // lowest timestamp at which the debt exceeds the balance.
+        // Depletion time is defined as the UNIX timestamp at which the total debt exceeds stream balance by 1 wei. So
+        // we calculate it by solving: total debt at depletion time = stream balance + 1. This ensures that we find the
+        // lowest timestamp at which the total debt exceeds the stream balance.
         // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
             uint256 solvencyAmount =
                 balanceScaled - snapshotDebtScaled + Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
             uint256 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond.unwrap();
 
-            depletionTime = _streams[streamId].snapshotTime + solvencyPeriod;
+            uint256 carry = solvencyAmount % _streams[streamId].ratePerSecond.unwrap();
+
+            if (carry == 0) {
+                depletionTime = _streams[streamId].snapshotTime + solvencyPeriod;
+            }
+            // Rounding up before returning since the division by the rate per second has round down the result.
+            else {
+                depletionTime = _streams[streamId].snapshotTime + solvencyPeriod + 1;
+            }
         }
     }
 
