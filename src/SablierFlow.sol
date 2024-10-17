@@ -71,25 +71,25 @@ contract SablierFlow is
 
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
         uint256 balanceScaled = Helpers.scaleAmount({ amount: balance, decimals: tokenDecimals });
-
         uint256 snapshotDebtScaled = _streams[streamId].snapshotDebtScaled;
-
         uint256 oneWeiScaled = Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
+
         // If the total debt exceeds balance, return zero.
         if (snapshotDebtScaled + _ongoingDebtScaledOf(streamId) >= balanceScaled + oneWeiScaled) {
             return 0;
         }
+
+        uint256 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
 
         // Depletion time is defined as the UNIX timestamp at which the total debt exceeds stream balance by 1 wei. So
         // we calculate it by solving: total debt at depletion time = stream balance + 1. This ensures that we find the
         // lowest timestamp at which the total debt exceeds the stream balance.
         // Safe to use unchecked because the calculations cannot overflow or underflow.
         unchecked {
-            uint256 solvencyAmount =
-                balanceScaled - snapshotDebtScaled + Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
-            uint256 solvencyPeriod = solvencyAmount / _streams[streamId].ratePerSecond.unwrap();
+            uint256 solvencyAmount = balanceScaled - snapshotDebtScaled + oneWeiScaled;
+            uint256 solvencyPeriod = solvencyAmount / ratePerSecond;
 
-            uint256 carry = solvencyAmount % _streams[streamId].ratePerSecond.unwrap();
+            uint256 carry = solvencyAmount % ratePerSecond;
 
             if (carry == 0) {
                 depletionTime = _streams[streamId].snapshotTime + solvencyPeriod;
