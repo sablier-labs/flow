@@ -47,7 +47,7 @@ abstract contract Constants {
     // Solvency period is 49999999.999999 seconds.
     uint40 internal constant SOLVENCY_PERIOD = uint40(DEPOSIT_AMOUNT_18D / RATE_PER_SECOND_U128); // ~578 days
     uint40 internal constant WARP_ONE_MONTH = OCT_1_2024 + ONE_MONTH;
-    // Warping to the end of the solvency period + 1 second at which uncovered debt becomes greater than 0.
-    uint40 internal constant WARP_SOLVENCY_PERIOD = OCT_1_2024 + SOLVENCY_PERIOD + 1;
+    // The following variable represents the timestamp at which the stream depletes all its balance.
+    uint40 internal constant WARP_SOLVENCY_PERIOD = OCT_1_2024 + SOLVENCY_PERIOD;
     uint40 internal constant WITHDRAW_TIME = OCT_1_2024 + 2_500_000;
 }

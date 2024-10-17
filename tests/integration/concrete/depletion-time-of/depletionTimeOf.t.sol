@@ -23,7 +23,8 @@ contract DepletionTimeOf_Integration_Concrete_Test is Integration_Test {
     }
 
     function test_GivenUncoveredDebt() external givenNotNull givenNotPaused givenBalanceNotZero {
-        vm.warp({ newTimestamp: WARP_SOLVENCY_PERIOD });
+        uint256 depletionTimestamp = WARP_SOLVENCY_PERIOD + 1;
+        vm.warp({ newTimestamp: depletionTimestamp });
 
         // Check that uncovered debt is greater than 0.
         assertGt(flow.uncoveredDebtOf(defaultStreamId), 0);
@@ -60,6 +61,7 @@ contract DepletionTimeOf_Integration_Concrete_Test is Integration_Test {
     {
         // It should return the time at which the total debt exceeds the balance.
         uint40 actualDepletionTime = uint40(flow.depletionTimeOf(defaultStreamId));
-        assertEq(actualDepletionTime, WARP_SOLVENCY_PERIOD, "depletion time");
+        uint256 expectedDepletionTime = WARP_SOLVENCY_PERIOD + 1;
+        assertEq(actualDepletionTime, expectedDepletionTime, "depletion time");
     }
 }
