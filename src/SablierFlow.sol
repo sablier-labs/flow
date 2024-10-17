@@ -251,9 +251,11 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         notVoided(streamId)
-        notDifferentActors(streamId, sender, recipient)
         updateMetadata(streamId)
     {
+        // Check: the provided sender and recipient match the stream's sender and recipient.
+        _verifyStreamSenderRecipient(streamId, sender, recipient);
+
         // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, amount);
     }
@@ -291,9 +293,11 @@ contract SablierFlow is
         noDelegateCall
         notNull(streamId)
         notVoided(streamId)
-        notDifferentActors(streamId, sender, recipient)
         updateMetadata(streamId)
     {
+        // Check: the provided sender and recipient match the stream's sender and recipient.
+        _verifyStreamSenderRecipient(streamId, sender, recipient);
+
         // Checks, Effects, and Interactions: deposit on stream through broker.
         _depositViaBroker(streamId, totalAmount, broker);
     }
@@ -505,6 +509,17 @@ contract SablierFlow is
             return totalDebt - balance;
         } else {
             return 0;
+        }
+    }
+
+    /// @dev Checks whether the provided addresses matches stream's sender and recipient.
+    function _verifyStreamSenderRecipient(uint256 streamId, address sender, address recipient) internal view {
+        if (sender != _streams[streamId].sender) {
+            revert Errors.SablierFlow_NotStreamSender(sender, _streams[streamId].sender);
+        }
+
+        if (recipient != _ownerOf(streamId)) {
+            revert Errors.SablierFlow_NotStreamRecipient(recipient, _ownerOf(streamId));
         }
     }
 

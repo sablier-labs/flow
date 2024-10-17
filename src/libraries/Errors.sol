@@ -39,17 +39,17 @@ library Errors {
     /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
     error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
 
-    /// @notice Thrown when the ID references a null stream.
-    error SablierFlow_Null(uint256 streamId);
-
-    /// @notice Thrown when trying to withdraw an amount greater than the withdrawable amount.
-    error SablierFlow_Overdraw(uint256 streamId, uint128 amount, uint128 withdrawableAmount);
-
     /// @notice Thrown when the recipient address does not match the stream's recipient.
     error SablierFlow_NotStreamRecipient(address recipient, address streamRecipient);
 
     /// @notice Thrown when the sender address does not match the stream's sender.
     error SablierFlow_NotStreamSender(address sender, address streamSender);
+
+    /// @notice Thrown when the ID references a null stream.
+    error SablierFlow_Null(uint256 streamId);
+
+    /// @notice Thrown when trying to withdraw an amount greater than the withdrawable amount.
+    error SablierFlow_Overdraw(uint256 streamId, uint128 amount, uint128 withdrawableAmount);
 
     /// @notice Thrown when trying to change the rate per second with the same rate per second.
     error SablierFlow_RatePerSecondNotDifferent(uint256 streamId, UD21x18 ratePerSecond);

@@ -66,21 +66,6 @@ abstract contract SablierFlowBase is
                                       MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Checks whether the provided addresses matches stream's sender and recipient.
-    modifier notDifferentActors(uint256 streamId, address sender, address recipient) {
-        // Check: the sender address matches the stream's sender.
-        if (sender != _streams[streamId].sender) {
-            revert Errors.SablierFlow_NotStreamSender(sender, _streams[streamId].sender);
-        }
-
-        // Check: the recipient address matches the stream's recipient.
-        if (recipient != _ownerOf(streamId)) {
-            revert Errors.SablierFlow_NotStreamRecipient(recipient, _ownerOf(streamId));
-        }
-
-        _;
-    }
-
     /// @dev Checks that `streamId` does not reference a null stream.
     modifier notNull(uint256 streamId) {
         if (!_streams[streamId].isStream) {

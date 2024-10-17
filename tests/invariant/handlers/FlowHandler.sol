@@ -142,7 +142,7 @@ contract FlowHandler is BaseHandler {
             streamId: currentStreamId,
             amount: depositAmount,
             sender: currentSender,
-            recipient: currentRecipient
+            recipient: flow.getRecipient(currentStreamId)
         });
 
         // Update the deposited amount.
