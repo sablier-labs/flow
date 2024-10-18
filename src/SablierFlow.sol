@@ -72,6 +72,9 @@ contract SablierFlow is
         uint8 tokenDecimals = _streams[streamId].tokenDecimals;
         uint256 balanceScaled = Helpers.scaleAmount({ amount: balance, decimals: tokenDecimals });
         uint256 snapshotDebtScaled = _streams[streamId].snapshotDebtScaled;
+
+        // MVT represents Minimum Value Transferable, the smallest amount of token that can be transferred, which is
+        // always 1 in token's decimal.
         uint256 oneMVTScaled = Helpers.scaleAmount({ amount: 1, decimals: tokenDecimals });
 
         // If the total debt exceeds balance, return zero.
