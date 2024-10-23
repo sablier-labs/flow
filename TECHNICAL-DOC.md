@@ -383,6 +383,10 @@ timestamps $(st + 87), (st + 173), (st + 260)$ at which tokens are unlocked.
 
 ### Understanding delay with a concrete example
 
+<!-- prettier-ignore -->
+> [!NOTE]
+> From now on, we assume two consecutive function calls both of which are `withdraw`.
+
 In the Flow contract, only `withdraw` can cause the delay as its the one that calculates the withdrawable amount by
 descaling total debt to token's decimal.
 
@@ -391,15 +395,15 @@ amount remains constant. Let $t$ be the time at which the `withdraw` function is
 
 For [this example](#unlock-interval-results), we will have the following constant intervals for withdrawable amount:
 
-1. $[wt, wt + 86]$
-2. $[wt + 87, wt + 172]$
-3. $[wt + 173, wt + 259]$
+1. $[wpt, wpt + 86]$
+2. $[wpt + 87, wpt + 172]$
+3. $[wpt + 173, wpt + 259]$
 
-where $wt =$ timestamp when the last withdraw was made.
+where $wpt =$ timestamp when the previous withdraw was made.
 
 #### Case 1: when $t = t_0$
 
-In this case, the snapshot time is updated to $(wt + 87)$, which represents a no-delay scenario. This is because the
+In this case, the snapshot time is updated to $(wpt + 87)$, which represents a no-delay scenario. This is because the
 first token is unlocked exactly after 87 seconds of elapsed time. Therefore, we can say that the withdrawable amount is
 synchronized with the initial "scheduled" withdrawable amount (Figure 3).
 
@@ -452,11 +456,11 @@ be calculated as:
 
 ```math
 \begin{aligned}
-delay = t - (wt + uis_i - 1)
+delay = t - (wpt + uis_i - 1)
 \end{aligned}
 ```
 
-where $wt = \text{time at last withdraw}$
+where $wpt = \text{timestamp at previous withdraw}$
 
 [^1]:
     By more significant digits, we mean that `rps` has non-zero digits right to the `mvt`. For example 1.
