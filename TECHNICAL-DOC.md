@@ -16,7 +16,7 @@ A stream is represented by a struct, which can be found in
 The debt is tracked using "snapshot debt" and "snapshot time". At snapshot, the following events are taking place:
 
 1. snapshot debt is incremented by ongoing debt where
-   $\text{ongoing debt} = rps \times (\text{block timestamp} - \text{snapshot time})$.
+   $\text{ongoing debt} = rps \cdot (\text{block timestamp} - \text{snapshot time})$.
 2. snapshot time is updated to block timestamp.
 
 The recipient can withdraw the streamed amount at any point. However, if there aren't sufficient funds, the recipient
@@ -457,17 +457,6 @@ delay = t - (wt + uis_i - 1)
 ```
 
 where $wt = \text{time at last withdraw}$
-
-### Reverse engineering the delay from the rescaled ongoing debt
-
-We can also reverse engineer the delay from the _rescaled_ ongoing debt:
-
-```math
-\begin{aligned}
-\text{td} &= od + rps \cdot (t - \text{st}) \\
-delay &= t - wt - \frac{R_\text{td}}{rps} - 1 \\
-\end{aligned}
-```
 
 [^1]:
     By more significant digits, we mean that `rps` has non-zero digits right to the `mvt`. For example 1.
