@@ -222,8 +222,10 @@ at $60,000 per BTC).
 
 By using an 18-decimal `rps` system, we can allow streaming of amount less than Minimum Transferable Value.
 
-The above issues are inherent to **all** decimal systems, and get worse as the number of decimals used to represent rps
-decreases. Therefore, we took the decision to define `rps` as an 18-decimal number so that it can minimize, if not
+### Conclusion
+
+The above issues are inherent to **all** decimal systems, and get worse as the number of decimals used to represent
+`rps` decreases. Therefore, we took the decision to define `rps` as an 18-decimal number so that it can minimize, if not
 rectify, the above two problems. Along with this, we also need to consider the following:
 
 - Store snapshot debt in 18-decimals fixed point number.
