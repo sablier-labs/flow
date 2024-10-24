@@ -82,7 +82,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     )
         external
     {
-        _test_WithdrawMultiple(rps, withdrawCount, timeJump, decimals, ISablierFlow.withdrawMax.selector, 0);
+        _test_WithdrawMultiple(rps, withdrawCount, timeJump, decimals, 0);
     }
 
     /// @dev Checklist:
@@ -103,7 +103,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     )
         external
     {
-        _test_WithdrawMultiple(rps, withdrawCount, timeJump, decimals, ISablierFlow.withdraw.selector, withdrawAmount);
+        _test_WithdrawMultiple(rps, withdrawCount, timeJump, decimals, withdrawAmount);
     }
 
     // Private helper function.
@@ -112,7 +112,6 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint256 withdrawCount,
         uint40 timeJump,
         uint8 decimals,
-        bytes4 selector,
         uint128 withdrawAmount
     )
         private
@@ -147,16 +146,7 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
             timeJump = boundUint40(timeJump, 1 hours, 1 days);
             vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-            // Withdraw the tokens based on the selector value.
-            // ISablierFlow.withdraw
-            if (selector == ISablierFlow.withdraw.selector) {
-                withdrawAmount = boundUint128(withdrawAmount, 1, flow.withdrawableAmountOf(streamId));
-                flow.withdraw(streamId, users.recipient, withdrawAmount);
-            }
-            // ISablierFlow.withdrawMax
-            else if (selector == ISablierFlow.withdrawMax.selector) {
-                (withdrawAmount,) = flow.withdrawMax(streamId, users.recipient);
-            }
+            (withdrawAmount,) = flow.withdrawMax(streamId, users.recipient);
 
             // Update the actual total amount withdrawn.
             actualTotalWithdrawnAmount += withdrawAmount;
@@ -166,6 +156,6 @@ contract WithdrawMultiple_Delay_Fuzz_Test is Shared_Integration_Fuzz_Test {
         uint256 desiredTotalWithdrawnAmount = getDescaledAmount(rps * totalStreamPeriod, decimals);
 
         // Assert that actual withdrawn amount is always less than the desired amount.
-        assertLe(actualTotalWithdrawnAmount, desiredTotalWithdrawnAmount);
+        assertEq(actualTotalWithdrawnAmount, desiredTotalWithdrawnAmount);
     }
 }
