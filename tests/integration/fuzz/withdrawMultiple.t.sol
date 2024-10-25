@@ -48,7 +48,7 @@ contract WithdrawMaxMultiple_NoDelay_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Calculate the desired amount.
         uint256 desiredTotalWithdrawnAmount = (rps * totalStreamPeriod) / SCALE_FACTOR;
 
-        // Assert that actual withdrawn amount is always less than the desired amount.
+        // Assert that actual sum of withdrawn amount equals the total desired amount.
         assertEq(actualTotalWithdrawnAmount, desiredTotalWithdrawnAmount);
     }
 
