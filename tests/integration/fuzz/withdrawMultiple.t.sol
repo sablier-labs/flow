@@ -68,19 +68,6 @@ contract WithdrawMaxMultiple_NoDelay_Fuzz_Test is Shared_Integration_Fuzz_Test {
     )
         external
     {
-        _test_WithdrawMultiple(rps, withdrawCount, timeJump, decimals, 0);
-    }
-
-    // Private helper function.
-    function _test_WithdrawMultiple(
-        uint128 rps,
-        uint256 withdrawCount,
-        uint40 timeJump,
-        uint8 decimals,
-        uint128 withdrawAmount
-    )
-        private
-    {
         decimals = boundUint8(decimals, 0, 18);
         IERC20 token = createToken(decimals);
 
@@ -111,7 +98,7 @@ contract WithdrawMaxMultiple_NoDelay_Fuzz_Test is Shared_Integration_Fuzz_Test {
             timeJump = boundUint40(timeJump, 1 hours, 1 days);
             vm.warp({ newTimestamp: getBlockTimestamp() + timeJump });
 
-            (withdrawAmount,) = flow.withdrawMax(streamId, users.recipient);
+            (uint128 withdrawAmount,) = flow.withdrawMax(streamId, users.recipient);
 
             // Update the actual total amount withdrawn.
             actualTotalWithdrawnAmount += withdrawAmount;
