@@ -345,7 +345,7 @@ interface ISablierFlow is
     /// @dev Emits {Transfer} and {RefundFromFlowStream} events.
     ///
     /// Requirements:
-    /// - Refer to the notes in {refund}.
+    /// - Refer to the requirements in {refund}.
     ///
     /// @param streamId The ID of the stream to refund from.
     function refundMax(uint256 streamId) external;
