@@ -6,10 +6,6 @@ import { ud21x18 } from "@prb/math/src/UD21x18.sol";
 import { Integration_Test, Flow } from "../../Integration.t.sol";
 
 contract Getters_Integration_Concrete_Test is Integration_Test {
-    function setUp() public override {
-        Integration_Test.setUp();
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
                                     GET-BALANCE
     //////////////////////////////////////////////////////////////////////////*/
@@ -46,6 +42,10 @@ contract Getters_Integration_Concrete_Test is Integration_Test {
         assertEq(flow.getRatePerSecond(defaultStreamId), RATE_PER_SECOND, "rate per second");
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                   GET-RECIPIENT
+    //////////////////////////////////////////////////////////////////////////*/
+
     function test_GetRecipientRevertGiven_Null() external {
         bytes memory callData = abi.encodeCall(flow.getRecipient, nullStreamId);
         expectRevert_Null(callData);
@@ -56,7 +56,7 @@ contract Getters_Integration_Concrete_Test is Integration_Test {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                   GET-RECIPIENT
+                                    GET-SENDER
     //////////////////////////////////////////////////////////////////////////*/
 
     function test_GetSenderRevertGiven_Null() external {
