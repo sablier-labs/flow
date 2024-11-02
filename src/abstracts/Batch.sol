@@ -2,18 +2,20 @@
 pragma solidity >=0.8.22;
 
 import { Errors } from "../libraries/Errors.sol";
+import { IBatch } from "../interfaces/IBatch.sol";
 
 /// @title Batch
 /// @notice This contract implements logic to batch call any function.
 /// @dev Forked from: https://github.com/boringcrypto/BoringSolidity/blob/master/contracts/BoringBatchable.sol
-abstract contract Batch {
+abstract contract Batch is IBatch {
     /*//////////////////////////////////////////////////////////////////////////
                          USER-FACING NON-CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @inheritdoc IBatch
     /// @notice Allows batched call to self, `this` contract.
     /// @param calls An array of inputs for each call.
-    function batch(bytes[] calldata calls) external {
+    function batch(bytes[] calldata calls) external virtual override {
         uint256 count = calls.length;
 
         for (uint256 i = 0; i < count; ++i) {
