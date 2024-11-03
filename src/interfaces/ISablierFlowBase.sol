@@ -8,7 +8,6 @@ import { UD21x18 } from "@prb/math/src/UD21x18.sol";
 import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 import { Flow } from "./../types/DataTypes.sol";
 import { IAdminable } from "./IAdminable.sol";
-
 import { IFlowNFTDescriptor } from "./IFlowNFTDescriptor.sol";
 
 /// @title ISablierFlowBase

@@ -23,8 +23,8 @@ import { Broker, Flow } from "./types/DataTypes.sol";
 contract SablierFlow is
     Batch, // 1 inherited components
     NoDelegateCall, // 0 inherited components
-    ISablierFlow, // 5 inherited components
-    SablierFlowBase // 8 inherited components
+    ISablierFlow, // 7 inherited components
+    SablierFlowBase // 5 inherited components
 {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
