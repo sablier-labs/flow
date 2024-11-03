@@ -8,7 +8,7 @@ import { UD21x18 } from "@prb/math/src/UD21x18.sol";
 import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 import { Flow } from "./../types/DataTypes.sol";
 import { IAdminable } from "./IAdminable.sol";
-import { IBatch } from "./IBatch.sol";
+
 import { IFlowNFTDescriptor } from "./IFlowNFTDescriptor.sol";
 
 /// @title ISablierFlowBase
@@ -18,8 +18,7 @@ import { IFlowNFTDescriptor } from "./IFlowNFTDescriptor.sol";
 interface ISablierFlowBase is
     IERC4906, // 2 inherited components
     IERC721Metadata, // 2 inherited components
-    IAdminable, // 0 inherited components
-    IBatch // 0 inherited components
+    IAdminable // 0 inherited components
 {
     /// @notice Emitted when the contract admin collects protocol revenue accrued.
     /// @param admin The address of the contract admin.
