@@ -156,6 +156,7 @@ contract Withdraw_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vars.expectedProtocolRevenue = flow.protocolRevenue(token);
         if (flow.protocolFee(token) > ZERO) {
             vars.protocolFeeAmount = ud(withdrawAmount).mul(flow.protocolFee(token)).intoUint128();
+            if (vars.protocolFeeAmount == 0) vars.protocolFeeAmount = 1;
             vars.expectedProtocolRevenue += vars.protocolFeeAmount;
         }
 

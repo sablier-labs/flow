@@ -130,6 +130,10 @@ abstract contract Modifiers {
                                       WITHDRAW
     //////////////////////////////////////////////////////////////////////////*/
 
+    modifier givenProtocolFeeNotZero() {
+        _;
+    }
+
     modifier givenProtocolFeeZero() {
         _;
     }

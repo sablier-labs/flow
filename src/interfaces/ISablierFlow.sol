@@ -413,7 +413,9 @@ interface ISablierFlow is
     ///
     /// Notes:
     /// - It sets the snapshot time to the `block.timestamp` if `amount` is greater than snapshot debt.
-    /// - A protocol fee may be charged on the withdrawn amount if the protocol fee is enabled for the streaming token.
+    /// - If the protocol fee is enabled for the streaming token:
+    ///   - A percentage based protocol fee will be charged on the withdrawn amount.
+    ///   - If withdrawn amount is so small that the protocol fee rounds down to zero, a fee of 1 token will be charged.
     ///
     /// Requirements:
     /// - Must not be delegate called.

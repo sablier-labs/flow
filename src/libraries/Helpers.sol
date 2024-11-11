@@ -21,6 +21,12 @@ library Helpers {
         // Calculate the fee amount based on the fee percentage.
         feeAmount = ud(totalAmount).mul(fee).intoUint128();
 
+        // If `totalAmount` is so small that the `feeAmount` is rounded down to zero, set the fee to 1. This avoids
+        // exploiting the protocol fee by withdrawing very small amounts.
+        if (feeAmount == 0) {
+            feeAmount = 1;
+        }
+
         // Calculate the net amount after subtracting the fee from the total amount.
         netAmount = totalAmount - feeAmount;
     }
@@ -46,8 +52,11 @@ library Helpers {
             revert Errors.SablierFlow_BrokerAddressZero();
         }
 
-        // Calculate the broker fee amount that is going to be transferred to the `broker.account`.
-        (brokerFeeAmount, depositAmount) = calculateAmountsFromFee(totalAmount, broker.fee);
+        // Calculate the broker fee amount.
+        brokerFeeAmount = ud(totalAmount).mul(broker.fee).intoUint128();
+
+        // Calculate the net amount after subtracting the broker fee from the total amount.
+        depositAmount = totalAmount - brokerFeeAmount;
     }
 
     /// @dev Descales the provided `amount` from 18 decimals fixed-point number to token's decimals number.

@@ -179,7 +179,7 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         });
     }
 
-    function test_GivenProtocolFeeNotZero()
+    function test_WhenFeeAmountRoundsDownToZero()
         external
         whenNoDelegateCall
         givenNotNull
@@ -188,6 +188,43 @@ contract Withdraw_Integration_Concrete_Test is Integration_Test {
         whenWithdrawalAddressOwner
         whenAmountNotOverdraw
         whenAmountEqualTotalDebt
+        givenProtocolFeeNotZero
+    {
+        // Go back to the starting point.
+        vm.warp({ newTimestamp: OCT_1_2024 });
+
+        resetPrank({ msgSender: users.sender });
+
+        // Create the stream and make a deposit.
+        uint256 streamId = createDefaultStream(tokenWithProtocolFee);
+        deposit(streamId, DEPOSIT_AMOUNT_6D);
+
+        // Simulate the one month of streaming.
+        vm.warp({ newTimestamp: WARP_ONE_MONTH });
+
+        // Make recipient the caller test.
+        resetPrank({ msgSender: users.recipient });
+
+        // It should deduct 1 token as protocol fee
+        _test_Withdraw({
+            streamId: streamId,
+            to: users.recipient,
+            depositAmount: DEPOSIT_AMOUNT_6D,
+            protocolFeeAmount: 1,
+            withdrawAmount: 99
+        });
+    }
+
+    function test_WhenFeeAmountNotRoundDownToZero()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        whenAmountNotZero
+        whenWithdrawalAddressNotZero
+        whenWithdrawalAddressOwner
+        whenAmountNotOverdraw
+        whenAmountEqualTotalDebt
+        givenProtocolFeeNotZero
     {
         // Go back to the starting point.
         vm.warp({ newTimestamp: OCT_1_2024 });
