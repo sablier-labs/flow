@@ -17,7 +17,7 @@ contract DepletionTimeOf_Integration_Concrete_Test is Integration_Test {
         expectRevert_Paused(callData);
     }
 
-    function test_GivenBalanceZero() external givenNotNull givenNotPaused {
+    function test_RevertGiven_BalanceZero() external givenNotNull givenNotPaused {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_StreamBalanceZero.selector, defaultStreamId));
         flow.depletionTimeOf(defaultStreamId);
     }
