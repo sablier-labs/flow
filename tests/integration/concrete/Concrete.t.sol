@@ -32,7 +32,7 @@ abstract contract Shared_Integration_Concrete_Test is Integration_Test {
     function setUp() public virtual override {
         Integration_Test.setUp();
 
-        defaultBroker = broker();
+        defaultBroker = Broker({ account: users.broker, fee: BROKER_FEE });
         defaultStreamId = createDefaultStream();
 
         // Simulate one month of streaming.

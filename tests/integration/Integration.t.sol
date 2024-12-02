@@ -4,8 +4,6 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ud21x18, UD21x18 } from "@prb/math/src/UD21x18.sol";
 
-import { Broker } from "src/types/DataTypes.sol";
-
 import { Base_Test } from "../Base.t.sol";
 
 /// @notice Common logic needed by all integration tests, both concrete and fuzz tests.
@@ -21,10 +19,6 @@ abstract contract Integration_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////////////////
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
-
-    function broker() public view returns (Broker memory) {
-        return Broker({ account: users.broker, fee: BROKER_FEE });
-    }
 
     function createDefaultStream(IERC20 token_) internal returns (uint256) {
         return createDefaultStream(RATE_PER_SECOND, token_);
