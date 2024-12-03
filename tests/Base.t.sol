@@ -4,6 +4,8 @@ pragma solidity >=0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Test } from "forge-std/src/Test.sol";
 import { FlowNFTDescriptor } from "src/FlowNFTDescriptor.sol";
+import { IFlowNFTDescriptor } from "src/interfaces/IFlowNFTDescriptor.sol";
+import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { SablierFlow } from "src/SablierFlow.sol";
 import { ERC20MissingReturn } from "./mocks/ERC20MissingReturn.sol";
 import { ERC20Mock } from "./mocks/ERC20Mock.sol";
@@ -30,8 +32,8 @@ abstract contract Base_Test is Assertions, Modifiers, Test {
     ERC20Mock internal usdc;
     ERC20MissingReturn internal usdt;
 
-    SablierFlow internal flow;
-    FlowNFTDescriptor internal nftDescriptor;
+    ISablierFlow internal flow;
+    IFlowNFTDescriptor internal nftDescriptor;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -40,15 +42,12 @@ abstract contract Base_Test is Assertions, Modifiers, Test {
     function setUp() public virtual {
         users.admin = payable(makeAddr("admin"));
 
-        if (!isBenchmarkProfile() && !isTestOptimizedProfile()) {
-            nftDescriptor = new FlowNFTDescriptor();
-            flow = new SablierFlow(users.admin, nftDescriptor);
-        } else {
-            flow = deployOptimizedSablierFlow();
-        }
+        // Deploy the Flow contracts.
+        deployOptimizedSablierFlow();
 
         // Label the flow contract.
         vm.label(address(flow), "Flow");
+        vm.label(address(nftDescriptor), "NFTDescriptor");
 
         // Create new tokens and label them.
         createAndLabelTokens();
@@ -119,14 +118,11 @@ abstract contract Base_Test is Assertions, Modifiers, Test {
         return user;
     }
 
-    /// @dev Deploys {SablierFlow} from an optimized source compiled with `--via-ir`.
-    function deployOptimizedSablierFlow() internal returns (SablierFlow) {
-        nftDescriptor = FlowNFTDescriptor(deployCode("out-optimized/FlowNFTDescriptor.sol/FlowNFTDescriptor.json"));
-
-        return SablierFlow(
-            deployCode(
-                "out-optimized/SablierFlow.sol/SablierFlow.json", abi.encode(users.admin, address(nftDescriptor))
-            )
+    /// @dev Deploys {FlowNFTDescriptor} and {SablierFlow} from an optimized source compiled with `--via-ir`.
+    function deployOptimizedSablierFlow() internal {
+        nftDescriptor = FlowNFTDescriptor(deployCode("out/FlowNFTDescriptor.sol/FlowNFTDescriptor.json"));
+        flow = ISablierFlow(
+            deployCode("out/SablierFlow.sol/SablierFlow.json", abi.encode(users.admin, address(nftDescriptor)))
         );
     }
 

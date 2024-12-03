@@ -79,18 +79,6 @@ abstract contract Utils is CommonBase, Constants, PRBMathUtils {
         return amount * scaleFactor;
     }
 
-    /// @dev Checks if the Foundry profile is "benchmark".
-    function isBenchmarkProfile() internal view returns (bool) {
-        string memory profile = vm.envOr({ name: "FOUNDRY_PROFILE", defaultValue: string("default") });
-        return Strings.equal(profile, "benchmark");
-    }
-
-    /// @dev Checks if the Foundry profile is "test-optimized".
-    function isTestOptimizedProfile() internal view returns (bool) {
-        string memory profile = vm.envOr({ name: "FOUNDRY_PROFILE", defaultValue: string("default") });
-        return Strings.equal(profile, "test-optimized");
-    }
-
     /// @dev Stops the active prank and sets a new one.
     function resetPrank(address msgSender) internal {
         vm.stopPrank();

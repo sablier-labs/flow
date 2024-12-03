@@ -9,11 +9,11 @@
 set -euo pipefail
 
 # Compile the contracts with Forge
-FOUNDRY_PROFILE=optimized forge build
+forge build
 
 # Retrieve the raw bytecodes, removing the "0x" prefix
-flow=$(cat out-optimized/SablierFlow.sol/SablierFlow.json | jq -r '.bytecode.object' | cut -c 3-)
-nft_descriptor=$(cat out-optimized/FlowNFTDescriptor.sol/FlowNFTDescriptor.json | jq -r '.bytecode.object' | cut -c 3-)
+flow=$(cat out/SablierFlow.sol/SablierFlow.json | jq -r '.bytecode.object' | cut -c 3-)
+nft_descriptor=$(cat out/FlowNFTDescriptor.sol/FlowNFTDescriptor.json | jq -r '.bytecode.object' | cut -c 3-)
 
 precompiles_path="precompiles/Precompiles.sol"
 if [ ! -f $precompiles_path ]; then

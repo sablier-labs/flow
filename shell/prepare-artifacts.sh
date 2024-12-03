@@ -19,26 +19,26 @@ mkdir $artifacts \
   "$artifacts/libraries"
 
 # Generate the artifacts with Forge
-FOUNDRY_PROFILE=optimized forge build
+forge build
 
 # Copy the production artifacts
-cp out-optimized/SablierFlow.sol/SablierFlow.json $artifacts
-cp out-optimized/FlowNFTDescriptor.sol/FlowNFTDescriptor.json $artifacts
+cp out/SablierFlow.sol/SablierFlow.json $artifacts
+cp out/FlowNFTDescriptor.sol/FlowNFTDescriptor.json $artifacts
 
 interfaces=./artifacts/interfaces
-cp out-optimized/ISablierFlow.sol/ISablierFlow.json $interfaces
-cp out-optimized/ISablierFlowBase.sol/ISablierFlowBase.json $interfaces
-cp out-optimized/IFlowNFTDescriptor.sol/IFlowNFTDescriptor.json $interfaces
+cp out/ISablierFlow.sol/ISablierFlow.json $interfaces
+cp out/ISablierFlowBase.sol/ISablierFlowBase.json $interfaces
+cp out/IFlowNFTDescriptor.sol/IFlowNFTDescriptor.json $interfaces
 
 erc20=./artifacts/interfaces/erc20
-cp out-optimized/IERC20.sol/IERC20.json $erc20
+cp out/IERC20.sol/IERC20.json $erc20
 
 erc721=./artifacts/interfaces/erc721
-cp out-optimized/IERC721.sol/IERC721.json $erc721
-cp out-optimized/IERC721Metadata.sol/IERC721Metadata.json $erc721
+cp out/IERC721.sol/IERC721.json $erc721
+cp out/IERC721Metadata.sol/IERC721Metadata.json $erc721
 
 libraries=./artifacts/libraries
-cp out-optimized/Errors.sol/Errors.json $libraries
+cp out/Errors.sol/Errors.json $libraries
 
 # Format the artifacts with Prettier
 bun prettier --write ./artifacts

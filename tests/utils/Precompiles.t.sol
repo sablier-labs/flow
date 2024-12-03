@@ -12,15 +12,10 @@ contract Precompiles_Test is Base_Test {
 
     Precompiles internal precompiles = new Precompiles();
 
-    modifier onlyTestOptimizedProfile() {
-        if (isTestOptimizedProfile()) {
-            _;
-        }
-    }
-
-    function test_DeployFlow() external onlyTestOptimizedProfile {
+    function test_DeployFlow() external {
+        deployOptimizedSablierFlow();
         address actualSablierFlow = address(precompiles.deploySablierFlow(users.admin, nftDescriptor));
-        address expectedSablierFlow = address(deployOptimizedSablierFlow());
+        address expectedSablierFlow = address(flow);
         bytes memory expectedSablierFlowCode =
             adjustBytecode(expectedSablierFlow.code, expectedSablierFlow, actualSablierFlow);
         assertEq(actualSablierFlow.code, expectedSablierFlowCode, "bytecodes mismatch");
