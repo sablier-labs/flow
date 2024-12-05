@@ -1,19 +1,28 @@
 import * as dotenv from "dotenv";
-require("@nomiclabs/hardhat-ethers");
-require("@nomiclabs/hardhat-etherscan");
+
+import "@nomicfoundation/hardhat-foundry";
+import "@matterlabs/hardhat-zksync";
+import "@nomiclabs/hardhat-solhint";
+import "@typechain/hardhat";
+import fs from "fs";
+import "hardhat-preprocessor";
+import { HardhatUserConfig } from "hardhat/config";
 
 dotenv.config();
 
-let deployPrivateKey = process.env.PV_KEY as string;
+let deployPrivateKey = process.env.PRIVATE_KEY as string;
 if (!deployPrivateKey) {
   // default first account deterministically created by local nodes like `npx hardhat node` or `anvil`
   throw "No deployer private key set in .env";
 }
 
-module.exports = {
+/**
+ * Generates hardhat network configuration
+ * @type import('hardhat/config').HardhatUserConfig
+ */
+const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.20",
-    evmVersion: "paris",
+    version: "0.8.26",
     settings: {
       optimizer: {
         enabled: true,
@@ -24,39 +33,65 @@ module.exports = {
     // @ts-ignore
   },
   networks: {
-    iotex: {
-      chainId: 4689,
-      url: "https://babel-api.mainnet.iotex.io",
-      accounts: [deployPrivateKey],
+    sophonMainnet: {
+      url: "https://rpc.sophon.xyz",
+      ethNetwork: "mainnet",
+      verifyURL: "https://verification-explorer.sophon.xyz/contract_verification",
+      browserVerifyURL: "https://explorer.sophon.xyz/",
+      enableVerifyURL: true,
+      zksync: true,
+      accounts: [process.env.PRIVATE_KEY as string],
+      chainId: 50104,
     },
-    tangle: {
-      chainId: 5845,
-      url: "https://rpc.tangle.tools",
-      accounts: [deployPrivateKey],
+  },
+  paths: {
+    sources: "./contracts",
+    cache: "./cache_hardhat",
+  },
+  zksolc: {
+    version: "1.5.12",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10000,
+        mode: "z",
+        fallback_to_optimizing_for_size: true,
+      },
     },
   },
   etherscan: {
+    enabled: true,
     apiKey: {
-      iotex: "empty",
-      tangle: "empty",
+      sophonTestnet: process.env.ETHERSCAN_SOPHON_API_KEY as string,
+      sophonMainnet: process.env.ETHERSCAN_SOPHON_API_KEY as string,
     },
     customChains: [
       {
-        network: "iotex",
-        chainId: 4689,
+        network: "sophonTestnet",
+        chainId: 531050104,
         urls: {
-          apiURL: "https://IoTeXscout.io/api",
-          browserURL: "https://IoTeXscan.io",
+          apiURL: "https://api-testnet.sophscan.xyz/api",
+          browserURL: "https://testnet.sophscan.xyz",
         },
       },
       {
-        network: "tangle",
-        chainId: 5845,
+        network: "sophonMainnet",
+        chainId: 50104,
         urls: {
-          apiURL: "https://explorer.tangle.tools/api",
-          browserURL: "http://explorer.tangle.tools",
+          apiURL: "https://api.sophscan.xyz/api",
+          browserURL: "https://sophscan.xyz",
+        },
+      },
+      {
+        network: "zkSyncTestnet",
+        chainId: 300,
+        urls: {
+          apiURL: "https://api-testnet-era.zksync.network/api",
+          browserURL: "https://testnet-era.zksync.network",
         },
       },
     ],
   },
 };
+
+export default config;
