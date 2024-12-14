@@ -95,6 +95,9 @@ contract Flow_Fork_Test is Fork_Test {
             // Make sure that fuzzed users don't overlap with Flow address.
             checkUsers(params.recipient, params.sender);
 
+            // Make sure that the sender has enough funds.
+            vm.deal({ account: params.sender, newBalance: 1_000_000 ether });
+
             // Warp to a different time.
             params.timeJump = _passTime(params.timeJump);
 
@@ -224,14 +227,10 @@ contract Flow_Fork_Test is Fork_Test {
         );
 
         // Make sure the requirements are respected.
-        address sender = flow.getSender(streamId);
-        resetPrank({ msgSender: sender });
+        resetPrank({ msgSender: flow.getSender(streamId) });
         if (flow.isPaused(streamId)) {
             flow.restart(streamId, RATE_PER_SECOND);
         }
-
-        // Fund the sender to pay the fee.
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
 
         UD21x18 oldRatePerSecond = flow.getRatePerSecond(streamId);
         if (newRatePerSecond.unwrap() == oldRatePerSecond.unwrap()) {
@@ -299,7 +298,6 @@ contract Flow_Fork_Test is Fork_Test {
         });
 
         resetPrank({ msgSender: sender });
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
 
         vars.actualStreamId = flow.create{ value: FEE }({
             recipient: recipient,
@@ -355,7 +353,6 @@ contract Flow_Fork_Test is Fork_Test {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
         deal({ token: address(token), to: sender, give: depositAmount });
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
         safeApprove(depositAmount);
 
         // Expect the relevant events to be emitted.
@@ -402,14 +399,11 @@ contract Flow_Fork_Test is Fork_Test {
             flow.restart(streamId, RATE_PER_SECOND);
         }
 
-        // Fund the sender to pay the fee.
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
-
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.PauseFlowStream({
             streamId: streamId,
-            sender: flow.getSender(streamId),
+            sender: sender,
             recipient: flow.getRecipient(streamId),
             totalDebt: flow.totalDebtOf(streamId)
         });
@@ -442,9 +436,6 @@ contract Flow_Fork_Test is Fork_Test {
                 uint128(flow.uncoveredDebtOf(streamId)) + getDefaultDepositAmount(flow.getTokenDecimals(streamId));
             depositOnStream(streamId, depositAmount);
         }
-
-        // Fund the sender to pay the fee.
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
 
         // Bound the refund amount to avoid error.
         refundAmount = boundUint128(refundAmount, 1, flow.refundableAmountOf(streamId));
@@ -491,9 +482,6 @@ contract Flow_Fork_Test is Fork_Test {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
 
-        // Fund the sender to pay the fee.
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
-
         if (!flow.isPaused(streamId)) {
             flow.pause(streamId);
         }
@@ -534,9 +522,6 @@ contract Flow_Fork_Test is Fork_Test {
         uint256 expectedTotalDebt;
 
         resetPrank({ msgSender: sender });
-
-        // Fund the sender to pay the fee.
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
 
         if (uncoveredDebt > 0) {
             expectedTotalDebt = flow.getBalance(streamId);
@@ -598,7 +583,6 @@ contract Flow_Fork_Test is Fork_Test {
 
         (, address caller,) = vm.readCallers();
         address recipient = flow.getRecipient(streamId);
-        vm.deal({ account: caller, newBalance: caller.balance + FEE });
 
         vars.expectedAggregateAmount = flow.aggregateBalance(token) - withdrawAmount;
 

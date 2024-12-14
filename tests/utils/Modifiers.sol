@@ -68,7 +68,7 @@ abstract contract Modifiers is Utils {
                                     COLLECT-FEES
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier whenAdminIsContract() {
+    modifier givenAdminIsContract() {
         _;
     }
 

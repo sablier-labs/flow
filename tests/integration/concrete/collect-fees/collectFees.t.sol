@@ -10,15 +10,19 @@ contract CollectFees_Integration_Concrete_Test is Shared_Integration_Concrete_Te
     function setUp() public override {
         Shared_Integration_Concrete_Test.setUp();
         depositToDefaultStream();
+
+        // Make a withdrawal and pay the fee.
+        flow.withdrawMax{ value: FEE }({ streamId: defaultStreamId, to: users.recipient });
+
+        resetPrank({ msgSender: users.admin });
     }
 
-    function test_WhenAdminIsNotContract() external {
+    function test_GivenAdminIsNotContract() external {
         _test_CollectFees(users.admin);
     }
 
-    function test_RevertWhen_AdminDoesNotImplementReceiveFunction() external whenAdminIsContract {
+    function test_RevertGiven_AdminDoesNotImplementReceiveFunction() external givenAdminIsContract {
         // Transfer the admin to a contract that does not implement the receive function.
-        resetPrank({ msgSender: users.admin });
         flow.transferAdmin(address(contractWithoutReceive));
 
         // Make the contract the caller.
@@ -35,9 +39,8 @@ contract CollectFees_Integration_Concrete_Test is Shared_Integration_Concrete_Te
         flow.collectFees();
     }
 
-    function test_WhenAdminImplementsReceiveFunction() external whenAdminIsContract {
+    function test_GivenAdminImplementsReceiveFunction() external givenAdminIsContract {
         // Transfer the admin to a contract that implements the receive function.
-        resetPrank({ msgSender: users.admin });
         flow.transferAdmin(address(contractWithReceive));
 
         // Make the contract the caller.
@@ -52,12 +55,6 @@ contract CollectFees_Integration_Concrete_Test is Shared_Integration_Concrete_Te
 
         // Load the initial ETH balance of the admin.
         uint256 initialAdminBalance = admin.balance;
-
-        // Make recipient the caller.
-        resetPrank({ msgSender: users.recipient });
-
-        // Make a withdrawal and pay the fee.
-        flow.withdrawMax{ value: FEE }({ streamId: defaultStreamId, to: users.recipient });
 
         // It should emit a {CollectFees} event.
         vm.expectEmit({ emitter: address(flow) });
