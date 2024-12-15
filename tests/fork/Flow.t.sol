@@ -297,8 +297,6 @@ contract Flow_Fork_Test is Fork_Test {
             transferable: transferable
         });
 
-        resetPrank({ msgSender: sender });
-
         vars.actualStreamId = flow.create{ value: FEE }({
             recipient: recipient,
             sender: sender,

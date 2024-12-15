@@ -93,7 +93,6 @@ abstract contract Fork_Test is Base_Test {
         address sender = flow.getSender(streamId);
         resetPrank({ msgSender: sender });
         deal({ token: address(token), to: sender, give: depositAmount });
-        vm.deal({ account: sender, newBalance: sender.balance + FEE });
         safeApprove(depositAmount);
         flow.deposit({
             streamId: streamId,
