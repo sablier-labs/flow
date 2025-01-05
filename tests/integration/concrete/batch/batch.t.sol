@@ -212,7 +212,9 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
                                       WITHDRAW
     //////////////////////////////////////////////////////////////////////////*/
 
-    function test_Batch_Withdraw() external {
+    function test_BatchPaybale_Withdraw() external {
+        uint256 initialEthBalance = address(flow).balance;
+
         // Warp to one more month so that the second stream has also accrued some debt.
         vm.warp({ newTimestamp: getBlockTimestamp() + ONE_MONTH });
 
@@ -252,7 +254,7 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
 
         // Call the batch function.
-        bytes[] memory results = flow.batch(calls);
+        bytes[] memory results = flow.batch{ value: 1 wei }(calls);
         assertEq(results.length, 2, "batch results length");
         (uint128 actualWithdrawnAmount, uint128 actualProtocolFeeAmount) = abi.decode(results[0], (uint128, uint128));
         assertEq(actualWithdrawnAmount, WITHDRAW_AMOUNT_6D, "batch results[0]");
@@ -260,5 +262,6 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         (actualWithdrawnAmount, actualProtocolFeeAmount) = abi.decode(results[1], (uint128, uint128));
         assertEq(actualWithdrawnAmount, WITHDRAW_AMOUNT_6D, "batch results[1]");
         assertEq(actualProtocolFeeAmount, 0, "batch results[1]");
+        assertEq(address(flow).balance, initialEthBalance + 1 wei, "lockup contract balance");
     }
 }
