@@ -1,62 +1,76 @@
 import * as dotenv from "dotenv";
-require("@nomiclabs/hardhat-ethers");
-require("@nomiclabs/hardhat-etherscan");
+
+import "@nomicfoundation/hardhat-foundry";
+import "@matterlabs/hardhat-zksync";
+import "@nomiclabs/hardhat-solhint";
+import "@typechain/hardhat";
+import fs from "fs";
+import "hardhat-preprocessor";
+import { HardhatUserConfig } from "hardhat/config";
 
 dotenv.config();
 
-let deployPrivateKey = process.env.PV_KEY as string;
+let deployPrivateKey = process.env.PRIVATE_KEY as string;
 if (!deployPrivateKey) {
   // default first account deterministically created by local nodes like `npx hardhat node` or `anvil`
   throw "No deployer private key set in .env";
 }
 
-module.exports = {
+/**
+ * Generates hardhat network configuration
+ * @type import('hardhat/config').HardhatUserConfig
+ */
+const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.20",
-    evmVersion: "paris",
+    version: "0.8.26",
     settings: {
       optimizer: {
         enabled: true,
-        runs: 10000,
+        runs: 1000,
       },
       viaIR: true,
     },
     // @ts-ignore
   },
+  defaultNetwork: "abstractMainnet",
   networks: {
-    iotex: {
-      chainId: 4689,
-      url: "https://babel-api.mainnet.iotex.io",
-      accounts: [deployPrivateKey],
+    abstractMainnet: {
+      url: "https://api.mainnet.abs.xyz",
+      ethNetwork: "mainnet",
+      zksync: true,
+      chainId: 2741,
     },
-    tangle: {
-      chainId: 5845,
-      url: "https://rpc.tangle.tools",
-      accounts: [deployPrivateKey],
-    },
+  },
+  paths: {
+    sources: "./contracts",
+    cache: "./cache_hardhat",
   },
   etherscan: {
     apiKey: {
-      iotex: "empty",
-      tangle: "empty",
+      abstractMainnet: "IEYKU3EEM5XCD76N7Y7HF9HG7M9ARZ2H4A",
     },
     customChains: [
       {
-        network: "iotex",
-        chainId: 4689,
+        network: "abstractMainnet",
+        chainId: 2741,
         urls: {
-          apiURL: "https://IoTeXscout.io/api",
-          browserURL: "https://IoTeXscan.io",
-        },
-      },
-      {
-        network: "tangle",
-        chainId: 5845,
-        urls: {
-          apiURL: "https://explorer.tangle.tools/api",
-          browserURL: "http://explorer.tangle.tools",
+          apiURL: "https://api.abscan.org/api",
+          browserURL: "https://abscan.org/",
         },
       },
     ],
   },
+  zksolc: {
+    version: "1.5.7",
+    settings: {
+      enableEraVMExtensions: false,
+      optimizer: {
+        enabled: true,
+        mode: "z",
+        fallback_to_optimizing_for_size: true,
+      },
+    },
+  },
 };
+
+export default config;
