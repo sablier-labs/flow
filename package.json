@@ -11,14 +11,13 @@
     "url": "https://github.com/sablier-labs/flow/issues"
   },
   "dependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/contracts": "5.0.2",
     "@prb/math": "4.1.0"
   },
   "devDependencies": {
     "prettier": "^3.3.2",
     "solhint": "^5.0.1",
-    "@matterlabs/hardhat-zksync": "^1.0.0",
+    "@matterlabs/hardhat-zksync": "^1.3.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
