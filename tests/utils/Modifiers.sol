@@ -44,6 +44,11 @@ abstract contract Modifiers is Utils {
         _;
     }
 
+    modifier whenCallerRecipient() {
+        resetPrank({ msgSender: users.recipient });
+        _;
+    }
+
     modifier whenCallerSender() {
         _;
     }
@@ -152,11 +157,27 @@ abstract contract Modifiers is Utils {
                                       WITHDRAW
     //////////////////////////////////////////////////////////////////////////*/
 
+    modifier givenBalanceExceedsTotalDebt() virtual {
+        _;
+    }
+
+    modifier givenBalanceNotExceedTotalDebt() {
+        _;
+    }
+
     modifier givenProtocolFeeZero() {
         _;
     }
 
     modifier whenAmountEqualTotalDebt() {
+        _;
+    }
+
+    modifier whenAmountGreaterThanSnapshotDebt() {
+        _;
+    }
+
+    modifier whenAmountLessThanTotalDebt() {
         _;
     }
 
