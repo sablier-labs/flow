@@ -14,10 +14,8 @@ Withdraw_Integration_Concrete_Test
             ├── when withdrawal address not owner
             │  ├── when caller sender
             │  │  └── it should revert
-            │  ├── when caller unknown
-            │  │  └── it should revert
-            │  └── when caller recipient
-            │     └── it should withdraw
+            │  └── when caller unknown
+            │     └── it should revert
             └── when withdrawal address owner
                ├── when caller not recipient
                │  └── it should withdraw

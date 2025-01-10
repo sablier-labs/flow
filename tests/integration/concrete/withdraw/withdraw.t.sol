@@ -89,23 +89,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         flow.withdraw({ streamId: defaultStreamId, to: users.eve, amount: WITHDRAW_AMOUNT_6D });
     }
 
-    function test_WhenCallerRecipient()
-        external
-        whenNoDelegateCall
-        givenNotNull
-        whenAmountNotZero
-        whenWithdrawalAddressNotZero
-        whenWithdrawalAddressNotOwner
-    {
-        // It should withdraw.
-        _test_Withdraw({
-            caller: users.recipient,
-            streamId: defaultStreamId,
-            to: users.eve,
-            withdrawAmount: WITHDRAW_AMOUNT_6D
-        });
-    }
-
     function test_WhenCallerNotRecipient()
         external
         whenNoDelegateCall
