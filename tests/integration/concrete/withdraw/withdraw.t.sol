@@ -221,7 +221,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         // It should reduce snapshot debt by amount withdrawn.
         assertEq(flow.getSnapshotDebtScaled(defaultStreamId), ONE_MONTH_DEBT_18D - WITHDRAW_AMOUNT_18D, "snapshot debt");
         // It should not update snapshot time.
-        assertEq(flow.getSnapshotTime(defaultStreamId), ONE_MONTH_SINCE_START, "snapshot debt");
+        assertEq(flow.getSnapshotTime(defaultStreamId), ONE_MONTH_SINCE_START, "snapshot time");
     }
 
     function test_WhenAmountEqualsSnapshotDebt()
@@ -246,7 +246,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         // It should update snapshot debt to zero.
         assertEq(flow.getSnapshotDebtScaled(defaultStreamId), 0, "snapshot debt");
         // It should not update snapshot time.
-        assertEq(flow.getSnapshotTime(defaultStreamId), ONE_MONTH_SINCE_START, "snapshot debt");
+        assertEq(flow.getSnapshotTime(defaultStreamId), ONE_MONTH_SINCE_START, "snapshot time");
     }
 
     function test_GivenProtocolFeeNotZero()
@@ -286,7 +286,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
             "snapshot debt"
         );
         // It should update snapshot time to current time
-        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot debt");
+        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot time");
     }
 
     function test_GivenTokenHas18Decimals()
@@ -323,7 +323,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         // It should set snapshot debt to difference between total debt and amount withdrawn.
         assertEq(flow.getSnapshotDebtScaled(streamId), ONE_MONTH_DEBT_18D - WITHDRAW_AMOUNT_18D, "snapshot debt");
         // It should update snapshot time to current time
-        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot debt");
+        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot time");
     }
 
     function test_GivenTokenNotHave18Decimals()
@@ -357,7 +357,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
             "snapshot debt"
         );
         // It should update snapshot time to current time
-        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot debt");
+        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot time");
     }
 
     function _test_Withdraw(address caller, uint256 streamId, address to, uint128 withdrawAmount) private {
@@ -376,7 +376,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         vm.expectEmit({ emitter: address(vars.token) });
         emit IERC20.Transfer({ from: address(flow), to: to, value: vars.expectedWithdrawAmount });
 
-        // vm.expectEmit({ emitter: address(flow) });
+        vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.WithdrawFromFlowStream({
             streamId: streamId,
             to: to,
@@ -386,7 +386,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
             withdrawAmount: vars.expectedWithdrawAmount
         });
 
-        // vm.expectEmit({ emitter: address(flow) });
+        vm.expectEmit({ emitter: address(flow) });
         emit IERC4906.MetadataUpdate({ _tokenId: streamId });
 
         (vars.actualWithdrawnAmount, vars.actualProtocolFeeAmount) =
