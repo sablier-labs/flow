@@ -169,10 +169,6 @@ abstract contract Modifiers is Utils {
         _;
     }
 
-    modifier whenAmountEqualTotalDebt() {
-        _;
-    }
-
     modifier whenAmountGreaterThanSnapshotDebt() {
         _;
     }
@@ -181,19 +177,7 @@ abstract contract Modifiers is Utils {
         _;
     }
 
-    modifier whenAmountNotOverdraw() {
-        _;
-    }
-
     modifier whenAmountNotZero() {
-        _;
-    }
-
-    modifier whenAmountOverdraws() {
-        _;
-    }
-
-    modifier whenWithdrawalAddressOwner() {
         _;
     }
 
@@ -202,6 +186,10 @@ abstract contract Modifiers is Utils {
     }
 
     modifier whenWithdrawalAddressNotZero() {
+        _;
+    }
+
+    modifier whenWithdrawalAddressOwner() {
         _;
     }
 }
