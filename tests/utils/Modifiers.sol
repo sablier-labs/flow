@@ -44,11 +44,6 @@ abstract contract Modifiers is Utils {
         _;
     }
 
-    modifier whenCallerRecipient() {
-        resetPrank({ msgSender: users.recipient });
-        _;
-    }
-
     modifier whenCallerSender() {
         _;
     }

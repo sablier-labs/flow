@@ -19,7 +19,7 @@ contract OngoingDebtScaledOf_Integration_Concrete_Test is Shared_Integration_Con
 
     function test_WhenSnapshotTimeInPresent() external givenNotNull givenNotPaused {
         // Take snapshot.
-        takeSnapshot(defaultStreamId);
+        updateSnapshot(defaultStreamId);
 
         // It should return zero.
         uint256 ongoingDebtScaled = flow.ongoingDebtScaledOf(defaultStreamId);

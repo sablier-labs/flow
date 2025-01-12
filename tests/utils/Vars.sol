@@ -11,7 +11,6 @@ struct Vars {
     // previous values.
     uint256 previousAggregateAmount;
     uint256 previousOngoingDebtScaled;
-    uint256 previousSnapshotDebtScaled;
     uint40 previousSnapshotTime;
     uint128 previousStreamBalance;
     uint256 previousTokenBalance;

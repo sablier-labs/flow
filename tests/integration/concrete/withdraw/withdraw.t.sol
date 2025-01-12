@@ -18,7 +18,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         deposit(defaultStreamId, ONE_MONTH_DEBT_6D);
 
         // Take a snapshot after one month of streaming.
-        takeSnapshot(defaultStreamId);
+        updateSnapshot(defaultStreamId);
 
         // Forward time by one more month, so that total debt becomes (2 * ONE_MONTH_DEBT_6D).
         vm.warp({ newTimestamp: getBlockTimestamp() + ONE_MONTH });
@@ -89,22 +89,19 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         flow.withdraw({ streamId: defaultStreamId, to: users.eve, amount: WITHDRAW_AMOUNT_6D });
     }
 
-    function test_WhenCallerNotRecipient()
+    function test_WhenCallerRecipient()
         external
         whenNoDelegateCall
         givenNotNull
         whenAmountNotZero
         whenWithdrawalAddressNotZero
-        whenWithdrawalAddressOwner
+        whenWithdrawalAddressNotOwner
     {
-        // Change caller to sender.
-        resetPrank({ msgSender: users.sender });
-
         // It should withdraw.
         _test_Withdraw({
-            caller: users.sender,
+            caller: users.recipient,
             streamId: defaultStreamId,
-            to: users.recipient,
+            to: users.eve,
             withdrawAmount: WITHDRAW_AMOUNT_6D
         });
     }
@@ -116,7 +113,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceNotExceedTotalDebt
     {
         // It should revert.
@@ -135,7 +131,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceNotExceedTotalDebt
     {
         // It should withdraw.
@@ -161,7 +156,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
     {
         uint128 totalDebt = 2 * ONE_MONTH_DEBT_6D;
@@ -180,7 +174,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
     {
         uint128 totalDebt = 2 * ONE_MONTH_DEBT_6D;
@@ -206,7 +199,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
     {
@@ -231,7 +223,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
     {
@@ -256,12 +247,11 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
         whenAmountGreaterThanSnapshotDebt
     {
-        // Turn on the protocol fee for usdc.
+        // Turn on the protocol fee for USDC.
         resetPrank(users.admin);
         flow.setProtocolFee(usdc, PROTOCOL_FEE);
 
@@ -296,7 +286,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
         whenAmountGreaterThanSnapshotDebt
@@ -333,7 +322,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenAmountNotZero
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressOwner
-        whenCallerRecipient
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
         whenAmountGreaterThanSnapshotDebt
