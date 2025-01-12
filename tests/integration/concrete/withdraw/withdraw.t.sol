@@ -312,7 +312,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         // It should set snapshot debt to difference between total debt and amount withdrawn.
         assertEq(flow.getSnapshotDebtScaled(streamId), ONE_MONTH_DEBT_18D - WITHDRAW_AMOUNT_18D, "snapshot debt");
         // It should update snapshot time to current time
-        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot time");
+        assertEq(flow.getSnapshotTime(streamId), getBlockTimestamp(), "snapshot time");
     }
 
     function test_GivenTokenNotHave18Decimals()
