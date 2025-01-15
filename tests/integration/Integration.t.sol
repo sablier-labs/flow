@@ -64,6 +64,10 @@ abstract contract Integration_Test is Base_Test {
 
     /// @dev Updates the snapshot time and snapshot debt by temporarily adjusting the rate per second..
     function updateSnapshot(uint256 streamId) internal {
+        // Read the current caller.
+        (, address originalCaller,) = vm.readCallers();
+
+        // Switch to the sender and adjust the rate per second.
         resetPrank(users.sender);
         UD21x18 ratePerSecond = flow.getRatePerSecond(streamId);
 
@@ -72,5 +76,8 @@ abstract contract Integration_Test is Base_Test {
 
         // Restore the original rate per second.
         flow.adjustRatePerSecond(streamId, ratePerSecond);
+
+        // Switch back to the original caller.
+        resetPrank(originalCaller);
     }
 }
