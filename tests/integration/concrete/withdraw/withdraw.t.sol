@@ -351,7 +351,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         uint256 initalTotalDebt = flow.totalDebtOf(defaultStreamId);
         uint128 withdrawAmount = uint128(initialSnapshotDebt) + WITHDRAW_AMOUNT_6D; // amount > snapshot debt
 
-        assertTrue(withdrawAmount < flow.totalDebtOf(defaultStreamId), "amount < total debt");
+        assertTrue(withdrawAmount < initalTotalDebt, "amount < total debt");
 
         // It should make the withdrawal.
         _test_Withdraw({ streamId: defaultStreamId, to: users.recipient, withdrawAmount: withdrawAmount });
