@@ -215,6 +215,8 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         uint256 initialSnapshotDebt = flow.getSnapshotDebtScaled(defaultStreamId);
         uint40 initialSnapshotTime = flow.getSnapshotTime(defaultStreamId);
 
+        assertTrue(WITHDRAW_AMOUNT_18D < initialSnapshotDebt, "amount < total debt");
+
         // It should make the withdrawal.
         _test_Withdraw({
             streamId: defaultStreamId,
@@ -241,9 +243,11 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
     {
-        uint256 snapshotDebt = getDescaledAmount(flow.getSnapshotDebtScaled(defaultStreamId), 6);
-        uint128 withdrawAmount = uint128(snapshotDebt); // amount = snapshot debt
+        uint256 initialSnapshotDebt = getDescaledAmount(flow.getSnapshotDebtScaled(defaultStreamId), 6);
         uint40 initialSnapshotTime = flow.getSnapshotTime(defaultStreamId);
+        uint128 withdrawAmount = uint128(initialSnapshotDebt); // amount = snapshot debt
+
+        assertTrue(withdrawAmount < flow.totalDebtOf(defaultStreamId), "amount < total debt");
 
         // It should make the withdrawal.
         _test_Withdraw({ streamId: defaultStreamId, to: users.recipient, withdrawAmount: withdrawAmount });
@@ -276,8 +280,10 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         resetPrank(originalCaller);
 
         uint256 initialSnapshotDebt = getDescaledAmount(flow.getSnapshotDebtScaled(defaultStreamId), 6);
-        uint128 withdrawAmount = uint128(initialSnapshotDebt) + WITHDRAW_AMOUNT_6D; // amount > snapshot debt
         uint256 initalTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint128 withdrawAmount = uint128(initialSnapshotDebt) + WITHDRAW_AMOUNT_6D; // amount > snapshot debt
+
+        assertTrue(withdrawAmount < initalTotalDebt, "amount < total debt");
 
         // It should withdraw the net amount.
         _test_Withdraw({ streamId: defaultStreamId, to: users.recipient, withdrawAmount: withdrawAmount });
@@ -319,7 +325,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         _test_Withdraw({
             streamId: streamId,
             to: users.recipient,
-            withdrawAmount: WITHDRAW_AMOUNT_18D // < total debt and > snapshot debt
+            withdrawAmount: WITHDRAW_AMOUNT_18D // withdrawAmount < total debt and > snapshot debt
          });
 
         // It should set snapshot debt to difference between total debt and amount withdrawn.
@@ -342,8 +348,10 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         givenProtocolFeeZero
     {
         uint256 initialSnapshotDebt = getDescaledAmount(flow.getSnapshotDebtScaled(defaultStreamId), 6);
-        uint128 withdrawAmount = uint128(initialSnapshotDebt) + WITHDRAW_AMOUNT_6D; // amount > snapshot debt
         uint256 initalTotalDebt = flow.totalDebtOf(defaultStreamId);
+        uint128 withdrawAmount = uint128(initialSnapshotDebt) + WITHDRAW_AMOUNT_6D; // amount > snapshot debt
+
+        assertTrue(withdrawAmount < flow.totalDebtOf(defaultStreamId), "amount < total debt");
 
         // It should make the withdrawal.
         _test_Withdraw({ streamId: defaultStreamId, to: users.recipient, withdrawAmount: withdrawAmount });
@@ -359,8 +367,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
     }
 
     function _test_Withdraw(uint256 streamId, address to, uint128 withdrawAmount) private {
-        assertTrue(withdrawAmount <= flow.totalDebtOf(streamId), "amount <= total debt");
-
         vars.token = flow.getToken(streamId);
         vars.previousTokenBalance = vars.token.balanceOf(address(flow));
         vars.previousAggregateAmount = flow.aggregateBalance(vars.token);
