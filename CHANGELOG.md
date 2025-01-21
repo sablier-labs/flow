@@ -16,3 +16,9 @@ The format is based on [Common Changelog](https://common-changelog.org/).
 ### Added
 
 - Add `payable` modifier to all the functions ([#348](https://github.com/sablier-labs/flow/pull/348))
+
+## [1.0.0] - 2024-12-07
+
+### Added
+
+- Initial release
