@@ -41,11 +41,13 @@ abstract contract Fork_Test is Base_Test {
         // Fork Ethereum Mainnet at a block number after the Sablier deployment.
         vm.createSelectFork({ blockNumber: 21_718_689, urlOrAlias: "mainnet" });
 
-        // Load mainnet address.
-        flow = ISablierFlow(0x3DF2AAEdE81D2F6b261F79047517713B8E844E04);
+        Base_Test.setUp();
 
+        // TODO: update the flow contract address once deployed.
+        // Load mainnet address.
+        // flow = ISablierFlow(0x3DF2AAEdE81D2F6b261F79047517713B8E844E04);
         // Label the flow contract.
-        vm.label(address(flow), "Flow");
+        // vm.label(address(flow), "Flow");
 
         // Label the tokens.
         for (uint256 i = 0; i < tokens.length; ++i) {
