@@ -12,7 +12,8 @@ The format is based on [Common Changelog](https://common-changelog.org/).
 
 ### Changed
 
-- Use relative path to import source contracts in `utils` files ([#383](https://github.com/sablier-labs/flow/pull/383))
+- Use relative path to import source contracts in test utils files
+  ([#383](https://github.com/sablier-labs/flow/pull/383))
 
 ## [1.1.0] - 2025-01-29
 
