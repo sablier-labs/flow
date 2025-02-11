@@ -67,7 +67,7 @@ abstract contract Base_Test is Assertions, Modifiers {
 
         resetPrank(users.sender);
 
-        // Warp to May 1, 2024 at 00:00 GMT to provide a more realistic testing environment.
+        // Warp to Feb 1, 2025 at 00:00 UTC to provide a more realistic testing environment.
         vm.warp({ newTimestamp: FEB_1_2025 });
     }
 

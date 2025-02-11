@@ -28,6 +28,7 @@ abstract contract Constants is CommonConstants {
     uint128 internal constant ONE_MONTH_REFUNDABLE_AMOUNT_6D = DEPOSIT_AMOUNT_6D - ONE_MONTH_DEBT_6D;
 
     // Time
+    uint40 internal constant FEB_1_2025 = 1_738_368_000;
     uint40 internal constant ONE_MONTH = 30 days; // "30/360" convention
     uint40 internal constant ONE_MONTH_SINCE_START = FEB_1_2025 + ONE_MONTH;
     // Solvency period is 49999999.999999 seconds.
