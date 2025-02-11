@@ -3,7 +3,6 @@ pragma solidity >=0.8.22;
 
 import { CommonBase } from "@sablier/evm-utils/tests/Base.sol";
 import { ERC20Mock } from "@sablier/evm-utils/tests/mocks/erc20/ERC20Mock.sol";
-import { Test } from "forge-std/src/Test.sol";
 import { FlowNFTDescriptor } from "src/FlowNFTDescriptor.sol";
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { SablierFlow } from "src/SablierFlow.sol";
