@@ -69,12 +69,10 @@ contract FlowStore {
         return tokens;
     }
 
-    function initStreamId(uint256 streamId, uint128 ratePerSecond) external {
+    function initStreamId(uint256 streamId, uint128 ratePerSecond, uint40 startTime) external {
         // Store the stream id and the period during which provided ratePerSecond applies.
         streamIds.push(streamId);
-        periods[streamId].push(
-            Period({ funcName: "create", ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 })
-        );
+        periods[streamId].push(Period({ funcName: "create", ratePerSecond: ratePerSecond, start: startTime, end: 0 }));
 
         // Update the last stream id.
         lastStreamId = streamId;

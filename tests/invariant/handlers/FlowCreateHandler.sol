@@ -68,7 +68,7 @@ contract FlowCreateHandler is BaseHandler {
         );
 
         // Store the stream id and rate per second.
-        flowStore.initStreamId(streamId, params.ratePerSecond);
+        flowStore.initStreamId(streamId, params.ratePerSecond, getBlockTimestamp());
     }
 
     function createAndDeposit(CreateParams memory params)
@@ -109,10 +109,33 @@ contract FlowCreateHandler is BaseHandler {
         );
 
         // Store the stream id and rate per second.
-        flowStore.initStreamId(streamId, params.ratePerSecond);
+        flowStore.initStreamId(streamId, params.ratePerSecond, getBlockTimestamp());
 
         // Store the deposited amount.
         flowStore.updateStreamDepositedAmountsSum(streamId, currentToken, params.depositAmount);
+    }
+
+    function createWithStartTime(
+        CreateParams memory params,
+        uint40 startTime
+    )
+        public
+        useFuzzedToken(params.tokenIndex)
+        adjustTimestamp(params.timeJump)
+        instrument(flow.nextStreamId(), "createWithStartTime")
+    {
+        _checkParams(params);
+
+        vm.assume(startTime > 0);
+        vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
+
+        // Create the stream.
+        uint256 streamId = flow.createWithStartTime(
+            params.sender, params.recipient, ud21x18(params.ratePerSecond), currentToken, params.transferable, startTime
+        );
+
+        // Store the stream id and rate per second.
+        flowStore.initStreamId(streamId, params.ratePerSecond, startTime);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

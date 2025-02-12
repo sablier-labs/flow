@@ -52,7 +52,8 @@ contract CreateWithStartTime_Integration_Concrete_Test is Shared_Integration_Con
         uint256 streamId = _test_CreateWithStartTime(START_TIME);
 
         uint256 actualTotalDebt = flow.totalDebtOf(streamId);
-        uint256 expectedTotalDebt = getDescaledAmount(RATE_PER_SECOND_U128 * (block.timestamp - START_TIME), DECIMALS);
+        uint256 expectedTotalDebt =
+            getDescaledAmount(RATE_PER_SECOND_U128 * (getBlockTimestamp() - START_TIME), DECIMALS);
         assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
     }
 

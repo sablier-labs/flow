@@ -61,19 +61,6 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
                                      INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For any stream, `snapshotTime` should never exceed the current block timestamp.
-    function invariant_BlockTimestampGeSnapshotTime() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            assertGe(
-                getBlockTimestamp(),
-                flow.getSnapshotTime(streamId),
-                "Invariant violation: block timestamp < snapshot time"
-            );
-        }
-    }
-
     /// @dev For a given token,
     /// - the sum of all stream balances should equal the aggregate balance.
     /// - token balance of the flow contract should be greater or equal to the sum of all stream balances
