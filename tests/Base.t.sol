@@ -50,7 +50,7 @@ abstract contract Base_Test is Assertions, Modifiers {
 
         // Deploy the token without decimals and push it to the tokens array from CommonBase.
         tokenWithoutDecimals = new ERC20Mock("Token Without Decimals", "TWD", 0);
-        tokens.push(address(tokenWithoutDecimals));
+        tokens.push(tokenWithoutDecimals);
 
         address[] memory spenders = new address[](1);
         spenders[0] = address(flow);

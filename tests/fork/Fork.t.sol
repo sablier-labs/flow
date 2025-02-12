@@ -13,24 +13,25 @@ abstract contract Fork_Test is Base_Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev A typical 18-decimal ERC-20 token with a normal total supply.
-    address private constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    IERC20 private constant DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     /// @dev An ERC-20 token with 2 decimals.
-    address private constant EURS = 0xdB25f211AB05b1c97D595516F45794528a807ad8;
+    IERC20 private constant EURS = IERC20(0xdB25f211AB05b1c97D595516F45794528a807ad8);
 
     /// @dev An ERC-20 token with a large total supply.
-    address private constant SHIBA = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE;
+    IERC20 private constant SHIBA = IERC20(0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE);
 
     /// @dev An ERC-20 token with 6 decimals.
-    address private constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    IERC20 private constant USDC = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
     /// @dev An ERC-20 token that suffers from the missing return value bug.
-    address private constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    IERC20 private constant USDT = IERC20(0xdAC17F958D2ee523a2206206994597C13D831ec7);
 
     IERC20 internal token;
 
     constructor() {
-        // Delete the tokens array from `CommonBase` and push the tokens addresses from mainnet.
+        // Since we are using the real tokens in the fork tests, we need to remove the pre-deployed tokens from
+        // `CommonBase` and push the tokens addresses from mainnet.
         delete tokens;
         tokens.push(DAI);
         tokens.push(EURS);

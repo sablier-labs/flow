@@ -47,9 +47,9 @@ contract FlowStore {
                                     CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
 
-    constructor(address[] memory tokens_) {
+    constructor(IERC20[] memory tokens_) {
         for (uint256 i = 0; i < tokens_.length; ++i) {
-            tokens.push(IERC20(tokens_[i]));
+            tokens.push(tokens_[i]);
         }
     }
 
