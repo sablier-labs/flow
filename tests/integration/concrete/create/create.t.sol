@@ -126,7 +126,8 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: TRANSFERABLE
+            transferable: TRANSFERABLE,
+            snapshotTime: getBlockTimestamp()
         });
 
         // Create the stream.

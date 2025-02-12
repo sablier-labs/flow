@@ -37,13 +37,15 @@ interface ISablierFlow is
     /// where 1e18 is 1 token per second.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating whether the stream NFT is transferable or not.
+    /// @param snapshotTime The timestamp when the stream begins accumulating debt.
     event CreateFlowStream(
         uint256 streamId,
         address indexed sender,
         address indexed recipient,
         UD21x18 ratePerSecond,
         IERC20 indexed token,
-        bool transferable
+        bool transferable,
+        uint40 snapshotTime
     );
 
     /// @notice Emitted when a stream is funded.
@@ -232,6 +234,36 @@ interface ISablierFlow is
         IERC20 token,
         bool transferable,
         uint128 amount
+    )
+        external
+        payable
+        returns (uint256 streamId);
+
+    /// @notice Creates a new Flow stream by setting the snapshot time to `startTime` and leaving the balance to
+    /// zero. The stream is wrapped in an ERC-721 NFT.
+    ///
+    /// @dev Emits {CreateFlowStream} event.
+    ///
+    /// Requirements:
+    /// - Refer to the requirements in {create}.
+    ///
+    /// @param sender The address streaming the tokens, which is able to adjust and pause the stream. It doesn't
+    /// have to be the same as `msg.sender`.
+    /// @param recipient The address receiving the tokens.
+    /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
+    /// where 1e18 is 1 token per second.
+    /// @param token The contract address of the ERC-20 token to be streamed.
+    /// @param transferable Boolean indicating if the stream NFT is transferable.
+    /// @param startTime The timestamp when the stream begins accumulating debt.
+    ///
+    /// @return streamId The ID of the newly created stream.
+    function createWithStartTime(
+        address sender,
+        address recipient,
+        UD21x18 ratePerSecond,
+        IERC20 token,
+        bool transferable,
+        uint40 startTime
     )
         external
         payable

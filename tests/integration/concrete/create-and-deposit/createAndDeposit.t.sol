@@ -33,7 +33,8 @@ contract CreateAndDeposit_Integration_Concrete_Test is Shared_Integration_Concre
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
             token: usdc,
-            transferable: TRANSFERABLE
+            transferable: TRANSFERABLE,
+            snapshotTime: getBlockTimestamp()
         });
 
         vm.expectEmit({ emitter: address(usdc) });

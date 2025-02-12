@@ -80,6 +80,14 @@ abstract contract Modifiers is Utils {
         _;
     }
 
+    modifier whenStartTimeNotZero() {
+        _;
+    }
+
+    modifier whenStartTimeNotInThePast() {
+        _;
+    }
+
     modifier whenTokenDecimalsNotExceed18() {
         _;
     }

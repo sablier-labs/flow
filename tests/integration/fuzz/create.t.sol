@@ -56,7 +56,8 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             recipient: recipient,
             ratePerSecond: ratePerSecond,
             token: token,
-            transferable: transferable
+            transferable: transferable,
+            snapshotTime: getBlockTimestamp()
         });
 
         // Create the stream.
