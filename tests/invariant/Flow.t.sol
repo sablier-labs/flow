@@ -347,8 +347,13 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         for (uint256 i = 0; i < count; ++i) {
             FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
 
+            // If the start time is greater than the current time, then the stream has not started yet.
+            if (period.start > getBlockTimestamp()) {
+                return 0;
+            }
+
             // If end time is 0, consider current time as the end time.
-            uint128 elapsed = period.end > 0 ? period.end - period.start : uint40(block.timestamp) - period.start;
+            uint128 elapsed = period.end > 0 ? period.end - period.start : getBlockTimestamp() - period.start;
 
             // Increment total streamed amount by the amount streamed during this period.
             expectedStreamedAmount += period.ratePerSecond * elapsed;
