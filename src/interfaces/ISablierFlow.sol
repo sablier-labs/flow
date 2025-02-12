@@ -176,10 +176,13 @@ interface ISablierFlow is
     /// per second.
     function adjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) external payable;
 
-    /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
+    /// @notice Creates a new Flow stream by setting the snapshot time to `startTime` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits {CreateFlowStream} event.
+    ///
+    /// Notes:
+    /// -  A start time of zero means the stream will be created with the snapshot time as `block.timestamp`.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -192,6 +195,7 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
+    /// @param startTime The timestamp when the stream begins accumulating debt.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
     ///
@@ -200,6 +204,7 @@ interface ISablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
         bool transferable
     )
@@ -207,13 +212,13 @@ interface ISablierFlow is
         payable
         returns (uint256 streamId);
 
-    /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and the balance to `amount`.
+    /// @notice Creates a new Flow stream by setting the snapshot time to `startTime` and the balance to `amount`.
     /// The stream is wrapped in an ERC-721 NFT.
     ///
     /// @dev Emits a {Transfer}, {CreateFlowStream}, and {DepositFlowStream} event.
     ///
     /// Notes:
-    /// - Refer to the notes in {deposit}.
+    /// - Refer to the notes in {create} and {deposit}.
     ///
     /// Requirements:
     /// - Refer to the requirements in {create} and {deposit}.
@@ -222,6 +227,7 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
+    /// @param startTime The timestamp when the stream begins accumulating debt.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
     /// @param amount The deposit amount, denoted in token's decimals.
@@ -231,39 +237,10 @@ interface ISablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
         bool transferable,
         uint128 amount
-    )
-        external
-        payable
-        returns (uint256 streamId);
-
-    /// @notice Creates a new Flow stream by setting the snapshot time to `startTime` and leaving the balance to
-    /// zero. The stream is wrapped in an ERC-721 NFT.
-    ///
-    /// @dev Emits {CreateFlowStream} event.
-    ///
-    /// Requirements:
-    /// - Refer to the requirements in {create}.
-    ///
-    /// @param sender The address streaming the tokens, which is able to adjust and pause the stream. It doesn't
-    /// have to be the same as `msg.sender`.
-    /// @param recipient The address receiving the tokens.
-    /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
-    /// where 1e18 is 1 token per second.
-    /// @param token The contract address of the ERC-20 token to be streamed.
-    /// @param transferable Boolean indicating if the stream NFT is transferable.
-    /// @param startTime The timestamp when the stream begins accumulating debt.
-    ///
-    /// @return streamId The ID of the newly created stream.
-    function createWithStartTime(
-        address sender,
-        address recipient,
-        UD21x18 ratePerSecond,
-        IERC20 token,
-        bool transferable,
-        uint40 startTime
     )
         external
         payable

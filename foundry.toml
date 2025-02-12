@@ -35,8 +35,8 @@
   optimizer = false
 
 [profile.lite.invariant]
-  depth = 50
-  runs = 50
+  depth = 100
+  runs = 1000
 
 [profile.lite.fuzz]
   runs = 20

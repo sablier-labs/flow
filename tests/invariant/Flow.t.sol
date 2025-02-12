@@ -2,10 +2,9 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { console } from "forge-std/src/console.sol";
 import { StdInvariant } from "forge-std/src/StdInvariant.sol";
-
 import { Flow } from "src/types/DataTypes.sol";
-
 import { Base_Test } from "./../Base.t.sol";
 import { FlowAdminHandler } from "./handlers/FlowAdminHandler.sol";
 import { FlowCreateHandler } from "./handlers/FlowCreateHandler.sol";
@@ -347,7 +346,7 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         for (uint256 i = 0; i < count; ++i) {
             FlowStore.Period memory period = flowStore.getPeriod(streamId, i);
 
-            // If the start time is greater than the current time, then the stream has not started yet.
+            // If the start time is greater than the current time, then accumulating debt has not started yet.
             if (period.start > getBlockTimestamp()) {
                 return 0;
             }

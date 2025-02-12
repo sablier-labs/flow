@@ -217,6 +217,7 @@ contract SablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
         bool transferable
     )
@@ -227,7 +228,7 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, token, transferable, uint40(block.timestamp));
+        streamId = _create(sender, recipient, ratePerSecond, token, transferable, startTime);
     }
 
     /// @inheritdoc ISablierFlow
@@ -235,6 +236,7 @@ contract SablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
         bool transferable,
         uint128 amount
@@ -246,34 +248,10 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, token, transferable, uint40(block.timestamp));
+        streamId = _create(sender, recipient, ratePerSecond, token, transferable, startTime);
 
         // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, amount);
-    }
-
-    /// @inheritdoc ISablierFlow
-    function createWithStartTime(
-        address sender,
-        address recipient,
-        UD21x18 ratePerSecond,
-        IERC20 token,
-        bool transferable,
-        uint40 startTime
-    )
-        external
-        payable
-        override
-        noDelegateCall
-        returns (uint256 streamId)
-    {
-        // Check: the start time is not zero.
-        if (startTime == 0) {
-            revert Errors.SablierFlow_StartTimeZero();
-        }
-
-        // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, token, transferable, startTime);
     }
 
     /// @inheritdoc ISablierFlow
@@ -514,10 +492,15 @@ contract SablierFlow is
         uint256 blockTimestamp = block.timestamp;
         uint256 snapshotTime = _streams[streamId].snapshotTime;
 
+        // If the snapshot time is in the future, return zero.
+        if (snapshotTime > blockTimestamp) {
+            return 0;
+        }
+
         uint256 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
 
-        // Check:if the rate per second is zero or the `block.timestamp` is less than the `snapshotTime`.
-        if (ratePerSecond == 0 || blockTimestamp <= snapshotTime) {
+        // Check: if the rate per second is zero.
+        if (ratePerSecond == 0) {
             return 0;
         }
 
@@ -588,8 +571,12 @@ contract SablierFlow is
             _streams[streamId].snapshotDebtScaled += ongoingDebtScaled;
         }
 
+        uint40 blockTimestamp = uint40(block.timestamp);
+
         // Effect: update the snapshot time.
-        _streams[streamId].snapshotTime = uint40(block.timestamp);
+        if (_streams[streamId].snapshotTime < blockTimestamp) {
+            _streams[streamId].snapshotTime = blockTimestamp;
+        }
 
         // Effect: set the new rate per second.
         _streams[streamId].ratePerSecond = newRatePerSecond;
@@ -619,6 +606,16 @@ contract SablierFlow is
             revert Errors.SablierFlow_InvalidTokenDecimals(address(token));
         }
 
+        // If the start time is zero, the snapshot time is the current block timestamp.
+        uint40 snapshotTime;
+        if (startTime == 0) {
+            snapshotTime = uint40(block.timestamp);
+        }
+        // Otherwise, the snapshot time is the start time.
+        else {
+            snapshotTime = startTime;
+        }
+
         // Load the stream ID.
         streamId = nextStreamId;
 
@@ -631,7 +628,7 @@ contract SablierFlow is
             ratePerSecond: ratePerSecond,
             sender: sender,
             snapshotDebtScaled: 0,
-            snapshotTime: startTime,
+            snapshotTime: snapshotTime,
             token: token,
             tokenDecimals: tokenDecimals
         });
@@ -653,7 +650,7 @@ contract SablierFlow is
             ratePerSecond: ratePerSecond,
             token: token,
             transferable: transferable,
-            snapshotTime: startTime
+            snapshotTime: snapshotTime
         });
     }
 

@@ -49,8 +49,18 @@ contract FlowCreateHandler is BaseHandler {
         address sender;
         address recipient;
         uint128 ratePerSecond;
+        uint40 startTime;
         bool transferable;
     }
+
+    /// @dev Struct to prevent stack too deep error.
+    struct Vars {
+        uint256 streamId;
+        uint256 upperBound;
+        uint256 lowerBound;
+    }
+
+    Vars internal vars;
 
     function create(CreateParams memory params)
         public
@@ -63,12 +73,17 @@ contract FlowCreateHandler is BaseHandler {
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
 
         // Create the stream.
-        uint256 streamId = flow.create(
-            params.sender, params.recipient, ud21x18(params.ratePerSecond), currentToken, params.transferable
+        vars.streamId = flow.create(
+            params.sender,
+            params.recipient,
+            ud21x18(params.ratePerSecond),
+            params.startTime,
+            currentToken,
+            params.transferable
         );
 
         // Store the stream id and rate per second.
-        flowStore.initStreamId(streamId, params.ratePerSecond, getBlockTimestamp());
+        flowStore.initStreamId(vars.streamId, params.ratePerSecond, params.startTime);
     }
 
     function createAndDeposit(CreateParams memory params)
@@ -82,11 +97,11 @@ contract FlowCreateHandler is BaseHandler {
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        uint256 upperBound = getDescaledAmount(1_000_000e18, IERC20Metadata(address(currentToken)).decimals());
-        uint256 lowerBound = getDescaledAmount(1e18, IERC20Metadata(address(currentToken)).decimals());
+        vars.upperBound = getDescaledAmount(1_000_000e18, IERC20Metadata(address(currentToken)).decimals());
+        vars.lowerBound = getDescaledAmount(1e18, IERC20Metadata(address(currentToken)).decimals());
 
         // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
-        vm.assume(params.depositAmount >= lowerBound && params.depositAmount <= upperBound);
+        vm.assume(params.depositAmount >= vars.lowerBound && params.depositAmount <= vars.upperBound);
 
         // Mint enough tokens to the Sender.
         deal({
@@ -99,43 +114,21 @@ contract FlowCreateHandler is BaseHandler {
         currentToken.approve({ spender: address(flow), value: params.depositAmount });
 
         // Create the stream.
-        uint256 streamId = flow.createAndDeposit(
+        vars.streamId = flow.createAndDeposit(
             params.sender,
             params.recipient,
             ud21x18(params.ratePerSecond),
+            params.startTime,
             currentToken,
             params.transferable,
             params.depositAmount
         );
 
         // Store the stream id and rate per second.
-        flowStore.initStreamId(streamId, params.ratePerSecond, getBlockTimestamp());
+        flowStore.initStreamId(vars.streamId, params.ratePerSecond, params.startTime);
 
         // Store the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(streamId, currentToken, params.depositAmount);
-    }
-
-    function createWithStartTime(
-        CreateParams memory params,
-        uint40 startTime
-    )
-        public
-        useFuzzedToken(params.tokenIndex)
-        adjustTimestamp(params.timeJump)
-        instrument(flow.nextStreamId(), "createWithStartTime")
-    {
-        _checkParams(params);
-
-        vm.assume(startTime > 0);
-        vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
-
-        // Create the stream.
-        uint256 streamId = flow.createWithStartTime(
-            params.sender, params.recipient, ud21x18(params.ratePerSecond), currentToken, params.transferable, startTime
-        );
-
-        // Store the stream id and rate per second.
-        flowStore.initStreamId(streamId, params.ratePerSecond, startTime);
+        flowStore.updateStreamDepositedAmountsSum(vars.streamId, currentToken, params.depositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

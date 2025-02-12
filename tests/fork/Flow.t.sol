@@ -195,6 +195,7 @@ contract Flow_Fork_Test is Fork_Test {
                     sender: users.sender,
                     recipient: users.recipient,
                     ratePerSecond: RATE_PER_SECOND,
+                    startTime: START_TIME_ZERO,
                     token: token,
                     transferable: TRANSFERABLE
                 });
@@ -302,6 +303,7 @@ contract Flow_Fork_Test is Fork_Test {
             recipient: recipient,
             sender: sender,
             ratePerSecond: ratePerSecond,
+            startTime: START_TIME_ZERO,
             token: token,
             transferable: transferable
         });

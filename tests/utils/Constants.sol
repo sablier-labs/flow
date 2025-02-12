@@ -30,10 +30,10 @@ abstract contract Constants is CommonConstants {
     // Time
     uint40 internal constant FEB_1_2025 = 1_738_368_000;
     uint40 internal constant ONE_MONTH = 30 days; // "30/360" convention
-    uint40 internal constant ONE_MONTH_SINCE_START = FEB_1_2025 + ONE_MONTH;
+    uint40 internal constant ONE_MONTH_SINCE_CREATE = FEB_1_2025 + ONE_MONTH;
     // Solvency period is 49999999.999999 seconds.
     uint40 internal constant SOLVENCY_PERIOD = uint40(DEPOSIT_AMOUNT_18D / RATE_PER_SECOND_U128); // ~578 days
-    uint40 internal constant START_TIME = FEB_1_2025 - 10 days;
+    uint40 internal constant START_TIME_ZERO = 0;
     // The following variable represents the timestamp at which the stream depletes all its balance.
     uint40 internal constant WARP_SOLVENCY_PERIOD = FEB_1_2025 + SOLVENCY_PERIOD;
     uint40 internal constant WITHDRAW_TIME = FEB_1_2025 + 2_500_000;

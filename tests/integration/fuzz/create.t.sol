@@ -19,12 +19,14 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// Given enough runs, all of the following scenarios should be fuzzed:
     /// - Multiple non-zero values for the sender and recipient.
     /// - Multiple values for the rate per second.
+    /// - Multiple values for the start time.
     /// - Multiple values for token decimals less than or equal to 18.
     /// - Both transferable and non-transferable streams.
     function testFuzz_Create(
         address recipient,
         address sender,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         uint8 decimals,
         bool transferable
     )
@@ -41,6 +43,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         token = createToken(decimals);
 
         uint256 expectedStreamId = flow.nextStreamId();
+        uint40 expectedSnapshotTime = startTime == 0 ? getBlockTimestamp() : startTime;
 
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(flow) });
@@ -57,7 +60,7 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             ratePerSecond: ratePerSecond,
             token: token,
             transferable: transferable,
-            snapshotTime: getBlockTimestamp()
+            snapshotTime: expectedSnapshotTime
         });
 
         // Create the stream.
@@ -65,13 +68,14 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
             sender: sender,
             recipient: recipient,
             ratePerSecond: ratePerSecond,
+            startTime: startTime,
             token: token,
             transferable: transferable
         });
 
         // Assert stream's initial states. This is the only place testing for state's getter functions.
         assertEq(flow.getBalance(actualStreamId), 0);
-        assertEq(flow.getSnapshotTime(actualStreamId), getBlockTimestamp());
+        assertEq(flow.getSnapshotTime(actualStreamId), expectedSnapshotTime);
         assertEq(flow.getRatePerSecond(actualStreamId), ratePerSecond);
         assertEq(flow.getRecipient(actualStreamId), recipient);
         assertEq(flow.getSnapshotDebtScaled(actualStreamId), 0);
@@ -96,5 +100,16 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         address actualNFTOwner = flow.ownerOf({ tokenId: expectedStreamId });
         address expectedNFTOwner = recipient;
         assertEq(actualNFTOwner, expectedNFTOwner, "NFT owner");
+
+        // Assert the total debt of the stream.
+        uint256 actualTotalDebt = flow.totalDebtOf(actualStreamId);
+        uint256 expectedTotalDebt;
+        if (startTime > 0 && startTime < getBlockTimestamp()) {
+            expectedTotalDebt =
+                getDescaledAmount(ratePerSecond.intoUint256() * (getBlockTimestamp() - startTime), decimals);
+        } else {
+            expectedTotalDebt = 0;
+        }
+        assertEq(actualTotalDebt, expectedTotalDebt, "total debt");
     }
 }
