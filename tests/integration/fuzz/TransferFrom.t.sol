@@ -7,11 +7,11 @@ contract TransferFrom_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     function testFuzz_TransferFrom(address caller, address to, uint128 amount) external whenNoDelegateCall {
         vm.assume(caller != address(0) && to != address(0) && caller != to);
 
-        // Change prank to caller and deal some tokens to him.
+        // Change the caller and fund him with some tokens.
         deal({ token: address(dai), to: caller, give: amount });
         resetPrank(caller);
 
-        // Approve the protocol to spend dai.
+        // Approve the flow contract to spend dai.
         dai.approve(address(flow), amount);
 
         uint256 beforeCallerBalance = dai.balanceOf(caller);

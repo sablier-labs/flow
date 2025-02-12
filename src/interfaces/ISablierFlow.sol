@@ -356,11 +356,11 @@ interface ISablierFlow is
     /// @param amount The deposit amount, denoted in token's decimals.
     function restartAndDeposit(uint256 streamId, UD21x18 ratePerSecond, uint128 amount) external payable;
 
-    /// @notice Transfers tokens from `msg.sender` to the `to` address using `transferFrom` function of ERC20 contract.
+    /// @notice Transfers ERC-20 tokens from the caller to the `to` address using `token`.
     /// @dev `msg.sender` must have approved this contract to spend the tokens.
     /// @param token The contract address of the ERC-20 token to be transferred.
     /// @param to The address receiving the tokens.
-    /// @param amount The amount to transfer, denoted in token's decimals.
+    /// @param amount The amount of tokens to transfer, denoted in token's decimals.
     function transferFrom(IERC20 token, address to, uint128 amount) external payable;
 
     /// @notice Voids a stream.
