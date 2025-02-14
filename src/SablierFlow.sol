@@ -606,7 +606,7 @@ contract SablierFlow is
             revert Errors.SablierFlow_InvalidTokenDecimals(address(token));
         }
 
-        // If the start time is zero, the snapshot time is the current block timestamp.
+        // If the start time is zero, set the snapshot time to `block.timestamp`.
         uint40 snapshotTime;
         if (startTime == 0) {
             snapshotTime = uint40(block.timestamp);
