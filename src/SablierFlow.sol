@@ -573,18 +573,19 @@ contract SablierFlow is
             revert Errors.SablierFlow_RatePerSecondNotDifferent(streamId, newRatePerSecond);
         }
 
-        uint256 ongoingDebtScaled = _ongoingDebtScaledOf(streamId);
-
-        // Update the snapshot debt only if the stream has ongoing debt.
-        if (ongoingDebtScaled > 0) {
-            // Effect: update the snapshot debt.
-            _streams[streamId].snapshotDebtScaled += ongoingDebtScaled;
-        }
-
         uint40 blockTimestamp = uint40(block.timestamp);
 
-        // Effect: update the snapshot time if it is not in the future.
+        // Update the snapshot variables only if the snapshot time is not in the future.
         if (_streams[streamId].snapshotTime < blockTimestamp) {
+            uint256 ongoingDebtScaled = _ongoingDebtScaledOf(streamId);
+
+            // Update the snapshot debt only if the stream has ongoing debt.
+            if (ongoingDebtScaled > 0) {
+                // Effect: update the snapshot debt.
+                _streams[streamId].snapshotDebtScaled += ongoingDebtScaled;
+            }
+
+            // Effect: update the snapshot time.
             _streams[streamId].snapshotTime = blockTimestamp;
         }
 
