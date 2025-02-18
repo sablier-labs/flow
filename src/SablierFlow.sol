@@ -238,7 +238,7 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, token, transferable, startTime);
+        streamId = _create(sender, recipient, ratePerSecond, startTime, token, transferable);
     }
 
     /// @inheritdoc ISablierFlow
@@ -258,7 +258,7 @@ contract SablierFlow is
         returns (uint256 streamId)
     {
         // Checks, Effects, and Interactions: create the stream.
-        streamId = _create(sender, recipient, ratePerSecond, token, transferable, startTime);
+        streamId = _create(sender, recipient, ratePerSecond, startTime, token, transferable);
 
         // Checks, Effects, and Interactions: deposit on stream.
         _deposit(streamId, amount);
@@ -598,9 +598,9 @@ contract SablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
-        bool transferable,
-        uint40 startTime
+        bool transferable
     )
         internal
         returns (uint256 streamId)

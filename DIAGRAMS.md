@@ -124,7 +124,7 @@ flowchart LR
 
     RST -- "update rps<br/>update st" --> PSED
 
-    VD -- "update sd (bal || +od)<br/>update rps (0)<br/>update st" --> PND
+    VD -- "update rps (0)<br/>update st" --> PND
     VD -- "update sd (bal || +od)<br/>update rps (0)<br/>update st" --> BOTH
 
     WTD -- "update sd (-)<br/>update st<br/>update bal (-)" --> BOTH
