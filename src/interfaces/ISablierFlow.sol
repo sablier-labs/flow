@@ -163,7 +163,7 @@ interface ISablierFlow is
     /// @dev Emits a {AdjustFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
-    /// - If the snapshot time is in the past, it updates both the snapshot time and snapshot debt.
+    /// - If the snapshot time is not in the future, it updates both the snapshot time and snapshot debt.
     ///
     /// Requirements:
     /// - Must not be delegate called.
