@@ -63,7 +63,7 @@ can only withdraw the available balance.
 
 2. For a given token, token.balanceOf(SablierFlow) $\ge$ flow.aggregateBalance(token)
 
-3. snapshot time should never decrease
+3. for any non-voided stream the snapshot time should never decrease
 
 4. for any stream, if $ud > 0 \implies cd = bal$
 
@@ -81,17 +81,19 @@ can only withdraw the available balance.
 
 11. $bal = ra + cd$
 
-12. for any non-voided stream, if $rps \gt 0 \implies isPaused = false$ and Flow.Status is either STREAMING_SOLVENT or
-    STREAMING_INSOLVENT.
+12. for any non-voided stream, if $rps \gt 0 \implies isPaused = false$ and Flow.Status is either PENDING,
+    STREAMING_SOLVENT or STREAMING_INSOLVENT.
 
 13. for any non-voided stream, if $rps = 0 \implies isPaused = true$ and Flow.Status is either PAUSED_SOLVENT or
     PAUSED_INSOLVENT.
 
-14. if $isPaused = true \implies rps = 0$
+14. for any PENDING stream, $\implies rps > 0$ and $td = 0$
 
-15. if $isVoided = true \implies isPaused = true$ and $ud = 0$
+15. if $isPaused = true \implies rps = 0$
 
-16. if $isVoided = false \implies \text{expected amount streamed} = td + \text{amount withdrawn}$
+16. if $isVoided = true \implies isPaused = true$ and $ud = 0$
+
+17. if $isVoided = false \implies \text{expected amount streamed} = td + \text{amount withdrawn}$
 
 ## Limitation
 

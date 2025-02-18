@@ -34,6 +34,9 @@ library Errors {
     /// @notice Thrown when trying to change the rate per second with the same rate per second.
     error SablierFlow_RatePerSecondNotDifferent(uint256 streamId, UD21x18 ratePerSecond);
 
+    /// @notice Thrown when trying set the rate per second to zero.
+    error SablierFlow_RatePerSecondZero();
+
     /// @notice Thrown when trying to refund zero tokens from a stream.
     error SablierFlow_RefundAmountZero(uint256 streamId);
 
@@ -51,6 +54,9 @@ library Errors {
 
     /// @notice Thrown when trying to restart a stream that is not paused.
     error SablierFlow_StreamNotPaused(uint256 streamId);
+
+    /// @notice Thrown when trying to pause a stream that has not started.
+    error SablierFlow_StreamNotStarted(uint256 streamId, uint40 snapshotTime);
 
     /// @notice Thrown when trying to perform an action with a voided stream.
     error SablierFlow_StreamVoided(uint256 streamId);

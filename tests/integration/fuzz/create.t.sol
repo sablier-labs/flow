@@ -3,7 +3,7 @@ pragma solidity >=0.8.22;
 
 import { IERC4906 } from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import { UD21x18 } from "@prb/math/src/UD21x18.sol";
+import { UD21x18, ud21x18 } from "@prb/math/src/UD21x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
@@ -38,6 +38,11 @@ contract Create_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Bound the variables.
         decimals = boundUint8(decimals, 0, 18);
+
+        // Bound the rate per second only if the start time is in the future.
+        if (ratePerSecond.unwrap() == 0 && startTime > getBlockTimestamp()) {
+            ratePerSecond = ud21x18(boundUint128(ratePerSecond.unwrap(), 1, MAX_UINT128));
+        }
 
         // Create a new token.
         token = createToken(decimals);

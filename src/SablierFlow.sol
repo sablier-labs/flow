@@ -126,6 +126,11 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
+        // Check: the stream has started.
+        if (_streams[streamId].snapshotTime > block.timestamp) {
+            return Flow.Status.PENDING;
+        }
+
         // Check: the stream is voided.
         if (_streams[streamId].isVoided) {
             return Flow.Status.VOIDED;
@@ -198,6 +203,11 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
+        // Check: the rate per second is not zero.
+        if (newRatePerSecond.unwrap() == 0) {
+            revert Errors.SablierFlow_RatePerSecondZero();
+        }
+
         UD21x18 oldRatePerSecond = _streams[streamId].ratePerSecond;
 
         // Effects and Interactions: adjust the rate per second.
@@ -493,7 +503,7 @@ contract SablierFlow is
         uint256 snapshotTime = _streams[streamId].snapshotTime;
 
         // If the snapshot time is in the future, return zero.
-        if (snapshotTime > blockTimestamp) {
+        if (snapshotTime >= blockTimestamp) {
             return 0;
         }
 
@@ -573,7 +583,7 @@ contract SablierFlow is
 
         uint40 blockTimestamp = uint40(block.timestamp);
 
-        // Effect: update the snapshot time.
+        // Effect: update the snapshot time if it is not in the future.
         if (_streams[streamId].snapshotTime < blockTimestamp) {
             _streams[streamId].snapshotTime = blockTimestamp;
         }
@@ -611,9 +621,14 @@ contract SablierFlow is
         if (startTime == 0) {
             snapshotTime = uint40(block.timestamp);
         }
-        // Otherwise, the snapshot time is the start time.
+        // Otherwise, set the snapshot time to the start time.
         else {
             snapshotTime = startTime;
+        }
+
+        // Check: the rate per second is not zero if the start time is in the future.
+        if (startTime > block.timestamp && ratePerSecond.unwrap() == 0) {
+            revert Errors.SablierFlow_RatePerSecondZero();
         }
 
         // Load the stream ID.
@@ -680,6 +695,12 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _pause(uint256 streamId) internal {
+        // Check: the stream has started.
+        if (_streams[streamId].snapshotTime > block.timestamp) {
+            revert Errors.SablierFlow_StreamNotStarted(streamId, _streams[streamId].snapshotTime);
+        }
+
+        // Checks and Effects: pause the stream by adjusting the rate per second to zero.
         _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ud21x18(0) });
 
         // Log the pause.
@@ -733,12 +754,12 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this internal function.
     function _restart(uint256 streamId, UD21x18 ratePerSecond) internal {
-        // Check: the stream is not paused.
+        // Check: the stream is paused.
         if (_streams[streamId].ratePerSecond.unwrap() != 0) {
             revert Errors.SablierFlow_StreamNotPaused(streamId);
         }
 
-        // Checks and Effects: update the rate per second and the snapshot time.
+        // Checks and Effects: restart the stream by adjusting the rate per second to a value greater than zero.
         _adjustRatePerSecond({ streamId: streamId, newRatePerSecond: ratePerSecond });
 
         // Log the restart.

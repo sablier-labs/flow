@@ -57,14 +57,6 @@ abstract contract Modifiers is Utils {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                               ADJUST-RATE-PER-SECOND
-    //////////////////////////////////////////////////////////////////////////*/
-
-    modifier whenNewRatePerSecondNotEqualsCurrentRatePerSecond() {
-        _;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                     COLLECT-FEES
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -76,15 +68,23 @@ abstract contract Modifiers is Utils {
                                        CREATE
     //////////////////////////////////////////////////////////////////////////*/
 
+    modifier whenRatePerSecondZero() {
+        _;
+    }
+
+    modifier whenRatePerSecondNotZero() {
+        _;
+    }
+
     modifier whenSenderNotAddressZero() {
         _;
     }
 
-    modifier whenStartTimeNotZero() {
+    modifier whenStartTimeInThePast() {
         _;
     }
 
-    modifier whenStartTimeNotInThePast() {
+    modifier whenStartTimeNotZero() {
         _;
     }
 
@@ -117,6 +117,14 @@ abstract contract Modifiers is Utils {
     }
 
     modifier whenTotalAmountNotZero() {
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                       PAUSE
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier givenStarted() {
         _;
     }
 

@@ -86,6 +86,9 @@ contract FlowCreateHandler is BaseHandler {
         flowStore.initStreamId(vars.streamId, params.ratePerSecond, params.startTime);
     }
 
+    /// @dev We assume a start time earlier than the current block timestamp to avoid having too many PENDING
+    /// streams. We chose this function because the deposit allows calls to other functions as well (refund and
+    /// withdraw).
     function createAndDeposit(CreateParams memory params)
         public
         useFuzzedToken(params.tokenIndex)
@@ -95,6 +98,7 @@ contract FlowCreateHandler is BaseHandler {
         _checkParams(params);
 
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
+        vm.assume(params.startTime <= getBlockTimestamp());
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
         vars.upperBound = getDescaledAmount(1_000_000e18, IERC20Metadata(address(currentToken)).decimals());

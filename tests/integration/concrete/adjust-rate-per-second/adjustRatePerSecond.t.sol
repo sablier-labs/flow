@@ -48,12 +48,24 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         expectRevert_CallerMaliciousThirdParty(callData);
     }
 
+    function test_RevertWhen_RatePerSecondZero()
+        external
+        whenNoDelegateCall
+        givenNotNull
+        givenNotPaused
+        whenCallerSender
+    {
+        vm.expectRevert(Errors.SablierFlow_RatePerSecondZero.selector);
+        flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ud21x18(0) });
+    }
+
     function test_RevertWhen_NewRatePerSecondEqualsCurrentRatePerSecond()
         external
         whenNoDelegateCall
         givenNotNull
         givenNotPaused
         whenCallerSender
+        whenRatePerSecondNotZero
     {
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -63,29 +75,15 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: RATE_PER_SECOND });
     }
 
-    function test_WhenRatePerSecondZero()
+    function test_WhenNewRatePerSecondNotEqualsCurrentRatePerSecond()
         external
         whenNoDelegateCall
         givenNotNull
         givenNotPaused
         whenCallerSender
-        whenNewRatePerSecondNotEqualsCurrentRatePerSecond
+        whenRatePerSecondNotZero
     {
-        flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ud21x18(0) });
-
-        assertEq(uint8(flow.statusOf(defaultStreamId)), uint8(Flow.Status.PAUSED_INSOLVENT), "status not paused");
-        assertEq(flow.getRatePerSecond(defaultStreamId), ud21x18(0), "rate per second not zero");
-    }
-
-    function test_WhenRatePerSecondNotZero()
-        external
-        whenNoDelegateCall
-        givenNotNull
-        givenNotPaused
-        whenCallerSender
-        whenNewRatePerSecondNotEqualsCurrentRatePerSecond
-    {
-        flow.deposit(defaultStreamId, DEPOSIT_AMOUNT_6D, users.sender, users.recipient);
+        depositDefaultAmount(defaultStreamId);
 
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         UD21x18 expectedRatePerSecond = RATE_PER_SECOND;

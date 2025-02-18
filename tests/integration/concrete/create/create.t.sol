@@ -40,43 +40,47 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         });
     }
 
-    function test_WhenStartTimeZero() external whenNoDelegateCall whenSenderNotAddressZero {
-        startTime = 0;
-        _test_Create();
-    }
-
-    function test_WhenStartTimeInPresent()
+    function test_RevertWhen_StartTimeInTheFuture()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
-        whenStartTimeNotZero
-        whenStartTimeNotInThePast
+        whenRatePerSecondZero
     {
-        startTime = getBlockTimestamp();
-        _test_Create();
+        vm.expectRevert(Errors.SablierFlow_RatePerSecondZero.selector);
+        flow.create({
+            sender: users.sender,
+            recipient: users.recipient,
+            ratePerSecond: ud21x18(0),
+            startTime: getBlockTimestamp() + 1 days,
+            token: dai,
+            transferable: TRANSFERABLE
+        });
     }
 
-    function test_WhenStartTimeInTheFuture()
+    function test_WhenStartTimeNotInTheFuture()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
-        whenStartTimeNotZero
-        whenStartTimeNotInThePast
+        whenRatePerSecondZero
     {
-        startTime = getBlockTimestamp() + 1 days;
-        _test_Create();
-    }
+        uint256 streamId = flow.create({
+            sender: users.sender,
+            recipient: users.recipient,
+            ratePerSecond: ud21x18(0),
+            startTime: START_TIME_ZERO,
+            token: dai,
+            transferable: TRANSFERABLE
+        });
 
-    modifier whenStartTimeInThePast() {
-        _;
+        assertTrue(flow.isStream(streamId));
+        assertEq(uint8(flow.statusOf(streamId)), uint8(Flow.Status.PAUSED_SOLVENT));
     }
 
     function test_RevertWhen_TokenNotImplementDecimals()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
-        whenStartTimeNotZero
-        whenStartTimeInThePast
+        whenRatePerSecondNotZero
     {
         address invalidToken = address(8128);
         vm.expectRevert(bytes(""));
@@ -94,8 +98,7 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
-        whenStartTimeNotZero
-        whenStartTimeInThePast
+        whenRatePerSecondNotZero
         whenTokenImplementsDecimals
     {
         IERC20 tokenWith24Decimals = new ERC20Mock("Token With More Decimals", "TWMD", 24);
@@ -118,8 +121,7 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
-        whenStartTimeNotZero
-        whenStartTimeInThePast
+        whenRatePerSecondNotZero
         whenTokenImplementsDecimals
         whenTokenDecimalsNotExceed18
     {
@@ -134,35 +136,42 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         });
     }
 
-    function test_WhenRatePerSecondZero()
+    function test_WhenStartTimeZero()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
-        whenStartTimeNotZero
-        whenStartTimeInThePast
+        whenRatePerSecondNotZero
         whenTokenImplementsDecimals
         whenTokenDecimalsNotExceed18
         whenRecipientNotAddressZero
     {
-        uint256 streamId = flow.create({
-            sender: users.sender,
-            recipient: users.recipient,
-            ratePerSecond: ud21x18(0),
-            startTime: startTime,
-            token: dai,
-            transferable: TRANSFERABLE
-        });
-
-        assertTrue(flow.isStream(streamId));
-        assertEq(uint8(flow.statusOf(streamId)), uint8(Flow.Status.PAUSED_SOLVENT));
+        startTime = 0;
+        _test_Create();
     }
 
-    function test_WhenRatePerSecondNotZero()
+    function test_WhenStartTimeNotInThePast()
         external
         whenNoDelegateCall
         whenSenderNotAddressZero
+        whenRatePerSecondNotZero
         whenTokenImplementsDecimals
         whenTokenDecimalsNotExceed18
+        whenRecipientNotAddressZero
+        whenStartTimeNotZero
+    {
+        startTime = getBlockTimestamp();
+        _test_Create();
+    }
+
+    function test_WhenStartTimeInThePast()
+        external
+        whenNoDelegateCall
+        whenSenderNotAddressZero
+        whenRatePerSecondNotZero
+        whenTokenImplementsDecimals
+        whenTokenDecimalsNotExceed18
+        whenRecipientNotAddressZero
+        whenStartTimeNotZero
     {
         _test_Create();
     }

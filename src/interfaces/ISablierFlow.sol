@@ -120,7 +120,7 @@ interface ISablierFlow is
     function depletionTimeOf(uint256 streamId) external view returns (uint256 depletionTime);
 
     /// @notice Returns the amount of debt accrued since the snapshot time until now, denoted as a fixed-point number
-    /// where 1e18 is 1 token.
+    /// where 1e18 is 1 token. If the stream has not started, it returns zero.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function ongoingDebtScaledOf(uint256 streamId) external view returns (uint256 ongoingDebtScaled);
@@ -163,13 +163,13 @@ interface ISablierFlow is
     /// @dev Emits a {AdjustFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
-    /// - It updates snapshot debt and snapshot time.
+    /// - If the snapshot time is in the past, it updates both the snapshot time and snapshot debt.
     ///
     /// Requirements:
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null or a paused stream.
     /// - `msg.sender` must be the stream's sender.
-    /// - `newRatePerSecond` must not equal to the current rate per second.
+    /// - `newRatePerSecond` must be greater than zero and not equal to the current rate per second.
     ///
     /// @param streamId The ID of the stream to adjust.
     /// @param newRatePerSecond The new rate per second, denoted as a fixed-point number where 1e18 is 1 token
@@ -188,6 +188,7 @@ interface ISablierFlow is
     /// - Must not be delegate called.
     /// - `sender` must not be the zero address.
     /// - `recipient` must not be the zero address.
+    /// - If `startTime` is in the future, the `ratePerSecond` must be greater than zero.
     /// - The `token`'s decimals must be less than or equal to 18.
     ///
     /// @param sender The address streaming the tokens, which is able to adjust and pause the stream. It doesn't
@@ -195,7 +196,7 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
-    /// @param startTime The timestamp when the stream begins accumulating debt.
+    /// @param startTime The timestamp when the stream starts.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
     ///
@@ -286,7 +287,7 @@ interface ISablierFlow is
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null or an already paused stream.
+    /// - `streamId` must not reference a null, a not started or an already paused stream.
     /// - `msg.sender` must be the stream's sender.
     ///
     /// @param streamId The ID of the stream to pause.
@@ -339,7 +340,7 @@ interface ISablierFlow is
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null, or a voided stream.
+    /// - `streamId` must not reference a null, a not paused or a voided stream.
     /// - `msg.sender` must be the stream's sender.
     /// - `ratePerSecond` must be greater than zero.
     ///
