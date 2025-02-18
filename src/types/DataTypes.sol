@@ -8,7 +8,7 @@ library Flow {
     /// @notice Enum representing the different statuses of a stream.
     ///
     /// @dev Explanations for the three types of streams:
-    /// 1. Pending: when stream is scheduled for a future start.
+    /// 1. Pending: when stream is scheduled to start in the future.
     /// 2. Streaming: when the total debt is increasing.
     /// 3. Paused: when the total debt is not increasing.
     ///
