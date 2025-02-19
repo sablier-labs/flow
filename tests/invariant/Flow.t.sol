@@ -116,6 +116,22 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
+    /// @dev For any non-pending stream, `snapshotTime` should never exceed the current block timestamp.
+    function invariant_NonPending_BlockTimestampGeSnapshotTime() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+
+            if (flow.statusOf(streamId) != Flow.Status.PENDING) {
+                assertGe(
+                    getBlockTimestamp(),
+                    flow.getSnapshotTime(streamId),
+                    "Invariant violation: pending stream with block timestamp < snapshot time"
+                );
+            }
+        }
+    }
+
     /// @dev For any stream, the snapshot time should be greater than or equal to the previous snapshot time.
     function invariant_SnapshotTimeAlwaysIncreases() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
@@ -261,13 +277,13 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For non-voided streams, if the rate per second is non-zero, then it must imply that the status must be
+    /// @dev For any stream, if the rate per second is non-zero, then it must imply that the status must be
     /// either `PENDING`, `STREAMING_SOLVENT` or `STREAMING_INSOLVENT`.
     function invariant_RatePerSecondNotZero_Streaming_Status() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
-            if (!flow.isVoided(streamId) && flow.getRatePerSecond(streamId).unwrap() > 0) {
+            if (flow.getRatePerSecond(streamId).unwrap() > 0) {
                 assertTrue(
                     flow.isPaused(streamId) == false, "Invariant violation: rate per second not zero but stream paused"
                 );

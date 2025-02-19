@@ -65,35 +65,37 @@ can only withdraw the available balance.
 
 3. for any non-voided stream the snapshot time should never decrease
 
-4. for any stream, if $ud > 0 \implies cd = bal$
+4. for any non pending stream, $st \le now$
 
-5. if $rps \gt 0$ and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
+5. for any stream, if $ud > 0 \implies cd = bal$
 
-6. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
+6. if $rps \gt 0$ and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
 
-7. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
+7. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
 
-8. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
+8. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
-9. next stream id = current stream id + 1
+9. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
 
-10. if $` ud = 0 \implies cd = td`$
+10. next stream id = current stream id + 1
 
-11. $bal = ra + cd$
+11. if $` ud = 0 \implies cd = td`$
 
-12. for any non-voided stream, if $rps \gt 0 \implies isPaused = false$ and Flow.Status is either PENDING,
-    STREAMING_SOLVENT or STREAMING_INSOLVENT.
+12. $bal = ra + cd$
 
-13. for any non-voided stream, if $rps = 0 \implies isPaused = true$ and Flow.Status is either PAUSED_SOLVENT or
+13. if $rps \gt 0 \implies isPaused = false$ and Flow.Status is either PENDING, STREAMING_SOLVENT or
+    STREAMING_INSOLVENT.
+
+14. for any non-voided stream, if $rps = 0 \implies isPaused = true$ and Flow.Status is either PAUSED_SOLVENT or
     PAUSED_INSOLVENT.
 
-14. for any PENDING stream, $\implies rps > 0$ and $td = 0$
+15. for any PENDING stream, $\implies rps > 0$ and $td = 0$
 
-15. if $isPaused = true \implies rps = 0$
+16. if $isPaused = true \implies rps = 0$
 
-16. if $isVoided = true \implies isPaused = true$ and $ud = 0$
+17. if $isVoided = true \implies isPaused = true$ and $ud = 0$
 
-17. if $isVoided = false \implies \text{expected amount streamed} = td + \text{amount withdrawn}$
+18. if $isVoided = false \implies \text{expected amount streamed} = td + \text{amount withdrawn}$
 
 ## Limitation
 
