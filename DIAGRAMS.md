@@ -46,7 +46,7 @@ stateDiagram-v2
     Streaming --> VOIDED : void
 
     NULL --> Streaming : create (rps > 0)
-    NULL --> Pending : create (rps > 0 && st > block.timestamp)
+    NULL --> Pending : create (rps > 0 && st > now)
     Pending --> Streaming : time
     NULL --> Paused : create (rps = 0)
 
@@ -89,9 +89,9 @@ flowchart LR
     end
 
     subgraph Functions
-        CR([CREATE])
-        ADJRPS([ADJUST_RPS])
-        DP([DEPOSIT])
+        CR([create])
+        ADJRPS([adjust_rps])
+        DP([deposit])
         PS([PAUSE])
         RST([RESTART])
         VD([VOID])
