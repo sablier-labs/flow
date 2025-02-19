@@ -55,7 +55,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         givenNotPaused
         whenCallerSender
     {
-        vm.expectRevert(Errors.SablierFlow_RatePerSecondZero.selector);
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_NewRatePerSecondZero.selector, defaultStreamId));
         flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ud21x18(0) });
     }
 

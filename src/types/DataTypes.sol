@@ -12,22 +12,18 @@ library Flow {
     /// 2. Streaming: when the total debt is increasing.
     /// 3. Paused: when the total debt is not increasing.
     ///
-    /// @custom:value0 PENDING A stream that has not started accumulating debt.
+    /// @custom:value0 PENDING A stream with snapshot time in the future.
     /// @custom:value1 STREAMING_SOLVENT Streaming stream when there is no uncovered debt.
     /// @custom:value2 STREAMING_INSOLVENT Streaming stream when there is uncovered debt.
     /// @custom:value3 PAUSED_SOLVENT Paused stream when there is no uncovered debt.
     /// @custom:value4 PAUSED_INSOLVENT Paused stream when there is uncovered debt.
     /// @custom:value5 VOIDED Paused stream with no uncovered debt and it cannot be restarted.
     enum Status {
-        // Pending
         PENDING,
-        // Streaming
         STREAMING_SOLVENT,
         STREAMING_INSOLVENT,
-        // Paused
         PAUSED_SOLVENT,
         PAUSED_INSOLVENT,
-        // Voided
         VOIDED
     }
 

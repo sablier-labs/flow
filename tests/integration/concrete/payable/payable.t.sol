@@ -26,12 +26,12 @@ contract Payable_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
     }
 
     function test_CreateWhenETHValueNotZero() external {
-        flow.create{ value: FEE }(users.sender, users.recipient, RATE_PER_SECOND, START_TIME_ZERO, usdc, TRANSFERABLE);
+        flow.create{ value: FEE }(users.sender, users.recipient, RATE_PER_SECOND, ZERO, usdc, TRANSFERABLE);
     }
 
     function test_CreateAndDepositWhenETHValueNotZero() external {
         flow.createAndDeposit{ value: FEE }(
-            users.sender, users.recipient, RATE_PER_SECOND, START_TIME_ZERO, usdc, TRANSFERABLE, DEPOSIT_AMOUNT_6D
+            users.sender, users.recipient, RATE_PER_SECOND, ZERO, usdc, TRANSFERABLE, DEPOSIT_AMOUNT_6D
         );
     }
 

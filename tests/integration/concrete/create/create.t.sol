@@ -22,9 +22,8 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
     }
 
     function test_RevertWhen_DelegateCall() external {
-        bytes memory callData = abi.encodeCall(
-            flow.create, (users.sender, users.recipient, RATE_PER_SECOND, START_TIME_ZERO, dai, TRANSFERABLE)
-        );
+        bytes memory callData =
+            abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, ZERO, dai, TRANSFERABLE));
         expectRevert_DelegateCall(callData);
     }
 
@@ -34,7 +33,7 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
             sender: address(0),
             recipient: users.recipient,
             ratePerSecond: RATE_PER_SECOND,
-            startTime: START_TIME_ZERO,
+            startTime: ZERO,
             token: dai,
             transferable: TRANSFERABLE
         });
@@ -67,7 +66,7 @@ contract Create_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: ud21x18(0),
-            startTime: START_TIME_ZERO,
+            startTime: ZERO,
             token: dai,
             transferable: TRANSFERABLE
         });

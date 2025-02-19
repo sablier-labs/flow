@@ -10,7 +10,7 @@ actively accruing, and `PAUSED`, when debt is not accruing:
 
 | Type        | Status                | Description                                                                             |
 | ----------- | --------------------- | --------------------------------------------------------------------------------------- |
-| `PENDING`   | `PENDING`             | A stream that has not started accumulating debt.                                        |
+| `PENDING`   | `PENDING`             | A stream with snapshot time in the future.                                              |
 | `STREAMING` | `STREAMING_SOLVENT`   | Streaming stream when there is no uncovered debt.                                       |
 | `STREAMING` | `STREAMING_INSOLVENT` | Streaming stream when there is uncovered debt.                                          |
 | `PAUSED`    | `PAUSED_SOLVENT`      | Paused stream when there is no uncovered debt.                                          |
@@ -46,7 +46,7 @@ stateDiagram-v2
     Streaming --> VOIDED : void
 
     NULL --> Streaming : create (rps > 0)
-    NULL --> Pending : create (rps > 0)
+    NULL --> Pending : create (rps > 0 && st > block.timestamp)
     Pending --> Streaming : time
     NULL --> Paused : create (rps = 0)
 

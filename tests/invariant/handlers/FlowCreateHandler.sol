@@ -53,14 +53,7 @@ contract FlowCreateHandler is BaseHandler {
         bool transferable;
     }
 
-    /// @dev Struct to prevent stack too deep error.
-    struct Vars {
-        uint256 streamId;
-        uint256 upperBound;
-        uint256 lowerBound;
-    }
-
-    Vars internal vars;
+    uint256 internal streamId;
 
     function create(CreateParams memory params)
         public
@@ -73,7 +66,7 @@ contract FlowCreateHandler is BaseHandler {
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
 
         // Create the stream.
-        vars.streamId = flow.create(
+        streamId = flow.create(
             params.sender,
             params.recipient,
             ud21x18(params.ratePerSecond),
@@ -83,7 +76,7 @@ contract FlowCreateHandler is BaseHandler {
         );
 
         // Store the stream id and rate per second.
-        flowStore.initStreamId(vars.streamId, params.ratePerSecond, params.startTime);
+        flowStore.initStreamId(streamId, params.ratePerSecond, params.startTime);
     }
 
     /// @dev We assume a start time earlier than the current block timestamp to avoid having too many PENDING
@@ -101,11 +94,11 @@ contract FlowCreateHandler is BaseHandler {
         vm.assume(params.startTime <= getBlockTimestamp());
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        vars.upperBound = getDescaledAmount(1_000_000e18, IERC20Metadata(address(currentToken)).decimals());
-        vars.lowerBound = getDescaledAmount(1e18, IERC20Metadata(address(currentToken)).decimals());
+        uint256 upperBound = getDescaledAmount(1_000_000e18, IERC20Metadata(address(currentToken)).decimals());
+        uint256 lowerBound = getDescaledAmount(1e18, IERC20Metadata(address(currentToken)).decimals());
 
         // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
-        vm.assume(params.depositAmount >= vars.lowerBound && params.depositAmount <= vars.upperBound);
+        vm.assume(params.depositAmount >= lowerBound && params.depositAmount <= upperBound);
 
         // Mint enough tokens to the Sender.
         deal({
@@ -118,7 +111,7 @@ contract FlowCreateHandler is BaseHandler {
         currentToken.approve({ spender: address(flow), value: params.depositAmount });
 
         // Create the stream.
-        vars.streamId = flow.createAndDeposit(
+        streamId = flow.createAndDeposit(
             params.sender,
             params.recipient,
             ud21x18(params.ratePerSecond),
@@ -129,10 +122,10 @@ contract FlowCreateHandler is BaseHandler {
         );
 
         // Store the stream id and rate per second.
-        flowStore.initStreamId(vars.streamId, params.ratePerSecond, params.startTime);
+        flowStore.initStreamId(streamId, params.ratePerSecond, params.startTime);
 
         // Store the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(vars.streamId, currentToken, params.depositAmount);
+        flowStore.updateStreamDepositedAmountsSum(streamId, currentToken, params.depositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

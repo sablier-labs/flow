@@ -29,7 +29,7 @@ abstract contract Integration_Test is Base_Test {
             sender: users.sender,
             recipient: users.recipient,
             ratePerSecond: ratePerSecond,
-            startTime: START_TIME_ZERO,
+            startTime: ZERO,
             token: token_,
             transferable: TRANSFERABLE
         });

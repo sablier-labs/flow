@@ -173,7 +173,7 @@ contract Getters_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
     }
 
     function test_IsTransferableGivenFalse() external givenNotNull {
-        uint256 streamId = flow.create(users.sender, users.recipient, RATE_PER_SECOND, START_TIME_ZERO, usdc, false);
+        uint256 streamId = flow.create(users.sender, users.recipient, RATE_PER_SECOND, ZERO, usdc, false);
         assertFalse(flow.isTransferable(streamId), "transferable");
     }
 

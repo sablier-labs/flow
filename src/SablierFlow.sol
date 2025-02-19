@@ -126,12 +126,12 @@ contract SablierFlow is
 
     /// @inheritdoc ISablierFlow
     function statusOf(uint256 streamId) external view override notNull(streamId) returns (Flow.Status status) {
-        // Check: the stream has started.
+        // If the stream has not started, return PENDING.
         if (_streams[streamId].snapshotTime > block.timestamp) {
             return Flow.Status.PENDING;
         }
 
-        // Check: the stream is voided.
+        // If the stream has been voided, return VOIDED.
         if (_streams[streamId].isVoided) {
             return Flow.Status.VOIDED;
         }
@@ -203,9 +203,9 @@ contract SablierFlow is
         onlySender(streamId)
         updateMetadata(streamId)
     {
-        // Check: the rate per second is not zero.
+        // Check: the new rate per second is not zero.
         if (newRatePerSecond.unwrap() == 0) {
-            revert Errors.SablierFlow_RatePerSecondZero();
+            revert Errors.SablierFlow_NewRatePerSecondZero(streamId);
         }
 
         UD21x18 oldRatePerSecond = _streams[streamId].ratePerSecond;
@@ -575,7 +575,7 @@ contract SablierFlow is
 
         uint40 blockTimestamp = uint40(block.timestamp);
 
-        // Update the snapshot variables only if the snapshot time is not in the future.
+        // Update the snapshot variables only if the snapshot time is in the past.
         if (_streams[streamId].snapshotTime < blockTimestamp) {
             uint256 ongoingDebtScaled = _ongoingDebtScaledOf(streamId);
 
@@ -617,19 +617,21 @@ contract SablierFlow is
             revert Errors.SablierFlow_InvalidTokenDecimals(address(token));
         }
 
+        uint40 blockTimestamp = uint40(block.timestamp);
+
+        // Check: the rate per second is not zero if the start time is in the future.
+        if (startTime > blockTimestamp && ratePerSecond.unwrap() == 0) {
+            revert Errors.SablierFlow_RatePerSecondZero();
+        }
+
         // If the start time is zero, set the snapshot time to `block.timestamp`.
         uint40 snapshotTime;
         if (startTime == 0) {
-            snapshotTime = uint40(block.timestamp);
+            snapshotTime = blockTimestamp;
         }
         // Otherwise, set the snapshot time to the start time.
         else {
             snapshotTime = startTime;
-        }
-
-        // Check: the rate per second is not zero if the start time is in the future.
-        if (startTime > block.timestamp && ratePerSecond.unwrap() == 0) {
-            revert Errors.SablierFlow_RatePerSecondZero();
         }
 
         // Load the stream ID.
