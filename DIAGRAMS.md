@@ -89,9 +89,9 @@ flowchart LR
     end
 
     subgraph Functions
-        CR([create])
-        ADJRPS([adjust_rps])
-        DP([deposit])
+        CR([CREATE])
+        ADJRPS([ADJUST_RPS])
+        DP([DEPOSIT])
         PS([PAUSE])
         RST([RESTART])
         VD([VOID])
