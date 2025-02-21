@@ -45,10 +45,10 @@ stateDiagram-v2
     Paused --> VOIDED : void
     Streaming --> VOIDED : void
 
-    NULL --> Streaming : create (rps > 0)
+    NULL --> Streaming : create (rps > 0 && st <= now)
     NULL --> Pending : create (rps > 0 && st > now)
+    NULL --> Paused : create (rps = 0 && st <= now)
     Pending --> Streaming : time
-    NULL --> Paused : create (rps = 0)
 
 
 

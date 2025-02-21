@@ -116,7 +116,22 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For any non-pending stream, `snapshotTime` should never exceed the current block timestamp.
+    /// @dev For any non-voided stream, the snapshot time should never decrease.
+    function invariant_NonVoided_SnapshotTimeAlwaysIncreases() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            if (!flow.isVoided(streamId)) {
+                assertGe(
+                    flow.getSnapshotTime(streamId),
+                    flowStore.previousSnapshotTime(streamId),
+                    "Invariant violation: snapshot time should never decrease"
+                );
+            }
+        }
+    }
+
+    /// @dev For any not pending stream, `snapshotTime` should never exceed the current block timestamp.
     function invariant_NonPending_BlockTimestampGeSnapshotTime() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -132,22 +147,7 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For any stream, the snapshot time should be greater than or equal to the previous snapshot time.
-    function invariant_SnapshotTimeAlwaysIncreases() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            if (!flow.isVoided(streamId)) {
-                assertGe(
-                    flow.getSnapshotTime(streamId),
-                    flowStore.previousSnapshotTime(streamId),
-                    "Invariant violation: snapshot time should never decrease"
-                );
-            }
-        }
-    }
-
-    /// @dev For any stream, if uncovered debt > 0, then the covered debt should equal the stream balance.
+    /// @dev If uncovered debt > 0, implies the covered debt should equal the stream balance.
     function invariant_UncoveredDebt_CoveredDebtEqBalance() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -192,7 +192,7 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For any stream, the sum of all deposited amounts should always be greater than or equal to the sum of all
+    /// @dev The sum of all deposited amounts should always be greater than or equal to the sum of all
     /// withdrawn and refunded amounts.
     function invariant_InflowGeOutflow() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
@@ -232,22 +232,6 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For any stream, if the snapshot time is greater than the current time, then the rate per second should be
-    /// greater than zero and the total debt should be zero.
-    function invariant_PendingStream_RpsGt0_TdEq0() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-
-            if (flow.getSnapshotTime(streamId) > getBlockTimestamp()) {
-                assertGt(
-                    flow.getRatePerSecond(streamId).unwrap(), 0, "Invariant violation: pending stream with rps zero"
-                );
-                assertEq(flow.totalDebtOf(streamId), 0, "Invariant violation: pending stream with non-zero total debt");
-            }
-        }
-    }
-
     /// @dev If there is no uncovered debt, the covered debt should always be equal to
     /// the total debt.
     function invariant_NoUncoveredDebt_StreamedPaused_CoveredDebtEqTotalDebt() external view {
@@ -277,8 +261,8 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For any stream, if the rate per second is non-zero, then it must imply that the status must be
-    /// either `PENDING`, `STREAMING_SOLVENT` or `STREAMING_INSOLVENT`.
+    /// @dev If the rate per second is non-zero, then it must imply that the status must be either `PENDING`,
+    /// `STREAMING_SOLVENT` or `STREAMING_INSOLVENT`.
     function invariant_RatePerSecondNotZero_Streaming_Status() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
@@ -312,6 +296,25 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
                         || flow.statusOf(streamId) == Flow.Status.PAUSED_INSOLVENT,
                     "Invariant violation: rate per second zero but stream status not correct"
                 );
+            }
+        }
+    }
+
+    /// @dev For any PENDING stream the rate per second should be greater than zero and the total debt should be zero.
+    function invariant_PendingStream_RpsGt0_TdEq0() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+
+            if (flow.statusOf(streamId) == Flow.Status.PENDING) {
+                assertTrue(
+                    flow.getSnapshotTime(streamId) > getBlockTimestamp(),
+                    "Invariant violation: pending stream with snapshot time <= block timestamp"
+                );
+                assertGt(
+                    flow.getRatePerSecond(streamId).unwrap(), 0, "Invariant violation: pending stream with rps zero"
+                );
+                assertEq(flow.totalDebtOf(streamId), 0, "Invariant violation: pending stream with non-zero total debt");
             }
         }
     }

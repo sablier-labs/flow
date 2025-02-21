@@ -31,6 +31,10 @@ abstract contract Modifiers is Utils {
         _;
     }
 
+    modifier givenNotPending() {
+        _;
+    }
+
     modifier givenNotVoided() {
         _;
     }

@@ -20,6 +20,10 @@ abstract contract Integration_Test is Base_Test {
                                       HELPERS
     //////////////////////////////////////////////////////////////////////////*/
 
+    function createDefaultStream(uint40 startTime) internal returns (uint256) {
+        return createDefaultStream(RATE_PER_SECOND, startTime, usdc);
+    }
+
     function createDefaultStream(IERC20 token_) internal returns (uint256) {
         return createDefaultStream(RATE_PER_SECOND, token_);
     }

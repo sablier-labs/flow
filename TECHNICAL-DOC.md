@@ -55,25 +55,25 @@ can only withdraw the available balance.
 
 ## Invariants
 
-1. for a given token:
+1. for any token:
 
    - $\sum$ stream balances = aggregate balance
    - token.balanceOf(SablierFlow) $`\ge \sum`$ stream balances
    - $\sum$ stream balances = $\sum$ deposited amount - $\sum$ refunded amount - $\sum$ withdrawn amount
 
-2. For a given token, token.balanceOf(SablierFlow) $\ge$ flow.aggregateBalance(token)
+2. for any token, token.balanceOf(SablierFlow) $\ge$ flow.aggregateBalance(token)
 
 3. for any non-voided stream the snapshot time should never decrease
 
-4. for any non pending stream, $st \le now$
+4. for any non-pending stream, $st \le now$
 
-5. for any stream, if $ud > 0 \implies cd = bal$
+5. if $ud > 0 \implies cd = bal$
 
 6. if $rps \gt 0$ and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
 
 7. if $rps \gt 0$, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
 
-8. for any stream, sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
+8. sum of deposited amounts $\ge$ sum of withdrawn amounts + sum of refunded
 
 9. sum of all deposited amounts $\ge$ sum of all withdrawn amounts + sum of all refunded
 
@@ -89,7 +89,7 @@ can only withdraw the available balance.
 14. for any non-voided stream, if $rps = 0 \implies isPaused = true$ and Flow.Status is either PAUSED_SOLVENT or
     PAUSED_INSOLVENT.
 
-15. for any PENDING stream, $\implies rps > 0$ and $td = 0$
+15. for any PENDING stream, $rps > 0$ and $td = 0$
 
 16. if $isPaused = true \implies rps = 0$
 

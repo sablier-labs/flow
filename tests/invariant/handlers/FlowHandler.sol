@@ -165,7 +165,7 @@ contract FlowHandler is BaseHandler {
         vm.assume(!flow.isPaused(currentStreamId));
 
         // The stream must not be PENDING.
-        vm.assume(flow.getSnapshotTime(currentStreamId) < getBlockTimestamp());
+        vm.assume(flow.getSnapshotTime(currentStreamId) <= getBlockTimestamp());
 
         // Pause the stream.
         flow.pause(currentStreamId);

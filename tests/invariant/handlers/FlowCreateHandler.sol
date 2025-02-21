@@ -19,6 +19,7 @@ contract FlowCreateHandler is BaseHandler {
     //////////////////////////////////////////////////////////////////////////*/
 
     IERC20 public currentToken;
+    uint256 internal streamId;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      MODIFIERS
@@ -52,8 +53,6 @@ contract FlowCreateHandler is BaseHandler {
         uint40 startTime;
         bool transferable;
     }
-
-    uint256 internal streamId;
 
     function create(CreateParams memory params)
         public

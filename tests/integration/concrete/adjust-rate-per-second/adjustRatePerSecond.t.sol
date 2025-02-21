@@ -26,11 +26,28 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         expectRevert_Paused(callData);
     }
 
+    function test_GivenPending() external whenNoDelegateCall givenNotNull givenNotPaused {
+        vm.warp(flow.getSnapshotTime(defaultStreamId) - 1);
+        assertEq(uint256(flow.statusOf(defaultStreamId)), uint256(Flow.Status.PENDING), "status not pending");
+
+        uint128 newRatePerSecond = RATE_PER_SECOND_U128 + 1;
+
+        uint40 previousSnapshotTime = flow.getSnapshotTime(defaultStreamId);
+        uint256 previousSnapshotDebtScaled = flow.getSnapshotDebtScaled(defaultStreamId);
+
+        flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ud21x18(newRatePerSecond) });
+
+        assertEq(previousSnapshotTime, flow.getSnapshotTime(defaultStreamId), "snapshot time");
+        assertEq(previousSnapshotDebtScaled, flow.getSnapshotDebtScaled(defaultStreamId), "snapshot debt");
+        assertEq(newRatePerSecond, flow.getRatePerSecond(defaultStreamId).unwrap(), "rate per second");
+    }
+
     function test_RevertWhen_CallerRecipient()
         external
         whenNoDelegateCall
         givenNotNull
         givenNotPaused
+        givenNotPending
         whenCallerNotSender
     {
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
@@ -42,6 +59,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         whenNoDelegateCall
         givenNotNull
         givenNotPaused
+        givenNotPending
         whenCallerNotSender
     {
         bytes memory callData = abi.encodeCall(flow.adjustRatePerSecond, (defaultStreamId, RATE_PER_SECOND));
@@ -54,6 +72,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         givenNotNull
         givenNotPaused
         whenCallerSender
+        givenNotPending
     {
         vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlow_NewRatePerSecondZero.selector, defaultStreamId));
         flow.adjustRatePerSecond({ streamId: defaultStreamId, newRatePerSecond: ud21x18(0) });
@@ -65,6 +84,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         givenNotNull
         givenNotPaused
         whenCallerSender
+        givenNotPending
         whenRatePerSecondNotZero
     {
         vm.expectRevert(
@@ -81,6 +101,7 @@ contract AdjustRatePerSecond_Integration_Concrete_Test is Shared_Integration_Con
         givenNotNull
         givenNotPaused
         whenCallerSender
+        givenNotPending
         whenRatePerSecondNotZero
     {
         depositDefaultAmount(defaultStreamId);
