@@ -11,8 +11,9 @@ import { SablierFlow } from "src/SablierFlow.sol";
 /// @dev Reverts if the contract has already been deployed.
 contract DeployDeterministicFlow is BaseScript {
     function run() public broadcast returns (SablierFlow flow, FlowNFTDescriptor nftDescriptor) {
+        address initialAdmin = protocolAdmin();
         bytes32 salt = constructCreate2Salt();
         nftDescriptor = new FlowNFTDescriptor{ salt: salt }();
-        flow = new SablierFlow{ salt: salt }(protocolAdmin(), nftDescriptor);
+        flow = new SablierFlow{ salt: salt }(initialAdmin, nftDescriptor);
     }
 }
