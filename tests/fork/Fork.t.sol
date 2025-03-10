@@ -31,13 +31,13 @@ abstract contract Fork_Test is Base_Test {
         // TODO: uncomment the following line after deployment.
         // vm.createSelectFork({ blockNumber: 21_718_689, urlOrAlias: "mainnet" });
 
-        // TODO: update the flow contract address once deployed.
+        // TODO: update the flow contract address once deployed and uncomment the following lines.
         // Load mainnet address.
         // flow = ISablierFlow(0x3DF2AAEdE81D2F6b261F79047517713B8E844E04);
         // Label the flow contract.
         // vm.label(address(flow), "Flow");
 
-        // TODO: Remove the following two lines after deployment.
+        // TODO: comment the following two lines after deployment.
         Base_Test.setUp();
         vm.etch(address(FORK_TOKEN), address(usdc).code);
 
