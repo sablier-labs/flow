@@ -18,6 +18,7 @@ it must adhere to the following assumptions:
   an approved address. This excludes rebase tokens, interest-bearing tokens, and permissioned tokens where the admin can
   arbitrarily change balances.
 - The token contract does not allow callbacks (e.g., ERC-777 is not supported).
+- The token contract must not implement multiple entry points for transfers (i.e., no double entry-point mechanisms).
 - A trust relationship is formed between the sender, recipient, and depositors participating in a stream. The recipient
   depends on the sender to fulfill their obligation to repay any debts incurred by the Flow stream. Likewise, depositors
   trust that the sender will not abuse the refund function to reclaim tokens.

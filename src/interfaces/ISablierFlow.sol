@@ -111,8 +111,8 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     function coveredDebtOf(uint256 streamId) external view returns (uint128 coveredDebt);
 
-    /// @notice Returns the time at which the total debt exceeds stream balance. If the total debt is less than
-    /// or equal to stream balance, it returns 0.
+    /// @notice Returns the time at which the total debt exceeds stream balance. If the total debt exceeds the stream
+    /// balance, it returns 0.
     /// @dev Reverts on the following conditions:
     /// - If `streamId` references a paused or a null stream.
     /// - If stream balance is zero.
@@ -226,7 +226,8 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
-    /// @param startTime The timestamp when the stream begins accumulating debt.
+    /// @param startTime The timestamp when the stream starts. A value of zero means the stream will be created with the
+    /// snapshot time as `block.timestamp`.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
     /// @param amount The deposit amount, denoted in token's decimals.
@@ -247,7 +248,7 @@ interface ISablierFlow is
 
     /// @notice Makes a deposit in a stream.
     ///
-    /// @dev Emits a {Transfer} and {DepositFlowStream} event.
+    /// @dev Emits a {Transfer}, {DepositFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -263,7 +264,7 @@ interface ISablierFlow is
 
     /// @notice Deposits tokens in a stream and pauses it.
     ///
-    /// @dev Emits a {Transfer}, {DepositFlowStream} and {PauseFlowStream} event.
+    /// @dev Emits a {Transfer}, {DepositFlowStream}, {PauseFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {deposit} and {pause}.
@@ -277,7 +278,7 @@ interface ISablierFlow is
 
     /// @notice Pauses the stream.
     ///
-    /// @dev Emits {PauseFlowStream} event.
+    /// @dev Emits {PauseFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It updates snapshot debt and snapshot time.
@@ -293,7 +294,7 @@ interface ISablierFlow is
 
     /// @notice Refunds the provided amount of tokens from the stream to the sender's address.
     ///
-    /// @dev Emits a {Transfer} and {RefundFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -307,7 +308,7 @@ interface ISablierFlow is
 
     /// @notice Refunds the provided amount of tokens from the stream to the sender's address.
     ///
-    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {PauseFlowStream} event.
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream}, {PauseFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {pause}.
@@ -321,7 +322,7 @@ interface ISablierFlow is
 
     /// @notice Refunds the entire refundable amount of tokens from the stream to the sender's address.
     ///
-    /// @dev Emits a {Transfer} and {RefundFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Refer to the requirements in {refund}.
@@ -331,7 +332,7 @@ interface ISablierFlow is
 
     /// @notice Restarts the stream with the provided rate per second.
     ///
-    /// @dev Emits {RestartFlowStream} event.
+    /// @dev Emits {RestartFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It updates snapshot debt and snapshot time.
@@ -349,7 +350,7 @@ interface ISablierFlow is
 
     /// @notice Restarts the stream with the provided rate per second, and makes a deposit.
     ///
-    /// @dev Emits a {RestartFlowStream}, {Transfer}, and {DepositFlowStream} event.
+    /// @dev Emits a {RestartFlowStream}, {Transfer}, {DepositFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {restart} and {deposit}.
@@ -369,11 +370,11 @@ interface ISablierFlow is
     /// @param token The contract address of the ERC-20 token to be transferred.
     /// @param to The address receiving the tokens.
     /// @param amount The amount of tokens to transfer, denoted in token's decimals.
-    function transferFrom(IERC20 token, address to, uint128 amount) external payable;
+    function transferTokensFrom(IERC20 token, address to, uint128 amount) external payable;
 
     /// @notice Voids a stream.
     ///
-    /// @dev Emits {VoidFlowStream} event.
+    /// @dev Emits {VoidFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It sets snapshot time to the `block.timestamp`
@@ -393,7 +394,7 @@ interface ISablierFlow is
 
     /// @notice Withdraws the provided `amount` to the provided `to` address.
     ///
-    /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {WithdrawFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It sets the snapshot time to the `block.timestamp` if `amount` is greater than snapshot debt.
@@ -402,7 +403,7 @@ interface ISablierFlow is
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream.
     /// - `to` must not be the zero address.
-    /// - `to` must be the recipient if `msg.sender` is not the stream's recipient.
+    /// - `to` must be the recipient if `msg.sender` is not the stream's recipient or an approved third party.
     /// - `amount` must  be greater than zero and must not exceed the withdrawable amount.
     ///
     /// @param streamId The ID of the stream to withdraw from.
@@ -412,7 +413,7 @@ interface ISablierFlow is
 
     /// @notice Withdraws the entire withdrawable amount to the provided `to` address.
     ///
-    /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {WithdrawFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {withdraw}.

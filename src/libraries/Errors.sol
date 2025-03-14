@@ -16,7 +16,7 @@ library Errors {
     /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
     error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
 
-    /// @notice Thrown when trying to create a stream with an token with no decimals.
+    /// @notice Thrown when trying to create a stream with a token with decimals greater than 18.
     error SablierFlow_InvalidTokenDecimals(address token);
 
     /// @notice Thrown when trying to adjust the rate per second to zero.
