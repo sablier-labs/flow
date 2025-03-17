@@ -5,7 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
-contract TransferTokensFrom_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
+contract TransferTokens_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     function testFuzz_WhenTokenMissingReturnValue(
         address caller,
         address to,
@@ -32,7 +32,7 @@ contract TransferTokensFrom_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         expectCallToTransferFrom(_usdt, caller, to, amount);
 
         // Transfer amount to the provided address.
-        flow.transferTokensFrom(_usdt, to, amount);
+        flow.transferTokens(_usdt, to, amount);
 
         // It should update the balances.
         assertEq(_usdt.balanceOf(caller), beforeCallerBalance - amount, "caller token balance");
@@ -62,7 +62,7 @@ contract TransferTokensFrom_Integration_Fuzz_Test is Shared_Integration_Fuzz_Tes
         expectCallToTransferFrom({ token: usdc, from: caller, to: to, value: amount });
 
         // Transfer amount to the provided address.
-        flow.transferTokensFrom(usdc, to, amount);
+        flow.transferTokens(usdc, to, amount);
 
         // It should update the balances.
         assertEq(usdc.balanceOf(caller), beforeCallerBalance - amount, "caller token balance");
