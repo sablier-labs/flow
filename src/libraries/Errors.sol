@@ -89,12 +89,12 @@ library Errors {
     /// @notice Thrown when trying to set native token address when it is already set.
     error SablierFlowBase_NativeTokenSet(address nativeToken);
 
+    /// @notice Thrown when trying to set zero address as native token.
+    error SablierFlowBase_NewNativeTokenZeroAddress();
+
     /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
     error SablierFlowBase_NotTransferable(uint256 streamId);
 
     /// @notice Thrown when trying to recover for a token with zero surplus.
     error SablierFlowBase_SurplusZero(address token);
-
-    /// @notice Thrown when trying to set zero address as native token.
-    error SablierFlowBase_ZeroAddress();
 }
