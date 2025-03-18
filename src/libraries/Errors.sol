@@ -10,6 +10,9 @@ library Errors {
                                     SABLIER-FLOW
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Thrown when trying to create a stream with the native token.
+    error SablierFlow_CreateNativeToken(address nativeToken);
+
     /// @notice Thrown when trying to create a stream with a zero deposit amount.
     error SablierFlow_DepositAmountZero(uint256 streamId);
 
@@ -83,9 +86,15 @@ library Errors {
     /// @notice Thrown when the fee transfer fails.
     error SablierFlowBase_FeeTransferFail(address admin, uint256 feeAmount);
 
+    /// @notice Thrown when trying to set native token address when it is already set.
+    error SablierFlowBase_NativeTokenSet(address nativeToken);
+
     /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
     error SablierFlowBase_NotTransferable(uint256 streamId);
 
     /// @notice Thrown when trying to recover for a token with zero surplus.
     error SablierFlowBase_SurplusZero(address token);
+
+    /// @notice Thrown when trying to set zero address as native token.
+    error SablierFlowBase_ZeroAddress();
 }

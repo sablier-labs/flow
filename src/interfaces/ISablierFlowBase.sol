@@ -31,6 +31,9 @@ interface ISablierFlowBase is
     /// @param surplus The amount of surplus tokens recovered.
     event Recover(address indexed admin, IERC20 indexed token, address to, uint256 surplus);
 
+    /// @notice Emitted when the native token address is set by the admin.
+    event SetNativeToken(address indexed admin, address nativeToken);
+
     /// @notice Emitted when the contract admin sets a new NFT descriptor contract.
     /// @param admin The address of the contract admin.
     /// @param oldNFTDescriptor The address of the old NFT descriptor contract.
@@ -114,6 +117,10 @@ interface ISablierFlowBase is
     /// @param streamId The stream ID for the query.
     function isVoided(uint256 streamId) external view returns (bool result);
 
+    /// @notice Retrieves the address of the native token.
+    /// @dev If the native token has implemented an ERC20 interface, it returns the token address.
+    function nativeToken() external view returns (address);
+
     /// @notice Counter for stream ids.
     /// @return The next stream ID.
     function nextStreamId() external view returns (uint256);
@@ -148,6 +155,15 @@ interface ISablierFlowBase is
     /// @param token The contract address of the ERC-20 token to recover for.
     /// @param to The address to send the surplus amount.
     function recover(IERC20 token, address to) external;
+
+    /// @notice Sets the native token address, if its non-zero. Once set, it cannot be changed.
+    /// @dev Emits a {SetNativeToken} event.
+    ///
+    /// Requirements:
+    /// - `msg.sender` must be the admin.
+    /// - `tokenAddress` must not be zero address.
+    /// - `nativeToken` must not be set.
+    function setNativeToken(address tokenAddress) external;
 
     /// @notice Sets a new NFT descriptor contract, which produces the URI describing the Sablier stream NFTs.
     ///

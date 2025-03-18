@@ -610,6 +610,11 @@ contract SablierFlow is
             revert Errors.SablierFlow_SenderZeroAddress();
         }
 
+        // Check: the token is not the native token.
+        if (address(token) == nativeToken) {
+            revert Errors.SablierFlow_CreateNativeToken(nativeToken);
+        }
+
         uint8 tokenDecimals = IERC20Metadata(address(token)).decimals();
 
         // Check: the token decimals are not greater than 18.
