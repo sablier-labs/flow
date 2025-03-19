@@ -17,7 +17,7 @@ contract SetNativeToken_Integration_Test is Shared_Integration_Concrete_Test {
     function test_RevertWhen_ProvidedAddressZero() external whenCallerAdmin {
         address newNativeToken = address(0);
 
-        vm.expectRevert(Errors.SablierFlowBase_NewNativeTokenZeroAddress.selector);
+        vm.expectRevert(Errors.SablierFlowBase_NativeTokenZeroAddress.selector);
         flow.setNativeToken(newNativeToken);
     }
 
@@ -27,7 +27,7 @@ contract SetNativeToken_Integration_Test is Shared_Integration_Concrete_Test {
         flow.setNativeToken(nativeToken);
 
         // It should revert.
-        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlowBase_NativeTokenSet.selector, nativeToken));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SablierFlowBase_NativeTokenAlreadySet.selector, nativeToken));
 
         // Set native token again with a different address.
         flow.setNativeToken(address(usdc));

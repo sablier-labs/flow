@@ -86,11 +86,11 @@ library Errors {
     /// @notice Thrown when the fee transfer fails.
     error SablierFlowBase_FeeTransferFail(address admin, uint256 feeAmount);
 
-    /// @notice Thrown when trying to set native token address when it is already set.
-    error SablierFlowBase_NativeTokenSet(address nativeToken);
+    /// @notice Thrown when trying to set the native token address when it is already set.
+    error SablierFlowBase_NativeTokenAlreadySet(address nativeToken);
 
     /// @notice Thrown when trying to set zero address as native token.
-    error SablierFlowBase_NewNativeTokenZeroAddress();
+    error SablierFlowBase_NativeTokenZeroAddress();
 
     /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
     error SablierFlowBase_NotTransferable(uint256 streamId);

@@ -229,15 +229,15 @@ abstract contract SablierFlowBase is
     function setNativeToken(address newNativeToken) external override onlyAdmin {
         // Check: provided token is not zero address.
         if (newNativeToken == address(0)) {
-            revert Errors.SablierFlowBase_NewNativeTokenZeroAddress();
+            revert Errors.SablierFlowBase_NativeTokenZeroAddress();
         }
 
         // Check: native token is not set.
         if (nativeToken != address(0)) {
-            revert Errors.SablierFlowBase_NativeTokenSet(nativeToken);
+            revert Errors.SablierFlowBase_NativeTokenAlreadySet(nativeToken);
         }
 
-        // Effect: update the native token.
+        // Effect: set the native token.
         nativeToken = newNativeToken;
 
         // Log the update.
