@@ -72,7 +72,8 @@ abstract contract SablierFlowBase is
         _;
     }
 
-    /// @dev Checks that `streamId` does not reference a voided stream.
+    /// @dev Checks that `streamId` does not reference a voided stream. Note that this implicitly checks that the stream
+    /// is not paused either.
     modifier notVoided(uint256 streamId) {
         if (_streams[streamId].isVoided) {
             revert Errors.SablierFlow_StreamVoided(streamId);
