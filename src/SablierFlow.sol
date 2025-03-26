@@ -690,7 +690,7 @@ contract SablierFlow is
 
         unchecked {
             // Effect: update the aggregate balance.
-            aggregateBalance[token] += amount;
+            aggregateAmount[token] += amount;
         }
 
         // Interaction: transfer the amount.
@@ -749,7 +749,7 @@ contract SablierFlow is
             _streams[streamId].balance -= amount;
 
             // Effect: update the aggregate balance.
-            aggregateBalance[token] -= amount;
+            aggregateAmount[token] -= amount;
         }
 
         // Interaction: perform the ERC-20 transfer.
@@ -886,7 +886,7 @@ contract SablierFlow is
 
         unchecked {
             // Effect: update the aggregate balance.
-            aggregateBalance[token] -= amount;
+            aggregateAmount[token] -= amount;
         }
 
         // Interaction: perform the ERC-20 transfer.

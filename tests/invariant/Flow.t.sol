@@ -88,7 +88,7 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
 
         assertEq(
             streamBalancesSum,
-            flow.aggregateBalance(token),
+            flow.aggregateAmount(token),
             unicode"Invariant violation: balance sum == aggregate balance"
         );
 
@@ -106,11 +106,11 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
 
     /// @dev For a given token, token balance of the flow contract should be greater than or equal to the stored value
     /// of aggregate balance.
-    function invariant_ContractBalanceGeAggregateBalance() external view {
+    function invariant_ContractBalanceGeAggregateAmount() external view {
         for (uint256 i = 0; i < tokens.length; ++i) {
             assertGe(
                 IERC20(tokens[i]).balanceOf(address(flow)),
-                flow.aggregateBalance(IERC20(tokens[i])),
+                flow.aggregateAmount(IERC20(tokens[i])),
                 unicode"Invariant violation: contract balance >= aggregate balance"
             );
         }
