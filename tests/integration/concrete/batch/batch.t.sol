@@ -72,8 +72,10 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         uint256 expectedNextStreamId = flow.nextStreamId();
 
         bytes[] memory calls = new bytes[](2);
-        calls[0] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE));
-        calls[1] = abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, usdc, TRANSFERABLE));
+        calls[0] =
+            abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, ZERO, usdc, TRANSFERABLE));
+        calls[1] =
+            abi.encodeCall(flow.create, (users.sender, users.recipient, RATE_PER_SECOND, ZERO, usdc, TRANSFERABLE));
 
         // Call the batch function.
         bytes[] memory results = flow.batch(calls);
@@ -106,8 +108,8 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         });
 
         // It should perform the ERC-20 transfers.
-        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
-        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), amount: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
+        expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         // Call the batch function.
         flow.batch(calls);
@@ -170,8 +172,8 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         });
 
         // It should perform the ERC-20 transfers.
-        expectCallToTransfer({ token: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
-        expectCallToTransfer({ token: usdc, to: users.sender, amount: REFUND_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.sender, value: REFUND_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.sender, value: REFUND_AMOUNT_6D });
 
         // Call the batch function.
         flow.batch(calls);
@@ -233,7 +235,6 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
             to: users.recipient,
             token: usdc,
             caller: users.sender,
-            protocolFeeAmount: 0,
             withdrawAmount: WITHDRAW_AMOUNT_6D
         });
         vm.expectEmit({ emitter: address(flow) });
@@ -241,7 +242,6 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
             streamId: defaultStreamIds[1],
             to: users.recipient,
             token: usdc,
-            protocolFeeAmount: 0,
             caller: users.sender,
             withdrawAmount: WITHDRAW_AMOUNT_6D
         });
@@ -250,18 +250,11 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         emit IERC4906.MetadataUpdate({ _tokenId: defaultStreamIds[1] });
 
         // It should perform the ERC-20 transfers.
-        expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
-        expectCallToTransfer({ token: usdc, to: users.recipient, amount: WITHDRAW_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.recipient, value: WITHDRAW_AMOUNT_6D });
+        expectCallToTransfer({ token: usdc, to: users.recipient, value: WITHDRAW_AMOUNT_6D });
 
         // Call the batch function.
-        bytes[] memory results = flow.batch{ value: 1 wei }(calls);
-        assertEq(results.length, 2, "batch results length");
-        (uint128 actualWithdrawnAmount, uint128 actualProtocolFeeAmount) = abi.decode(results[0], (uint128, uint128));
-        assertEq(actualWithdrawnAmount, WITHDRAW_AMOUNT_6D, "batch results[0]");
-        assertEq(actualProtocolFeeAmount, 0, "batch results[0]");
-        (actualWithdrawnAmount, actualProtocolFeeAmount) = abi.decode(results[1], (uint128, uint128));
-        assertEq(actualWithdrawnAmount, WITHDRAW_AMOUNT_6D, "batch results[1]");
-        assertEq(actualProtocolFeeAmount, 0, "batch results[1]");
+        flow.batch{ value: 1 wei }(calls);
         assertEq(address(flow).balance, initialEthBalance + 1 wei, "lockup contract balance");
     }
 }

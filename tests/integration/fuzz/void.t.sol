@@ -38,7 +38,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         vm.warp({ newTimestamp: timeJump });
 
         // Prank to either recipient or operator.
-        resetPrank({ msgSender: useRecipientOrOperator(streamId, timeJump) });
+        setMsgSender(useRecipientOrOperator(streamId, timeJump));
 
         // Void the stream.
         flow.void(streamId);
@@ -67,7 +67,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionTime = uint40(flow.depletionTimeOf(streamId));
-        timeJump = boundUint40(timeJump, depletionTime + 1, UINT40_MAX);
+        timeJump = boundUint40(timeJump, depletionTime + 1, MAX_UINT40);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
@@ -77,7 +77,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Prank to either recipient or operator.
         address caller = useRecipientOrOperator(streamId, timeJump);
-        resetPrank({ msgSender: caller });
+        setMsgSender(caller);
 
         // Void the stream.
         _test_Void(caller, streamId);
@@ -107,14 +107,14 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Bound the time jump so that it exceeds depletion timestamp.
         uint40 depletionTime = uint40(flow.depletionTimeOf(streamId));
-        timeJump = boundUint40(timeJump, depletionTime + 1, UINT40_MAX);
+        timeJump = boundUint40(timeJump, depletionTime + 1, MAX_UINT40);
 
         // Simulate the passage of time.
         vm.warp({ newTimestamp: timeJump });
 
         // Prank to either recipient or operator.
         address caller = useRecipientOrOperator(streamId, timeJump);
-        resetPrank({ msgSender: caller });
+        setMsgSender(caller);
 
         // Void the stream.
         _test_Void(caller, streamId);

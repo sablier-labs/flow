@@ -2,6 +2,8 @@
 pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Errors as EvmUtilsErorrs } from "@sablier/evm-utils/src/libraries/Errors.sol";
+
 import { ISablierFlowBase } from "src/interfaces/ISablierFlowBase.sol";
 import { Errors } from "src/libraries/Errors.sol";
 import { Shared_Integration_Concrete_Test } from "./../Concrete.t.sol";
@@ -17,8 +19,8 @@ contract Recover_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
     }
 
     function test_RevertWhen_CallerNotAdmin() external {
-        resetPrank({ msgSender: users.eve });
-        vm.expectRevert(abi.encodeWithSelector(Errors.CallerNotAdmin.selector, users.admin, users.eve));
+        setMsgSender(users.eve);
+        vm.expectRevert(abi.encodeWithSelector(EvmUtilsErorrs.CallerNotAdmin.selector, users.admin, users.eve));
         flow.recover(usdc, users.eve);
     }
 
@@ -29,7 +31,7 @@ contract Recover_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
     }
 
     function test_WhenTokenBalanceExceedAggregateAmount() external whenCallerAdmin {
-        assertEq(usdc.balanceOf(address(flow)), surplusAmount + flow.aggregateBalance(usdc));
+        assertEq(usdc.balanceOf(address(flow)), surplusAmount + flow.aggregateAmount(usdc));
 
         // It should emit {Recover} and {Transfer} events.
         vm.expectEmit({ emitter: address(usdc) });
@@ -41,6 +43,6 @@ contract Recover_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         flow.recover(usdc, users.admin);
 
         // It should lead to token balance same as aggregate amount.
-        assertEq(usdc.balanceOf(address(flow)), flow.aggregateBalance(usdc));
+        assertEq(usdc.balanceOf(address(flow)), flow.aggregateAmount(usdc));
     }
 }

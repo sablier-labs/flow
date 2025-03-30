@@ -3,7 +3,6 @@ pragma solidity >=0.8.22;
 
 import { IERC4906 } from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ud, ZERO } from "@prb/math/src/UD60x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { Errors } from "src/libraries/Errors.sol";
@@ -24,7 +23,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         vm.warp({ newTimestamp: getBlockTimestamp() + ONE_MONTH });
 
         // Set recipient as the caller for this test.
-        resetPrank({ msgSender: users.recipient });
+        setMsgSender(users.recipient);
     }
 
     function test_RevertWhen_DelegateCall() external {
@@ -59,7 +58,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
-        resetPrank({ msgSender: users.sender });
+        setMsgSender(users.sender);
 
         // It should revert.
         vm.expectRevert(
@@ -78,7 +77,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         whenWithdrawalAddressNotZero
         whenWithdrawalAddressNotOwner
     {
-        resetPrank({ msgSender: users.eve });
+        setMsgSender(users.eve);
 
         // It should revert.
         vm.expectRevert(
@@ -106,7 +105,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         _;
 
         // Use sender as the caller.
-        resetPrank({ msgSender: users.sender });
+        setMsgSender(users.sender);
         // Forward time by 1 month, take snaphsot and then forward time by 1 more month.
         vm.warp({ newTimestamp: getBlockTimestamp() + ONE_MONTH });
         updateSnapshot(defaultStreamId);
@@ -114,7 +113,7 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         _;
 
         // Use operator as the caller.
-        resetPrank({ msgSender: users.operator });
+        setMsgSender(users.operator);
         // Forward time by 1 month, take snaphsot and then forward time by 1 more month.
         vm.warp({ newTimestamp: getBlockTimestamp() + ONE_MONTH });
         updateSnapshot(defaultStreamId);
@@ -258,46 +257,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         assertEq(flow.getSnapshotTime(defaultStreamId), initialSnapshotTime, "snapshot time");
     }
 
-    function test_GivenProtocolFeeNotZero()
-        external
-        whenNoDelegateCall
-        givenNotNull
-        whenAmountNotZero
-        whenWithdrawalAddressNotZero
-        whenWithdrawalAddressOwner
-        whenAuthorizedCaller
-        givenBalanceExceedsTotalDebt
-        whenAmountLessThanTotalDebt
-        whenAmountGreaterThanSnapshotDebt
-    {
-        (, address originalCaller,) = vm.readCallers();
-
-        // Turn on the protocol fee for USDC.
-        resetPrank(users.admin);
-        flow.setProtocolFee(usdc, PROTOCOL_FEE);
-
-        // Switch back to the original caller.
-        resetPrank(originalCaller);
-
-        uint256 initialSnapshotDebt = getDescaledAmount(flow.getSnapshotDebtScaled(defaultStreamId), 6);
-        uint256 initalTotalDebt = flow.totalDebtOf(defaultStreamId);
-        uint128 withdrawAmount = uint128(initialSnapshotDebt) + WITHDRAW_AMOUNT_6D; // amount > snapshot debt
-
-        assertTrue(withdrawAmount < initalTotalDebt, "amount < total debt");
-
-        // It should withdraw the net amount.
-        _test_Withdraw({ streamId: defaultStreamId, to: users.recipient, withdrawAmount: withdrawAmount });
-
-        // It should set snapshot debt to difference between total debt and amount withdrawn.
-        assertEq(
-            flow.getSnapshotDebtScaled(defaultStreamId),
-            getScaledAmount(initalTotalDebt - withdrawAmount, 6),
-            "snapshot debt"
-        );
-        // It should update snapshot time to current time
-        assertEq(flow.getSnapshotTime(defaultStreamId), getBlockTimestamp(), "snapshot time");
-    }
-
     function test_GivenTokenHas18Decimals()
         external
         whenNoDelegateCall
@@ -309,17 +268,16 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
         whenAmountGreaterThanSnapshotDebt
-        givenProtocolFeeZero
     {
         // Go back to the starting point.
-        vm.warp({ newTimestamp: OCT_1_2024 });
+        vm.warp({ newTimestamp: FEB_1_2025 });
 
         // Create the stream and make a deposit.
         uint256 streamId = createDefaultStream(dai);
         deposit(streamId, DEPOSIT_AMOUNT_18D);
 
         // Simulate the one month of streaming.
-        vm.warp({ newTimestamp: ONE_MONTH_SINCE_START });
+        vm.warp({ newTimestamp: ONE_MONTH_SINCE_CREATE });
 
         // It should make the withdrawal.
         _test_Withdraw({
@@ -345,7 +303,6 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         givenBalanceExceedsTotalDebt
         whenAmountLessThanTotalDebt
         whenAmountGreaterThanSnapshotDebt
-        givenProtocolFeeZero
     {
         uint256 initialSnapshotDebt = getDescaledAmount(flow.getSnapshotDebtScaled(defaultStreamId), 6);
         uint256 initalTotalDebt = flow.totalDebtOf(defaultStreamId);
@@ -369,19 +326,15 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
     function _test_Withdraw(uint256 streamId, address to, uint128 withdrawAmount) private {
         vars.token = flow.getToken(streamId);
         vars.previousTokenBalance = vars.token.balanceOf(address(flow));
-        vars.previousAggregateAmount = flow.aggregateBalance(vars.token);
+        vars.previousAggregateAmount = flow.aggregateAmount(vars.token);
         vars.previousStreamBalance = flow.getBalance(streamId);
         vars.previousTotalDebt = flow.totalDebtOf(streamId);
-        if (flow.protocolFee(vars.token) > ZERO) {
-            vars.expectedProtocolFeeAmount = ud(withdrawAmount).mul(PROTOCOL_FEE).intoUint128();
-        }
-        vars.expectedProtocolRevenue = flow.protocolRevenue(vars.token) + vars.expectedProtocolFeeAmount;
-        vars.expectedWithdrawAmount = withdrawAmount - vars.expectedProtocolFeeAmount;
+
         (, address caller,) = vm.readCallers();
 
         // It should emit 1 {Transfer}, 1 {WithdrawFromFlowStream} and 1 {MetadataUpdated} events.
         vm.expectEmit({ emitter: address(vars.token) });
-        emit IERC20.Transfer({ from: address(flow), to: to, value: vars.expectedWithdrawAmount });
+        emit IERC20.Transfer({ from: address(flow), to: to, value: withdrawAmount });
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.WithdrawFromFlowStream({
@@ -389,22 +342,13 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
             to: to,
             token: vars.token,
             caller: caller,
-            protocolFeeAmount: vars.expectedProtocolFeeAmount,
-            withdrawAmount: vars.expectedWithdrawAmount
+            withdrawAmount: withdrawAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });
         emit IERC4906.MetadataUpdate({ _tokenId: streamId });
 
-        (vars.actualWithdrawnAmount, vars.actualProtocolFeeAmount) =
-            flow.withdraw({ streamId: streamId, to: to, amount: withdrawAmount });
-
-        // Check the returned values.
-        assertEq(vars.actualProtocolFeeAmount, vars.expectedProtocolFeeAmount, "protocol fee amount");
-        assertEq(vars.actualWithdrawnAmount, vars.expectedWithdrawAmount, "withdrawn amount");
-
-        // Assert the protocol revenue.
-        assertEq(flow.protocolRevenue(vars.token), vars.expectedProtocolRevenue, "protocol revenue");
+        flow.withdraw({ streamId: streamId, to: to, amount: withdrawAmount });
 
         // It should decrease the total debt by the withdrawn amount requested.
         vars.expectedTotalDebt = vars.previousTotalDebt - withdrawAmount;
@@ -415,14 +359,10 @@ contract Withdraw_Integration_Concrete_Test is Shared_Integration_Concrete_Test 
         assertEq(flow.getBalance(streamId), vars.expectedStreamBalance, "stream balance");
 
         // It should reduce the token balance of stream.
-        vars.expectedTokenBalance = vars.previousTokenBalance - vars.expectedWithdrawAmount;
+        vars.expectedTokenBalance = vars.previousTokenBalance - withdrawAmount;
         assertEq(vars.token.balanceOf(address(flow)), vars.expectedTokenBalance, "token balance");
 
         // It should reduce the aggregate amount by the withdrawn amount.
-        assertEq(
-            flow.aggregateBalance(vars.token),
-            vars.previousAggregateAmount - vars.expectedWithdrawAmount,
-            "aggregate amount"
-        );
+        assertEq(flow.aggregateAmount(vars.token), vars.previousAggregateAmount - withdrawAmount, "aggregate amount");
     }
 }
