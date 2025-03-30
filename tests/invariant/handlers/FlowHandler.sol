@@ -54,13 +54,13 @@ contract FlowHandler is BaseHandler {
 
     modifier useStreamRecipient() {
         currentRecipient = flow.getRecipient(currentStreamId);
-        resetPrank(currentRecipient);
+        setMsgSender(currentRecipient);
         _;
     }
 
     modifier useStreamSender() {
         currentSender = flow.getSender(currentStreamId);
-        resetPrank(currentSender);
+        setMsgSender(currentSender);
         _;
     }
 
@@ -84,6 +84,10 @@ contract FlowHandler is BaseHandler {
         vm.assume(!flow.isPaused(currentStreamId));
 
         uint8 decimals = flow.getTokenDecimals(currentStreamId);
+        uint128 previousRatePerSecond = flow.getRatePerSecond(currentStreamId).unwrap();
+
+        // The rate per second must be greater than zero and different from the current rate per second.
+        vm.assume(newRatePerSecond.unwrap() > 0 && newRatePerSecond.unwrap() != previousRatePerSecond);
 
         // Calculate the minimum value in scaled version that can be withdrawn for this token.
         uint256 mvt = getScaledAmount(1, decimals);
@@ -94,11 +98,6 @@ contract FlowHandler is BaseHandler {
         } else {
             vm.assume(newRatePerSecond.unwrap() > mvt / 100 && newRatePerSecond.unwrap() <= 1e18);
         }
-
-        uint128 previousRatePerSecond = flow.getRatePerSecond(currentStreamId).unwrap();
-
-        // The rate per second must be different from the current rate per second.
-        vm.assume(newRatePerSecond.unwrap() != previousRatePerSecond);
 
         // Adjust the rate per second.
         flow.adjustRatePerSecond(currentStreamId, newRatePerSecond);
@@ -144,8 +143,8 @@ contract FlowHandler is BaseHandler {
             recipient: flow.getRecipient(currentStreamId)
         });
 
-        // Update the deposited amount.
-        flowStore.updateStreamDepositedAmountsSum(currentStreamId, token, depositAmount);
+        // Update the deposit totals.
+        flowStore.updateTotalDeposits(currentStreamId, token, depositAmount);
     }
 
     /// @dev A function that does nothing but warp the time into the future.
@@ -164,6 +163,9 @@ contract FlowHandler is BaseHandler {
     {
         // Paused streams cannot be paused again.
         vm.assume(!flow.isPaused(currentStreamId));
+
+        // The stream must not be PENDING.
+        vm.assume(flow.getSnapshotTime(currentStreamId) <= getBlockTimestamp());
 
         // Pause the stream.
         flow.pause(currentStreamId);
@@ -194,8 +196,8 @@ contract FlowHandler is BaseHandler {
         // Refund from stream.
         flow.refund(currentStreamId, refundAmount);
 
-        // Update the refunded amount.
-        flowStore.updateStreamRefundedAmountsSum(currentStreamId, flow.getToken(currentStreamId), refundAmount);
+        // Update the refund totals.
+        flowStore.updateTotalRefunds(currentStreamId, flow.getToken(currentStreamId), refundAmount);
     }
 
     function restart(
@@ -285,7 +287,7 @@ contract FlowHandler is BaseHandler {
         // Withdraw from the stream.
         flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
 
-        // Update the withdrawn amount.
-        flowStore.updateStreamWithdrawnAmountsSum(currentStreamId, flow.getToken(currentStreamId), amount);
+        // Update the withdrawal totals.
+        flowStore.updateTotalWithdrawals(currentStreamId, flow.getToken(currentStreamId), amount);
     }
 }

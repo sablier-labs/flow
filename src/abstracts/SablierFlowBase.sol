@@ -7,13 +7,12 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
-import { UD60x18 } from "@prb/math/src/UD60x18.sol";
+import { Adminable } from "@sablier/evm-utils/src/Adminable.sol";
 
 import { IFlowNFTDescriptor } from "./../interfaces/IFlowNFTDescriptor.sol";
 import { ISablierFlowBase } from "./../interfaces/ISablierFlowBase.sol";
 import { Errors } from "./../libraries/Errors.sol";
 import { Flow } from "./../types/DataTypes.sol";
-import { Adminable } from "./Adminable.sol";
 
 /// @title SablierFlowBase
 /// @notice See the documentation in {ISablierFlowBase}.
@@ -29,22 +28,16 @@ abstract contract SablierFlowBase is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowBase
-    UD60x18 public constant override MAX_FEE = UD60x18.wrap(0.1e18);
+    mapping(IERC20 token => uint256 amount) public override aggregateAmount;
 
     /// @inheritdoc ISablierFlowBase
-    mapping(IERC20 token => uint256 amount) public override aggregateBalance;
+    address public override nativeToken;
 
     /// @inheritdoc ISablierFlowBase
     uint256 public override nextStreamId;
 
     /// @inheritdoc ISablierFlowBase
     IFlowNFTDescriptor public override nftDescriptor;
-
-    /// @inheritdoc ISablierFlowBase
-    mapping(IERC20 token => UD60x18 fee) public override protocolFee;
-
-    /// @inheritdoc ISablierFlowBase
-    mapping(IERC20 token => uint128 revenue) public override protocolRevenue;
 
     /// @dev Sablier Flow streams mapped by unsigned integers.
     mapping(uint256 id => Flow.Stream stream) internal _streams;
@@ -56,11 +49,9 @@ abstract contract SablierFlowBase is
     /// @dev Emits {TransferAdmin} event.
     /// @param initialAdmin The address of the initial contract admin.
     /// @param initialNFTDescriptor The address of the initial NFT descriptor.
-    constructor(address initialAdmin, IFlowNFTDescriptor initialNFTDescriptor) {
+    constructor(address initialAdmin, IFlowNFTDescriptor initialNFTDescriptor) Adminable(initialAdmin) {
         nextStreamId = 1;
-        admin = initialAdmin;
         nftDescriptor = initialNFTDescriptor;
-        emit TransferAdmin({ oldAdmin: address(0), newAdmin: initialAdmin });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -69,9 +60,7 @@ abstract contract SablierFlowBase is
 
     /// @dev Checks that `streamId` does not reference a null stream.
     modifier notNull(uint256 streamId) {
-        if (!_streams[streamId].isStream) {
-            revert Errors.SablierFlow_Null(streamId);
-        }
+        _notNull(streamId);
         _;
     }
 
@@ -83,7 +72,8 @@ abstract contract SablierFlowBase is
         _;
     }
 
-    /// @dev Checks that `streamId` does not reference a voided stream.
+    /// @dev Checks that `streamId` does not reference a voided stream. Note that this implicitly checks that the stream
+    /// is not paused either.
     modifier notVoided(uint256 streamId) {
         if (_streams[streamId].isVoided) {
             revert Errors.SablierFlow_StreamVoided(streamId);
@@ -222,31 +212,8 @@ abstract contract SablierFlowBase is
     }
 
     /// @inheritdoc ISablierFlowBase
-    function collectProtocolRevenue(IERC20 token, address to) external override onlyAdmin {
-        uint128 revenue = protocolRevenue[token];
-
-        // Check: there is protocol revenue to collect.
-        if (revenue == 0) {
-            revert Errors.SablierFlowBase_NoProtocolRevenue(address(token));
-        }
-
-        // Effect: reset the protocol revenue.
-        protocolRevenue[token] = 0;
-
-        unchecked {
-            // Effect: update the aggregate balance.
-            aggregateBalance[token] -= revenue;
-        }
-
-        // Interaction: transfer the protocol revenue to the provided address.
-        token.safeTransfer({ to: to, value: revenue });
-
-        emit ISablierFlowBase.CollectProtocolRevenue({ admin: msg.sender, token: token, to: to, revenue: revenue });
-    }
-
-    /// @inheritdoc ISablierFlowBase
     function recover(IERC20 token, address to) external override onlyAdmin {
-        uint256 surplus = token.balanceOf(address(this)) - aggregateBalance[token];
+        uint256 surplus = token.balanceOf(address(this)) - aggregateAmount[token];
 
         // Check: there is a surplus to recover.
         if (surplus == 0) {
@@ -260,6 +227,25 @@ abstract contract SablierFlowBase is
     }
 
     /// @inheritdoc ISablierFlowBase
+    function setNativeToken(address newNativeToken) external override onlyAdmin {
+        // Check: provided token is not zero address.
+        if (newNativeToken == address(0)) {
+            revert Errors.SablierFlowBase_NativeTokenZeroAddress();
+        }
+
+        // Check: native token is not set.
+        if (nativeToken != address(0)) {
+            revert Errors.SablierFlowBase_NativeTokenAlreadySet(nativeToken);
+        }
+
+        // Effect: set the native token.
+        nativeToken = newNativeToken;
+
+        // Log the update.
+        emit SetNativeToken({ admin: msg.sender, nativeToken: newNativeToken });
+    }
+
+    /// @inheritdoc ISablierFlowBase
     function setNFTDescriptor(IFlowNFTDescriptor newNFTDescriptor) external override onlyAdmin {
         // Effect: set the NFT descriptor.
         IFlowNFTDescriptor oldNftDescriptor = nftDescriptor;
@@ -270,30 +256,6 @@ abstract contract SablierFlowBase is
             admin: msg.sender,
             oldNFTDescriptor: oldNftDescriptor,
             newNFTDescriptor: newNFTDescriptor
-        });
-
-        // Refresh the NFT metadata for all streams.
-        emit BatchMetadataUpdate({ _fromTokenId: 1, _toTokenId: nextStreamId - 1 });
-    }
-
-    /// @inheritdoc ISablierFlowBase
-    function setProtocolFee(IERC20 token, UD60x18 newProtocolFee) external override onlyAdmin {
-        // Check: the new protocol fee is not greater than the maximum allowed.
-        if (newProtocolFee > MAX_FEE) {
-            revert Errors.SablierFlowBase_ProtocolFeeTooHigh(newProtocolFee, MAX_FEE);
-        }
-
-        UD60x18 oldProtocolFee = protocolFee[token];
-
-        // Effects: set the new protocol fee.
-        protocolFee[token] = newProtocolFee;
-
-        // Log the change of the protocol fee.
-        emit ISablierFlowBase.SetProtocolFee({
-            admin: msg.sender,
-            token: token,
-            oldProtocolFee: oldProtocolFee,
-            newProtocolFee: newProtocolFee
         });
 
         // Refresh the NFT metadata for all streams.
@@ -350,5 +312,17 @@ abstract contract SablierFlowBase is
         }
 
         return super._update(to, streamId, auth);
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                             PRIVATE CONSTANT FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
+
+    /// @dev A private function is used instead of inlining this logic in a modifier because Solidity copies modifiers
+    /// into every function that uses them.
+    function _notNull(uint256 streamId) private view {
+        if (!_streams[streamId].isStream) {
+            revert Errors.SablierFlow_Null(streamId);
+        }
     }
 }

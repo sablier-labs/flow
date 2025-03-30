@@ -5,9 +5,9 @@ import { IERC4906 } from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
-import { UD60x18 } from "@prb/math/src/UD60x18.sol";
+import { IAdminable } from "@sablier/evm-utils/src/interfaces/IAdminable.sol";
+
 import { Flow } from "./../types/DataTypes.sol";
-import { IAdminable } from "./IAdminable.sol";
 import { IFlowNFTDescriptor } from "./IFlowNFTDescriptor.sol";
 
 /// @title ISablierFlowBase
@@ -24,19 +24,15 @@ interface ISablierFlowBase is
     /// @param feeAmount The amount of collected fees.
     event CollectFees(address indexed admin, uint256 indexed feeAmount);
 
-    /// @notice Emitted when the contract admin collects protocol revenue accrued.
-    /// @param admin The address of the contract admin.
-    /// @param token The address of the ERC-20 token the protocol revenue has been collected for.
-    /// @param to The address the protocol revenue has been sent to.
-    /// @param revenue The amount of protocol revenue collected.
-    event CollectProtocolRevenue(address indexed admin, IERC20 indexed token, address to, uint128 revenue);
-
     /// @notice Emitted when the contract admin recovers the surplus amount of token.
     /// @param admin The address of the contract admin.
     /// @param token The address of the ERC-20 token the surplus amount has been recovered for.
     /// @param to The address the surplus amount has been sent to.
     /// @param surplus The amount of surplus tokens recovered.
     event Recover(address indexed admin, IERC20 indexed token, address to, uint256 surplus);
+
+    /// @notice Emitted when the native token address is set by the admin.
+    event SetNativeToken(address indexed admin, address nativeToken);
 
     /// @notice Emitted when the contract admin sets a new NFT descriptor contract.
     /// @param admin The address of the contract admin.
@@ -46,25 +42,15 @@ interface ISablierFlowBase is
         address indexed admin, IFlowNFTDescriptor oldNFTDescriptor, IFlowNFTDescriptor newNFTDescriptor
     );
 
-    /// @notice Emitted when the contract admin sets a new protocol fee for the provided ERC-20 token.
-    /// @param admin The address of the contract admin.
-    /// @param token The address of the ERC-20 token the new protocol fee has been set for.
-    /// @param oldProtocolFee The old protocol fee, denoted as a fixed-point percentage.
-    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point percentage.
-    event SetProtocolFee(address indexed admin, IERC20 indexed token, UD60x18 oldProtocolFee, UD60x18 newProtocolFee);
-
     /*//////////////////////////////////////////////////////////////////////////
                                  CONSTANT FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Retrieves the maximum fee that can be charged by the broker and the protocol, denoted as a fixed-point
-    /// percentage where 1e18 is 100%.
-    /// @dev This value is hard coded as a constant.
-    function MAX_FEE() external view returns (UD60x18 fee);
-
-    /// @notice Retrieves the sum of balances of all streams.
+    /// @notice Retrieves the aggregate amount across all streams, denoted in units of the token's decimals.
+    /// @dev If tokens are directly transferred to the contract without using the stream creation functions, the
+    /// ERC-20 balance may be greater than the aggregate amount.
     /// @param token The ERC-20 token for the query.
-    function aggregateBalance(IERC20 token) external view returns (uint256);
+    function aggregateAmount(IERC20 token) external view returns (uint256);
 
     /// @notice Retrieves the balance of the stream, i.e. the total deposited amounts subtracted by the total withdrawn
     /// amounts, denoted in token's decimals.
@@ -133,18 +119,20 @@ interface ISablierFlowBase is
     /// @param streamId The stream ID for the query.
     function isVoided(uint256 streamId) external view returns (bool result);
 
+    /// @notice Retrieves the address of the ERC-20 interface of the native token, if it exists.
+    /// @dev The native tokens on some chains have a dual interface as ERC-20. For example, on Polygon the $POL token
+    /// is the native token and has an ERC-20 version at 0x0000000000000000000000000000000000001010. This means
+    /// that `address(this).balance` returns the same value as `balanceOf(address(this))`. To avoid any unintended
+    /// behavior, these tokens cannot be used in Sablier. As an alternative, users can use the Wrapped version of the
+    /// token, i.e. WMATIC, which is a standard ERC-20 token.
+    function nativeToken() external view returns (address);
+
     /// @notice Counter for stream ids.
     /// @return The next stream ID.
     function nextStreamId() external view returns (uint256);
 
     /// @notice Contract that generates the non-fungible token URI.
     function nftDescriptor() external view returns (IFlowNFTDescriptor);
-
-    /// @notice Protocol fee for the provided ERC-20 token, denoted as a fixed-point percentage where 1e18 is 100%.
-    function protocolFee(IERC20 token) external view returns (UD60x18);
-
-    /// @notice Protocol revenue accrued for the provided ERC-20 token, denoted in token's decimals.
-    function protocolRevenue(IERC20 token) external view returns (uint128);
 
     /*//////////////////////////////////////////////////////////////////////////
                                NON-CONSTANT FUNCTIONS
@@ -157,18 +145,6 @@ interface ISablierFlowBase is
     /// Notes:
     /// - If the admin is a contract, it must be able to receive native token payments, e.g., ETH for Ethereum Mainnet.
     function collectFees() external;
-
-    /// @notice Collect the protocol revenue accrued for the provided ERC-20 token.
-    ///
-    /// @dev Emits a {CollectProtocolRevenue} event.
-    ///
-    /// Requirements:
-    /// - `msg.sender` must be the contract admin.
-    /// - The accrued protocol revenue must be greater than zero.
-    ///
-    /// @param token The contract address of the ERC-20 token for which to claim protocol revenue.
-    /// @param to The address to send the protocol revenue.
-    function collectProtocolRevenue(IERC20 token, address to) external;
 
     /// @notice Recover the surplus amount of tokens.
     ///
@@ -186,6 +162,18 @@ interface ISablierFlowBase is
     /// @param to The address to send the surplus amount.
     function recover(IERC20 token, address to) external;
 
+    /// @notice Sets the native token address. Once set, it cannot be changed.
+    /// @dev For more information, see the documentation for {nativeToken}.
+    ///
+    /// Emits a {SetNativeToken} event.
+    ///
+    /// Requirements:
+    /// - `msg.sender` must be the admin.
+    /// - `newNativeToken` must not be zero address.
+    /// - The native token must not be already set.
+    /// @param newNativeToken The address of the native token.
+    function setNativeToken(address newNativeToken) external;
+
     /// @notice Sets a new NFT descriptor contract, which produces the URI describing the Sablier stream NFTs.
     ///
     /// @dev Emits a {SetNFTDescriptor} and {BatchMetadataUpdate} event.
@@ -198,21 +186,4 @@ interface ISablierFlowBase is
     ///
     /// @param newNFTDescriptor The address of the new NFT descriptor contract.
     function setNFTDescriptor(IFlowNFTDescriptor newNFTDescriptor) external;
-
-    /// @notice Sets a new protocol fee that will be charged on all the withdrawals from streams created with the
-    /// provided ERC-20 token.
-    ///
-    /// @dev Emits a {SetProtocolFee} and {BatchMetadataUpdate} event.
-    ///
-    /// Notes:
-    /// - Does not revert if the fee is the same.
-    /// - It can be zero.
-    ///
-    /// Requirements:
-    /// - `msg.sender` must be the contract admin.
-    /// - `newProtocolFee` must not be greater than `MAX_FEE`.
-    ///
-    /// @param token The contract address of the ERC-20 token to update the fee for.
-    /// @param newProtocolFee The new protocol fee, denoted as a fixed-point percentage where 1e18 is 100%.
-    function setProtocolFee(IERC20 token, UD60x18 newProtocolFee) external;
 }

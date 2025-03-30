@@ -2,33 +2,19 @@
 pragma solidity >=0.8.22;
 
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
-import { UD60x18 } from "@prb/math/src/UD60x18.sol";
 
 /// @title Errors
 /// @notice Library with custom errors used across the Flow contract.
 library Errors {
     /*//////////////////////////////////////////////////////////////////////////
-                                      GENERICS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Thrown when an unexpected error occurs during a batch call.
-    error BatchError(bytes errorData);
-
-    /// @notice Thrown when `msg.sender` is not the admin.
-    error CallerNotAdmin(address admin, address caller);
-
-    /// @notice Thrown when trying to delegate call to a function that disallows delegate calls.
-    error DelegateCall();
-
-    /*//////////////////////////////////////////////////////////////////////////
                                     SABLIER-FLOW
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Thrown when trying to create a stream with a broker recipient address as zero.
-    error SablierFlow_BrokerAddressZero();
+    /// @notice Thrown when trying to create a stream with the native token.
+    error SablierFlow_CreateNativeToken(address nativeToken);
 
-    /// @notice Thrown when trying to create a stream with a broker fee more than the allowed.
-    error SablierFlow_BrokerFeeTooHigh(UD60x18 brokerFee, UD60x18 maxFee);
+    /// @notice Thrown when trying to create a pending stream with zero rate per second.
+    error SablierFlow_CreateRatePerSecondZero();
 
     /// @notice Thrown when trying to create a stream with a zero deposit amount.
     error SablierFlow_DepositAmountZero(uint256 streamId);
@@ -36,8 +22,11 @@ library Errors {
     /// @notice Thrown when an unexpected error occurs during the calculation of an amount.
     error SablierFlow_InvalidCalculation(uint256 streamId, uint128 availableAmount, uint128 amount);
 
-    /// @notice Thrown when trying to create a stream with an token with no decimals.
+    /// @notice Thrown when trying to create a stream with a token with decimals greater than 18.
     error SablierFlow_InvalidTokenDecimals(address token);
+
+    /// @notice Thrown when trying to adjust the rate per second to zero.
+    error SablierFlow_NewRatePerSecondZero(uint256 streamId);
 
     /// @notice Thrown when the recipient address does not match the stream's recipient.
     error SablierFlow_NotStreamRecipient(address recipient, address streamRecipient);
@@ -66,13 +55,16 @@ library Errors {
     /// @notice Thrown when trying to get depletion time of a stream with zero balance.
     error SablierFlow_StreamBalanceZero(uint256 streamId);
 
-    /// @notice Thrown when trying to perform an action with a paused stream.
-    error SablierFlow_StreamPaused(uint256 streamId);
-
-    /// @notice Thrown when trying to restart a stream that is not paused.
+    /// @notice Thrown when trying to perform a disallowed action on a non-paused stream.
     error SablierFlow_StreamNotPaused(uint256 streamId);
 
-    /// @notice Thrown when trying to perform an action with a voided stream.
+    /// @notice Thrown when trying to perform a disallowed action on a paused stream.
+    error SablierFlow_StreamPaused(uint256 streamId);
+
+    /// @notice Thrown when trying to perform a disallowed action on a pending stream.
+    error SablierFlow_StreamPending(uint256 streamId, uint40 snapshotTime);
+
+    /// @notice Thrown when trying to perform a disallowed action on a voided stream.
     error SablierFlow_StreamVoided(uint256 streamId);
 
     /// @notice Thrown when `msg.sender` lacks authorization to perform an action.
@@ -94,14 +86,14 @@ library Errors {
     /// @notice Thrown when the fee transfer fails.
     error SablierFlowBase_FeeTransferFail(address admin, uint256 feeAmount);
 
-    /// @notice Thrown when trying to claim protocol revenue when the accrued amount is zero.
-    error SablierFlowBase_NoProtocolRevenue(address token);
+    /// @notice Thrown when trying to set the native token address when it is already set.
+    error SablierFlowBase_NativeTokenAlreadySet(address nativeToken);
+
+    /// @notice Thrown when trying to set zero address as native token.
+    error SablierFlowBase_NativeTokenZeroAddress();
 
     /// @notice Thrown when trying to transfer Stream NFT when transferability is disabled.
     error SablierFlowBase_NotTransferable(uint256 streamId);
-
-    /// @notice Thrown when trying to set protocol fee more than the allowed.
-    error SablierFlowBase_ProtocolFeeTooHigh(UD60x18 newProtocolFee, UD60x18 maxFee);
 
     /// @notice Thrown when trying to recover for a token with zero surplus.
     error SablierFlowBase_SurplusZero(address token);

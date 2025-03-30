@@ -31,12 +31,16 @@ abstract contract Modifiers is Utils {
         _;
     }
 
+    modifier givenNotPending() {
+        _;
+    }
+
     modifier givenNotVoided() {
         _;
     }
 
     modifier whenCallerAdmin() {
-        resetPrank({ msgSender: users.admin });
+        setMsgSender(users.admin);
         _;
     }
 
@@ -57,14 +61,6 @@ abstract contract Modifiers is Utils {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                               ADJUST-RATE-PER-SECOND
-    //////////////////////////////////////////////////////////////////////////*/
-
-    modifier whenNewRatePerSecondNotEqualsCurrentRatePerSecond() {
-        _;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                     COLLECT-FEES
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -76,7 +72,23 @@ abstract contract Modifiers is Utils {
                                        CREATE
     //////////////////////////////////////////////////////////////////////////*/
 
+    modifier whenRatePerSecondZero() {
+        _;
+    }
+
+    modifier whenRatePerSecondNotZero() {
+        _;
+    }
+
     modifier whenSenderNotAddressZero() {
+        _;
+    }
+
+    modifier whenStartTimeInThePast() {
+        _;
+    }
+
+    modifier whenStartTimeNotZero() {
         _;
     }
 
@@ -88,6 +100,10 @@ abstract contract Modifiers is Utils {
         _;
     }
 
+    modifier whenTokenNotNativeToken() {
+        _;
+    }
+
     modifier whenRecipientNotAddressZero() {
         _;
     }
@@ -95,14 +111,6 @@ abstract contract Modifiers is Utils {
     /*//////////////////////////////////////////////////////////////////////////
                                       DEPOSIT
     //////////////////////////////////////////////////////////////////////////*/
-
-    modifier whenBrokerAddressNotZero() {
-        _;
-    }
-
-    modifier whenBrokerFeeNotGreaterThanMaxFee() {
-        _;
-    }
 
     modifier whenDepositAmountNotZero() {
         _;
@@ -117,6 +125,14 @@ abstract contract Modifiers is Utils {
     }
 
     modifier whenTotalAmountNotZero() {
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                       PAUSE
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier givenStarted() {
         _;
     }
 
@@ -160,10 +176,6 @@ abstract contract Modifiers is Utils {
         _;
     }
 
-    modifier givenProtocolFeeZero() {
-        _;
-    }
-
     modifier whenAmountGreaterThanSnapshotDebt() {
         _;
     }
@@ -185,6 +197,14 @@ abstract contract Modifiers is Utils {
     }
 
     modifier whenWithdrawalAddressOwner() {
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                  SET-NATIVE-TOKEN
+    //////////////////////////////////////////////////////////////////////////*/
+
+    modifier whenProvidedAddressNotZero() {
         _;
     }
 }

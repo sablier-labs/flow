@@ -5,7 +5,6 @@
   fs_permissions = [
     { access = "read", path = "./out-optimized" },
     { access = "read", path = "package.json" },
-    { access = "read-write", path = "./benchmark/results"},
     { access = "read-write", path = "./script"}
   ]
   gas_limit = 9223372036854775807
@@ -15,7 +14,7 @@
   out = "out"
   script = "script"
   sender = "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38"
-  solc = "0.8.26"
+  solc = "0.8.29"
   src = "src"
   test = "tests"
 
@@ -30,10 +29,6 @@
   fail_on_revert = true
   runs = 1000
   shrink_run_limit = 0 # Disable shrinking of a failed sequence
-
-# Run only the code inside benchmark directory
-[profile.benchmark]
-  test = "benchmark"
 
 # Speed up compilation and tests during development
 [profile.lite]
@@ -78,33 +73,38 @@
 
 [rpc_endpoints]
   # mainnets
-  arbitrum = "${ARBITRUM_RPC_URL}"
-  avalanche = "${AVALANCHE_RPC_URL}"
+  arbitrum = "https://rpc.ankr.com/arbitrum"
+  avalanche = "https://rpc.ankr.com/avalanche"
   base = "https://mainnet.base.org"
+  berachain = "https://rpc.berachain.com"
   blast = "https://rpc.blast.io"
-  bnb = "https://bsc-dataseed.binance.org"
+  bnb = "https://rpc.ankr.com/bsc"
+  chiliz = "https://rpc.chiliz.com"
   core_dao = "https://rpc.coredao.org"
-  gnosis = "https://rpc.gnosischain.com"
+  form = "https://rpc.form.network/http"
+  gnosis = "https://rpc.ankr.com/gnosis"
   lightlink = "https://replicator.phoenix.lightlink.io/rpc/v1"
   linea = "https://rpc.linea.build"
   mainnet = "${MAINNET_RPC_URL}"
   meld = "https://rpc-1.meld.com"
   mode = "https://mainnet.mode.network/"
   morph = "https://rpc.morphl2.io"
-  optimism = "${OPTIMISM_RPC_URL}"
-  polygon = "${POLYGON_RPC_URL}"
+  optimism = "https://rpc.ankr.com/optimism"
+  polygon = "https://rpc.ankr.com/polygon"
   scroll = "https://rpc.scroll.io/"
   sei = "https://evm-rpc.sei-apis.com"
   superseed = "https://mainnet.superseed.xyz"
   taiko_mainnet = "https://rpc.mainnet.taiko.xyz"
+  xdc = "https://rpc.xdc.org"
   # testnets
-  arbitrum_sepolia = "https://sepolia-rollup.arbitrum.io/rpc"
+  arbitrum_sepolia = "https://arbitrum-sepolia-rpc.publicnode.com"
   base_sepolia = "https://sepolia.base.org"
   berachain_artio = "https://bartio.rpc.berachain.com/"
   blast_sepolia = "https://sepolia.blast.io"
   linea_sepolia = "https://rpc.sepolia.linea.build"
   localhost = "http://localhost:8545"
   mode_sepolia = "https://sepolia.mode.network/"
+  monat_testnet = "https://testnet-rpc.monad.xyz"
   morph_holesky = "https://rpc-holesky.morphl2.io"
   optimism_sepolia = "https://sepolia.optimism.io"
   sei_testnet = "https://evm-rpc.arctic-1.seinetwork.io"

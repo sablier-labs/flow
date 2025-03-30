@@ -3,9 +3,9 @@ pragma solidity >=0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
+import { IBatch } from "@sablier/evm-utils/src/interfaces/IBatch.sol";
 
-import { Broker, Flow } from "./../types/DataTypes.sol";
-import { IBatch } from "./IBatch.sol";
+import { Flow } from "./../types/DataTypes.sol";
 import { ISablierFlowBase } from "./ISablierFlowBase.sol";
 
 /// @title ISablierFlow
@@ -35,6 +35,7 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens, as well as the NFT owner.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
+    /// @param snapshotTime The timestamp when the stream begins accumulating debt.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating whether the stream NFT is transferable or not.
     event CreateFlowStream(
@@ -42,6 +43,7 @@ interface ISablierFlow is
         address indexed sender,
         address indexed recipient,
         UD21x18 ratePerSecond,
+        uint40 snapshotTime,
         IERC20 indexed token,
         bool transferable
     );
@@ -95,17 +97,9 @@ interface ISablierFlow is
     /// @param to The address that received the withdrawn tokens.
     /// @param token The contract address of the ERC-20 token that was withdrawn.
     /// @param caller The address that performed the withdrawal, which can be the recipient or an approved operator.
-    /// @param withdrawAmount The amount withdrawn to the recipient after subtracting the protocol fee, denoted in
-    /// token's decimals.
-    /// @param protocolFeeAmount The amount of protocol fee deducted from the withdrawn amount, denoted in token's
-    /// decimals.
+    /// @param withdrawAmount The amount withdrawn to the recipient, denoted in token's decimals.
     event WithdrawFromFlowStream(
-        uint256 indexed streamId,
-        address indexed to,
-        IERC20 indexed token,
-        address caller,
-        uint128 withdrawAmount,
-        uint128 protocolFeeAmount
+        uint256 indexed streamId, address indexed to, IERC20 indexed token, address caller, uint128 withdrawAmount
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -117,8 +111,8 @@ interface ISablierFlow is
     /// @param streamId The stream ID for the query.
     function coveredDebtOf(uint256 streamId) external view returns (uint128 coveredDebt);
 
-    /// @notice Returns the time at which the total debt exceeds stream balance. If the total debt is less than
-    /// or equal to stream balance, it returns 0.
+    /// @notice Returns the time at which the total debt exceeds stream balance. If the total debt exceeds the stream
+    /// balance, it returns 0.
     /// @dev Reverts on the following conditions:
     /// - If `streamId` references a paused or a null stream.
     /// - If stream balance is zero.
@@ -126,7 +120,7 @@ interface ISablierFlow is
     function depletionTimeOf(uint256 streamId) external view returns (uint256 depletionTime);
 
     /// @notice Returns the amount of debt accrued since the snapshot time until now, denoted as a fixed-point number
-    /// where 1e18 is 1 token.
+    /// where 1e18 is 1 token. If the stream is pending, it returns zero.
     /// @dev Reverts if `streamId` references a null stream.
     /// @param streamId The stream ID for the query.
     function ongoingDebtScaledOf(uint256 streamId) external view returns (uint256 ongoingDebtScaled);
@@ -169,28 +163,30 @@ interface ISablierFlow is
     /// @dev Emits a {AdjustFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
-    /// - It updates snapshot debt and snapshot time.
+    /// - If the snapshot time is not in the future, it updates both the snapshot time and snapshot debt.
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null or a paused stream.
+    /// - `streamId` must not reference a null, paused, or voided stream.
     /// - `msg.sender` must be the stream's sender.
-    /// - `newRatePerSecond` must not equal to the current rate per second.
+    /// - `newRatePerSecond` must be greater than zero and must be different from the current rate per second.
     ///
     /// @param streamId The ID of the stream to adjust.
     /// @param newRatePerSecond The new rate per second, denoted as a fixed-point number where 1e18 is 1 token
     /// per second.
     function adjustRatePerSecond(uint256 streamId, UD21x18 newRatePerSecond) external payable;
 
-    /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and leaving the balance to
+    /// @notice Creates a new Flow stream by setting the snapshot time to `startTime` and leaving the balance to
     /// zero. The stream is wrapped in an ERC-721 NFT.
     ///
-    /// @dev Emits {CreateFlowStream} event.
+    /// @dev Emits a {CreateFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
     /// - `sender` must not be the zero address.
     /// - `recipient` must not be the zero address.
+    /// - If `startTime` is in the future, the `ratePerSecond` must be greater than zero.
+    /// - The `token` must not be the native token.
     /// - The `token`'s decimals must be less than or equal to 18.
     ///
     /// @param sender The address streaming the tokens, which is able to adjust and pause the stream. It doesn't
@@ -198,6 +194,8 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
+    /// @param startTime The timestamp when the stream starts. A sentinel value of zero means the stream will be created
+    /// with the snapshot time as `block.timestamp`.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
     ///
@@ -206,6 +204,7 @@ interface ISablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
         bool transferable
     )
@@ -213,13 +212,13 @@ interface ISablierFlow is
         payable
         returns (uint256 streamId);
 
-    /// @notice Creates a new Flow stream by setting the snapshot time to `block.timestamp` and the balance to `amount`.
+    /// @notice Creates a new Flow stream by setting the snapshot time to `startTime` and the balance to `amount`.
     /// The stream is wrapped in an ERC-721 NFT.
     ///
-    /// @dev Emits a {Transfer}, {CreateFlowStream}, and {DepositFlowStream} event.
+    /// @dev Emits a {Transfer}, {CreateFlowStream}, {DepositFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
-    /// - Refer to the notes in {deposit}.
+    /// - Refer to the notes in {create} and {deposit}.
     ///
     /// Requirements:
     /// - Refer to the requirements in {create} and {deposit}.
@@ -228,6 +227,8 @@ interface ISablierFlow is
     /// @param recipient The address receiving the tokens.
     /// @param ratePerSecond The amount by which the debt is increasing every second, denoted as a fixed-point number
     /// where 1e18 is 1 token per second.
+    /// @param startTime The timestamp when the stream starts. A sentinel value of zero means the stream will be created
+    /// with the snapshot time as `block.timestamp`.
     /// @param token The contract address of the ERC-20 token to be streamed.
     /// @param transferable Boolean indicating if the stream NFT is transferable.
     /// @param amount The deposit amount, denoted in token's decimals.
@@ -237,6 +238,7 @@ interface ISablierFlow is
         address sender,
         address recipient,
         UD21x18 ratePerSecond,
+        uint40 startTime,
         IERC20 token,
         bool transferable,
         uint128 amount
@@ -247,7 +249,7 @@ interface ISablierFlow is
 
     /// @notice Makes a deposit in a stream.
     ///
-    /// @dev Emits a {Transfer} and {DepositFlowStream} event.
+    /// @dev Emits a {Transfer}, {DepositFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -263,7 +265,7 @@ interface ISablierFlow is
 
     /// @notice Deposits tokens in a stream and pauses it.
     ///
-    /// @dev Emits a {Transfer}, {DepositFlowStream} and {PauseFlowStream} event.
+    /// @dev Emits a {Transfer}, {DepositFlowStream}, {PauseFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {deposit} and {pause}.
@@ -275,39 +277,9 @@ interface ISablierFlow is
     /// @param amount The deposit amount, denoted in token's decimals.
     function depositAndPause(uint256 streamId, uint128 amount) external payable;
 
-    /// @notice Deposits tokens in a stream.
-    ///
-    /// @dev Emits a {Transfer} and {DepositFlowStream} event.
-    ///
-    /// Notes:
-    /// - Refer to the notes in {deposit}.
-    ///
-    /// Requirements:
-    /// - Must not be delegate called.
-    /// - `streamId` must not reference a null stream.
-    /// - `totalAmount` must be greater than zero. Otherwise it will revert inside {deposit}.
-    /// - `broker.account` must not be 0 address.
-    /// - `broker.fee` must not be greater than `MAX_FEE`. It can be zero.
-    ///
-    /// @param streamId The ID of the stream to deposit on.
-    /// @param totalAmount The total amount, including the deposit and any broker fee, denoted in token's decimals.
-    /// @param sender The stream's sender address.
-    /// @param recipient The stream's recipient address.
-    /// @param broker Struct encapsulating (i) the address of the broker assisting in creating the stream, and (ii) the
-    /// percentage fee paid to the broker from `totalAmount`, denoted as a fixed-point percentage.
-    function depositViaBroker(
-        uint256 streamId,
-        uint128 totalAmount,
-        address sender,
-        address recipient,
-        Broker calldata broker
-    )
-        external
-        payable;
-
     /// @notice Pauses the stream.
     ///
-    /// @dev Emits {PauseFlowStream} event.
+    /// @dev Emits a {PauseFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It updates snapshot debt and snapshot time.
@@ -315,7 +287,7 @@ interface ISablierFlow is
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null or an already paused stream.
+    /// - `streamId` must not reference a null, pending or paused stream.
     /// - `msg.sender` must be the stream's sender.
     ///
     /// @param streamId The ID of the stream to pause.
@@ -323,7 +295,7 @@ interface ISablierFlow is
 
     /// @notice Refunds the provided amount of tokens from the stream to the sender's address.
     ///
-    /// @dev Emits a {Transfer} and {RefundFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Must not be delegate called.
@@ -337,7 +309,7 @@ interface ISablierFlow is
 
     /// @notice Refunds the provided amount of tokens from the stream to the sender's address.
     ///
-    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {PauseFlowStream} event.
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream}, {PauseFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {pause}.
@@ -351,7 +323,7 @@ interface ISablierFlow is
 
     /// @notice Refunds the entire refundable amount of tokens from the stream to the sender's address.
     ///
-    /// @dev Emits a {Transfer} and {RefundFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {RefundFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Requirements:
     /// - Refer to the requirements in {refund}.
@@ -361,14 +333,14 @@ interface ISablierFlow is
 
     /// @notice Restarts the stream with the provided rate per second.
     ///
-    /// @dev Emits {RestartFlowStream} event.
+    /// @dev Emits a {RestartFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It updates snapshot debt and snapshot time.
     ///
     /// Requirements:
     /// - Must not be delegate called.
-    /// - `streamId` must not reference a null, or a voided stream.
+    /// - `streamId` must not reference a null, must not be paused or voided.
     /// - `msg.sender` must be the stream's sender.
     /// - `ratePerSecond` must be greater than zero.
     ///
@@ -379,7 +351,7 @@ interface ISablierFlow is
 
     /// @notice Restarts the stream with the provided rate per second, and makes a deposit.
     ///
-    /// @dev Emits a {RestartFlowStream}, {Transfer}, and {DepositFlowStream} event.
+    /// @dev Emits a {RestartFlowStream}, {Transfer}, {DepositFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {restart} and {deposit}.
@@ -394,12 +366,25 @@ interface ISablierFlow is
     /// @param amount The deposit amount, denoted in token's decimals.
     function restartAndDeposit(uint256 streamId, UD21x18 ratePerSecond, uint128 amount) external payable;
 
+    /// @notice A helper to transfer ERC-20 tokens from the caller to the provided address. Useful for paying one-time
+    /// bonuses.
+    ///
+    /// @dev Emits a {Transfer} event.
+    ///
+    /// Requirements:
+    /// - `msg.sender` must have approved this contract to spend at least `amount` tokens.
+    ///
+    /// @param token The contract address of the ERC-20 token to be transferred.
+    /// @param to The address receiving the tokens.
+    /// @param amount The amount of tokens to transfer, denoted in token's decimals.
+    function transferTokens(IERC20 token, address to, uint128 amount) external payable;
+
     /// @notice Voids a stream.
     ///
-    /// @dev Emits {VoidFlowStream} event.
+    /// @dev Emits a {VoidFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
-    /// - It sets snapshot time to the `block.timestamp`
+    /// - It sets snapshot time to the `block.timestamp`.
     /// - Voiding an insolvent stream sets the snapshot debt to the stream's balance making the uncovered debt to become
     /// zero.
     /// - Voiding a solvent stream updates the snapshot debt by adding up ongoing debt.
@@ -414,39 +399,28 @@ interface ISablierFlow is
     /// @param streamId The ID of the stream to void.
     function void(uint256 streamId) external payable;
 
-    /// @notice Withdraws the provided `amount` minus the protocol fee to the provided `to` address.
+    /// @notice Withdraws the provided `amount` to the provided `to` address.
     ///
-    /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {WithdrawFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - It sets the snapshot time to the `block.timestamp` if `amount` is greater than snapshot debt.
-    /// - A protocol fee may be charged on the withdrawn amount if the protocol fee is enabled for the streaming token.
     ///
     /// Requirements:
     /// - Must not be delegate called.
     /// - `streamId` must not reference a null stream.
     /// - `to` must not be the zero address.
-    /// - `to` must be the recipient if `msg.sender` is not the stream's recipient.
+    /// - `to` must be the recipient if `msg.sender` is not the stream's recipient or an approved third party.
     /// - `amount` must  be greater than zero and must not exceed the withdrawable amount.
     ///
     /// @param streamId The ID of the stream to withdraw from.
     /// @param to The address receiving the withdrawn tokens.
     /// @param amount The amount to withdraw, denoted in token's decimals.
-    /// @return withdrawnAmount The amount withdrawn to the recipient, denoted in token's decimals. This is input amount
-    /// minus the protocol fee.
-    /// @return protocolFeeAmount The protocol fee amount, denoted in the token's decimals.
-    function withdraw(
-        uint256 streamId,
-        address to,
-        uint128 amount
-    )
-        external
-        payable
-        returns (uint128 withdrawnAmount, uint128 protocolFeeAmount);
+    function withdraw(uint256 streamId, address to, uint128 amount) external payable;
 
-    /// @notice Withdraws the entire withdrawable amount minus the protocol fee to the provided `to` address.
+    /// @notice Withdraws the entire withdrawable amount to the provided `to` address.
     ///
-    /// @dev Emits a {Transfer} and {WithdrawFromFlowStream} event.
+    /// @dev Emits a {Transfer}, {WithdrawFromFlowStream} and {MetadataUpdate} event.
     ///
     /// Notes:
     /// - Refer to the notes in {withdraw}.
@@ -458,12 +432,5 @@ interface ISablierFlow is
     /// @param to The address receiving the withdrawn tokens.
     ///
     /// @return withdrawnAmount The amount withdrawn to the recipient, denoted in token's decimals.
-    /// @return protocolFeeAmount The protocol fee amount, denoted in the token's decimals.
-    function withdrawMax(
-        uint256 streamId,
-        address to
-    )
-        external
-        payable
-        returns (uint128 withdrawnAmount, uint128 protocolFeeAmount);
+    function withdrawMax(uint256 streamId, address to) external payable returns (uint128 withdrawnAmount);
 }

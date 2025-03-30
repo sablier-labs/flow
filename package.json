@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "5.0.2",
-    "@prb/math": "4.1.0"
+    "@prb/math": "4.1.0",
+    "@sablier/evm-utils": "github:sablier-labs/evm-utils#d1896e1"
   },
   "devDependencies": {
     "forge-std": "github:foundry-rs/forge-std#v1.8.2",
@@ -55,19 +56,19 @@
     "access": "public"
   },
   "scripts": {
-    "benchmark": "bun run build:optimized && FOUNDRY_PROFILE=benchmark forge test --mt testGas && bun run prettier:write",
     "build": "forge build",
     "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
     "clean": "rm -rf artifacts broadcast cache docs out out-optimized out-svg",
     "lint": "bun run lint:sol && bun run prettier:check",
     "lint:fix": "bun run lint:sol:fix && forge fmt",
-    "lint:sol": "forge fmt --check && bun solhint \"{benchmark,script,src,tests}/**/*.sol\"",
-    "lint:sol:fix": "bun solhint \"{benchmark,script,src,tests}/**/*.sol\" --fix --noPrompt",
+    "lint:sol": "forge fmt --check && bun solhint \"{script,src,tests}/**/*.sol\"",
+    "lint:sol:fix": "bun solhint \"{script,src,tests}/**/*.sol\" --fix --noPrompt",
     "prepack": "bun install && bash ./shell/prepare-artifacts.sh",
     "prepare": "husky",
     "prettier:check": "prettier --check \"**/*.{json,md,svg,yml}\"",
     "prettier:write": "prettier --write \"**/*.{json,md,svg,yml}\"",
     "test": "forge test",
+    "test:bulloak": "bulloak check --skip-modifiers \"./tests/**/*.tree\"",
     "test:lite": "FOUNDRY_PROFILE=lite forge test --nmt \"testFork\"",
     "test:optimized": "bun run build:optimized && FOUNDRY_PROFILE=test-optimized forge test"
   }

@@ -49,7 +49,7 @@ contract RefundMax_Integration_Concrete_Test is Shared_Integration_Concrete_Test
     }
 
     function _test_RefundMax(uint256 streamId, IERC20 token, uint128 depositedAmount) private {
-        uint256 previousAggregateAmount = flow.aggregateBalance(token);
+        uint256 previousAggregateAmount = flow.aggregateAmount(token);
         uint128 refundableAmount = flow.refundableAmountOf(streamId);
 
         // It should emit 1 {Transfer}, 1 {RefundFromFlowStream}, 1 {MetadataUpdate} events.
@@ -63,7 +63,7 @@ contract RefundMax_Integration_Concrete_Test is Shared_Integration_Concrete_Test
         emit IERC4906.MetadataUpdate({ _tokenId: streamId });
 
         // It should perform the ERC-20 transfer.
-        expectCallToTransfer({ token: token, to: users.sender, amount: refundableAmount });
+        expectCallToTransfer({ token: token, to: users.sender, value: refundableAmount });
         flow.refundMax(streamId);
 
         // It should update the stream balance.
@@ -72,6 +72,6 @@ contract RefundMax_Integration_Concrete_Test is Shared_Integration_Concrete_Test
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
         // It should decrease the aggregate amount.
-        assertEq(flow.aggregateBalance(token), previousAggregateAmount - refundableAmount, "aggregate amount");
+        assertEq(flow.aggregateAmount(token), previousAggregateAmount - refundableAmount, "aggregate amount");
     }
 }

@@ -16,12 +16,12 @@ contract FlowStore {
     uint256[] public streamIds;
 
     // Amounts
-    mapping(uint256 streamId => uint128 amount) public depositedAmounts;
-    mapping(uint256 streamId => uint128 amount) public refundedAmounts;
-    mapping(uint256 streamId => uint128 amount) public withdrawnAmounts;
-    mapping(IERC20 token => uint256 amount) public depositedAmountsSum;
-    mapping(IERC20 token => uint256 amount) public refundedAmountsSum;
-    mapping(IERC20 token => uint256 amount) public withdrawnAmountsSum;
+    mapping(uint256 streamId => uint128 amount) public totalDepositsByStream;
+    mapping(uint256 streamId => uint128 amount) public totalRefundsByStream;
+    mapping(uint256 streamId => uint128 amount) public totalWithdrawalsByStream;
+    mapping(IERC20 token => uint256 amount) public totalDepositsByToken;
+    mapping(IERC20 token => uint256 amount) public totalRefundsByToken;
+    mapping(IERC20 token => uint256 amount) public totalWithdrawalsByToken;
 
     // Previous values
     mapping(uint256 streamId => uint40 snapshotTime) public previousSnapshotTime;
@@ -69,11 +69,16 @@ contract FlowStore {
         return tokens;
     }
 
-    function initStreamId(uint256 streamId, uint128 ratePerSecond) external {
+    function initStreamId(uint256 streamId, uint128 ratePerSecond, uint40 startTime) external {
         // Store the stream id and the period during which provided ratePerSecond applies.
         streamIds.push(streamId);
         periods[streamId].push(
-            Period({ funcName: "create", ratePerSecond: ratePerSecond, start: uint40(block.timestamp), end: 0 })
+            Period({
+                funcName: "create",
+                ratePerSecond: ratePerSecond,
+                start: startTime == 0 ? uint40(block.timestamp) : startTime,
+                end: 0
+            })
         );
 
         // Update the last stream id.
@@ -81,8 +86,15 @@ contract FlowStore {
     }
 
     function pushPeriod(uint256 streamId, uint128 newRatePerSecond, string memory typeOfPeriod) external {
+        uint256 count = periods[streamId].length - 1;
+
+        // If the previous start time is in the future keep the same periods.
+        if (periods[streamId][count].start >= uint40(block.timestamp)) {
+            return;
+        }
+
         // Update the end time of the previous period.
-        periods[streamId][periods[streamId].length - 1].end = uint40(block.timestamp);
+        periods[streamId][count].end = uint40(block.timestamp);
 
         // Push the new period with the provided rate per second.
         periods[streamId].push(
@@ -103,18 +115,18 @@ contract FlowStore {
         previousUncoveredDebtOf[streamId] = uncoveredDebtOf;
     }
 
-    function updateStreamDepositedAmountsSum(uint256 streamId, IERC20 token, uint128 amount) external {
-        depositedAmounts[streamId] += amount;
-        depositedAmountsSum[token] += amount;
+    function updateTotalDeposits(uint256 streamId, IERC20 token, uint128 amount) external {
+        totalDepositsByStream[streamId] += amount;
+        totalDepositsByToken[token] += amount;
     }
 
-    function updateStreamRefundedAmountsSum(uint256 streamId, IERC20 token, uint128 amount) external {
-        refundedAmounts[streamId] += amount;
-        refundedAmountsSum[token] += amount;
+    function updateTotalRefunds(uint256 streamId, IERC20 token, uint128 amount) external {
+        totalRefundsByStream[streamId] += amount;
+        totalRefundsByToken[token] += amount;
     }
 
-    function updateStreamWithdrawnAmountsSum(uint256 streamId, IERC20 token, uint128 amount) external {
-        withdrawnAmounts[streamId] += amount;
-        withdrawnAmountsSum[token] += amount;
+    function updateTotalWithdrawals(uint256 streamId, IERC20 token, uint128 amount) external {
+        totalWithdrawalsByStream[streamId] += amount;
+        totalWithdrawalsByToken[token] += amount;
     }
 }
