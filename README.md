@@ -13,9 +13,9 @@ In-depth documentation is available at [docs.sablier.com](https://docs.sablier.c
 
 ## Background
 
-Sablier Flow is a debt tracking protocol that tracks tokens owed between two parties, enabling open-ended token
-streaming. A Flow stream is characterized by its rate per second (rps). The relationship between the amount owed and
-time elapsed is linear is be defined as:
+Sablier is a tracking protocol tat tracks tokens owed two parties, enabling open-ended token streaming. A Flow stream is
+characterized by its rate per second (rps). The relationship between the amount owed and time elapsed is linear is be
+defined as:
 
 ```math
 \text{amount owed} = rps \cdot \text{elapsed time}
