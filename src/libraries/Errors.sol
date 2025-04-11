@@ -83,7 +83,7 @@ library Errors {
                                  SABLIER-FLOW-BASE
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @notice Thrown when a non-admin address calls {collectFees} without setting the fee recipient to admin address.
+    /// @notice Thrown when a non-admin tries to collect fees to a non-admin address.
     error SablierFlowBase_FeeRecipientNotAdmin(address feeRecipient, address admin);
 
     /// @notice Thrown when the fee transfer fails.
