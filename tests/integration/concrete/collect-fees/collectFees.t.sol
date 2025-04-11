@@ -50,8 +50,6 @@ contract CollectFees_Integration_Concrete_Test is Shared_Integration_Concrete_Te
     }
 
     function _test_CollectFees(address feeRecipient) private {
-        vm.warp({ newTimestamp: WITHDRAW_TIME });
-
         // Load the initial ETH balance of the fee recipient.
         uint256 initialFeeRecipientBalance = feeRecipient.balance;
 
