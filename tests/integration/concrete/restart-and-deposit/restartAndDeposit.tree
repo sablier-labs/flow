@@ -14,7 +14,6 @@ RestartAndDeposit_Integration_Concrete_Test
          │  └── when caller malicious third party
          │     └── it should revert
          └── when caller sender
-            ├── it should restart the stream
             ├── it should update the rate per second
             ├── it should update snapshot time
             ├── it should update the stream balance

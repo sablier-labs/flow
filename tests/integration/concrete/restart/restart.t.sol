@@ -96,12 +96,7 @@ contract Restart_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
 
         flow.restart({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND });
 
-        bool isPaused = flow.isPaused(defaultStreamId);
-
         // It should restart the stream.
-        assertFalse(isPaused);
-
-        // It should update rate per second.
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, RATE_PER_SECOND, "ratePerSecond");
 

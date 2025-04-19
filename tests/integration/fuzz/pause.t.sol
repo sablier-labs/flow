@@ -68,7 +68,6 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
-    /// - It should pause the stream.
     /// - It should set rate per second to 0.
     /// - It should emit the following events: {MetadataUpdate}, {PauseFlowStream}
     ///
@@ -107,9 +106,6 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Pause the stream.
         flow.pause(streamId);
-
-        // Assert that the stream is paused.
-        assertTrue(flow.isPaused(streamId), "paused");
 
         assertEq(flow.ongoingDebtScaledOf(streamId), 0, "ongoing debt");
 

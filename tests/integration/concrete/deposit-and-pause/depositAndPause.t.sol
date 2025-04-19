@@ -91,9 +91,6 @@ contract DepositAndPause_Integration_Concrete_Test is Shared_Integration_Concret
         uint128 expectedStreamBalance = previousStreamBalance + DEPOSIT_AMOUNT_6D;
         assertEq(actualStreamBalance, expectedStreamBalance, "stream balance");
 
-        // It should pause the stream
-        assertTrue(flow.isPaused(defaultStreamId), "is paused");
-
         // It should set rate per second to 0
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, 0, "rate per second");

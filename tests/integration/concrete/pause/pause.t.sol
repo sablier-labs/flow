@@ -73,7 +73,7 @@ contract Pause_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         // Check that uncovered debt is greater than zero.
         assertGt(flow.uncoveredDebtOf(defaultStreamId), 0, "uncovered debt");
 
-        // It should pause the stream.
+        // It should set the rate per second to zero.
         _test_Pause();
     }
 
@@ -91,7 +91,7 @@ contract Pause_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         // Check that uncovered debt is zero.
         assertEq(flow.uncoveredDebtOf(defaultStreamId), 0, "uncovered debt");
 
-        // It should pause the stream.
+        // It should set the rate per second to zero.
         _test_Pause();
     }
 
@@ -109,9 +109,6 @@ contract Pause_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         emit IERC4906.MetadataUpdate({ _tokenId: defaultStreamId });
 
         flow.pause(defaultStreamId);
-
-        // It should pause the stream.
-        assertTrue(flow.isPaused(defaultStreamId), "is paused");
 
         // It should set the rate per second to zero.
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);

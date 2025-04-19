@@ -158,19 +158,6 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
                                CONDITIONAL INVARIANTS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev For paused streams, the RPS should be zero.
-    function invariant_IsPaused_RPSZero() external view {
-        uint256 lastStreamId = flowStore.lastStreamId();
-        for (uint256 i = 0; i < lastStreamId; ++i) {
-            uint256 streamId = flowStore.streamIds(i);
-            if (flow.isPaused(streamId)) {
-                assertEq(
-                    flow.getRatePerSecond(streamId).unwrap(), 0, "Invariant violation: paused stream with RPS != 0"
-                );
-            }
-        }
-    }
-
     /// @dev If RPS > 0, the status should be be PENDING, STREAMING_SOLVENT or STREAMING_INSOLVENT.
     function invariant_RPSNotZero_StatusPendingOrStreaming() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
@@ -179,7 +166,6 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
             uint128 rps = flow.getRatePerSecond(streamId).unwrap();
             Flow.Status status = flow.statusOf(streamId);
             if (rps > 0) {
-                assertTrue(flow.isPaused(streamId) == false, "Invariant violation: RPS != 0 but stream paused");
                 assertTrue(
                     status == Flow.Status.PENDING || status == Flow.Status.STREAMING_SOLVENT
                         || status == Flow.Status.STREAMING_INSOLVENT,
@@ -221,14 +207,13 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev If RPS = 0 and non-voided stream, `isPaused` should return true and the status should be PAUSED, too.
-    function invariant_RPSZero_NonVoided_IsPaused_StatusPaused() external view {
+    /// @dev If RPS = 0 and non-voided stream, the status should be PAUSED.
+    function invariant_RPSZero_NonVoided_StatusPaused() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             uint128 rps = flow.getRatePerSecond(streamId).unwrap();
             if (rps == 0 && !flow.isVoided(streamId)) {
-                assertTrue(flow.isPaused(streamId) == true, "Invariant violation: RPS = 0 but stream not paused");
                 assertTrue(
                     flow.statusOf(streamId) == Flow.Status.PAUSED_SOLVENT
                         || flow.statusOf(streamId) == Flow.Status.PAUSED_INSOLVENT,
@@ -324,13 +309,12 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
-    /// @dev For voided streams, `isPaused` should return true, and the uncovered debt should be zero.
-    function invariant_StatusVoided_IsPaused_UncoveredDebtZero() external view {
+    /// @dev For voided streams, the uncovered debt should be zero.
+    function invariant_StatusVoided_UncoveredDebtZero() external view {
         uint256 lastStreamId = flowStore.lastStreamId();
         for (uint256 i = 0; i < lastStreamId; ++i) {
             uint256 streamId = flowStore.streamIds(i);
             if (flow.isVoided(streamId)) {
-                assertTrue(flow.isPaused(streamId) == true, "Invariant violation: voided stream not paused");
                 assertEq(
                     flow.uncoveredDebtOf(streamId), 0, "Invariant violation: voided stream with uncovered debt > 0"
                 );

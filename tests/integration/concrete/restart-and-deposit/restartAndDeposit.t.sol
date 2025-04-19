@@ -87,10 +87,6 @@ contract RestartAndDeposit_Integration_Concrete_Test is Shared_Integration_Concr
 
         flow.restartAndDeposit({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND, amount: DEPOSIT_AMOUNT_6D });
 
-        // It should restart the stream.
-        bool isPaused = flow.isPaused(defaultStreamId);
-        assertFalse(isPaused);
-
         // It should update the rate per second.
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);
         assertEq(actualRatePerSecond, RATE_PER_SECOND, "ratePerSecond");

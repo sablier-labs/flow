@@ -15,30 +15,26 @@
 
 5. For any stream, stream balance = covered debt + refundable amount
 
-6. For any stream, if isPaused = true $\implies$ rps = 0
+6. For any stream, if rps $\gt$ 0 $\implies$ Flow.Status $\in$ {PENDING, STREAMING_SOLVENT, STREAMING_INSOLVENT}.
 
-7. For any stream, if rps $\gt$ 0 $\implies$ isPaused = false and Flow.Status $\in$ {PENDING, STREAMING_SOLVENT,
-   STREAMING_INSOLVENT}.
+7. For any stream, if rps $\gt$ 0, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
 
-8. For any stream, if rps $\gt$ 0, and no withdraw is made $\implies \frac{d(td)}{dt} \ge 0$
+8. For any stream, if rps $\gt$ 0 and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
 
-9. For any stream, if rps $\gt$ 0 and no deposits are made $\implies \frac{d(ud)}{dt} \ge 0$
+9. For any non-voided stream, if rps = 0 $\implies$ Flow.Status $\in$ {PAUSED_SOLVENT, PAUSED_INSOLVENT}
 
-10. For any non-voided stream, if rps = 0 $\implies$ isPaused = true and Flow.Status $\in$ {PAUSED_SOLVENT,
-    PAUSED_INSOLVENT}
+10. For any non-pending stream, st $\le$ now.
 
-11. For any non-pending stream, st $\le$ now.
+11. For any non-voided stream, the snapshot time should never decrease
 
-12. For any non-voided stream, the snapshot time should never decrease
+12. For any non-voided stream, total streams = total debt + total withdrawals.
 
-13. For any non-voided stream, total streams = total debt + total withdrawals.
+13. For any pending stream, rps > 0 and td = 0
 
-14. For any pending stream, rps > 0 and td = 0
+14. For any paused stream, rps = 0.
 
-15. For any paused stream, rps = 0.
+15. For any voided stream, ud = 0
 
-16. For any voided stream, isPaused = true and ud = 0
+16. ud = 0 $\implies$ cd = td
 
-17. ud = 0 $\implies$ cd = td
-
-18. ud > 0 $\implies$ cd = bal
+17. ud > 0 $\implies$ cd = bal

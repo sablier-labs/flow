@@ -11,7 +11,6 @@ import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 contract Restart_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     /// @dev Checklist:
     /// - It should restart the stream.
-    /// - It should update rate per second.
     /// - It should update snapshot time.
     /// - It should emit the following events: {MetadataUpdate}, {RestartFlowStream}
     ///
@@ -54,9 +53,6 @@ contract Restart_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         flow.restart(streamId, ratePerSecond);
 
         // It should restart the stream.
-        assertFalse(flow.isPaused(streamId), "isPaused");
-
-        // It should update rate per second.
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(streamId);
         assertEq(actualRatePerSecond, ratePerSecond, "ratePerSecond");
 
