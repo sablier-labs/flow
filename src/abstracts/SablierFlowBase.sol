@@ -19,8 +19,8 @@ import { Flow } from "./../types/DataTypes.sol";
 /// @notice See the documentation in {ISablierFlowBase}.
 abstract contract SablierFlowBase is
     ERC721, // 6 inherited components
-    RoleAdminable, // 6 inherited components
-    ISablierFlowBase // 5 inherited component
+    RoleAdminable, // 3 inherited components
+    ISablierFlowBase // 6 inherited components
 {
     using SafeERC20 for IERC20;
 
@@ -200,7 +200,7 @@ abstract contract SablierFlowBase is
     function collectFees(address feeRecipient) external override {
         // Check: if `msg.sender` has neither the {RoleAdminable.FEE_COLLECTOR_ROLE} role nor is the contract admin,
         // then `feeRecipient` must be the admin address.
-        bool hasRoleOrIsAdmin = hasRoleOrIsAdmin({ role: FEE_COLLECTOR_ROLE, account: msg.sender });
+        bool hasRoleOrIsAdmin = _hasRoleOrIsAdmin({ role: FEE_COLLECTOR_ROLE, account: msg.sender });
         if (!hasRoleOrIsAdmin && feeRecipient != admin) {
             revert Errors.SablierFlowBase_FeeRecipientNotAdmin({ feeRecipient: feeRecipient, admin: admin });
         }
