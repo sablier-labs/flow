@@ -19,8 +19,8 @@ import { Flow } from "./../types/DataTypes.sol";
 /// @notice See the documentation in {ISablierFlowBase}.
 abstract contract SablierFlowBase is
     ERC721, // 6 inherited components
-    RoleAdminable, // 3 inherited components
-    ISablierFlowBase // 6 inherited components
+    ISablierFlowBase, // 6 inherited components
+    RoleAdminable // 3 inherited components
 {
     using SafeERC20 for IERC20;
 
