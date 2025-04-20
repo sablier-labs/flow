@@ -33,6 +33,7 @@ contract FlowHandler is BaseHandler {
         flowStore.updatePreviousValues(
             currentStreamId,
             flow.getSnapshotTime(currentStreamId),
+            flow.statusOf(currentStreamId),
             flow.totalDebtOf(currentStreamId),
             flow.uncoveredDebtOf(currentStreamId)
         );

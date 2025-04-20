@@ -223,6 +223,44 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         }
     }
 
+    /// @dev See diagram at https://docs.sablier.com/concepts/flow/statuses.
+    function invariant_StatusTransitions() external view {
+        uint256 lastStreamId = flowStore.lastStreamId();
+
+        for (uint256 i = 0; i < lastStreamId; ++i) {
+            uint256 streamId = flowStore.streamIds(i);
+            Flow.Status currentStatus = flow.statusOf(streamId);
+            Flow.Status previousStatus = flowStore.previousStatusOf(streamId);
+
+            // If the previous status is not PENDING, the current status should not be PENDING.
+            if (previousStatus != Flow.Status.PENDING) {
+                assertNotEq(currentStatus, Flow.Status.PENDING, "Invariant violation: not pending -> pending");
+            }
+
+            // If the previous status is PENDING, the current status should not be PAUSED.
+            if (previousStatus == Flow.Status.PENDING) {
+                assertNotEq(currentStatus, Flow.Status.PAUSED_SOLVENT, "Invariant violation: pending -> paused solvent");
+                assertNotEq(
+                    currentStatus, Flow.Status.PAUSED_INSOLVENT, "Invariant violation: pending -> paused insolvent"
+                );
+            }
+
+            // If the previous status is PAUSED_SOLVENT, the current status should not be PAUSED_INSOLVENT.
+            if (previousStatus == Flow.Status.PAUSED_SOLVENT) {
+                assertNotEq(
+                    currentStatus,
+                    Flow.Status.PAUSED_INSOLVENT,
+                    "Invariant violation: paused solvent -> paused insolvent"
+                );
+            }
+
+            // If the previous status is VOIDED, the current status should also be VOIDED.
+            if (previousStatus == Flow.Status.VOIDED) {
+                assertEq(currentStatus, Flow.Status.VOIDED, "Invariant violation: voided -> not voided");
+            }
+        }
+    }
+
     /// @dev For non-pending streams, the snapshot time should never exceed the current block timestamp.
     function invariant_StatusNonPending_BlockTimestampGeSnapshotTime() external view {
         uint256 lastStreamId = flowStore.lastStreamId();

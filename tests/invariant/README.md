@@ -23,18 +23,25 @@
 
 9. For any non-voided stream, if rps = 0 $\implies$ Flow.Status $\in$ {PAUSED_SOLVENT, PAUSED_INSOLVENT}
 
-10. For any non-pending stream, st $\le$ now.
+10. For any stream:
 
-11. For any non-voided stream, the snapshot time should never decrease
+    - If previous status is not pending, the current status should not be pending.
+    - If previous status is pending, the current status should neither be paused-solvent nor paused-insolvent.
+    - If previous status is paused-solvent, the current status should not be paused-insolvent.
+    - If previous status is voided, the current status should also be voided.
 
-12. For any non-voided stream, total streams = total debt + total withdrawals.
+11. For any non-pending stream, st $\le$ now.
 
-13. For any pending stream, rps > 0 and td = 0
+12. For any non-voided stream, the snapshot time should never decrease
 
-14. For any paused stream, rps = 0.
+13. For any non-voided stream, total streams = total debt + total withdrawals.
 
-15. For any voided stream, ud = 0
+14. For any pending stream, rps > 0 and td = 0
 
-16. ud = 0 $\implies$ cd = td
+15. For any paused stream, rps = 0.
 
-17. ud > 0 $\implies$ cd = bal
+16. For any voided stream, ud = 0
+
+17. ud = 0 $\implies$ cd = td
+
+18. ud > 0 $\implies$ cd = bal
