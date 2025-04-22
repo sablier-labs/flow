@@ -415,6 +415,13 @@ abstract contract Flow_Fork_Test is Fork_Test {
         // Pause the stream.
         flow.pause{ value: FEE }(streamId);
 
+        // It should pause the stream.
+        assertTrue(
+            flow.statusOf(streamId) == Flow.Status.PAUSED_SOLVENT
+                || flow.statusOf(streamId) == Flow.Status.PAUSED_INSOLVENT,
+            "Pause: status"
+        );
+
         // Assert that the rate per second is 0.
         assertEq(flow.getRatePerSecond(streamId), 0, "Pause: rate per second");
     }
@@ -497,6 +504,13 @@ abstract contract Flow_Fork_Test is Fork_Test {
         flow.restart{ value: FEE }({ streamId: streamId, ratePerSecond: ratePerSecond });
 
         // It should restart the stream.
+        assertTrue(
+            flow.statusOf(streamId) == Flow.Status.STREAMING_SOLVENT
+                || flow.statusOf(streamId) == Flow.Status.STREAMING_INSOLVENT,
+            "Restart: status"
+        );
+
+        // It should update rate per second.
         vars.actualRatePerSecond = flow.getRatePerSecond(streamId);
         assertEq(vars.actualRatePerSecond, ratePerSecond, "Restart: rate per second");
 
@@ -542,6 +556,9 @@ abstract contract Flow_Fork_Test is Fork_Test {
 
         // It should set the rate per second to zero.
         assertEq(flow.getRatePerSecond(streamId), 0, "Void: rate per second");
+
+        // It should void the stream.
+        assertTrue(flow.statusOf(streamId) == Flow.Status.VOIDED, "Void: status");
 
         // It should set the total debt to stream balance.
         assertEq(flow.totalDebtOf(streamId), expectedTotalDebt, "Void: total debt");
