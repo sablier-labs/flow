@@ -480,7 +480,7 @@ abstract contract Flow_Fork_Test is Fork_Test {
         address sender = flow.getSender(streamId);
         setMsgSender(sender);
 
-        if (flow.getRatePerSecond(streamId).unwrap() == 0) {
+        if (flow.getRatePerSecond(streamId).unwrap() != 0) {
             flow.pause(streamId);
         }
 

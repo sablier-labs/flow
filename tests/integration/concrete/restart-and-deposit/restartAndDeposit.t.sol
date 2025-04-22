@@ -6,6 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
+import { Flow } from "src/types/DataTypes.sol";
 
 import { Shared_Integration_Concrete_Test } from "../Concrete.t.sol";
 
@@ -86,6 +87,9 @@ contract RestartAndDeposit_Integration_Concrete_Test is Shared_Integration_Concr
         expectCallToTransferFrom({ token: usdc, from: users.sender, to: address(flow), value: DEPOSIT_AMOUNT_6D });
 
         flow.restartAndDeposit({ streamId: defaultStreamId, ratePerSecond: RATE_PER_SECOND, amount: DEPOSIT_AMOUNT_6D });
+
+        // It should restart the stream.
+        assertEq(flow.statusOf(defaultStreamId), Flow.Status.STREAMING_SOLVENT, "status");
 
         // It should update the rate per second.
         UD21x18 actualRatePerSecond = flow.getRatePerSecond(defaultStreamId);

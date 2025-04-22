@@ -4,6 +4,7 @@ pragma solidity >=0.8.22;
 import { IERC4906 } from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
+import { Flow } from "src/types/DataTypes.sol";
 
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
@@ -149,6 +150,7 @@ contract Void_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Assert the checklist.
         assertTrue(flow.isVoided(streamId), "voided");
+        assertEq(flow.statusOf(streamId), Flow.Status.VOIDED, "status");
         assertEq(flow.getRatePerSecond(streamId), 0, "rate per second");
         assertEq(flow.ongoingDebtScaledOf(streamId), 0, "ongoing debt");
         assertEq(flow.uncoveredDebtOf(streamId), 0, "uncovered debt");

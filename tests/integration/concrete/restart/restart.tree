@@ -21,5 +21,6 @@ Restart_Integration_Concrete_Test
                │  └── it should revert
                └── when new rate per second not zero
                   ├── it should restart the stream
+                  ├── it should update rate per second
                   ├── it should update snapshot time
                   └── it should emit 1 {RestartFlowStream}, 1 {MetadataUpdate} event

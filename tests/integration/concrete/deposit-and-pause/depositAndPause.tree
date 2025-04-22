@@ -16,6 +16,7 @@ DepositAndPause_Integration_Concrete_Test
          └── when caller sender
             ├── it should update the stream balance
             ├── it should perform the ERC20 transfer
+            ├── it should pause the stream
             ├── it should set rate per second to 0
             ├── it should update the snapshot debt
             └── it should emit 1 {Transfer}, 1 {DepositFlowStream}, 1 {PauseFlowStream}, 1 {MetadataUpdate} events

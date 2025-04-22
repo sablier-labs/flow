@@ -5,6 +5,7 @@ import { IERC4906 } from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { Errors } from "src/libraries/Errors.sol";
+import { Flow } from "src/types/DataTypes.sol";
 
 import { Shared_Integration_Fuzz_Test } from "./Fuzz.t.sol";
 
@@ -68,6 +69,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
     }
 
     /// @dev Checklist:
+    /// - It should pause the stream.
     /// - It should set rate per second to 0.
     /// - It should emit the following events: {MetadataUpdate}, {PauseFlowStream}
     ///
@@ -106,6 +108,13 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         // Pause the stream.
         flow.pause(streamId);
+
+        // Assert that the status is paused.
+        assertTrue(
+            flow.statusOf(streamId) == Flow.Status.PAUSED_SOLVENT
+                || flow.statusOf(streamId) == Flow.Status.PAUSED_INSOLVENT,
+            "status"
+        );
 
         assertEq(flow.ongoingDebtScaledOf(streamId), 0, "ongoing debt");
 
