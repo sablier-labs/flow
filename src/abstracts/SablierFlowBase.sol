@@ -44,7 +44,7 @@ abstract contract SablierFlowBase is
     mapping(uint256 id => Flow.Stream stream) internal _streams;
 
     /*//////////////////////////////////////////////////////////////////////////
-                                     CONSTRUCTOR
+                                    CONSTRUCTOR
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Emits {TransferAdmin} event.
@@ -56,7 +56,7 @@ abstract contract SablierFlowBase is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                      MODIFIERS
+                                     MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev Checks that `streamId` does not reference a null stream.
@@ -97,7 +97,7 @@ abstract contract SablierFlowBase is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                 CONSTANT FUNCTIONS
+                          USER-FACING READ-ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowBase
@@ -188,7 +188,7 @@ abstract contract SablierFlowBase is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                         USER-FACING NON-CONSTANT FUNCTIONS
+                        USER-FACING STATE-CHANGING FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlowBase
@@ -272,7 +272,7 @@ abstract contract SablierFlowBase is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                            INTERNAL CONSTANT FUNCTIONS
+                            INTERNAL READ-ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Checks whether `msg.sender` is the stream's recipient or an approved third party.
@@ -284,7 +284,7 @@ abstract contract SablierFlowBase is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                          INTERNAL NON-CONSTANT FUNCTIONS
+                         INTERNAL STATE-CHANGING FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Overrides the {ERC-721._update} function to check that the stream is transferable.
@@ -318,7 +318,7 @@ abstract contract SablierFlowBase is
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                             PRIVATE CONSTANT FUNCTIONS
+                            PRIVATE READ-ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @dev A private function is used instead of inlining this logic in a modifier because Solidity copies modifiers
