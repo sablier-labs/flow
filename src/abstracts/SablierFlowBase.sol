@@ -277,10 +277,8 @@ abstract contract SablierFlowBase is
 
     /// @notice Checks whether `msg.sender` is the stream's recipient or an approved third party.
     /// @param streamId The stream ID for the query.
-    function _isCallerStreamRecipientOrApproved(uint256 streamId) internal view returns (bool) {
-        address recipient = _ownerOf(streamId);
-        return msg.sender == recipient || isApprovedForAll({ owner: recipient, operator: msg.sender })
-            || getApproved(streamId) == msg.sender;
+    function _isCallerStreamRecipientOrApproved(uint256 streamId, address recipient) internal view returns (bool) {
+        return _isAuthorized({ owner: recipient, spender: msg.sender, tokenId: streamId });
     }
 
     /*//////////////////////////////////////////////////////////////////////////

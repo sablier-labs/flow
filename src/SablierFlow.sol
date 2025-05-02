@@ -776,7 +776,10 @@ contract SablierFlow is
     /// @dev See the documentation for the user-facing functions that call this private function.
     function _void(uint256 streamId) private {
         // Check: `msg.sender` is either the stream's sender, recipient or an approved third party.
-        if (msg.sender != _streams[streamId].sender && !_isCallerStreamRecipientOrApproved(streamId)) {
+        if (
+            msg.sender != _streams[streamId].sender
+                && !_isCallerStreamRecipientOrApproved({ streamId: streamId, recipient: _ownerOf(streamId) })
+        ) {
             revert Errors.SablierFlow_Unauthorized({ streamId: streamId, caller: msg.sender });
         }
 
@@ -829,9 +832,11 @@ contract SablierFlow is
             revert Errors.SablierFlow_WithdrawToZeroAddress(streamId);
         }
 
+        address recipient = _ownerOf(streamId);
+
         // Check: `msg.sender` is neither the stream's recipient nor an approved third party, the withdrawal address
         // must be the recipient.
-        if (to != _ownerOf(streamId) && !_isCallerStreamRecipientOrApproved(streamId)) {
+        if (to != recipient && !_isCallerStreamRecipientOrApproved(streamId, recipient)) {
             revert Errors.SablierFlow_WithdrawalAddressNotRecipient({ streamId: streamId, caller: msg.sender, to: to });
         }
 
