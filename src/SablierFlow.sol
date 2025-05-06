@@ -369,11 +369,12 @@ contract SablierFlow is
         notNull(streamId)
         onlySender(streamId)
         updateMetadata(streamId)
+        returns (uint128 refundedAmount)
     {
-        uint128 refundableAmount = _refundableAmountOf(streamId);
+        refundedAmount = _refundableAmountOf(streamId);
 
         // Checks, Effects, and Interactions: make the refund.
-        _refund(streamId, refundableAmount);
+        _refund(streamId, refundedAmount);
     }
 
     /// @inheritdoc ISablierFlow
@@ -509,7 +510,7 @@ contract SablierFlow is
 
         uint256 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
 
-        // Check: if the rate per second is zero, skip the calculations.
+        // Check: the rate per second is zero, skip the calculations.
         if (ratePerSecond == 0) {
             return 0;
         }
@@ -623,7 +624,7 @@ contract SablierFlow is
 
         uint40 blockTimestamp = uint40(block.timestamp);
 
-        // Check: if the start time is in the future, the rate per second is not zero.
+        // Check: the start time is in the future and the rate per second is not zero.
         if (startTime > blockTimestamp && ratePerSecond.unwrap() == 0) {
             revert Errors.SablierFlow_CreateRatePerSecondZero();
         }
