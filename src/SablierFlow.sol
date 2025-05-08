@@ -510,7 +510,7 @@ contract SablierFlow is
 
         uint256 ratePerSecond = _streams[streamId].ratePerSecond.unwrap();
 
-        // Check: the rate per second is zero, skip the calculations.
+        // Check: if the rate per second is zero, skip the calculations.
         if (ratePerSecond == 0) {
             return 0;
         }
@@ -624,7 +624,7 @@ contract SablierFlow is
 
         uint40 blockTimestamp = uint40(block.timestamp);
 
-        // Check: the start time is in the future and the rate per second is not zero.
+        // Check: if the start time is in the future, the rate per second is not zero.
         if (startTime > blockTimestamp && ratePerSecond.unwrap() == 0) {
             revert Errors.SablierFlow_CreateRatePerSecondZero();
         }
