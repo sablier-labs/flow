@@ -8,8 +8,8 @@ import { Flow } from "./../types/DataTypes.sol";
 import { IFlowNFTDescriptor } from "./IFlowNFTDescriptor.sol";
 
 /// @title ISablierFlowState
-/// @notice Base contract that includes state variables (storage and constants) for the {SablierFlow} contract,
-/// their respective getters, helpful modifiers, and helper functions.
+/// @notice Contract with state variables (storage and constants) for the {SablierFlow} contract, their respective
+/// getters and helpful modifiers.
 /// @dev This contract also includes admin control functions.
 interface ISablierFlowState {
     /*//////////////////////////////////////////////////////////////////////////

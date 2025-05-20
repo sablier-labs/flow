@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.8.22;
 
-import { IERC4906 } from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
 
 import { IFlowNFTDescriptor } from "./../interfaces/IFlowNFTDescriptor.sol";
@@ -14,8 +12,6 @@ import { Flow } from "./../types/DataTypes.sol";
 /// @title SablierFlowState
 /// @notice See the documentation in {ISablierFlowState}.
 abstract contract SablierFlowState is ISablierFlowState {
-    using SafeERC20 for IERC20;
-
     /*//////////////////////////////////////////////////////////////////////////
                                   STATE VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -78,12 +74,6 @@ abstract contract SablierFlowState is ISablierFlowState {
             revert Errors.SablierFlowState_Unauthorized(streamId, msg.sender);
         }
         _;
-    }
-
-    /// @dev Emits an ERC-4906 event to trigger an update of the NFT metadata.
-    modifier updateMetadata(uint256 streamId) {
-        _;
-        emit IERC4906.MetadataUpdate({ _tokenId: streamId });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
