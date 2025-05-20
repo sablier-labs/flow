@@ -21,6 +21,6 @@ contract DeployFlow is BaseScript, NFTDescriptorAddresses {
             nftDescriptor = FlowNFTDescriptor(nftDescriptorAddress());
         }
 
-        flow = new SablierFlow(initialAdmin, nftDescriptor);
+        flow = new SablierFlow(initialAdmin, address(nftDescriptor));
     }
 }
