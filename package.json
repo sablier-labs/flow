@@ -16,6 +16,7 @@
     "@sablier/evm-utils": "github:sablier-labs/evm-utils#e81a04b"
   },
   "devDependencies": {
+    "@sablier/devkit": "github:sablier-labs/devkit#main",
     "forge-std": "github:foundry-rs/forge-std#v1.9.7",
     "husky": "^9.1.4",
     "lint-staged": "^15.2.8",
@@ -35,7 +36,6 @@
     "blockchain",
     "crypto",
     "cryptoasset-streaming",
-    "cryptotoken-streaming",
     "ethereum",
     "forge",
     "foundry",
