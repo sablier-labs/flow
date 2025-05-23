@@ -9,6 +9,7 @@
         "@sablier/evm-utils": "github:sablier-labs/evm-utils#e81a04b",
       },
       "devDependencies": {
+        "@sablier/devkit": "github:sablier-labs/devkit#main",
         "forge-std": "github:foundry-rs/forge-std#v1.9.7",
         "husky": "^9.1.4",
         "lint-staged": "^15.2.8",
@@ -37,6 +38,8 @@
     "@pnpm/npm-conf": ["@pnpm/npm-conf@2.3.1", "", { "dependencies": { "@pnpm/config.env-replace": "^1.1.0", "@pnpm/network.ca-file": "^1.0.1", "config-chain": "^1.1.11" } }, "sha512-c83qWb22rNRuB0UaVCI0uRPNRr8Z0FWnEIvT47jiHAmOIUHbBOg5XvV7pM5x+rKn9HRpjxquDbXYSXr3fAKFcw=="],
 
     "@prb/math": ["@prb/math@4.1.0", "", {}, "sha512-ef5Xrlh3BeX4xT5/Wi810dpEPq2bYPndRxgFIaKSU1F/Op/s8af03kyom+mfU7gEpvfIZ46xu8W0duiHplbBMg=="],
+
+    "@sablier/devkit": ["@sablier/devkit@github:sablier-labs/devkit#0bbb7d7", {}, "sablier-labs-devkit-0bbb7d7"],
 
     "@sablier/evm-utils": ["@sablier/evm-utils@github:sablier-labs/evm-utils#e81a04b", {}, "sablier-labs-evm-utils-e81a04b"],
 
