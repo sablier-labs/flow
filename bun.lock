@@ -6,10 +6,10 @@
       "dependencies": {
         "@openzeppelin/contracts": "5.3.0",
         "@prb/math": "4.1.0",
-        "@sablier/devkit": "github:sablier-labs/devkit#main",
         "@sablier/evm-utils": "github:sablier-labs/evm-utils#e81a04b",
       },
       "devDependencies": {
+        "@sablier/devkit": "github:sablier-labs/devkit",
         "forge-std": "github:foundry-rs/forge-std#v1.9.7",
         "husky": "^9.1",
         "lint-staged": "^16.1",
@@ -39,7 +39,7 @@
 
     "@prb/math": ["@prb/math@4.1.0", "", {}, "sha512-ef5Xrlh3BeX4xT5/Wi810dpEPq2bYPndRxgFIaKSU1F/Op/s8af03kyom+mfU7gEpvfIZ46xu8W0duiHplbBMg=="],
 
-    "@sablier/devkit": ["@sablier/devkit@github:sablier-labs/devkit#87342f2", {}, "sablier-labs-devkit-87342f2"],
+    "@sablier/devkit": ["@sablier/devkit@github:sablier-labs/devkit#7cda8e5", {}, "sablier-labs-devkit-7cda8e5"],
 
     "@sablier/evm-utils": ["@sablier/evm-utils@github:sablier-labs/evm-utils#e81a04b", {}, "sablier-labs-evm-utils-e81a04b"],
 
