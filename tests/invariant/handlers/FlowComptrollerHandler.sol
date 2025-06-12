@@ -8,22 +8,22 @@ import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { FlowStore } from "./../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
 
-contract FlowAdminHandler is BaseHandler {
+contract FlowComptrollerHandler is BaseHandler {
     IERC20 internal currentToken;
 
     /*//////////////////////////////////////////////////////////////////////////
                                      MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Since all admin-related functions are rarely called compared to core flow functionalities,
+    /// @dev Since all comptroller-related functions are rarely called compared to core flow functionalities,
     /// we limit the number of calls to 10.
     modifier limitNumberOfCalls(string memory name) {
         vm.assume(totalCalls[name] < 10);
         _;
     }
 
-    modifier setCallerAdmin() {
-        setMsgSender(flow.admin());
+    modifier setCallerComptroller() {
+        setMsgSender(address(comptroller));
         _;
     }
 
@@ -57,10 +57,10 @@ contract FlowAdminHandler is BaseHandler {
         limitNumberOfCalls("recover")
         instrument(0, "recover")
         useFuzzedToken(tokenIndex)
-        setCallerAdmin
+        setCallerComptroller
     {
         vm.assume(currentToken.balanceOf(address(flow)) > flow.aggregateAmount(currentToken));
 
-        flow.recover(currentToken, flow.admin());
+        flow.recover(currentToken, address(comptroller));
     }
 }
