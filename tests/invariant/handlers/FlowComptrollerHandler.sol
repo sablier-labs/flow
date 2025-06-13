@@ -23,7 +23,7 @@ contract FlowComptrollerHandler is BaseHandler {
     }
 
     modifier setCallerComptroller() {
-        setMsgSender(address(comptroller));
+        setMsgSender(address(flow.comptroller()));
         _;
     }
 
