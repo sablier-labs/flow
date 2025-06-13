@@ -2,15 +2,12 @@
 pragma solidity >=0.8.22;
 
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { FlowStore } from "./../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
 
 contract FlowComptrollerHandler is BaseHandler {
-    IERC20 internal currentToken;
-
     /*//////////////////////////////////////////////////////////////////////////
                                      MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
@@ -19,13 +16,6 @@ contract FlowComptrollerHandler is BaseHandler {
     /// we limit the number of calls to 10.
     modifier limitNumberOfCalls(string memory name) {
         vm.assume(totalCalls[name] < 10);
-        _;
-    }
-
-    modifier useFuzzedToken(uint256 tokenIndex) {
-        IERC20[] memory tokens = flowStore.getTokens();
-        vm.assume(tokenIndex < tokens.length);
-        currentToken = tokens[tokenIndex];
         _;
     }
 

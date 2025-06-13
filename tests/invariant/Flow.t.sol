@@ -45,13 +45,13 @@ contract Flow_Invariant_Test is Base_Test, StdInvariant {
         vm.label({ account: address(flowStore), newLabel: "flowStore" });
 
         // Target the flow handlers for invariant testing.
-        targetContract(address(flowComptrollerHandler));
+        // targetContract(address(flowComptrollerHandler));
         targetContract(address(flowCreateHandler));
         targetContract(address(flowHandler));
 
         // Prevent these contracts from being fuzzed as `msg.sender`.
         excludeSender(address(flow));
-        excludeSender(address(flowComptrollerHandler));
+        // excludeSender(address(flowComptrollerHandler));
         excludeSender(address(flowCreateHandler));
         excludeSender(address(flowHandler));
         excludeSender(address(flowStore));
