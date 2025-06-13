@@ -947,6 +947,14 @@ contract SablierFlow is
 
     /// @dev See the documentation for the user-facing functions that call this private function.
     function _withdraw(uint256 streamId, address to, uint128 amount) private {
+        uint256 minFeeWei = comptroller.calculateFlowMinFeeWeiFor(_streams[streamId].sender);
+        uint256 feePaid = msg.value;
+
+        // Check: fee paid is at least the minimum fee.
+        if (feePaid < minFeeWei) {
+            revert Errors.SablierFlow_InsufficientFeePayment(feePaid, minFeeWei);
+        }
+
         // Check: the withdraw amount is not zero.
         if (amount == 0) {
             revert Errors.SablierFlow_WithdrawAmountZero(streamId);

@@ -22,11 +22,6 @@ contract FlowComptrollerHandler is BaseHandler {
         _;
     }
 
-    modifier setCallerComptroller() {
-        setMsgSender(address(flow.comptroller()));
-        _;
-    }
-
     modifier useFuzzedToken(uint256 tokenIndex) {
         IERC20[] memory tokens = flowStore.getTokens();
         vm.assume(tokenIndex < tokens.length);
@@ -57,9 +52,10 @@ contract FlowComptrollerHandler is BaseHandler {
         limitNumberOfCalls("recover")
         instrument(0, "recover")
         useFuzzedToken(tokenIndex)
-        setCallerComptroller
     {
         vm.assume(currentToken.balanceOf(address(flow)) > flow.aggregateAmount(currentToken));
+
+        setMsgSender(address(flow.comptroller()));
 
         flow.recover(currentToken, address(comptroller));
     }

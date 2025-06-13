@@ -287,7 +287,7 @@ contract FlowHandler is BaseHandler {
         }
 
         // Withdraw from the stream.
-        flow.withdraw({ streamId: currentStreamId, to: to, amount: amount });
+        flow.withdraw{ value: FLOW_MIN_FEE_WEI }({ streamId: currentStreamId, to: to, amount: amount });
 
         // Update the withdrawal totals.
         flowStore.updateTotalWithdrawals(currentStreamId, flow.getToken(currentStreamId), amount);

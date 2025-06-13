@@ -169,6 +169,10 @@ abstract contract Modifiers is Utils {
         _;
     }
 
+    modifier whenFeeNotLessThanMinFee() {
+        _;
+    }
+
     modifier whenWithdrawalAddressNotOwner() {
         _;
     }
