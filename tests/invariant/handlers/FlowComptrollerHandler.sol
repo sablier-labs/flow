@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.22;
 
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { FlowStore } from "./../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
@@ -12,8 +10,8 @@ contract FlowComptrollerHandler is BaseHandler {
                                      MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Since all comptroller-related functions are rarely called compared to core flow functionalities,
-    /// we limit the number of calls to 10.
+    /// @dev Since all comptroller-related functions are rarely called compared to core flow functionalities, we limit
+    /// the number of calls to 10.
     modifier limitNumberOfCalls(string memory name) {
         vm.assume(totalCalls[name] < 10);
         _;
@@ -26,16 +24,8 @@ contract FlowComptrollerHandler is BaseHandler {
     constructor(FlowStore flowStore_, ISablierFlow flow_) BaseHandler(flowStore_, flow_) { }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                 SABLIER-FLOW-STATE
+                                    SABLIER-FLOW
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @dev Function to increase the flow contract balance for the fuzzed token.
-    function randomTransfer(uint256 tokenIndex, uint256 amount) external useFuzzedToken(tokenIndex) {
-        vm.assume(amount > 0 && amount < 100e18);
-        amount *= 10 ** IERC20Metadata(address(currentToken)).decimals();
-
-        deal({ token: address(currentToken), to: address(flow), give: currentToken.balanceOf(address(flow)) + amount });
-    }
 
     function recover(uint256 tokenIndex)
         external
@@ -45,8 +35,7 @@ contract FlowComptrollerHandler is BaseHandler {
     {
         vm.assume(currentToken.balanceOf(address(flow)) > flow.aggregateAmount(currentToken));
 
-        setMsgSender(address(flow.comptroller()));
-
-        flow.recover(currentToken, address(comptroller));
+        setMsgSender(address(comptroller));
+        flow.recover(currentToken, comptroller.admin());
     }
 }

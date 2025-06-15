@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.8.22;
 
+import { BaseTest as EvmUtilsBase } from "@sablier/evm-utils/src/tests/BaseTest.sol";
+
 import { Utils } from "./Utils.sol";
 
-abstract contract Modifiers is Utils {
+abstract contract Modifiers is Utils, EvmUtilsBase {
     /*//////////////////////////////////////////////////////////////////////////
                                        COMMON
     //////////////////////////////////////////////////////////////////////////*/
@@ -102,10 +104,6 @@ abstract contract Modifiers is Utils {
     }
 
     modifier whenSenderMatches() {
-        _;
-    }
-
-    modifier whenTotalAmountNotZero() {
         _;
     }
 

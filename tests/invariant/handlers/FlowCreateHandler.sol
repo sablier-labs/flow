@@ -78,7 +78,7 @@ contract FlowCreateHandler is BaseHandler {
         _checkParams(params);
 
         vm.assume(flowStore.lastStreamId() < MAX_STREAM_COUNT);
-        vm.assume(params.startTime <= getBlockTimestamp());
+        vm.assume(params.startTime <= block.timestamp);
 
         // Calculate the upper bound, based on the token decimals, for the deposit amount.
         uint256 upperBound = getDescaledAmount(1_000_000e18, IERC20Metadata(address(currentToken)).decimals());
