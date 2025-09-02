@@ -3,14 +3,15 @@ pragma solidity >=0.8.22;
 
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { UD21x18 } from "@prb/math/src/UD21x18.sol";
+import { UD21x18, UNIT } from "@prb/math/src/UD21x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
+import { Constants } from "../../utils/Constants.sol";
 import { FlowStore } from "../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
 
-contract FlowHandler is BaseHandler {
+contract FlowHandler is BaseHandler, Constants {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -49,7 +50,7 @@ contract FlowHandler is BaseHandler {
         if (lastStreamId == 0) {
             return;
         }
-        vm.assume(streamIndex < lastStreamId);
+        streamIndex = bound(streamIndex, 0, lastStreamId - 1);
         currentStreamId = flowStore.streamIds(streamIndex);
         _;
     }
@@ -75,7 +76,7 @@ contract FlowHandler is BaseHandler {
 
     /// @dev Function to increase the flow contract balance for the fuzzed token.
     function randomTransfer(uint256 tokenIndex, uint256 amount) external useFuzzedToken(tokenIndex) {
-        vm.assume(amount > 0 && amount < 100e18);
+        amount = bound(amount, 1, 100e18);
         amount *= 10 ** IERC20Metadata(address(currentToken)).decimals();
 
         deal({ token: address(currentToken), to: address(flow), give: currentToken.balanceOf(address(flow)) + amount });
@@ -104,23 +105,33 @@ contract FlowHandler is BaseHandler {
 
         uint8 decimals = flow.getTokenDecimals(currentStreamId);
 
-        // The rate per second must be greater than zero and different from the current rate per second.
-        vm.assume(newRatePerSecond.unwrap() > 0 && newRatePerSecond.unwrap() != currentRatePerSecond);
-
         // Calculate the minimum value in scaled version that can be withdrawn for this token.
         uint256 mvt = getScaledAmount(1, decimals);
 
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
         if (decimals == 18) {
-            vm.assume(newRatePerSecond.unwrap() > 0.00001e18 && newRatePerSecond.unwrap() <= 1e18);
+            newRatePerSecond = boundRatePerSecond({
+                ratePerSecond: newRatePerSecond,
+                minRatePerSecond: UD21x18.wrap(0.00001e18),
+                maxRatePerSecond: UNIT
+            });
         } else {
-            vm.assume(newRatePerSecond.unwrap() > mvt / 100 && newRatePerSecond.unwrap() <= 1e18);
+            newRatePerSecond = boundRatePerSecond({
+                ratePerSecond: newRatePerSecond,
+                minRatePerSecond: UD21x18.wrap(uint128(mvt / 100)),
+                maxRatePerSecond: UNIT
+            });
+        }
+
+        // The rate per second must be different from the current rate per second.
+        if (newRatePerSecond.unwrap() == currentRatePerSecond) {
+            newRatePerSecond = UD21x18.wrap(currentRatePerSecond + 1);
         }
 
         // Adjust the rate per second.
         flow.adjustRatePerSecond(currentStreamId, newRatePerSecond);
 
-        flowStore.pushPeriod(currentStreamId, newRatePerSecond.unwrap(), "adjustRatePerSecond");
+        flowStore.pushPeriod(currentStreamId, newRatePerSecond.unwrap());
     }
 
     function deposit(
@@ -138,12 +149,13 @@ contract FlowHandler is BaseHandler {
         // Voided streams cannot be deposited on.
         vm.assume(!flow.isVoided(currentStreamId));
 
-        // Calculate the upper bound, based on the token decimals, for the deposit amount.
-        uint256 upperBound = getDescaledAmount(1_000_000e18, flow.getTokenDecimals(currentStreamId));
-        uint256 lowerBound = getDescaledAmount(1e18, flow.getTokenDecimals(currentStreamId));
-
-        // Make sure the deposit amount is non-zero and less than values that could cause an overflow.
-        vm.assume(depositAmount >= lowerBound && depositAmount <= upperBound);
+        // Bound the deposit amount.
+        depositAmount = boundDepositAmount({
+            amount: depositAmount,
+            lowerBound18D: 1e18,
+            upperBound18D: 1_000_000e18,
+            decimals: flow.getTokenDecimals(currentStreamId)
+        });
 
         IERC20 token = flow.getToken(currentStreamId);
 
@@ -180,12 +192,12 @@ contract FlowHandler is BaseHandler {
         vm.assume(flow.getRatePerSecond(currentStreamId).unwrap() > 0);
 
         // The stream must not be PENDING.
-        vm.assume(flow.getSnapshotTime(currentStreamId) <= block.timestamp);
+        vm.assume(flow.getSnapshotTime(currentStreamId) <= getBlockTimestamp());
 
         // Pause the stream.
         flow.pause(currentStreamId);
 
-        flowStore.pushPeriod(currentStreamId, 0, "pause");
+        flowStore.pushPeriod(currentStreamId, 0);
     }
 
     function refund(
@@ -200,13 +212,13 @@ contract FlowHandler is BaseHandler {
         updateFlowHandlerStates
         instrument(currentStreamId, "refund")
     {
-        uint256 refundableAmount = flow.refundableAmountOf(currentStreamId);
+        uint128 refundableAmount = flow.refundableAmountOf(currentStreamId);
 
         // The protocol doesn't allow zero refund amounts.
         vm.assume(refundableAmount > 0);
 
         // Make sure the refund amount is non-zero and it is less or equal to the maximum refundable amount.
-        vm.assume(refundAmount >= 1 && refundAmount <= refundableAmount);
+        refundAmount = boundUint128(refundAmount, 1, refundableAmount);
 
         // Refund from stream.
         flow.refund(currentStreamId, refundAmount);
@@ -240,15 +252,23 @@ contract FlowHandler is BaseHandler {
 
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
         if (decimals == 18) {
-            vm.assume(ratePerSecond.unwrap() > 0.00001e18 && ratePerSecond.unwrap() <= 1e18);
+            ratePerSecond = boundRatePerSecond({
+                ratePerSecond: ratePerSecond,
+                minRatePerSecond: UD21x18.wrap(0.00001e18),
+                maxRatePerSecond: UNIT
+            });
         } else {
-            vm.assume(ratePerSecond.unwrap() > mvt / 100 && ratePerSecond.unwrap() <= 1e18);
+            ratePerSecond = boundRatePerSecond({
+                ratePerSecond: ratePerSecond,
+                minRatePerSecond: UD21x18.wrap(uint128(mvt / 100)),
+                maxRatePerSecond: UNIT
+            });
         }
 
         // Restart the stream.
         flow.restart(currentStreamId, ratePerSecond);
 
-        flowStore.pushPeriod(currentStreamId, ratePerSecond.unwrap(), "restart");
+        flowStore.pushPeriod(currentStreamId, ratePerSecond.unwrap());
     }
 
     function void(
@@ -268,7 +288,7 @@ contract FlowHandler is BaseHandler {
         // Void the stream.
         flow.void(currentStreamId);
 
-        flowStore.pushPeriod(currentStreamId, 0, "void");
+        flowStore.pushPeriod(currentStreamId, 0);
     }
 
     function withdraw(
@@ -285,13 +305,15 @@ contract FlowHandler is BaseHandler {
         instrument(currentStreamId, "withdraw")
     {
         // The protocol doesn't allow the withdrawal address to be the zero address.
-        vm.assume(to != address(0) && to != address(flow));
+        while (to == address(0) || to == address(flow)) {
+            to = vm.randomAddress();
+        }
 
         // Check if there is anything to withdraw.
         vm.assume(flow.coveredDebtOf(currentStreamId) > 0);
 
         // Make sure the withdraw amount is non-zero and it is less or equal to the maximum withdrawable amount.
-        vm.assume(amount >= 1 && amount <= flow.withdrawableAmountOf(currentStreamId));
+        amount = boundUint128(amount, 1, flow.withdrawableAmountOf(currentStreamId));
 
         // There is an edge case when the sender is the same as the recipient. In this scenario, the withdrawal
         // address must be set to the recipient.
@@ -302,7 +324,7 @@ contract FlowHandler is BaseHandler {
         // Withdraw from the stream.
         flow.withdraw{ value: MIN_FEE_WEI }({ streamId: currentStreamId, to: to, amount: amount });
 
-        // Update the withdrawal totals.
-        flowStore.updateTotalWithdrawals(currentStreamId, flow.getToken(currentStreamId), amount);
+        // Update the total withdrawn by stream.
+        flowStore.updateTotalWithdrawn(currentStreamId, flow.getToken(currentStreamId), amount);
     }
 }
