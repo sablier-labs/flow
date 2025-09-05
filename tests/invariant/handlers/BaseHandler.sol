@@ -16,8 +16,8 @@ abstract contract BaseHandler is StdCheats, StdBase, Utils {
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @dev Maximum number of streams that can be created during an invariant campaign.
-    uint256 internal constant MAX_STREAM_COUNT = 100;
+    /// @dev Maximum number of streams that can be created.
+    uint256 internal constant MAX_STREAM_COUNT = 10_000;
 
     /// @dev Maps function names and the number of times they have been called by the stream ID.
     mapping(uint256 streamId => mapping(string func => uint256 calls)) public calls;
@@ -42,7 +42,7 @@ abstract contract BaseHandler is StdCheats, StdBase, Utils {
 
     modifier useFuzzedToken(uint256 tokenIndex) {
         IERC20[] memory tokens = flowStore.getTokens();
-        vm.assume(tokenIndex < tokens.length);
+        tokenIndex = bound(tokenIndex, 0, tokens.length - 1);
         currentToken = tokens[tokenIndex];
         _;
     }
@@ -65,7 +65,7 @@ abstract contract BaseHandler is StdCheats, StdBase, Utils {
     /// from becoming excessively large.
     /// @param timeJump A fuzzed value for time warps.
     modifier adjustTimestamp(uint256 timeJump) {
-        vm.assume(timeJump < 40 days);
+        timeJump = bound(timeJump, 0, 40 days);
         skip(timeJump);
         _;
     }
@@ -77,18 +77,5 @@ abstract contract BaseHandler is StdCheats, StdBase, Utils {
         }
         totalCalls[functionName]++;
         _;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                      HELPERS
-    //////////////////////////////////////////////////////////////////////////*/
-
-    /// @dev Stops the active prank and sets a new one.
-    function setMsgSender(address msgSender) internal {
-        vm.stopPrank();
-        vm.startPrank(msgSender);
-
-        // Deal some ETH to the new caller.
-        vm.deal(msgSender, 1 ether);
     }
 }
