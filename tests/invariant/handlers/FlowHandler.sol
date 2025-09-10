@@ -124,7 +124,7 @@ contract FlowHandler is BaseHandler {
             typeOfPeriod: "adjustRatePerSecond",
             streamId: currentStreamId,
             newRatePerSecond: newRatePerSecond.unwrap(),
-            blockTimestamp: uint40(vm.getBlockTimestamp())
+            blockTimestamp: getBlockTimestamp()
         });
     }
 
@@ -185,7 +185,7 @@ contract FlowHandler is BaseHandler {
         vm.assume(flow.getRatePerSecond(currentStreamId).unwrap() > 0);
 
         // The stream must not be PENDING.
-        vm.assume(flow.getSnapshotTime(currentStreamId) <= vm.getBlockTimestamp());
+        vm.assume(flow.getSnapshotTime(currentStreamId) <= getBlockTimestamp());
 
         // Pause the stream.
         flow.pause(currentStreamId);
@@ -194,7 +194,7 @@ contract FlowHandler is BaseHandler {
             typeOfPeriod: "pause",
             streamId: currentStreamId,
             newRatePerSecond: 0,
-            blockTimestamp: uint40(vm.getBlockTimestamp())
+            blockTimestamp: getBlockTimestamp()
         });
     }
 
@@ -262,7 +262,7 @@ contract FlowHandler is BaseHandler {
             typeOfPeriod: "restart",
             streamId: currentStreamId,
             newRatePerSecond: ratePerSecond.unwrap(),
-            blockTimestamp: uint40(vm.getBlockTimestamp())
+            blockTimestamp: getBlockTimestamp()
         });
     }
 
@@ -287,7 +287,7 @@ contract FlowHandler is BaseHandler {
             typeOfPeriod: "void",
             streamId: currentStreamId,
             newRatePerSecond: 0,
-            blockTimestamp: uint40(vm.getBlockTimestamp())
+            blockTimestamp: getBlockTimestamp()
         });
     }
 
