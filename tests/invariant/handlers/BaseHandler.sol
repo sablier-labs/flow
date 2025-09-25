@@ -39,27 +39,6 @@ abstract contract BaseHandler is StdCheats, Utils {
                                      MODIFIERS
     //////////////////////////////////////////////////////////////////////////*/
 
-    modifier useFuzzedToken(uint256 tokenIndex) {
-        IERC20[] memory tokens = flowStore.getTokens();
-        tokenIndex = bound(tokenIndex, 0, tokens.length - 1);
-        currentToken = tokens[tokenIndex];
-        _;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    CONSTRUCTOR
-    //////////////////////////////////////////////////////////////////////////*/
-
-    constructor(FlowStore flowStore_, ISablierFlow flow_) {
-        comptroller = flow_.comptroller();
-        flowStore = flowStore_;
-        flow = flow_;
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                     MODIFIERS
-    //////////////////////////////////////////////////////////////////////////*/
-
     /// @dev Simulates the passage of time. The time jump is kept under 40 days to prevent the streamed amount
     /// from becoming excessively large.
     /// @param timeJump A fuzzed value for time warps.
@@ -76,5 +55,22 @@ abstract contract BaseHandler is StdCheats, Utils {
         }
         totalCalls[functionName]++;
         _;
+    }
+
+    modifier useFuzzedToken(uint256 tokenIndex) {
+        IERC20[] memory tokens = flowStore.getTokens();
+        tokenIndex = bound(tokenIndex, 0, tokens.length - 1);
+        currentToken = tokens[tokenIndex];
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    CONSTRUCTOR
+    //////////////////////////////////////////////////////////////////////////*/
+
+    constructor(FlowStore flowStore_, ISablierFlow flow_) {
+        comptroller = flow_.comptroller();
+        flowStore = flowStore_;
+        flow = flow_;
     }
 }

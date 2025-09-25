@@ -123,12 +123,8 @@ contract FlowCreateHandler is BaseHandler {
     /// @dev Check the relevant parameters fuzzed for create.
     function _checkParams(CreateParams memory params) private {
         // Make sure the sender and recipient are not the zero address or the contract itself.
-        while (params.sender == address(0) || params.sender == address(this)) {
-            params.sender = vm.randomAddress();
-        }
-        while (params.recipient == address(0) || params.recipient == address(this)) {
-            params.recipient = vm.randomAddress();
-        }
+        params.sender = fuzzAddrWithExclusion(params.sender, address(this));
+        params.recipient = fuzzAddrWithExclusion(params.recipient, address(this));
 
         // Change the caller.
         setMsgSender(params.sender);

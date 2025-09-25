@@ -8,12 +8,11 @@ import { FlowNFTDescriptor } from "src/FlowNFTDescriptor.sol";
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 import { SablierFlow } from "src/SablierFlow.sol";
 import { Assertions } from "./utils/Assertions.sol";
-import { Constants } from "./utils/Constants.sol";
 import { Modifiers } from "./utils/Modifiers.sol";
 import { Users } from "./utils/Types.sol";
 import { Vars } from "./utils/Vars.sol";
 
-abstract contract Base_Test is Assertions, Constants, Modifiers {
+abstract contract Base_Test is Assertions, Modifiers {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -86,10 +85,5 @@ abstract contract Base_Test is Assertions, Constants, Modifiers {
                 abi.encode(address(comptroller), address(nftDescriptor))
             )
         );
-    }
-
-    /// @dev Calculates the default deposit amount using `TRANSFER_VALUE` and `decimals`.
-    function getDefaultDepositAmount(uint8 decimals) internal pure returns (uint128 depositAmount) {
-        return uint128(TRANSFER_VALUE * (10 ** decimals));
     }
 }

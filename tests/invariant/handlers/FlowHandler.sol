@@ -7,11 +7,10 @@ import { UD21x18, UNIT } from "@prb/math/src/UD21x18.sol";
 
 import { ISablierFlow } from "src/interfaces/ISablierFlow.sol";
 
-import { Constants } from "../../utils/Constants.sol";
 import { FlowStore } from "../stores/FlowStore.sol";
 import { BaseHandler } from "./BaseHandler.sol";
 
-contract FlowHandler is BaseHandler, Constants {
+contract FlowHandler is BaseHandler {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -313,9 +312,7 @@ contract FlowHandler is BaseHandler, Constants {
         instrument(currentStreamId, "withdraw")
     {
         // The protocol doesn't allow the withdrawal address to be the zero address.
-        while (to == address(0) || to == address(flow)) {
-            to = vm.randomAddress();
-        }
+        to = fuzzAddrWithExclusion(to, address(flow));
 
         // Check if there is anything to withdraw.
         vm.assume(flow.coveredDebtOf(currentStreamId) > 0);

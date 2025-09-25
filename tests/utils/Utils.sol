@@ -3,11 +3,11 @@ pragma solidity >=0.8.22;
 
 import { UD21x18 } from "@prb/math/src/UD21x18.sol";
 import { PRBMathUtils } from "@prb/math/test/utils/Utils.sol";
-import { BaseConstants } from "@sablier/evm-utils/src/tests/BaseConstants.sol";
 import { BaseUtils } from "@sablier/evm-utils/src/tests/BaseUtils.sol";
 import { SafeCastLib } from "solady/src/utils/SafeCastLib.sol";
+import { Constants } from "./Constants.sol";
 
-abstract contract Utils is BaseConstants, BaseUtils, PRBMathUtils {
+abstract contract Utils is Constants, BaseUtils, PRBMathUtils {
     using SafeCastLib for uint256;
 
     /// @dev Bound deposit amount to avoid overflow.
@@ -60,6 +60,20 @@ abstract contract Utils is BaseConstants, BaseUtils, PRBMathUtils {
         returns (UD21x18)
     {
         return bound(ratePerSecond, minRatePerSecond, maxRatePerSecond);
+    }
+
+    /// @dev Fuzz an address by excluding the zero address and the address provided.
+    function fuzzAddrWithExclusion(address addr, address toExclude) internal view returns (address) {
+        while (addr == address(0) || addr == toExclude) {
+            addr = vm.randomAddress();
+        }
+
+        return addr;
+    }
+
+    /// @dev Calculates the default deposit amount using `TRANSFER_VALUE` and `decimals`.
+    function getDefaultDepositAmount(uint8 decimals) internal pure returns (uint128 depositAmount) {
+        return uint128(TRANSFER_VALUE * (10 ** decimals));
     }
 
     /// @dev Descales the amount to denote it in token's decimals.
