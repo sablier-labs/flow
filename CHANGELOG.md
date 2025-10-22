@@ -14,7 +14,7 @@ The format is based on [Common Changelog](https://common-changelog.org/).
 
 ### Changed
 
-- Bump `@sablier/evm-utils` to v1.0.1
+- Bump `@sablier/evm-utils` to v1.0.1 ([#475](https://github.com/sablier-labs/flow/pull/475/))
 
 ### Removed
 
