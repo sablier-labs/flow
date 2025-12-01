@@ -25,6 +25,7 @@ contract Init is BaseScript {
                 sender: sender,
                 recipient: recipient,
                 ratePerSecond: UD21x18.wrap(uint128(i + 1) * 0.0000001e18),
+                startTime: uint40(block.timestamp),
                 token: token,
                 transferable: true
             });
