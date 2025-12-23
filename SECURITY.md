@@ -31,3 +31,5 @@ it must adhere to the following assumptions:
 - There could be a minor discrepancy between the actual streamed amount and the expected amount. This is due to `rps`
   being an 18-decimal number, while users provide the amount per interval in the UI. If `rps` had infinite decimals,
   this discrepancy would not occur.
+- When withdrawing from multiple streams using `batch` function, the minimum fee required to execute the batch is equal
+  to the minimum fee required to withdraw from a single stream. This is intentional and expected behavior.
