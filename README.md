@@ -1,3 +1,8 @@
+# Archived
+
+This repository is no longer maintained, and it is archived. The latest version of the flow protocol can be viewed in
+the [evm-monorepo](https://github.com/sablier-labs/evm-monorepo/tree/main/flow).
+
 # Sablier Flow [![Github Actions][gha-badge]][gha] [![Coverage][codecov-badge]][codecov] [![Foundry][foundry-badge]][foundry] [![Discord][discord-badge]][discord] [![Twitter][twitter-badge]][twitter]
 
 [gha]: https://github.com/sablier-labs/flow/actions
