@@ -2,8 +2,6 @@ name: "Multibuild"
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 3 * * 0" # at 3:00am UTC every Sunday
 
 jobs:
   multibuild:

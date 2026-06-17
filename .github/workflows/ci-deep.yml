@@ -1,8 +1,6 @@
 name: "CI Deep"
 
 on:
-  schedule:
-    - cron: "0 3 * * 3,6" # at 3:00am UTC on Wednesday and Saturday
   workflow_dispatch:
     inputs:
       integrationFuzzRuns:
@@ -60,16 +58,3 @@ jobs:
       match-path: "tests/fork/**/*.sol"
       name: "Fork tests"
       retry-attempts: 2
-
-  notify-on-failure:
-    if: failure()
-    needs: ["check", "build", "test-integration", "test-invariant", "test-fork"]
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Send Slack notification"
-        uses: "rtCamp/action-slack-notify@v2"
-        env:
-          SLACK_CHANNEL: "#ci-notifications"
-          SLACK_MESSAGE: "CI Workflow failed for ${{ github.repository }} on branch ${{ github.ref }} at job ${{ github.job }}."
-          SLACK_USERNAME: "GitHub CI"
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
