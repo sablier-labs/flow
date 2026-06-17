@@ -13,8 +13,7 @@ contract Constructor_Integration_Concrete_Test is Shared_Integration_Concrete_Te
         // Expect the relevant event to be emitted.
         vm.expectEmit();
         emit IComptrollerable.SetComptroller({
-            newComptroller: comptroller,
-            oldComptroller: ISablierComptroller(address(0))
+            newComptroller: comptroller, oldComptroller: ISablierComptroller(address(0))
         });
 
         // Construct the contract.

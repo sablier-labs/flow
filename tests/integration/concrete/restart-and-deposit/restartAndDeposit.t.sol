@@ -65,9 +65,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Shared_Integration_Concr
         // It should emit 1 {RestartFlowStream}, 1 {Transfer}, 1 {DepositFlowStream} and 1 {MetadataUpdate} events.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RestartFlowStream({
-            streamId: defaultStreamId,
-            sender: users.sender,
-            ratePerSecond: RATE_PER_SECOND
+            streamId: defaultStreamId, sender: users.sender, ratePerSecond: RATE_PER_SECOND
         });
 
         vm.expectEmit({ emitter: address(usdc) });
@@ -75,9 +73,7 @@ contract RestartAndDeposit_Integration_Concrete_Test is Shared_Integration_Concr
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.DepositFlowStream({
-            streamId: defaultStreamId,
-            funder: users.sender,
-            amount: DEPOSIT_AMOUNT_6D
+            streamId: defaultStreamId, funder: users.sender, amount: DEPOSIT_AMOUNT_6D
         });
 
         vm.expectEmit({ emitter: address(flow) });

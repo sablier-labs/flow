@@ -51,9 +51,7 @@ contract RefundMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RefundFromFlowStream({
-            streamId: streamId,
-            sender: users.sender,
-            amount: expectedRefundableAmount
+            streamId: streamId, sender: users.sender, amount: expectedRefundableAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });

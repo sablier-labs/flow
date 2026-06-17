@@ -97,10 +97,7 @@ contract Pause_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
         // Expect the relevant events to be emitted.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.PauseFlowStream({
-            streamId: streamId,
-            sender: users.sender,
-            recipient: users.recipient,
-            totalDebt: flow.totalDebtOf(streamId)
+            streamId: streamId, sender: users.sender, recipient: users.recipient, totalDebt: flow.totalDebtOf(streamId)
         });
 
         vm.expectEmit({ emitter: address(flow) });

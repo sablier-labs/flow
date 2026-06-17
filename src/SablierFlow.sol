@@ -65,17 +65,10 @@ contract SablierFlow is
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc ISablierFlow
-    function calculateMinFeeWei(uint256 streamId)
-        external
-        view
-        override
-        notNull(streamId)
-        returns (uint256 minFeeWei)
-    {
+    function calculateMinFeeWei(uint256 streamId) external view override notNull(streamId) returns (uint256 minFeeWei) {
         // Calculate the minimum fee in wei for the stream sender.
         minFeeWei = comptroller.calculateMinFeeWeiFor({
-            protocol: ISablierComptroller.Protocol.Flow,
-            user: _streams[streamId].sender
+            protocol: ISablierComptroller.Protocol.Flow, user: _streams[streamId].sender
         });
     }
 
@@ -966,8 +959,7 @@ contract SablierFlow is
     function _withdraw(uint256 streamId, address to, uint128 amount) private {
         // Calculate the minimum fee in wei for the stream sender.
         uint256 minFeeWei = comptroller.calculateMinFeeWeiFor({
-            protocol: ISablierComptroller.Protocol.Flow,
-            user: _streams[streamId].sender
+            protocol: ISablierComptroller.Protocol.Flow, user: _streams[streamId].sender
         });
 
         uint256 feePaid = msg.value;
@@ -1057,11 +1049,7 @@ contract SablierFlow is
 
         // Log the withdrawal.
         emit ISablierFlow.WithdrawFromFlowStream({
-            streamId: streamId,
-            to: to,
-            token: token,
-            caller: msg.sender,
-            withdrawAmount: amount
+            streamId: streamId, to: to, token: token, caller: msg.sender, withdrawAmount: amount
         });
     }
 }

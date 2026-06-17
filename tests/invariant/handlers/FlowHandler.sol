@@ -110,9 +110,7 @@ contract FlowHandler is BaseHandler {
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
         if (decimals == 18) {
             newRatePerSecond = boundRatePerSecond({
-                ratePerSecond: newRatePerSecond,
-                minRatePerSecond: UD21x18.wrap(0.00001e18),
-                maxRatePerSecond: UNIT
+                ratePerSecond: newRatePerSecond, minRatePerSecond: UD21x18.wrap(0.00001e18), maxRatePerSecond: UNIT
             });
         } else {
             newRatePerSecond = boundRatePerSecond({
@@ -131,9 +129,7 @@ contract FlowHandler is BaseHandler {
         flow.adjustRatePerSecond(currentStreamId, newRatePerSecond);
 
         flowStore.pushPeriod({
-            streamId: currentStreamId,
-            newRatePerSecond: newRatePerSecond.unwrap(),
-            blockTimestamp: getBlockTimestamp()
+            streamId: currentStreamId, newRatePerSecond: newRatePerSecond.unwrap(), blockTimestamp: getBlockTimestamp()
         });
     }
 
@@ -256,15 +252,11 @@ contract FlowHandler is BaseHandler {
         // Check the rate per second is within a realistic range such that it can also be smaller than mvt.
         if (decimals == 18) {
             ratePerSecond = boundRatePerSecond({
-                ratePerSecond: ratePerSecond,
-                minRatePerSecond: UD21x18.wrap(0.00001e18),
-                maxRatePerSecond: UNIT
+                ratePerSecond: ratePerSecond, minRatePerSecond: UD21x18.wrap(0.00001e18), maxRatePerSecond: UNIT
             });
         } else {
             ratePerSecond = boundRatePerSecond({
-                ratePerSecond: ratePerSecond,
-                minRatePerSecond: UD21x18.wrap(uint128(mvt / 100)),
-                maxRatePerSecond: UNIT
+                ratePerSecond: ratePerSecond, minRatePerSecond: UD21x18.wrap(uint128(mvt / 100)), maxRatePerSecond: UNIT
             });
         }
 
@@ -272,9 +264,7 @@ contract FlowHandler is BaseHandler {
         flow.restart(currentStreamId, ratePerSecond);
 
         flowStore.pushPeriod({
-            streamId: currentStreamId,
-            newRatePerSecond: ratePerSecond.unwrap(),
-            blockTimestamp: getBlockTimestamp()
+            streamId: currentStreamId, newRatePerSecond: ratePerSecond.unwrap(), blockTimestamp: getBlockTimestamp()
         });
     }
 

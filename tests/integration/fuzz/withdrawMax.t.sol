@@ -104,11 +104,7 @@ contract WithdrawMax_Integration_Fuzz_Test is Shared_Integration_Fuzz_Test {
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.WithdrawFromFlowStream({
-            streamId: streamId,
-            to: withdrawTo,
-            token: token,
-            caller: caller,
-            withdrawAmount: withdrawAmount
+            streamId: streamId, to: withdrawTo, token: token, caller: caller, withdrawAmount: withdrawAmount
         });
 
         vm.expectEmit({ emitter: address(flow) });

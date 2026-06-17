@@ -72,10 +72,7 @@ contract Refund_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
 
         // It should make the refund.
         _test_Refund({
-            streamId: defaultStreamId,
-            token: usdc,
-            depositedAmount: DEPOSIT_AMOUNT_6D,
-            refundAmount: REFUND_AMOUNT_6D
+            streamId: defaultStreamId, token: usdc, depositedAmount: DEPOSIT_AMOUNT_6D, refundAmount: REFUND_AMOUNT_6D
         });
     }
 
@@ -112,10 +109,7 @@ contract Refund_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
     {
         // It should make the refund.
         _test_Refund({
-            streamId: defaultStreamId,
-            token: usdc,
-            depositedAmount: DEPOSIT_AMOUNT_6D,
-            refundAmount: REFUND_AMOUNT_6D
+            streamId: defaultStreamId, token: usdc, depositedAmount: DEPOSIT_AMOUNT_6D, refundAmount: REFUND_AMOUNT_6D
         });
     }
 
@@ -134,10 +128,7 @@ contract Refund_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
 
         // It should make the refund.
         _test_Refund({
-            streamId: streamId,
-            token: dai,
-            depositedAmount: DEPOSIT_AMOUNT_18D,
-            refundAmount: REFUND_AMOUNT_18D
+            streamId: streamId, token: dai, depositedAmount: DEPOSIT_AMOUNT_18D, refundAmount: REFUND_AMOUNT_18D
         });
     }
 

@@ -43,9 +43,7 @@ contract CreateAndDeposit_Integration_Concrete_Test is Shared_Integration_Concre
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.DepositFlowStream({
-            streamId: expectedStreamId,
-            funder: users.sender,
-            amount: DEPOSIT_AMOUNT_6D
+            streamId: expectedStreamId, funder: users.sender, amount: DEPOSIT_AMOUNT_6D
         });
 
         // It should perform the ERC-20 transfers

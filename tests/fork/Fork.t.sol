@@ -71,10 +71,7 @@ abstract contract Fork_Test is Base_Test {
         // Use `forceApprove` for USDT compatibility.
         FORK_TOKEN.forceApprove(address(flow), depositAmount);
         flow.deposit({
-            streamId: streamId,
-            amount: depositAmount,
-            sender: sender,
-            recipient: flow.getRecipient(streamId)
+            streamId: streamId, amount: depositAmount, sender: sender, recipient: flow.getRecipient(streamId)
         });
     }
 }

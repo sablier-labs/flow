@@ -87,9 +87,7 @@ contract Restart_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         // It should emit 1 {RestartFlowStream}, 1 {MetadataUpdate} event.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RestartFlowStream({
-            streamId: defaultStreamId,
-            sender: users.sender,
-            ratePerSecond: RATE_PER_SECOND
+            streamId: defaultStreamId, sender: users.sender, ratePerSecond: RATE_PER_SECOND
         });
 
         vm.expectEmit({ emitter: address(flow) });

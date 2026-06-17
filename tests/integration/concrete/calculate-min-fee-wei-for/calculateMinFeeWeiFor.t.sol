@@ -17,9 +17,7 @@ contract CalculateMinFeeWeiFor_Integration_Concrete_Test is Shared_Integration_C
 
         // Set the custom fee.
         comptroller.setCustomFeeUSDFor({
-            protocol: ISablierComptroller.Protocol.Flow,
-            user: users.sender,
-            customFeeUSD: customFeeUSD
+            protocol: ISablierComptroller.Protocol.Flow, user: users.sender, customFeeUSD: customFeeUSD
         });
 
         uint256 expectedFeeWei = (1e18 * customFeeUSD) / ETH_PRICE_USD;

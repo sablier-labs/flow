@@ -66,9 +66,7 @@ contract DepositAndPause_Integration_Concrete_Test is Shared_Integration_Concret
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.DepositFlowStream({
-            streamId: defaultStreamId,
-            funder: users.sender,
-            amount: DEPOSIT_AMOUNT_6D
+            streamId: defaultStreamId, funder: users.sender, amount: DEPOSIT_AMOUNT_6D
         });
 
         vm.expectEmit({ emitter: address(flow) });

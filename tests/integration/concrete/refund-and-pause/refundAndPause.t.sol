@@ -61,9 +61,7 @@ contract RefundAndPause_Integration_Concrete_Test is Shared_Integration_Concrete
 
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RefundFromFlowStream({
-            streamId: defaultStreamId,
-            sender: users.sender,
-            amount: REFUND_AMOUNT_6D
+            streamId: defaultStreamId, sender: users.sender, amount: REFUND_AMOUNT_6D
         });
 
         vm.expectEmit({ emitter: address(flow) });

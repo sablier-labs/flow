@@ -96,15 +96,11 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         // It should emit 2 {DepositFlowStream} events.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.DepositFlowStream({
-            streamId: defaultStreamIds[0],
-            funder: users.sender,
-            amount: DEPOSIT_AMOUNT_6D
+            streamId: defaultStreamIds[0], funder: users.sender, amount: DEPOSIT_AMOUNT_6D
         });
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.DepositFlowStream({
-            streamId: defaultStreamIds[1],
-            funder: users.sender,
-            amount: DEPOSIT_AMOUNT_6D
+            streamId: defaultStreamIds[1], funder: users.sender, amount: DEPOSIT_AMOUNT_6D
         });
 
         // It should perform the ERC-20 transfers.
@@ -134,10 +130,7 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         });
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.PauseFlowStream({
-            streamId: defaultStreamIds[1],
-            sender: users.sender,
-            recipient: users.recipient,
-            totalDebt: 0
+            streamId: defaultStreamIds[1], sender: users.sender, recipient: users.recipient, totalDebt: 0
         });
 
         // Call the batch function.
@@ -160,15 +153,11 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         // It should emit 2 {RefundFromFlowStream} events.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RefundFromFlowStream({
-            streamId: defaultStreamIds[0],
-            sender: users.sender,
-            amount: REFUND_AMOUNT_6D
+            streamId: defaultStreamIds[0], sender: users.sender, amount: REFUND_AMOUNT_6D
         });
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RefundFromFlowStream({
-            streamId: defaultStreamIds[1],
-            sender: users.sender,
-            amount: REFUND_AMOUNT_6D
+            streamId: defaultStreamIds[1], sender: users.sender, amount: REFUND_AMOUNT_6D
         });
 
         // It should perform the ERC-20 transfers.
@@ -195,15 +184,11 @@ contract Batch_Integration_Concrete_Test is Shared_Integration_Concrete_Test {
         // It should emit 2 {RestartFlowStream} events.
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RestartFlowStream({
-            streamId: defaultStreamIds[0],
-            sender: users.sender,
-            ratePerSecond: RATE_PER_SECOND
+            streamId: defaultStreamIds[0], sender: users.sender, ratePerSecond: RATE_PER_SECOND
         });
         vm.expectEmit({ emitter: address(flow) });
         emit ISablierFlow.RestartFlowStream({
-            streamId: defaultStreamIds[1],
-            sender: users.sender,
-            ratePerSecond: RATE_PER_SECOND
+            streamId: defaultStreamIds[1], sender: users.sender, ratePerSecond: RATE_PER_SECOND
         });
 
         // Call the batch function.
