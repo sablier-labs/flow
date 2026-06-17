@@ -16,7 +16,7 @@
     "@sablier/evm-utils": "1.0.3"
   },
   "devDependencies": {
-    "@sablier/devkit": "github:sablier-labs/devkit",
+    "@sablier/devkit": "^1.18.2",
     "forge-std": "github:foundry-rs/forge-std#v1.10.0",
     "husky": "^9.1",
     "lint-staged": "^16.1",
