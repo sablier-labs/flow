@@ -1,22 +1,29 @@
-# Archived
-
-This repository is no longer maintained, and it is archived. The latest version of the flow protocol can be viewed in
-the [evm-monorepo](https://github.com/sablier-labs/evm-monorepo/tree/main/flow).
-
-# Sablier Flow [![Github Actions][gha-badge]][gha] [![Coverage][codecov-badge]][codecov] [![Foundry][foundry-badge]][foundry] [![Discord][discord-badge]][discord] [![Twitter][twitter-badge]][twitter]
+# Sablier Flow [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![Twitter][twitter-badge]][twitter]
 
 [gha]: https://github.com/sablier-labs/flow/actions
 [gha-badge]: https://github.com/sablier-labs/flow/actions/workflows/ci.yml/badge.svg
-[codecov]: https://codecov.io/gh/sablier-labs/flow
-[codecov-badge]: https://codecov.io/gh/sablier-labs/flow/branch/main/graph/badge.svg
-[discord]: https://discord.gg/bSwRCwWRsT
-[discord-badge]: https://img.shields.io/discord/659709894315868191
 [foundry]: https://getfoundry.sh
 [foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
 [twitter-badge]: https://img.shields.io/twitter/follow/Sablier
 [twitter]: https://x.com/Sablier
 
-In-depth documentation is available at [docs.sablier.com](https://docs.sablier.com).
+> [!IMPORTANT]
+>
+> This repository is archived and no longer maintained. The latest version of Sablier Flow lives in the
+> [evm-monorepo](https://github.com/sablier-labs/evm-monorepo/tree/main/flow).
+
+EVM smart contracts for Sablier Flow, a debt-tracking protocol for open-ended ERC-20 token streaming. Each stream
+accrues debt linearly at a fixed rate per second (rps), with no upfront deposit and no fixed end date.
+
+## Links
+
+- [Documentation](https://docs.sablier.com)
+- [Maintained version (evm-monorepo)](https://github.com/sablier-labs/evm-monorepo/tree/main/flow)
+- [Deployment addresses](https://docs.sablier.com/guides/flow/deployments)
+- [Audits](https://github.com/sablier-labs/audits)
+- [Package on npm](https://www.npmjs.com/package/@sablier/flow)
+- [Releases](https://github.com/sablier-labs/flow/releases)
+- [Changelog](./CHANGELOG.md)
 
 ## Background
 
@@ -45,60 +52,6 @@ insurance premiums, loans interest, token ESOPs etc. If you are looking for vest
 6. **Withdraw:** A publicly callable function as long as `to` is set to the recipient. A stream's recipient is allowed
    to withdraw funds to any address.
 
-## Install
-
-### Node.js
-
-This is the recommended approach.
-
-Install Flow using your favorite package manager, e.g. with Bun:
-
-```shell
-bun add @sablier/flow
-```
-
-### Git Submodules
-
-This installation method is not recommended, but it is available for those who prefer it.
-
-Install the submodule using Forge:
-
-```shell
-forge install sablier-labs/flow
-```
-
-Then, install the project's dependencies:
-
-```shell
-forge install sablier-labs/evm-utils@v1.0.0 OpenZeppelin/openzeppelin-contracts@v5.3.0 PaulRBerg/prb-math@v4.1.0
-```
-
-### Branching Tree Technique
-
-You may notice that some test files are accompanied by `.tree` files. This is because we are using Branching Tree
-Technique and [Bulloak](https://bulloak.dev/).
-
-## Usage
-
-This is just a glimpse of Sablier Flow. For more guides and examples, see the [documentation](https://docs.sablier.com).
-
-```solidity
-import { ISablierFlow } from "@sablier/flow/src/interfaces/ISablierFlow.sol";
-
-contract MyContract {
-  ISablierFlow immutable flow;
-
-  function doSomethingWithFlow(uint256 streamId) external {
-    uint128 totalDebt = flow.totalDebtOf(streamId);
-    // ...
-  }
-}
-```
-
-## Deployments
-
-The list of all deployment addresses can be found [here](https://docs.sablier.com/guides/flow/deployments).
-
 ## Security
 
 The codebase has undergone rigorous audits by leading security experts from Cantina, as well as independent auditors.
@@ -108,13 +61,9 @@ For any security-related concerns, please refer to the [SECURITY](./SECURITY.md)
 
 ## Contributing
 
-Feel free to dive in! [Open](https://github.com/sablier-labs/flow/issues/new) an issue,
-[start](https://github.com/sablier-labs/flow/discussions/new) a discussion or submit
-[a PR](https://github.com/sablier-labs/flow/compare). For any concerns or feedback, please join our
-[Discord server](https://discord.gg/bSwRCwWRsT).
-
-Refer to [CONTRIBUTING](./CONTRIBUTING.md) guidelines if you wish to create a PR.
+Contributions are welcome. See [`AGENTS.md`](./AGENTS.md) for the development workflow, commands, and conventions.
 
 ## License
 
-See [LICENSE.md](./LICENSE.md).
+Sablier Flow is licensed under the Business Source License 1.1 (BUSL-1.1) and the GNU General Public License v3.0 or
+later (GPL-3.0-or-later). See [LICENSE.md](./LICENSE.md) for details.

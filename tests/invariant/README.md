@@ -1,4 +1,4 @@
-### List of Invariants Implemented in [Flow.t.sol](./Flow.t.sol)
+### List of Invariants Implemented in [Invariant.t.sol](./Invariant.t.sol)
 
 1. Next stream id = Current stream id + 1
 
