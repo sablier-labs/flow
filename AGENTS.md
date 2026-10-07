@@ -13,9 +13,9 @@ Guidance for agents and developers working in this repository.
 - **Language:** Solidity `0.8.29` (pinned in `foundry.toml`; contracts declare `>=0.8.22`)
 - **Framework:** [Foundry](https://getfoundry.sh) / Forge — `evm_version = "shanghai"`
 - **Package manager:** [Bun](https://bun.sh) (`bun.lock`)
-- **Command runner:** [Just](https://github.com/casey/just) — recipes imported from `@sablier/devkit/just/evm.just`
+- **Command runner:** [Just](https://github.com/casey/just) — recipes imported from `@prb/devkit/just/evm.just`
 - **Testing:** Forge + [Bulloak](https://bulloak.dev) (Branching Tree Technique)
-- **Lint/format:** Solhint, `forge fmt`, Prettier (config from `@sablier/devkit`); Husky + lint-staged on commit
+- **Lint/format:** Solhint, `forge fmt`, Prettier (config from `@prb/devkit`); Husky + lint-staged on commit
 - **Dependencies:** OpenZeppelin Contracts `5.3.0`, PRBMath `4.1.0`, `@sablier/evm-utils`, forge-std
 
 ## Commands
